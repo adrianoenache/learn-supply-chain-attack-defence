@@ -1,5 +1,93 @@
 # Learn supply chain attack defence
 
+## Índice
+
+- [Início Rápido](#início-rápido)
+  - [1. Chave SSH para o GitHub](#1-chave-ssh-para-o-github)
+  - [2. Clone e setup](#2-clone-e-setup)
+- [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento)
+  - [Pré-requisitos](#pré-requisitos)
+  - [Configuração de Identidade Git](#configuração-de-identidade-git)
+  - [Configuração do Husky no WSL com nvm](#configuração-do-husky-no-wsl-com-nvm)
+- [Git Hooks](#git-hooks)
+- [Segurança](#segurança)
+  - [O que é um Supply Chain Attack?](#o-que-é-um-supply-chain-attack)
+  - [Medida 1 — Verificação de Idade dos Pacotes](#medida-1--verificação-de-idade-dos-pacotes-check-package-agejs)
+  - [Medida 2 — Verificação de Assinaturas](#medida-2--verificação-de-assinaturas-npm-audit-signatures)
+  - [Medida 3 — Auditoria de Vulnerabilidades](#medida-3--auditoria-de-vulnerabilidades-npm-audit)
+  - [Medida 4 — Instalação Determinística](#medida-4--instalação-determinística-npm-ci)
+  - [Medida 5 — Hook de Pré-commit](#medida-5--hook-de-pré-commit-husky)
+  - [Medida 6 — Configuração de Segurança do npm](#medida-6--configuração-de-segurança-do-npm-npmrc)
+  - [Resumo das Camadas de Defesa](#resumo-das-camadas-de-defesa)
+- [Referências](#referências)
+
+---
+
+## Início Rápido
+
+> **Pré-requisito:** ambiente configurado conforme [Ambiente de Desenvolvimento](#ambiente-de-desenvolvimento). As etapas abaixo pressupõem WSL 2, Git, nvm e Node.js já instalados.
+
+### 1. Chave SSH para o GitHub
+
+O repositório é clonado via SSH. Gere uma chave ed25519 e adicione-a à sua conta do GitHub:
+
+```bash
+# Gerar a chave (substitua pelo seu e-mail do GitHub)
+ssh-keygen -t ed25519 -C "seu@email.com"
+```
+
+> Um prompt de passphrase aparecerá. Pode ser deixado em branco pressionando Enter duas vezes, mas usar uma passphrase é mais seguro.
+
+Adicione a chave ao agente SSH:
+
+```bash
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+O agente SSH não persiste entre sessões do WSL. Para inicializá-lo automaticamente, adicione o bloco abaixo ao `~/.bashrc`:
+
+```bash
+# Inicializa o ssh-agent automaticamente se não estiver ativo
+if [ -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)"
+  ssh-add ~/.ssh/id_ed25519
+fi
+```
+
+Aplique a alteração na sessão atual:
+
+```bash
+source ~/.bashrc
+```
+
+Copie a chave pública e adicione-a em **GitHub → Settings → SSH and GPG keys → New SSH key**:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Valide a conexão:
+
+```bash
+ssh -T git@github.com
+# Hi <usuário>! You've successfully authenticated...
+```
+
+> Instruções detalhadas em [Generating a new SSH key and adding it to the ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent).
+
+### 2. Clone e setup
+
+```bash
+git clone git@github.com:adrianoenache/learn-supply-chain-attack-defence.git
+cd learn-supply-chain-attack-defence
+npm run setup
+```
+
+O script `npm run setup` executa, em ordem: verificação de idade dos pacotes, instalação determinística com `npm ci`, auditoria automática de vulnerabilidades (via `.npmrc`), verificação de assinaturas criptográficas e ativação dos hooks Husky.
+
+---
+
 ## Ambiente de Desenvolvimento
 
 Este projeto é desenvolvido em **WSL 2 com Ubuntu 24.04**, usando **nvm** como gerenciador do Node.js e a versão estável mais recente do Git.
@@ -50,8 +138,9 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 Feche e reabra o terminal, depois instale e ative a versão LTS do Node.js:
 
 ```bash
-nvm install --lts
-nvm use --lts
+nvm install 24.15.0
+nvm alias default 24.15.0
+nvm use default
 ```
 
 Confirme as versões instaladas (o projeto exige as versões definidas no campo `engines` do `package.json`):
@@ -60,6 +149,26 @@ Confirme as versões instaladas (o projeto exige as versões definidas no campo 
 node --version
 npm --version
 ```
+
+---
+
+### Configuração de Identidade Git
+
+Configure seu nome e e-mail globalmente. Esses dados são registrados em cada commit:
+
+```bash
+git config --global user.name "Seu Nome"
+git config --global user.email "seu@email.com"
+```
+
+Para projetos que exigem uma identidade diferente, sobrescreva localmente dentro do diretório do repositório:
+
+```bash
+git config --local user.name "Outro Nome"
+git config --local user.email "outro@email.com"
+```
+
+> Para mais opções de configuração, consulte o [capítulo de personalização do Git](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) no livro oficial.
 
 ---
 
@@ -98,11 +207,7 @@ O hook deve executar com sucesso, sem o erro `npm: not found`.
 
 > **Pré-requisito:** em ambientes WSL com nvm, configure o Husky antes de usar os hooks — veja [Configuração do Husky no WSL com nvm](#configuração-do-husky-no-wsl-com-nvm).
 
-O [Husky](https://typicode.github.io/husky/) executa automaticamente as seguintes verificações
-**antes de cada commit**:
-
-1. `npm audit signatures` — verifica a integridade dos pacotes contra o registry
-2. `npm audit --audit-level=high` — bloqueia commits se CVEs altas ou críticas estiverem presentes
+O [Husky](https://typicode.github.io/husky/) executa verificações de segurança automaticamente **antes de cada commit**. Consulte [Medida 5 — Hook de Pré-commit](#medida-5--hook-de-pré-commit-husky) para detalhes.
 
 ---
 
@@ -180,8 +285,51 @@ package.json (dependencies + devDependencies)
 > Isso é intencional — o script é executado **antes** de `npm ci`, portanto não pode
 > depender de nenhum pacote instalável. Qualquer dependência aqui seria um vetor de ataque em si.
 > O `package.json` é lido via `require()`, sem necessidade de `node:fs`. Adicionalmente, todas as
-> requisições ao registry têm um timeout de 10 segundos (`timeout: 10000`), evitando que o
-> processo trave indefinidamente em caso de lentidão ou indisponibilidade do registry.
+> requisições ao registry têm um timeout de 10 segundos (`timeout: 10000`) e um limite de tamanho
+> de resposta de 20 MB por pacote, evitando que o processo trave ou consuma memória excessiva em
+> caso de lentidão, indisponibilidade ou resposta anômala do registry.
+
+#### Robustez técnica
+
+- **Range operators** — versões declaradas com `^`, `~`, `>=`, `<=` etc. têm o operador removido
+  antes da consulta ao registry. Ranges não resolúveis para uma versão exata (`*`, `latest`,
+  `next`, `x.x.x`, ranges compostos como `"1.2 - 2.0"` ou `">=1.0.0 <2.0.0"`) causam erro com
+  mensagem orientativa solicitando que a versão seja fixada no `package.json`.
+
+- **Erros de rede mid-stream** — o script trata tanto falhas de conexão antes da resposta
+  (`req.on('error')`) quanto falhas após o início da transferência (`res.on('error')`), garantindo
+  que erros parciais de rede sejam sempre reportados com mensagem descritiva.
+
+- **Limite de tamanho de resposta** — documentos completos de pacotes com histórico longo (ex:
+  `eslint`, `typescript`, `webpack`) podem ter vários MB. O script limita a resposta a **20 MB
+  por pacote** por padrão, protegendo contra respostas malformadas, injeção de dados em trânsito
+  e consumo excessivo de memória em projetos com muitas dependências rodando consultas em paralelo.
+
+- **Guard de resolve/reject** — uma flag `settled` por requisição garante que `resolve` e
+  `reject` sejam chamados no máximo uma vez, prevenindo comportamento indefinido em cenários
+  onde `res.on('error')` e `res.on('end')` disparam em sequência no mesmo ciclo de eventos.
+
+#### Configuração
+
+O comportamento do script pode ser ajustado via campo `pkgAgeCheck` no `package.json`:
+
+| Campo | Padrão | Descrição |
+|---|---|---|
+| `maxResponseMB` | `20` | Limite máximo de tamanho por resposta do registry, em MB |
+
+**Exemplo — aumentar o limite para projetos com pacotes de histórico longo:**
+
+```json
+{
+  "pkgAgeCheck": {
+    "maxResponseMB": 50
+  }
+}
+```
+
+> O limite de 20 MB cobre todos os pacotes npm conhecidos. Aumente somente se o script
+> retornar o erro `Response for <nome> exceeds X MB limit` — esse erro indica que o documento
+> completo do pacote no registry excede o limite configurado.
 
 ---
 
@@ -232,6 +380,14 @@ relevantes para segurança:
 
 O `npm ci` garante que **exatamente os mesmos pacotes** sejam instalados em qualquer ambiente,
 eliminando ataques que dependam de resolução de versão não determinística.
+
+> **Pré-requisito:** o arquivo `package-lock.json` deve estar commitado no repositório. O `npm ci`
+> falha automaticamente caso o arquivo esteja ausente ou divergente do `package.json`. Para
+> verificar se ele está sob controle de versão:
+> ```bash
+> git ls-files package-lock.json
+> # Se o comando não retornar nada, o arquivo não está versionado
+> ```
 
 ---
 
@@ -303,9 +459,22 @@ independentemente do fluxo automatizado:
 
 ## Referências
 
+**Ambiente**
+
+- [Documentação oficial do WSL](https://learn.microsoft.com/pt-br/windows/wsl/install) — instalação do WSL 2 com Ubuntu
+- [Git — Instalando no Linux](https://git-scm.com/install/linux) — instalação do Git via PPA no Ubuntu
+- [Node.js no WSL — Microsoft Docs](https://learn.microsoft.com/pt-br/windows/dev-environment/javascript/nodejs-on-wsl) — configuração do nvm e Node.js no WSL
+- [Customizing Git — Git Configuration](https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration) — configuração de identidade Git
+- [Generating a new SSH key and adding it to the ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) — configuração de chave SSH para o GitHub
+
+**Node.js**
+
 - [npm: Criando Módulos Node.js](https://docs.npmjs.com/creating-node-js-modules) — estrutura do projeto e scripts
 - [node:https — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado no script de verificação de idade
 - [node:path — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado no script de verificação de idade
+
+**Segurança**
+
 - [Husky](https://typicode.github.io/husky/) — hooks Git
 - [Sigstore](https://www.sigstore.dev/) — infraestrutura de assinatura criptográfica de pacotes npm
 - [GitHub Advisory Database](https://github.com/advisories) — banco de dados de CVEs utilizado pelo npm audit
