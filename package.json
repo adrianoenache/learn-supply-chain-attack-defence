@@ -1,0 +1,25 @@
+{
+  "name": "learn-supply-chain-attack-defence",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": "Adriano Enache",
+  "description": "Learn supply chain attack defence",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adrianoenache/learn-supply-chain-attack-defence.git"
+  },
+  "engines": {
+    "node": ">=24.15.0",
+    "npm": ">=11.12.1"
+  },
+  "scripts": {
+    "setup": "node --version && npm --version && npm run pkg-age-check && npm ci && npm audit signatures && npm run prepare",
+    "pkg-age-check": "node ./tools/check-package-age.js",
+    "npm-reinstall": "node --version && npm --version && npm run pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && npm audit fix && npm run pkg-age-check && npm outdated",
+    "prepare": "husky",
+    "pre-commit": " npm audit signatures && npm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "husky": "9.1.7"
+  }
+}
