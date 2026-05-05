@@ -17,7 +17,7 @@
     "pkg-age-check": "node ./tools/check-package-age.js",
     "npm-reinstall": "node --version && npm --version && npm run pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && npm audit fix && npm run pkg-age-check && npm outdated",
     "prepare": "husky",
-    "pre-commit": " npm audit signatures && npm audit --audit-level=high"
+    "pre-commit": "npm audit signatures && npm audit --audit-level=high"
   },
   "devDependencies": {
     "husky": "9.1.7"
