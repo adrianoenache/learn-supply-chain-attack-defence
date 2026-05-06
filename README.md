@@ -143,7 +143,7 @@ nvm alias default 24.15.0
 nvm use default
 ```
 
-Confirme as versões instaladas (o projeto exige as versões definidas no campo `engines` do `package.json`):
+Confirme as versões instaladas. O npm bloqueia automaticamente a instalação se as versões não atenderem ao campo `engines` do `package.json` (via `engine-strict=true` no `.npmrc`):
 
 ```bash
 node --version
@@ -442,6 +442,7 @@ independentemente do fluxo automatizado:
 | `save-exact`     | `true`                            | Novas dependências salvas com versão exata, sem `^` ou `~`                    |
 | `registry`       | `https://registry.npmjs.org/`     | Fixa o registry oficial, impedindo redirect para mirrors comprometidos        |
 | `ignore-scripts` | `true`                            | Bloqueia lifecycle scripts (`preinstall`, `postinstall`) de todos os pacotes  |
+| `engine-strict`  | `true`                            | Bloqueia instalação se Node.js ou npm não atender ao campo `engines`          |
 | `audit`          | `true`                            | Executa `npm audit` automaticamente em todo `npm ci` ou `npm install`         |
 | `audit-level`    | `high`                            | Falha automaticamente se CVEs de severidade alta ou crítica forem detectadas  |
 

@@ -150,8 +150,10 @@ function fetchPackageAge(name, version) {
 // Cada elemento de `tasks` é uma função que retorna uma Promise (factory), não a Promise em si —
 // isso garante que a requisição HTTP só é iniciada quando um slot fica disponível.
 // Retorna um array no mesmo formato de Promise.allSettled.
+// Lista vazia resolve imediatamente com [].
 function runWithConcurrencyLimit(tasks, limit) {
   return new Promise((resolve) => {
+    if (tasks.length === 0) return resolve([])
     const results = new Array(tasks.length)
     let started = 0
     let completed = 0
