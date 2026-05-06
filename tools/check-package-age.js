@@ -19,7 +19,7 @@ const MIN_AGE_DAYS = 3
 // Somente módulos nativos são usados aqui — este script não pode depender de
 // pacotes instaláveis, pois é executado antes da própria instalação.
 const pkg = require(path.resolve(__dirname, '../package.json'))
-const deps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) }
+const deps = { ...pkg.dependencies, ...pkg.devDependencies }
 
 // Limite máximo de tamanho por resposta do registry (padrão: 20 MB).
 // Documentos completos de pacotes com histórico longo podem ser grandes, mas nenhum
