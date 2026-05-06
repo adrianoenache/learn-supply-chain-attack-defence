@@ -10,6 +10,7 @@
   - [Configuração de Identidade Git](#configuração-de-identidade-git)
   - [Configuração do Husky no WSL com nvm](#configuração-do-husky-no-wsl-com-nvm)
 - [Git Hooks](#git-hooks)
+- [Adicionando Novas Dependências](#adicionando-novas-dependências)
 - [Segurança](#segurança)
   - [O que é um Supply Chain Attack?](#o-que-é-um-supply-chain-attack)
   - [Medida 1 — Verificação de Idade dos Pacotes](#medida-1--verificação-de-idade-dos-pacotes-check-package-agejs)
@@ -211,6 +212,61 @@ O [Husky](https://typicode.github.io/husky/) executa verificações de seguranç
 
 ---
 
+## Adicionando Novas Dependências
+
+> **Por que não usar `npm install <pacote>` diretamente?**
+> O `.npmrc` deste projeto configura `ignore-scripts=true`, o que bloqueia os lifecycle scripts de pacotes instalados — mas também bloqueia o script `preinstall` do projeto raiz. Isso significa que **`npm install <pacote>` direto bypassa silenciosamente o `check-package-age.js`**, permitindo a instalação de um pacote recém-publicado sem verificação de idade.
+
+Sempre use `npm run add` para garantir que todas as verificações de segurança sejam executadas antes da instalação:
+
+```bash
+# Adicionar como dependência de produção (versão exata obrigatória)
+npm run add -- lodash@4.17.21
+
+# Adicionar como devDependency
+npm run add -- @types/node@22.15.3 --dev
+
+# Verificar a idade sem instalar (dry-run)
+npm run add -- express@4.21.2 --dry-run
+```
+
+O script executa, em ordem:
+
+```
+npm run add -- <pacote>@<versão>
+        │
+        ├── 1. Valida o especificador (bloqueia injeção de shell)
+        │
+        ├── 2. Verifica a idade via check-package-age.js
+        │         └── BLOQUEADO se publicado há < minAgeDays dias
+        │
+        ├── 3. npm install --save-exact <pacote>@<versão>
+        │         └── PULADO se --dry-run
+        │
+        └── 4. npm audit signatures
+                  └── Falha se assinatura inválida
+```
+
+> **Versão exata obrigatória:** `npm run add` exige que a versão seja especificada explicitamente (ex: `lodash@4.17.21`, não `lodash`). Isso garante que a verificação de idade opera sobre a versão que será instalada, e não sobre uma versão resolvida automaticamente pelo registry no momento da instalação. A configuração `save-exact=true` no `.npmrc` garante que a versão seja salva no `package.json` sem os operadores `^` ou `~`.
+
+### Pacotes com lifecycle scripts
+
+O `.npmrc` configura `ignore-scripts=true`, bloqueando os lifecycle scripts (`preinstall`, `postinstall`, `install`) de todos os pacotes instalados. Isso elimina o principal vetor de supply chain attacks — mas alguns pacotes com binários nativos (ex: `esbuild`, `sharp`, `canvas`) precisam de um `postinstall` para compilar ou baixar o binário nativo.
+
+Para esses casos, após instalar via `npm run add`, execute o `rebuild` explicitamente:
+
+```bash
+# 1. Instalar o pacote normalmente (sem lifecycle scripts)
+npm run add -- sharp@0.34.0
+
+# 2. Executar o postinstall do pacote específico manualmente
+npm_config_ignore_scripts=false npm rebuild sharp
+```
+
+Este fluxo mantém a proteção do `ignore-scripts=true` para todos os outros pacotes e executa o rebuild apenas para o pacote autorizado explicitamente.
+
+---
+
 ## Segurança
 
 Este projeto adota defesa em profundidade contra ataques à cadeia de suprimentos de software
@@ -247,14 +303,15 @@ mais comuns são:
 ### Medida 1 — Verificação de Idade dos Pacotes (`check-package-age.js`)
 
 **Arquivo:** `tools/check-package-age.js`  
-**Executado em:** `npm run setup` e `npm run npm-reinstall` (duas vezes, com escopos diferentes)
+**Executado em:** `npm run setup`, `npm run npm-reinstall` (duas vezes, com escopos diferentes) e internamente pelo `add-package.js`
 
 Esta ferramenta consulta o registry do npm para cada dependência e verifica há quantos dias aquela versão específica foi publicada. Se qualquer pacote foi publicado há menos de **3 dias**, a instalação é abortada com erro.
 
-O script opera em dois modos:
+O script opera em três modos:
 
 - **Modo padrão** (`npm run pkg-age-check`) — checa apenas as dependências declaradas em `package.json`. Usado **antes** do `npm ci`, quando o `node_modules/` ainda não existe.
 - **Modo transitivo** (`node ./tools/check-package-age.js --transitive`) — lê o `package-lock.json` e checa **todas** as dependências resolvidas, incluindo transitivas. Usado **após** o `npm ci`, quando o lockfile já foi instalado.
+- **Modo pontual** (`node ./tools/check-package-age.js --pkg lodash@4.17.21`) — checa um único pacote com versão exata. Invocado internamente pelo `add-package.js` antes de cada instalação. Pode ser usado manualmente para verificar um pacote antes de decidir adicioná-lo.
 
 #### Por que 3 dias?
 
@@ -294,6 +351,17 @@ package-lock.json (packages["node_modules/*"].version)
         │
         ▼
   (mesmo fluxo acima)
+```
+
+**Modo pontual** (flag `--pkg nome@versão`):
+```
+Argumento --pkg name@x.y.z
+        │
+        ▼
+  Valida formato (bloqueia injeção de shell)
+        │
+        ▼
+  (mesmo fluxo do modo padrão para o único pacote)
 ```
 
 > **Nota de design:** o script usa apenas módulos nativos do Node.js (`node:https`, `node:path`).
@@ -446,6 +514,8 @@ independentemente do fluxo automatizado:
 | `audit`          | `true`                            | Executa `npm audit` automaticamente em todo `npm ci` ou `npm install`         |
 | `audit-level`    | `high`                            | Falha automaticamente se CVEs de severidade alta ou crítica forem detectadas  |
 
+> **`ignore-scripts` e o script `preinstall` do projeto raiz:** o `ignore-scripts=true` bloqueia os lifecycle scripts de pacotes instalados **e também** o script `preinstall` do projeto raiz quando `npm install` é executado diretamente. Por isso, `npm install <pacote>` direto não dispara o `check-package-age.js` automaticamente. O fluxo documentado em [Adicionando Novas Dependências](#adicionando-novas-dependências) via `npm run add` é a única forma de garantir as verificações de segurança ao instalar um novo pacote.
+
 > **Por que `ignore-scripts` é crítico:** os lifecycle scripts de pacotes (`preinstall`,
 > `postinstall`, `install`) são o principal vetor dos ataques mais impactantes da história do
 > npm, incluindo event-stream (2018) e ua-parser-js (2021). Bloquear sua execução por padrão
@@ -467,6 +537,11 @@ independentemente do fluxo automatizado:
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Sempre               │ .npmrc                                                  │
 │ (qualquer npm)       │ → save-exact, registry fixo, ignore-scripts, audit      │
+├──────────────────────┼────────────────────────────────────────────────────────┤
+│ Ao adicionar         │ add-package.js (npm run add)                            │
+│ nova dependência     │ → check-package-age.js --pkg (bloqueia se muito recente)│
+│                      │ → npm install --save-exact                              │
+│                      │ → npm audit signatures                                  │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Antes do             │ check-package-age.js                                    │
 │ npm ci               │ → bloqueia pacotes publicados há < minAgeDays dias       │
@@ -501,8 +576,10 @@ independentemente do fluxo automatizado:
 **Node.js**
 
 - [npm: Criando Módulos Node.js](https://docs.npmjs.com/creating-node-js-modules) — estrutura do projeto e scripts
-- [node:https — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado no script de verificação de idade
-- [node:path — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado no script de verificação de idade
+- [node:https — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado nos scripts de verificação
+- [node:path — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado nos scripts de verificação
+- [node:child_process — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/child_process.html) — módulo nativo usado pelo `add-package.js` para invocar `npm install` e `npm audit signatures`
+- [npm lifecycle scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts#life-cycle-scripts) — referência sobre `preinstall`, `prepare` e o comportamento de `ignore-scripts`
 
 **Segurança**
 

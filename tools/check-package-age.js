@@ -7,10 +7,13 @@
 // Um atraso mínimo de dias dá tempo para scanners e a comunidade identificarem a ameaça.
 //
 // Uso:
-//   node ./tools/check-package-age.js             — checa dependências declaradas em package.json (pré-install)
-//   node ./tools/check-package-age.js --transitive — checa todas as dependências resolvidas em package-lock.json (pós-install)
+//   node ./tools/check-package-age.js                        — checa dependências declaradas em package.json (pré-install)
+//   node ./tools/check-package-age.js --transitive            — checa todas as dependências resolvidas em package-lock.json (pós-install)
+//   node ./tools/check-package-age.js --pkg lodash@4.17.21   — checa um único pacote com versão exata (verificação pontual)
 //
-// Invocado via script `pkg-age-check` (`setup`, `npm-reinstall` pré-install) e diretamente com --transitive (`npm-reinstall` pós-install).
+// Invocado via script `pkg-age-check` (`setup`, `npm-reinstall` pré-install),
+// diretamente com --transitive (`npm-reinstall` pós-install),
+// e pelo `add-package.js` internamente com --pkg antes de qualquer instalação.
 
 const https = require('node:https')
 const path = require('node:path')
@@ -20,11 +23,38 @@ const path = require('node:path')
 // pacotes instaláveis, pois é executado antes da própria instalação.
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
-// Com --transitive, lê o package-lock.json (lockfileVersion 3) e extrai todos os
-// pacotes resolvidos, cobrindo também dependências transitivas. Sem a flag, usa
-// apenas as dependências declaradas diretamente no package.json (comportamento
-// padrão, adequado para execução pré-install quando o lockfile ainda não existe).
+// Resolve o modo de operação a partir dos argumentos da linha de comando:
+// --transitive → lê package-lock.json e checa todas as dependências resolvidas
+// --pkg <nome@versão> → checa um único pacote informado pontualmente
+// (padrão) → checa dependências declaradas em package.json
 const transitive = process.argv.includes('--transitive')
+const pkgArgIndex = process.argv.indexOf('--pkg')
+const pkgArg = pkgArgIndex === -1 ? null : process.argv[pkgArgIndex + 1]
+
+// Valida que --pkg foi fornecido com um valor e que não mistura modos incompatíveis.
+// --pkg e --transitive são mutuamente exclusivos: --transitive opera sobre o lockfile
+// inteiro, enquanto --pkg é uma verificação pontual de um único pacote.
+if (pkgArgIndex !== -1 && !pkgArg) {
+  console.error('Error: --pkg requires a package name with an exact version. Example: --pkg lodash@4.17.21')
+  process.exit(1)
+}
+if (pkgArg && transitive) {
+  console.error('Error: --pkg and --transitive are mutually exclusive.')
+  process.exit(1)
+}
+
+// Valida caracteres permitidos em nomes de pacotes npm (incluindo escopo @org/name).
+// Rejeita entradas com caracteres de injeção de shell (;, &, |, $, `, \, <, >, !)
+// para prevenir execução de comandos arbitrários em ambientes que interpolem o valor.
+// O separador @ de versão é permitido apenas uma vez após o nome (ou após o escopo).
+// Referência de nomenclatura: https://docs.npmjs.com/cli/v10/configuring-npm/package-json#name
+const VALID_PKG_SPECIFIER_RE = /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
+if (pkgArg && !VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
+  console.error(`Error: invalid package specifier "${pkgArg}".`)
+  console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
+  process.exit(1)
+}
+
 let deps
 if (transitive) {
   const lock = require(path.resolve(__dirname, '../package-lock.json'))
@@ -36,6 +66,38 @@ if (transitive) {
       .filter(([key]) => key.startsWith('node_modules/'))
       .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
   )
+} else if (pkgArg) {
+  // Modo --pkg: decompõe "name@version" ou "@scope/name@version" em nome e versão.
+  // Pacotes com escopo (@org/name@version) têm o @ inicial preservado:
+  // remove o @ inicial, localiza o próximo @ (separador de versão), reconstrói o escopo.
+  let pkgName, pkgVersion
+  if (pkgArg.startsWith('@')) {
+    const withoutLeadingAt = pkgArg.slice(1)           // "org/name@version"
+    const atIdx = withoutLeadingAt.indexOf('@')
+    if (atIdx === -1) {
+      pkgName = pkgArg
+      pkgVersion = null                                 // sem versão → rejeitado abaixo
+    } else {
+      pkgName = '@' + withoutLeadingAt.slice(0, atIdx) // "@org/name"
+      pkgVersion = withoutLeadingAt.slice(atIdx + 1)   // "x.y.z"
+    }
+  } else {
+    const atIdx = pkgArg.indexOf('@')
+    if (atIdx === -1) {
+      pkgName = pkgArg
+      pkgVersion = null                                 // sem versão → rejeitado abaixo
+    } else {
+      pkgName = pkgArg.slice(0, atIdx)
+      pkgVersion = pkgArg.slice(atIdx + 1)
+    }
+  }
+  // Exige versão exata no modo --pkg para garantir que a verificação de idade
+  // opera sobre a versão específica que será instalada, não sobre um dist-tag.
+  if (!pkgVersion) {
+    console.error(`Error: --pkg requires an exact version. Use: --pkg ${pkgName}@x.y.z`)
+    process.exit(1)
+  }
+  deps = { [pkgName]: pkgVersion }
 } else {
   deps = { ...pkg.dependencies, ...pkg.devDependencies }
 }
@@ -246,7 +308,16 @@ async function main() {
   console.log(`\nAll packages passed the minimum age check.`)
 }
 
-main().catch((err) => {
-  console.error(`Unexpected error: ${err.message}`)
-  process.exit(1)
-})
+// Executa main() apenas quando o script é chamado diretamente via CLI.
+// Quando importado via require() por outro módulo (ex: add-package.js),
+// apenas as exportações ficam disponíveis — main() não é chamado.
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(`Unexpected error: ${err.message}`)
+    process.exit(1)
+  })
+}
+
+// Exporta funções utilitárias para reutilização pelo add-package.js.
+// Não afeta o comportamento quando executado diretamente via CLI.
+module.exports = { fetchPackageAge, resolveExactVersion }
