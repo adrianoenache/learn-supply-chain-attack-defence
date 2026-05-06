@@ -11,6 +11,7 @@
   - [Configuração do Husky no WSL com nvm](#configuração-do-husky-no-wsl-com-nvm)
 - [Git Hooks](#git-hooks)
 - [Adicionando Novas Dependências](#adicionando-novas-dependências)
+- [Testes](#testes)
 - [Segurança](#segurança)
   - [O que é um Supply Chain Attack?](#o-que-é-um-supply-chain-attack)
   - [Medida 1 — Verificação de Idade dos Pacotes](#medida-1--verificação-de-idade-dos-pacotes-check-package-agejs)
@@ -243,8 +244,11 @@ npm run add -- <pacote>@<versão>
         ├── 3. npm install --save-exact <pacote>@<versão>
         │         └── PULADO se --dry-run
         │
-        └── 4. npm audit signatures
-                  └── Falha se assinatura inválida
+        ├── 4. npm audit signatures
+        │         └── Falha se assinatura inválida
+        │
+        └── 5. npm audit --audit-level=high
+                  └── Falha se CVE alta ou crítica detectada
 ```
 
 > **Versão exata obrigatória:** `npm run add` exige que a versão seja especificada explicitamente (ex: `lodash@4.17.21`, não `lodash`). Isso garante que a verificação de idade opera sobre a versão que será instalada, e não sobre uma versão resolvida automaticamente pelo registry no momento da instalação. A configuração `save-exact=true` no `.npmrc` garante que a versão seja salva no `package.json` sem os operadores `^` ou `~`.
@@ -264,6 +268,24 @@ npm_config_ignore_scripts=false npm rebuild sharp
 ```
 
 Este fluxo mantém a proteção do `ignore-scripts=true` para todos os outros pacotes e executa o rebuild apenas para o pacote autorizado explicitamente.
+
+---
+
+## Testes
+
+O projeto inclui testes unitários para as funções utilitárias dos scripts de segurança. Os testes usam `node:test` e `node:assert` (módulos nativos do Node.js) — sem dependências externas de framework de teste.
+
+```bash
+npm test
+```
+
+Cobertura atual (`tools/check-package-age.test.js`, 29 casos):
+
+| Función | Casos testados |
+|---|---|
+| `resolveExactVersion` | Versões exatas, range operators (`^`, `~`, `>=`, `<=`), não-resolvíveis (`latest`, `*`, `x`, ranges compostos) |
+| `VALID_PKG_SPECIFIER_RE` | Pacotes válidos (com e sem escopo), injeção de shell (`;`, `&`, `\|`, `$`), traversal de diretório, string vazia |
+| `parsePackageArg` | Decompõe `nome@versão`, `@escopo/nome@versão`, versao ausente, preserva `@` do escopo |
 
 ---
 
@@ -542,6 +564,7 @@ independentemente do fluxo automatizado:
 │ nova dependência     │ → check-package-age.js --pkg (bloqueia se muito recente)│
 │                      │ → npm install --save-exact                              │
 │                      │ → npm audit signatures                                  │
+│                      │ → npm audit --audit-level=high                          │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Antes do             │ check-package-age.js                                    │
 │ npm ci               │ → bloqueia pacotes publicados há < minAgeDays dias       │
@@ -579,6 +602,7 @@ independentemente do fluxo automatizado:
 - [node:https — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado nos scripts de verificação
 - [node:path — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado nos scripts de verificação
 - [node:child_process — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/child_process.html) — módulo nativo usado pelo `add-package.js` para invocar `npm install` e `npm audit signatures`
+- [node:test — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/test.html) — framework de testes nativo usado em `check-package-age.test.js`
 - [npm lifecycle scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts#life-cycle-scripts) — referência sobre `preinstall`, `prepare` e o comportamento de `ignore-scripts`
 
 **Segurança**

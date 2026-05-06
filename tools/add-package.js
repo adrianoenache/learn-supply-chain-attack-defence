@@ -21,6 +21,7 @@
 //   2. Verifica a idade do pacote via check-package-age.js --pkg (aborta se muito recente)
 //   3. Instala com `npm install --save-exact` (pular se --dry-run)
 //   4. Verifica assinaturas criptográficas com `npm audit signatures`
+//   5. Audita vulnerabilidades conhecidas com `npm audit --audit-level=high`
 //
 // Pacotes com lifecycle scripts (postinstall, preinstall):
 //   O projeto usa ignore-scripts=true no .npmrc, bloqueando lifecycle scripts de todos
@@ -30,7 +31,6 @@
 //   Consulte a seção "Adicionando Novas Dependências" no README.md para detalhes.
 
 const { execSync } = require('node:child_process')
-const https = require('node:https')
 const path = require('node:path')
 
 // Reutiliza fetchPackageAge e resolveExactVersion do check-package-age.js para manter
@@ -43,7 +43,6 @@ const pkg = require(path.resolve(__dirname, '../package.json'))
 
 // Lê as mesmas configurações do check-package-age.js para manter comportamento consistente.
 const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 3
-const MAX_RESPONSE_BYTES = ((pkg.pkgAgeCheck?.maxResponseMB) ?? 20) * 1024 * 1024
 
 // Valida caracteres permitidos em nomes de pacotes npm (incluindo escopo @org/name).
 // Mesma regex do check-package-age.js — rejeita injeção de shell antes de qualquer
@@ -61,20 +60,23 @@ const isDryRun = args.includes('--dry-run')
 
 // Valida os argumentos antes de qualquer operação de rede ou disco.
 // Falha com mensagem de uso clara para orientar o colaborador.
-if (!pkgArg) {
-  console.error('Error: missing package argument.')
-  console.error('Usage: npm run add -- <package>@<version> [--dev] [--dry-run]')
-  console.error('Examples:')
-  console.error('  npm run add -- lodash@4.17.21')
-  console.error('  npm run add -- @types/node@22.15.3 --dev')
-  console.error('  npm run add -- express@4.21.2 --dry-run')
-  process.exit(1)
-}
+// Executado apenas no modo CLI — não dispara ao importar via require().
+function validateArgs() {
+  if (!pkgArg) {
+    console.error('Error: missing package argument.')
+    console.error('Usage: npm run add -- <package>@<version> [--dev] [--dry-run]')
+    console.error('Examples:')
+    console.error('  npm run add -- lodash@4.17.21')
+    console.error('  npm run add -- @types/node@22.15.3 --dev')
+    console.error('  npm run add -- express@4.21.2 --dry-run')
+    process.exit(1)
+  }
 
-if (!VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
-  console.error(`Error: invalid package specifier "${pkgArg}".`)
-  console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
-  process.exit(1)
+  if (!VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
+    console.error(`Error: invalid package specifier "${pkgArg}".`)
+    console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
+    process.exit(1)
+  }
 }
 
 // Decompõe "name@version" ou "@scope/name@version" em nome e versão.
@@ -94,57 +96,6 @@ function parsePackageArg(input) {
   const atIdx = input.indexOf('@')
   if (atIdx === -1) return { name: input, version: null }
   return { name: input.slice(0, atIdx), version: input.slice(atIdx + 1) }
-}
-
-// Consulta o npm registry para resolver dist-tags (ex: "latest", "next") em versão exata.
-// Usado como fallback quando o usuário não informar uma versão numérica — mas este script
-// exige versão exata, portanto esta função é um safety net para dist-tags válidos.
-//
-// Usa o endpoint /name/latest em vez do documento completo para evitar baixar o
-// histórico completo de versões apenas para resolver um dist-tag.
-function resolveLatestVersion(name) {
-  return new Promise((resolve, reject) => {
-    // Guard contra chamadas duplas a resolve/reject (mesmo padrão do check-package-age.js).
-    let settled = false
-    const safeResolve = (val) => { if (!settled) { settled = true; resolve(val) } }
-    const safeReject = (err) => { if (!settled) { settled = true; reject(err) } }
-
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/latest`
-    const req = https.get(url, { headers: { 'Accept': 'application/json' }, timeout: 10000 }, (res) => {
-      let data = ''
-
-      res.on('data', (chunk) => {
-        data += chunk
-        if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
-          res.destroy()
-          safeReject(new Error(`Response for ${name}/latest exceeds size limit`))
-        }
-      })
-
-      // Erros mid-stream precisam de handler próprio (conexão perdida após início da resposta).
-      res.on('error', (err) => safeReject(new Error(`Stream error for ${name}: ${err.message}`)))
-
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          safeReject(new Error(`Registry returned HTTP ${res.statusCode} for ${name}`))
-          return
-        }
-        try {
-          const info = JSON.parse(data)
-          if (!info.version) {
-            safeReject(new Error(`Could not find version field in registry response for ${name}`))
-            return
-          }
-          safeResolve(info.version)
-        } catch (err) {
-          safeReject(new Error(`Failed to parse registry response for ${name}: ${err.message}`))
-        }
-      })
-    })
-
-    req.on('timeout', () => { req.destroy(); safeReject(new Error(`Timeout resolving latest version for ${name}`)) })
-    req.on('error', (err) => safeReject(new Error(`Network error for ${name}: ${err.message}`)))
-  })
 }
 
 async function main() {
@@ -223,7 +174,7 @@ async function main() {
 
   // Passo 4 — Verificar assinaturas criptográficas pós-instalação.
   // Detecta adulteração do pacote em trânsito (MITM) ou substituição local de node_modules/.
-  // Se falhar, orienta a restauração do estado limpo via npm ci.
+  // Complementado pelo Passo 5, que verifica CVEs conhecidas após confirmar a integridade.
   console.log('\nVerifying package signatures...')
   try {
     execSync('npm audit signatures', { stdio: 'inherit' })
@@ -233,11 +184,33 @@ async function main() {
     process.exit(1)
   }
 
+  // Passo 5 — Auditar vulnerabilidades conhecidas pós-instalação.
+  // Garante que o pacote recém-instalado não introduz CVEs de severidade alta ou crítica.
+  // Executado após o audit de assinaturas para cobrir ambos os vetores no mesmo fluxo.
+  console.log('\nAuditing for known vulnerabilities...')
+  try {
+    execSync('npm audit --audit-level=high', { stdio: 'inherit' })
+  } catch {
+    console.error('\nVulnerability audit FAILED — high or critical CVE detected.')
+    console.error('Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.')
+    console.error(`To remove the package: npm uninstall ${name}`)
+    process.exit(1)
+  }
+
   console.log(`\nDone. ${name}@${exactVersion} added successfully.`)
   console.log('Remember to commit both package.json and package-lock.json.')
 }
 
-main().catch((err) => {
-  console.error(`Unexpected error: ${err.message}`)
-  process.exit(1)
-})
+// Executa main() apenas quando o script é chamado diretamente via CLI.
+// Quando importado via require() por testes ou outros módulos,
+// apenas as exportações ficam disponíveis — main() não é chamado.
+if (require.main === module) {
+  validateArgs()
+  main().catch((err) => {
+    console.error(`Unexpected error: ${err.message}`)
+    process.exit(1)
+  })
+}
+
+// Exporta funções utilitárias para uso nos testes.
+module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE }
