@@ -247,11 +247,14 @@ mais comuns são:
 ### Medida 1 — Verificação de Idade dos Pacotes (`check-package-age.js`)
 
 **Arquivo:** `tools/check-package-age.js`  
-**Executado em:** `npm run setup` e `npm run npm-reinstall`
+**Executado em:** `npm run setup` e `npm run npm-reinstall` (duas vezes, com escopos diferentes)
 
-Esta ferramenta consulta o registry do npm para **cada dependência declarada** no `package.json`
-e verifica há quantos dias aquela versão específica foi publicada. Se qualquer pacote foi publicado
-há menos de **3 dias**, a instalação é abortada com erro.
+Esta ferramenta consulta o registry do npm para cada dependência e verifica há quantos dias aquela versão específica foi publicada. Se qualquer pacote foi publicado há menos de **3 dias**, a instalação é abortada com erro.
+
+O script opera em dois modos:
+
+- **Modo padrão** (`npm run pkg-age-check`) — checa apenas as dependências declaradas em `package.json`. Usado **antes** do `npm ci`, quando o `node_modules/` ainda não existe.
+- **Modo transitivo** (`node ./tools/check-package-age.js --transitive`) — lê o `package-lock.json` e checa **todas** as dependências resolvidas, incluindo transitivas. Usado **após** o `npm ci`, quando o lockfile já foi instalado.
 
 #### Por que 3 dias?
 
@@ -262,6 +265,7 @@ esse atraso elimina a janela.
 
 #### Como funciona tecnicamente
 
+**Modo padrão** (pré-install):
 ```
 package.json (dependencies + devDependencies)
         │
@@ -277,17 +281,29 @@ package.json (dependencies + devDependencies)
         ▼
   idade = hoje − data_publicação (em dias)
         │
-        ├─ idade >= 3 dias → OK, continua
-        └─ idade < 3 dias  → ERRO, aborta instalação
+        ├─ idade >= minAgeDays → OK, continua
+        └─ idade < minAgeDays  → ERRO, aborta instalação
+```
+
+**Modo transitivo** (pós-install, flag `--transitive`):
+```
+package-lock.json (packages["node_modules/*"].version)
+        │
+        ▼
+  Para cada pacote@versão resolvida (diretas + transitivas)
+        │
+        ▼
+  (mesmo fluxo acima)
 ```
 
 > **Nota de design:** o script usa apenas módulos nativos do Node.js (`node:https`, `node:path`).
-> Isso é intencional — o script é executado **antes** de `npm ci`, portanto não pode
+> Isso é intencional — o modo padrão é executado **antes** de `npm ci`, portanto não pode
 > depender de nenhum pacote instalável. Qualquer dependência aqui seria um vetor de ataque em si.
-> O `package.json` é lido via `require()`, sem necessidade de `node:fs`. Adicionalmente, todas as
-> requisições ao registry têm um timeout de 10 segundos (`timeout: 10000`) e um limite de tamanho
-> de resposta de 20 MB por pacote, evitando que o processo trave ou consuma memória excessiva em
-> caso de lentidão, indisponibilidade ou resposta anômala do registry.
+> Tanto `package.json` quanto `package-lock.json` são lidos via `require()`, sem necessidade de
+> `node:fs`. Adicionalmente, todas as requisições ao registry têm um timeout de 10 segundos
+> (`timeout: 10000`) e um limite de tamanho de resposta de 20 MB por pacote, evitando que o
+> processo trave ou consuma memória excessiva em caso de lentidão, indisponibilidade ou resposta
+> anômala do registry.
 
 #### Robustez técnica
 
@@ -303,7 +319,11 @@ package.json (dependencies + devDependencies)
 - **Limite de tamanho de resposta** — documentos completos de pacotes com histórico longo (ex:
   `eslint`, `typescript`, `webpack`) podem ter vários MB. O script limita a resposta a **20 MB
   por pacote** por padrão, protegendo contra respostas malformadas, injeção de dados em trânsito
-  e consumo excessivo de memória em projetos com muitas dependências rodando consultas em paralelo.
+  e consumo excessivo de memória em projetos com muitas dependências.
+
+- **Concorrência controlada** — as consultas ao registry são executadas com no máximo 10
+  requisições simultâneas (padrão), evitando rate-limiting em projetos com muitas dependências
+  transitivas. O limite é configurável via `pkgAgeCheck.concurrency`.
 
 - **Guard de resolve/reject** — uma flag `settled` por requisição garante que `resolve` e
   `reject` sejam chamados no máximo uma vez, prevenindo comportamento indefinido em cenários
@@ -315,14 +335,18 @@ O comportamento do script pode ser ajustado via campo `pkgAgeCheck` no `package.
 
 | Campo | Padrão | Descrição |
 |---|---|---|
+| `minAgeDays` | `3` | Número mínimo de dias desde a publicação para aceitar um pacote |
 | `maxResponseMB` | `20` | Limite máximo de tamanho por resposta do registry, em MB |
+| `concurrency` | `10` | Número máximo de consultas simultâneas ao registry |
 
-**Exemplo — aumentar o limite para projetos com pacotes de histórico longo:**
+**Exemplo — ajustar os limites:**
 
 ```json
 {
   "pkgAgeCheck": {
-    "maxResponseMB": 50
+    "minAgeDays": 7,
+    "maxResponseMB": 50,
+    "concurrency": 5
   }
 }
 ```
@@ -438,15 +462,15 @@ independentemente do fluxo automatizado:
 │ (qualquer npm)       │ → save-exact, registry fixo, ignore-scripts, audit      │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Antes do             │ check-package-age.js                                    │
-│ npm ci               │ → bloqueia pacotes publicados há < 3 dias               │
+│ npm ci               │ → bloqueia pacotes publicados há < minAgeDays dias       │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Após o               │ npm audit signatures                                    │
 │ npm ci               │ → verifica integridade criptográfica                    │
 │                      │ npm audit (automático via .npmrc)                       │
 │                      │ → bloqueia CVEs altas/críticas                          │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
-│ Após                 │ check-package-age.js (reexecutado)                      │
-│ npm audit fix        │ → valida idade das versões atualizadas pelo audit fix   │
+│ Após                 │ check-package-age.js --transitive                       │
+│ npm audit fix        │ → valida idade de todas as versões resolvidas (transitivas incluídas) │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Antes do             │ npm audit signatures                                    │
 │ git commit           │ → verifica integridade criptográfica                    │

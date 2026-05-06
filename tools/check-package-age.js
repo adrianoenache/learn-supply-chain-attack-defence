@@ -6,27 +6,55 @@
 // de uma versão maliciosa e sua remoção antes de ser amplamente detectada.
 // Um atraso mínimo de dias dá tempo para scanners e a comunidade identificarem a ameaça.
 //
-// Uso: node ./tools/check-package-age.js
-// Invocado via script `pkg-age-check`, chamado por `setup` (uma vez) e `npm-reinstall` (duas vezes) do package.json.
+// Uso:
+//   node ./tools/check-package-age.js             — checa dependências declaradas em package.json (pré-install)
+//   node ./tools/check-package-age.js --transitive — checa todas as dependências resolvidas em package-lock.json (pós-install)
+//
+// Invocado via script `pkg-age-check` (`setup`, `npm-reinstall` pré-install) e diretamente com --transitive (`npm-reinstall` pós-install).
 
 const https = require('node:https')
 const path = require('node:path')
-
-// Número mínimo de dias que um pacote deve ter desde sua publicação para ser aceito.
-const MIN_AGE_DAYS = 3
 
 // Lê as dependências declaradas no package.json do projeto.
 // Somente módulos nativos são usados aqui — este script não pode depender de
 // pacotes instaláveis, pois é executado antes da própria instalação.
 const pkg = require(path.resolve(__dirname, '../package.json'))
-const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+
+// Com --transitive, lê o package-lock.json (lockfileVersion 3) e extrai todos os
+// pacotes resolvidos, cobrindo também dependências transitivas. Sem a flag, usa
+// apenas as dependências declaradas diretamente no package.json (comportamento
+// padrão, adequado para execução pré-install quando o lockfile ainda não existe).
+const transitive = process.argv.includes('--transitive')
+let deps
+if (transitive) {
+  const lock = require(path.resolve(__dirname, '../package-lock.json'))
+  // O formato lockfileVersion 3 armazena cada pacote instalado sob a chave
+  // "node_modules/<name>" no objeto `packages`. A chave "" representa o próprio
+  // projeto raiz e é filtrada. O campo `version` contém sempre a versão exata resolvida.
+  deps = Object.fromEntries(
+    Object.entries(lock.packages)
+      .filter(([key]) => key.startsWith('node_modules/'))
+      .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
+  )
+} else {
+  deps = { ...pkg.dependencies, ...pkg.devDependencies }
+}
+
+// Número mínimo de dias que um pacote deve ter desde sua publicação para ser aceito.
+// Configurável via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
+const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 3
 
 // Limite máximo de tamanho por resposta do registry (padrão: 20 MB).
 // Documentos completos de pacotes com histórico longo podem ser grandes, mas nenhum
 // pacote real conhecido ultrapassa 20 MB. O cap protege contra cenários patológicos
 // (resposta malformada, injeção de dados em trânsito, loop infinito de chunks).
-// Para sobrescrever, adicione ao package.json: "pkgAgeCheck": { "maxResponseMB": 50 }
+// Para sobrescrever, adicione ao package.json: "pkgAgeCheck": { "minAgeDays": 3, "maxResponseMB": 50 }
 const MAX_RESPONSE_BYTES = ((pkg.pkgAgeCheck?.maxResponseMB) ?? 20) * 1024 * 1024
+
+// Número máximo de consultas simultâneas ao registry (padrão: 10).
+// Evita rate-limiting em projetos com muitas dependências.
+// Configurável via package.json: "pkgAgeCheck": { "concurrency": 5 }
+const CONCURRENCY = (pkg.pkgAgeCheck?.concurrency) ?? 10
 
 // Remove range operators semver (`^`, `~`, `>=`, `<=`, `>`, `<`, `=`) do início
 // de uma string de versão, retornando a versão exata, ou null se não for resolvível
@@ -118,6 +146,36 @@ function fetchPackageAge(name, version) {
   })
 }
 
+// Executa um array de funções assíncronas com no máximo `limit` rodando simultaneamente.
+// Cada elemento de `tasks` é uma função que retorna uma Promise (factory), não a Promise em si —
+// isso garante que a requisição HTTP só é iniciada quando um slot fica disponível.
+// Retorna um array no mesmo formato de Promise.allSettled.
+function runWithConcurrencyLimit(tasks, limit) {
+  return new Promise((resolve) => {
+    const results = new Array(tasks.length)
+    let started = 0
+    let completed = 0
+
+    function runNext() {
+      if (started >= tasks.length) return
+      const index = started++
+      Promise.resolve().then(() => tasks[index]()).then(
+        (value) => { results[index] = { status: 'fulfilled', value }; onDone() },
+        (reason) => { results[index] = { status: 'rejected', reason }; onDone() }
+      )
+    }
+
+    function onDone() {
+      completed++
+      if (completed === tasks.length) { resolve(results); return }
+      runNext()
+    }
+
+    const initial = Math.min(limit, tasks.length)
+    for (let i = 0; i < initial; i++) runNext()
+  })
+}
+
 async function main() {
   const entries = Object.entries(deps)
 
@@ -126,21 +184,23 @@ async function main() {
     process.exit(0)
   }
 
-  console.log(`Checking publish age for ${entries.length} package(s) (minimum: ${MIN_AGE_DAYS} days)...\n`)
+  const scope = transitive ? 'transitive (package-lock.json)' : 'declared (package.json)'
+  console.log(`Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${MIN_AGE_DAYS} days)...\n`)
 
-  // Consulta todos os pacotes em paralelo para reduzir o tempo total de execução.
-  // Promise.allSettled garante que todas as consultas são concluídas antes de avaliar
+  // Consulta todos os pacotes com concorrência limitada a CONCURRENCY requisições simultâneas.
+  // runWithConcurrencyLimit garante que todas as consultas são concluídas antes de avaliar
   // os resultados, mesmo que algumas falhem — permitindo um relatório completo.
   // Versões com range operators (^, ~, >=, etc.) são normalizadas para a versão exata
   // antes da consulta; ranges não resolvíveis (*, latest) são rejeitados.
-  const results = await Promise.allSettled(
-    entries.map(([name, rawVersion]) => {
+  const results = await runWithConcurrencyLimit(
+    entries.map(([name, rawVersion]) => () => {
       const version = resolveExactVersion(rawVersion)
       if (!version) {
         return Promise.reject(new Error(`Cannot determine exact version for ${name}@${rawVersion} — pin to an exact version to allow age check`))
       }
       return fetchPackageAge(name, version)
-    })
+    }),
+    CONCURRENCY
   )
 
   // Separa os pacotes em duas listas: bloqueados (muito novos) e com erro de consulta.
