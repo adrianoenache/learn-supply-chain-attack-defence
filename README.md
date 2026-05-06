@@ -450,6 +450,12 @@ independentemente do fluxo automatizado:
 > npm, incluindo event-stream (2018) e ua-parser-js (2021). Bloquear sua execução por padrão
 > elimina esse vetor completamente para todas as dependências instaladas.
 
+> **Por que o Husky não é afetado por `ignore-scripts`:** `ignore-scripts` bloqueia lifecycle
+> scripts de **pacotes instalados** (dependências de terceiros em `node_modules/`). O script
+> `prepare` é definido no `package.json` do **próprio projeto** — o npm executa scripts do
+> projeto raiz normalmente, independentemente de `ignore-scripts`. Por isso `npm run prepare`
+> (que chama `husky`) funciona corretamente durante `npm ci` e `npm run setup`.
+
 ---
 
 ### Resumo das Camadas de Defesa
