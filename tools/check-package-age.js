@@ -99,7 +99,7 @@ if (transitive) {
   }
   deps = { [pkgName]: pkgVersion }
 } else {
-  deps = { ...pkg.dependencies, ...pkg.devDependencies }
+  deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies, ...pkg.optionalDependencies }
 }
 
 // Número mínimo de dias que um pacote deve ter desde sua publicação para ser aceito.
@@ -320,4 +320,4 @@ if (require.main === module) {
 
 // Exporta funções utilitárias para reutilização pelo add-package.js.
 // Não afeta o comportamento quando executado diretamente via CLI.
-module.exports = { fetchPackageAge, resolveExactVersion }
+module.exports = { fetchPackageAge, resolveExactVersion, runWithConcurrencyLimit, MAX_RESPONSE_BYTES }

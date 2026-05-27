@@ -1,7 +1,7 @@
 'use strict'
 
-// Testes unitários para as funções utilitárias de check-package-age.js e add-package.js.
-// Usa node:test + node:assert (módulos nativos, Node.js >= 18) — zero dependências extras.
+// Testes para check-package-age.js e add-package.js.
+// Usa node:test + node:assert + node:child_process (módulos nativos, Node.js >= 18) — zero dependências extras.
 //
 // Executar:
 //   npm test
@@ -10,10 +10,11 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { EventEmitter } = require('node:events')
 
 // Importa as funções exportadas — o guard `require.main === module` em ambos os arquivos
 // garante que main() não é executado ao importar via require().
-const { resolveExactVersion } = require(path.resolve(__dirname, './check-package-age.js'))
+const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES } = require(path.resolve(__dirname, './check-package-age.js'))
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
@@ -178,5 +179,351 @@ describe('parsePackageArg', () => {
     const result = parsePackageArg('@types/node@22.15.3')
     assert.ok(result.name.startsWith('@'))
     assert.equal(result.name, '@types/node')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// runWithConcurrencyLimit
+// ---------------------------------------------------------------------------
+
+describe('runWithConcurrencyLimit', () => {
+  test('resolve com [] para lista de tasks vazia', async () => {
+    const results = await runWithConcurrencyLimit([], 5)
+    assert.deepEqual(results, [])
+  })
+
+  test('executa todas as tasks e retorna resultados no formato allSettled', async () => {
+    const tasks = [
+      () => Promise.resolve('a'),
+      () => Promise.resolve('b'),
+      () => Promise.resolve('c'),
+    ]
+    const results = await runWithConcurrencyLimit(tasks, 2)
+    assert.deepEqual(results, [
+      { status: 'fulfilled', value: 'a' },
+      { status: 'fulfilled', value: 'b' },
+      { status: 'fulfilled', value: 'c' },
+    ])
+  })
+
+  test('tarefa rejeitada nao interrompe as demais', async () => {
+    const tasks = [
+      () => Promise.resolve('ok1'),
+      () => Promise.reject(new Error('falha')),
+      () => Promise.resolve('ok2'),
+    ]
+    const results = await runWithConcurrencyLimit(tasks, 3)
+    assert.equal(results.length, 3)
+    assert.equal(results[0].status, 'fulfilled')
+    assert.equal(results[0].value, 'ok1')
+    assert.equal(results[1].status, 'rejected')
+    assert.equal(results[1].reason.message, 'falha')
+    assert.equal(results[2].status, 'fulfilled')
+    assert.equal(results[2].value, 'ok2')
+  })
+
+  test('mantém ordem dos resultados independente da ordem de conclusão', async () => {
+    // Task 0 usa setImmediate (mais lenta), task 1 resolve imediatamente.
+    // O índice do resultado deve seguir a ordem de inserção, não a de conclusão.
+    const results = await runWithConcurrencyLimit([
+      () => new Promise((res) => setImmediate(() => res('lento'))),
+      () => Promise.resolve('rapido'),
+    ], 2)
+    assert.equal(results[0].value, 'lento')
+    assert.equal(results[1].value, 'rapido')
+  })
+
+  test('respeita o limite de concorrência', async () => {
+    let running = 0
+    let maxRunning = 0
+    const LIMIT = 3
+    const tasks = Array.from({ length: 10 }, () => () =>
+      new Promise((resolve) => {
+        running++
+        if (running > maxRunning) maxRunning = running
+        setImmediate(() => {
+          running--
+          resolve()
+        })
+      })
+    )
+    await runWithConcurrencyLimit(tasks, LIMIT)
+    assert.ok(maxRunning <= LIMIT, `Máximo simultâneo foi ${maxRunning}, esperado <= ${LIMIT}`)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// fetchPackageAge
+// ---------------------------------------------------------------------------
+
+describe('fetchPackageAge', () => {
+  const https = require('node:https')
+
+  // Cria um objeto de requisição mock com handlers de evento manuais.
+  function makeMockRequest() {
+    const req = new EventEmitter()
+    req.destroy = () => {}
+    return req
+  }
+
+  // Cria um objeto de resposta mock que emite data+end de forma assíncrona,
+  // garantindo que os listeners sejam registrados antes da emissão.
+  function makeMockResponse(statusCode, body) {
+    const res = new EventEmitter()
+    res.statusCode = statusCode
+    res.destroy = () => {}
+    setImmediate(() => {
+      res.emit('data', body)
+      setImmediate(() => res.emit('end'))
+    })
+    return res
+  }
+
+  test('retorna { name, version, ageDays, published } para HTTP 200 válido', async () => {
+    const publishDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+    const body = JSON.stringify({ time: { '1.0.0': publishDate } })
+    const originalGet = https.get
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      callback(makeMockResponse(200, body))
+      return req
+    }
+    try {
+      const result = await fetchPackageAge('mypkg', '1.0.0')
+      assert.equal(result.name, 'mypkg')
+      assert.equal(result.version, '1.0.0')
+      assert.ok(result.ageDays >= 9.9 && result.ageDays <= 10.1)
+      assert.ok(result.published instanceof Date)
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Registry returned HTTP" para status não-200', async () => {
+    const originalGet = https.get
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      callback(makeMockResponse(404, ''))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Registry returned HTTP 404 for mypkg/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Timeout fetching registry data" quando timeout dispara', async () => {
+    const originalGet = https.get
+    https.get = (_url, _opts, _callback) => {
+      const req = makeMockRequest()
+      setImmediate(() => req.emit('timeout'))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Timeout fetching registry data for mypkg/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Network error" para erro no req', async () => {
+    const originalGet = https.get
+    https.get = (_url, _opts, _callback) => {
+      const req = makeMockRequest()
+      setImmediate(() => req.emit('error', new Error('ECONNREFUSED')))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Network error for mypkg: ECONNREFUSED/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Stream error" para erro mid-stream no res', async () => {
+    const originalGet = https.get
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      const res = new EventEmitter()
+      res.statusCode = 200
+      res.destroy = () => {}
+      setImmediate(() => {
+        callback(res)
+        setImmediate(() => res.emit('error', new Error('socket hang up')))
+      })
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Stream error for mypkg: socket hang up/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "exceeds" quando payload ultrapassa limite de tamanho', async () => {
+    const originalGet = https.get
+    // Buffer.alloc é mais eficiente que uma string literal para alocar MAX_RESPONSE_BYTES + 1.
+    const oversizedChunk = Buffer.alloc(MAX_RESPONSE_BYTES + 1, 120).toString() // 120 = 'x'
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      const res = new EventEmitter()
+      res.statusCode = 200
+      res.destroy = () => {}
+      setImmediate(() => {
+        callback(res)
+        setImmediate(() => res.emit('data', oversizedChunk))
+      })
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /exceeds \d+ MB limit/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "No publish date found" quando time[version] é ausente', async () => {
+    const originalGet = https.get
+    const body = JSON.stringify({ time: { '2.0.0': '2024-01-01T00:00:00.000Z' } })
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      callback(makeMockResponse(200, body))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /No publish date found for mypkg@1\.0\.0/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Could not parse publish date" para data inválida', async () => {
+    const originalGet = https.get
+    const body = JSON.stringify({ time: { '1.0.0': 'not-a-date' } })
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      callback(makeMockResponse(200, body))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Could not parse publish date for mypkg@1\.0\.0/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+
+  test('rejeita com "Failed to parse response" para JSON malformado', async () => {
+    const originalGet = https.get
+    https.get = (_url, _opts, callback) => {
+      const req = makeMockRequest()
+      callback(makeMockResponse(200, 'isto nao e json {{{{'))
+      return req
+    }
+    try {
+      await assert.rejects(
+        () => fetchPackageAge('mypkg', '1.0.0'),
+        /Failed to parse response for mypkg/
+      )
+    } finally {
+      https.get = originalGet
+    }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// CLI — check-package-age flags
+// ---------------------------------------------------------------------------
+
+describe('CLI — check-package-age flags', () => {
+  const { spawnSync } = require('node:child_process')
+  const scriptPath = path.resolve(__dirname, './check-package-age.js')
+
+  test('--pkg sem valor: exit 1 com mensagem de erro', () => {
+    const result = spawnSync(process.execPath, [scriptPath, '--pkg'], { encoding: 'utf8' })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /--pkg requires a package name with an exact version/)
+  })
+
+  test('--pkg e --transitive combinados: exit 1 com mensagem de exclusão mútua', () => {
+    const result = spawnSync(
+      process.execPath,
+      [scriptPath, '--pkg', 'lodash@4.17.21', '--transitive'],
+      { encoding: 'utf8' }
+    )
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /--pkg and --transitive are mutually exclusive/)
+  })
+
+  test('--pkg com especificador inválido: exit 1', () => {
+    const result = spawnSync(
+      process.execPath,
+      [scriptPath, '--pkg', 'lodash; rm -rf /'],
+      { encoding: 'utf8' }
+    )
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /invalid package specifier/)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// CLI — add-package flags
+// ---------------------------------------------------------------------------
+
+describe('CLI — add-package flags', () => {
+  const { spawnSync } = require('node:child_process')
+  const scriptPath = path.resolve(__dirname, './add-package.js')
+
+  test('sem argumento de pacote: exit 1', () => {
+    const result = spawnSync(process.execPath, [scriptPath], { encoding: 'utf8' })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /missing package argument/)
+  })
+
+  test('--dev e --peer combinados: exit 1 com mensagem de exclusão mútua', () => {
+    const result = spawnSync(
+      process.execPath,
+      [scriptPath, 'lodash@4.17.21', '--dev', '--peer'],
+      { encoding: 'utf8' }
+    )
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /--dev and --peer are mutually exclusive/)
+  })
+
+  test('versão omitida (nome sem @x.y.z): exit 1', async () => {
+    const result = spawnSync(process.execPath, [scriptPath, 'lodash'], { encoding: 'utf8' })
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /exact version required/)
+  })
+
+  test('especificador inválido: exit 1', () => {
+    const result = spawnSync(
+      process.execPath,
+      [scriptPath, 'lodash; evil'],
+      { encoding: 'utf8' }
+    )
+    assert.equal(result.status, 1)
+    assert.match(result.stderr, /invalid package specifier/)
   })
 })

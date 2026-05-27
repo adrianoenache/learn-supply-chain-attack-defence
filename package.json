@@ -9,8 +9,8 @@
     "url": "https://github.com/adrianoenache/learn-supply-chain-attack-defence.git"
   },
   "engines": {
-    "node": ">=24.15.0",
-    "npm": ">=11.12.1"
+    "node": ">=24.16.0",
+    "npm": ">=11.13.0"
   },
   "scripts": {
     "setup": "node --version && npm --version && npm run pkg-age-check && npm ci && npm audit signatures && npm run prepare",

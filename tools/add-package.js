@@ -8,13 +8,20 @@
 // Uso:
 //   npm run add -- <pacote>@<versão>              — adiciona como dependência de produção
 //   npm run add -- <pacote>@<versão> --dev        — adiciona como devDependency
+//   npm run add -- <pacote>@<versão> --peer       — adiciona como peerDependency
 //   npm run add -- <pacote>@<versão> --dry-run    — verifica a idade sem instalar
 //
 // Exemplos:
 //   npm run add -- lodash@4.17.21
 //   npm run add -- express@4.21.2
 //   npm run add -- @types/node@22.15.3 --dev
+//   npm run add -- react-native-svg@12.0.0 --peer
 //   npm run add -- husky@9.1.7 --dry-run
+//
+// Nota sobre peerDependencies (--peer):
+//   O flag --save-peer pina a versão exata no package.json (ex: "12.0.0").
+//   Após a instalação, ajuste manualmente para o range desejado (ex: ">=12.0.0").
+//   --dev e --peer são mutuamente exclusivos.
 //
 // Fluxo executado:
 //   1. Valida o argumento (nome e versão exata obrigatória)
@@ -52,10 +59,11 @@ const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 3
 const VALID_PKG_SPECIFIER_RE = /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
 
 // Parseia os argumentos da linha de comando.
-// process.argv: ["node", "add-package.js", "<pacote>@<versão>", "[--dev]", "[--dry-run]"]
+// process.argv: ["node", "add-package.js", "<pacote>@<versão>", "[--dev|--peer]", "[--dry-run]"]
 const args = process.argv.slice(2)
 const pkgArg = args.find((a) => !a.startsWith('-'))
 const isDev = args.includes('--dev')
+const isPeer = args.includes('--peer')
 const isDryRun = args.includes('--dry-run')
 
 // Valida os argumentos antes de qualquer operação de rede ou disco.
@@ -64,11 +72,18 @@ const isDryRun = args.includes('--dry-run')
 function validateArgs() {
   if (!pkgArg) {
     console.error('Error: missing package argument.')
-    console.error('Usage: npm run add -- <package>@<version> [--dev] [--dry-run]')
+    console.error('Usage: npm run add -- <package>@<version> [--dev|--peer] [--dry-run]')
     console.error('Examples:')
     console.error('  npm run add -- lodash@4.17.21')
     console.error('  npm run add -- @types/node@22.15.3 --dev')
+    console.error('  npm run add -- react-native-svg@12.0.0 --peer')
     console.error('  npm run add -- express@4.21.2 --dry-run')
+    process.exit(1)
+  }
+
+  if (isDev && isPeer) {
+    console.error('Error: --dev and --peer are mutually exclusive.')
+    console.error('Use --dev for devDependencies, --peer for peerDependencies.')
     process.exit(1)
   }
 
@@ -98,6 +113,14 @@ function parsePackageArg(input) {
   return { name: input.slice(0, atIdx), version: input.slice(atIdx + 1) }
 }
 
+// Retorna os três valores que variam por tipo de dependência.
+// Extraído de main() para reduzir a complexidade cognitiva (SonarQube: cognitive-complexity).
+function getSaveMode(peer, dev) {
+  if (peer) return { typeLabel: ' [peerDependency]', flagHint: ' --peer', saveFlag: '--save-peer' }
+  if (dev)  return { typeLabel: ' [devDependency]',  flagHint: ' --dev',  saveFlag: '--save-dev'  }
+  return          { typeLabel: '',                  flagHint: '',         saveFlag: '--save'       }
+}
+
 async function main() {
   const { name, version: rawVersion } = parsePackageArg(pkgArg)
 
@@ -108,7 +131,8 @@ async function main() {
     process.exit(1)
   }
 
-  console.log(`\nadd-package: ${name}@${rawVersion}${isDev ? ' [devDependency]' : ''}${isDryRun ? ' [dry-run]' : ''}\n`)
+  const { typeLabel, flagHint, saveFlag } = getSaveMode(isPeer, isDev)
+  console.log(`\nadd-package: ${name}@${rawVersion}${typeLabel}${isDryRun ? ' [dry-run]' : ''}\n`)
 
   // Passo 1 — Confirmar que a versão informada é exata (sem range operators).
   // resolveExactVersion é importada do check-package-age.js; retorna null para dist-tags
@@ -152,11 +176,10 @@ async function main() {
   // pois o npm a lê automaticamente do arquivo de configuração.
   if (isDryRun) {
     console.log('\nDry-run: age check passed. Skipping installation.')
-    console.log(`\nTo install, run: npm run add -- ${pkgArg}${isDev ? ' --dev' : ''}`)
+    console.log(`\nTo install, run: npm run add -- ${pkgArg}${flagHint}`)
     process.exit(0)
   }
 
-  const saveFlag = isDev ? '--save-dev' : '--save'
   // O valor de name e exactVersion foi validado pelo VALID_PKG_SPECIFIER_RE antes de chegar aqui,
   // garantindo que não contêm caracteres de injeção de shell.
   const installCmd = `npm install ${saveFlag} --save-exact ${name}@${exactVersion}`

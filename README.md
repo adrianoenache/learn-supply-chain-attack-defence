@@ -140,8 +140,8 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
 Feche e reabra o terminal, depois instale e ative a versão LTS do Node.js:
 
 ```bash
-nvm install 24.15.0
-nvm alias default 24.15.0
+nvm install 24.16.0
+nvm alias default 24.16.0
 nvm use default
 ```
 
@@ -227,6 +227,9 @@ npm run add -- lodash@4.17.21
 # Adicionar como devDependency
 npm run add -- @types/node@22.15.3 --dev
 
+# Adicionar como peerDependency (versão exata; ajuste para range após)
+npm run add -- react-native-svg@12.0.0 --peer
+
 # Verificar a idade sem instalar (dry-run)
 npm run add -- express@4.21.2 --dry-run
 ```
@@ -253,6 +256,8 @@ npm run add -- <pacote>@<versão>
 
 > **Versão exata obrigatória:** `npm run add` exige que a versão seja especificada explicitamente (ex: `lodash@4.17.21`, não `lodash`). Isso garante que a verificação de idade opera sobre a versão que será instalada, e não sobre uma versão resolvida automaticamente pelo registry no momento da instalação. A configuração `save-exact=true` no `.npmrc` garante que a versão seja salva no `package.json` sem os operadores `^` ou `~`.
 
+> **peerDependencies (`--peer`):** o flag `--save-peer` pina a versão exata em `peerDependencies`, consistente com `save-exact=true` no `.npmrc`. `--dev` e `--peer` são mutuamente exclusivos.
+
 ### Pacotes com lifecycle scripts
 
 O `.npmrc` configura `ignore-scripts=true`, bloqueando os lifecycle scripts (`preinstall`, `postinstall`, `install`) de todos os pacotes instalados. Isso elimina o principal vetor de supply chain attacks — mas alguns pacotes com binários nativos (ex: `esbuild`, `sharp`, `canvas`) precisam de um `postinstall` para compilar ou baixar o binário nativo.
@@ -271,21 +276,35 @@ Este fluxo mantém a proteção do `ignore-scripts=true` para todos os outros pa
 
 ---
 
+### Cenários não cobertos pelo `npm run add`
+
+Os controles de segurança deste projeto cobrem os fluxos de instalação via `npm run add` e `npm run setup`/`npm-reinstall`. Os cenários abaixo **não passam pelas verificações automáticas** e devem ser evitados ou realizados com atenção:
+
+- **`npx <pacote>@<versão>`** — executa pacotes diretamente sem nenhuma verificação de idade, assinatura ou audit. Use apenas pacotes consolidados e conhecidos.
+- **`npm update`** — atualiza versões instaladas sem passar pela verificação de idade do `add-package.js`. Após um `npm update`, execute `node ./tools/check-package-age.js --transitive` manualmente.
+- **`npm install --include=peer`** — instala os `peerDependencies` declarados sem nenhuma das verificações do pipeline. Se precisar instalar peers em ambiente de desenvolvimento, use `npm run add -- <pacote>@<versão> --peer`.
+
+---
+
 ## Testes
 
-O projeto inclui testes unitários para as funções utilitárias dos scripts de segurança. Os testes usam `node:test` e `node:assert` (módulos nativos do Node.js) — sem dependências externas de framework de teste.
+O projeto inclui testes unitários e de integração CLI para os scripts de segurança. Os testes usam `node:test`, `node:assert` e `node:child_process` (módulos nativos do Node.js) — sem dependências externas de framework de teste.
 
 ```bash
 npm test
 ```
 
-Cobertura atual (`tools/check-package-age.test.js`, 29 casos):
+Cobertura atual (`tools/check-package-age.test.js`, 50 casos):
 
-| Función | Casos testados |
+| Função | Casos testados |
 |---|---|
 | `resolveExactVersion` | Versões exatas, range operators (`^`, `~`, `>=`, `<=`), não-resolvíveis (`latest`, `*`, `x`, ranges compostos) |
 | `VALID_PKG_SPECIFIER_RE` | Pacotes válidos (com e sem escopo), injeção de shell (`;`, `&`, `\|`, `$`), traversal de diretório, string vazia |
-| `parsePackageArg` | Decompõe `nome@versão`, `@escopo/nome@versão`, versao ausente, preserva `@` do escopo |
+| `parsePackageArg` | Decompõe `nome@versão`, `@escopo/nome@versão`, versão ausente, preserva `@` do escopo |
+| `runWithConcurrencyLimit` | Lista vazia, resultados no formato `allSettled`, tarefa rejeitada não interrompe demais, ordem de resultados, limite de concorrência |
+| `fetchPackageAge` | HTTP 200 válido, HTTP não-200, timeout, erro no request, erro mid-stream, payload acima do limite, `time[version]` ausente, data inválida, JSON malformado |
+| CLI `check-package-age` | `--pkg` sem valor, `--pkg` + `--transitive`, especificador inválido |
+| CLI `add-package` | Sem argumento, `--dev` + `--peer`, versão omitida, especificador inválido |
 
 ---
 
@@ -346,7 +365,7 @@ esse atraso elimina a janela.
 
 **Modo padrão** (pré-install):
 ```
-package.json (dependencies + devDependencies)
+package.json (dependencies + devDependencies + peerDependencies + optionalDependencies)
         │
         ▼
   Para cada pacote@versão
@@ -599,10 +618,10 @@ independentemente do fluxo automatizado:
 **Node.js**
 
 - [npm: Criando Módulos Node.js](https://docs.npmjs.com/creating-node-js-modules) — estrutura do projeto e scripts
-- [node:https — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado nos scripts de verificação
-- [node:path — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado nos scripts de verificação
-- [node:child_process — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/child_process.html) — módulo nativo usado pelo `add-package.js` para invocar `npm install` e `npm audit signatures`
-- [node:test — Node.js v24.15.0](https://nodejs.org/docs/latest-v24.x/api/test.html) — framework de testes nativo usado em `check-package-age.test.js`
+- [node:https — Node.js v24.16.0](https://nodejs.org/docs/latest-v24.x/api/https.html) — módulo HTTP/S nativo usado nos scripts de verificação
+- [node:path — Node.js v24.16.0](https://nodejs.org/docs/latest-v24.x/api/path.html) — módulo de caminhos nativo usado nos scripts de verificação
+- [node:child_process — Node.js v24.16.0](https://nodejs.org/docs/latest-v24.x/api/child_process.html) — módulo nativo usado pelo `add-package.js` para invocar `npm install` e `npm audit signatures`
+- [node:test — Node.js v24.16.0](https://nodejs.org/docs/latest-v24.x/api/test.html) — framework de testes nativo usado em `check-package-age.test.js`
 - [npm lifecycle scripts](https://docs.npmjs.com/cli/v10/using-npm/scripts#life-cycle-scripts) — referência sobre `preinstall`, `prepare` e o comportamento de `ignore-scripts`
 
 **Segurança**
