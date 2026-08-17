@@ -15,7 +15,7 @@ const { EventEmitter } = require('node:events')
 // Importa as funções exportadas — o guard `require.main === module` em ambos os arquivos
 // garante que main() não é executado ao importar via require().
 const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES } = require(path.resolve(__dirname, './check-package-age.js'))
-const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './add-package.js'))
+const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
 // ---------------------------------------------------------------------------
 // resolveExactVersion

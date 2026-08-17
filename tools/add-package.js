@@ -45,18 +45,12 @@ const path = require('node:path')
 // O require funciona porque check-package-age.js exporta via module.exports ao final.
 // Somente módulos nativos são usados aqui, pelo mesmo motivo do check-package-age.js.
 const { fetchPackageAge, resolveExactVersion } = require(path.resolve(__dirname, './check-package-age.js'))
+const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
 // Lê as mesmas configurações do check-package-age.js para manter comportamento consistente.
 const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
-
-// Valida caracteres permitidos em nomes de pacotes npm (incluindo escopo @org/name).
-// Mesma regex do check-package-age.js — rejeita injeção de shell antes de qualquer
-// uso do valor em execSync ou passagem para o registry.
-// Aceita: lodash@4.17.21, @types/node@22.15.3, my-pkg@1.0.0-beta.1
-// Rejeita: qualquer entrada com ;, &, |, $, `, \, <, >, !, espaços ou aspas.
-const VALID_PKG_SPECIFIER_RE = /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
 
 // Parseia os argumentos da linha de comando.
 // process.argv: ["node", "add-package.js", "<pacote>@<versão>", "[--dev|--peer]", "[--dry-run]"]
@@ -92,25 +86,6 @@ function validateArgs() {
     console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
     process.exit(1)
   }
-}
-
-// Decompõe "name@version" ou "@scope/name@version" em nome e versão.
-// Pacotes com escopo (@org/name@version) têm o @ inicial preservado:
-// remove o @ inicial, localiza o próximo @ (separador de versão), reconstrói o escopo.
-// Mesma lógica do branch --pkg em check-package-age.js para consistência.
-function parsePackageArg(input) {
-  if (input.startsWith('@')) {
-    const withoutLeadingAt = input.slice(1)           // "org/name@version"
-    const atIdx = withoutLeadingAt.indexOf('@')
-    if (atIdx === -1) return { name: input, version: null }
-    return {
-      name: '@' + withoutLeadingAt.slice(0, atIdx),   // "@org/name"
-      version: withoutLeadingAt.slice(atIdx + 1),     // "x.y.z"
-    }
-  }
-  const atIdx = input.indexOf('@')
-  if (atIdx === -1) return { name: input, version: null }
-  return { name: input.slice(0, atIdx), version: input.slice(atIdx + 1) }
 }
 
 // Retorna os três valores que variam por tipo de dependência.
@@ -237,3 +212,4 @@ if (require.main === module) {
 
 // Exporta funções utilitárias para uso nos testes.
 module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE }
+

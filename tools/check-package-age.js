@@ -18,6 +18,8 @@
 const https = require('node:https')
 const path = require('node:path')
 
+const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
+
 // Lê as dependências declaradas no package.json do projeto.
 // Somente módulos nativos são usados aqui — este script não pode depender de
 // pacotes instaláveis, pois é executado antes da própria instalação.
@@ -43,12 +45,6 @@ if (pkgArg && transitive) {
   process.exit(1)
 }
 
-// Valida caracteres permitidos em nomes de pacotes npm (incluindo escopo @org/name).
-// Rejeita entradas com caracteres de injeção de shell (;, &, |, $, `, \, <, >, !)
-// para prevenir execução de comandos arbitrários em ambientes que interpolem o valor.
-// O separador @ de versão é permitido apenas uma vez após o nome (ou após o escopo).
-// Referência de nomenclatura: https://docs.npmjs.com/cli/v10/configuring-npm/package-json#name
-const VALID_PKG_SPECIFIER_RE = /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
 if (pkgArg && !VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
   console.error(`Error: invalid package specifier "${pkgArg}".`)
   console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
@@ -67,32 +63,11 @@ if (transitive) {
       .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
   )
 } else if (pkgArg) {
-  // Modo --pkg: decompõe "name@version" ou "@scope/name@version" em nome e versão.
-  // Pacotes com escopo (@org/name@version) têm o @ inicial preservado:
-  // remove o @ inicial, localiza o próximo @ (separador de versão), reconstrói o escopo.
-  let pkgName, pkgVersion
-  if (pkgArg.startsWith('@')) {
-    const withoutLeadingAt = pkgArg.slice(1)           // "org/name@version"
-    const atIdx = withoutLeadingAt.indexOf('@')
-    if (atIdx === -1) {
-      pkgName = pkgArg
-      pkgVersion = null                                 // sem versão → rejeitado abaixo
-    } else {
-      pkgName = '@' + withoutLeadingAt.slice(0, atIdx) // "@org/name"
-      pkgVersion = withoutLeadingAt.slice(atIdx + 1)   // "x.y.z"
-    }
-  } else {
-    const atIdx = pkgArg.indexOf('@')
-    if (atIdx === -1) {
-      pkgName = pkgArg
-      pkgVersion = null                                 // sem versão → rejeitado abaixo
-    } else {
-      pkgName = pkgArg.slice(0, atIdx)
-      pkgVersion = pkgArg.slice(atIdx + 1)
-    }
-  }
-  // Exige versão exata no modo --pkg para garantir que a verificação de idade
-  // opera sobre a versão específica que será instalada, não sobre um dist-tag.
+  // Modo --pkg: decompõe "name@version" ou "@scope/name@version" em nome e versão
+  // usando a função compartilhada. Exige versão exata para garantir que a
+  // verificação de idade opere sobre a versão específica que será instalada,
+  // não sobre um dist-tag.
+  const { name: pkgName, version: pkgVersion } = parsePackageArg(pkgArg)
   if (!pkgVersion) {
     console.error(`Error: --pkg requires an exact version. Use: --pkg ${pkgName}@x.y.z`)
     process.exit(1)
