@@ -103,14 +103,15 @@ if (transitive) {
 }
 
 // Número mínimo de dias que um pacote deve ter desde sua publicação para ser aceito.
+// Alinhado com min-release-age=7 no .npmrc (camada nativa de defesa do npm).
 // Configurável via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
-const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 3
+const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
 
 // Limite máximo de tamanho por resposta do registry (padrão: 20 MB).
 // Documentos completos de pacotes com histórico longo podem ser grandes, mas nenhum
 // pacote real conhecido ultrapassa 20 MB. O cap protege contra cenários patológicos
 // (resposta malformada, injeção de dados em trânsito, loop infinito de chunks).
-// Para sobrescrever, adicione ao package.json: "pkgAgeCheck": { "minAgeDays": 3, "maxResponseMB": 50 }
+// Para sobrescrever, adicione ao package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
 const MAX_RESPONSE_BYTES = ((pkg.pkgAgeCheck?.maxResponseMB) ?? 20) * 1024 * 1024
 
 // Número máximo de consultas simultâneas ao registry (padrão: 10).

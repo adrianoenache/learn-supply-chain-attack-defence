@@ -12,6 +12,9 @@
     "node": ">=24.16.0",
     "npm": ">=11.13.0"
   },
+  "pkgAgeCheck": {
+    "minAgeDays": 7
+  },
   "scripts": {
     "setup": "node --version && npm --version && npm run pkg-age-check && npm ci && npm audit signatures && npm run prepare",
     "pkg-age-check": "node ./tools/check-package-age.js",

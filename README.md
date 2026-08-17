@@ -245,6 +245,7 @@ npm run add -- <pacote>@<versão>
         │         └── BLOQUEADO se publicado há < minAgeDays dias
         │
         ├── 3. npm install --save-exact <pacote>@<versão>
+        │         └── Também respeita min-release-age=7 do .npmrc
         │         └── PULADO se --dry-run
         │
         ├── 4. npm audit signatures
@@ -253,6 +254,8 @@ npm run add -- <pacote>@<versão>
         └── 5. npm audit --audit-level=high
                   └── Falha se CVE alta ou crítica detectada
 ```
+
+> **Dupla verificação de idade:** no Passo 2, `check-package-age.js` bloqueia pacotes publicados há menos de 7 dias. No Passo 3, o próprio `npm install` também respeita `min-release-age=7` do `.npmrc`. Ambas as camadas devem passar para que a instalação prossiga.
 
 > **Versão exata obrigatória:** `npm run add` exige que a versão seja especificada explicitamente (ex: `lodash@4.17.21`, não `lodash`). Isso garante que a verificação de idade opera sobre a versão que será instalada, e não sobre uma versão resolvida automaticamente pelo registry no momento da instalação. A configuração `save-exact=true` no `.npmrc` garante que a versão seja salva no `package.json` sem os operadores `^` ou `~`.
 
@@ -343,10 +346,12 @@ mais comuns são:
 
 ### Medida 1 — Verificação de Idade dos Pacotes (`check-package-age.js`)
 
-**Arquivo:** `tools/check-package-age.js`  
+**Arquivo:** `tools/check-package-age.js`
 **Executado em:** `npm run setup`, `npm run npm-reinstall` (duas vezes, com escopos diferentes) e internamente pelo `add-package.js`
 
-Esta ferramenta consulta o registry do npm para cada dependência e verifica há quantos dias aquela versão específica foi publicada. Se qualquer pacote foi publicado há menos de **3 dias**, a instalação é abortada com erro.
+Esta ferramenta consulta o registry do npm para cada dependência e verifica há quantos dias aquela versão específica foi publicada. Se qualquer pacote foi publicado há menos de **7 dias**, a instalação é abortada com erro.
+
+Essa verificação é complementada pela configuração `min-release-age=7` no `.npmrc`, que faz o próprio npm rejeitar versões publicadas há menos de 7 dias durante `npm install`, `npm ci` e `npm audit fix`. O script `check-package-age.js` opera como uma camada adicional de defesa, garantindo que o projeto inteiro (incluindo dependências transitivas e verificações manuais) siga o mesmo limite.
 
 O script opera em três modos:
 
@@ -354,12 +359,16 @@ O script opera em três modos:
 - **Modo transitivo** (`node ./tools/check-package-age.js --transitive`) — lê o `package-lock.json` e checa **todas** as dependências resolvidas, incluindo transitivas. Usado **após** o `npm ci`, quando o lockfile já foi instalado.
 - **Modo pontual** (`node ./tools/check-package-age.js --pkg lodash@4.17.21`) — checa um único pacote com versão exata. Invocado internamente pelo `add-package.js` antes de cada instalação. Pode ser usado manualmente para verificar um pacote antes de decidir adicioná-lo.
 
-#### Por que 3 dias?
+#### Por que 7 dias?
 
-A janela de 3 dias é baseada no tempo médio que scanners de segurança automatizados,
-pesquisadores e a comunidade levam para identificar e reportar versões maliciosas publicadas
-no npm. Ataques do tipo fast-publish dependem de uma janela curta de exposição antes da remoção;
-esse atraso elimina a janela.
+A janela de 7 dias é baseada na recomendação da documentação do npm para `min-release-age`
+e no tempo que scanners de segurança automatizados, pesquisadores e a comunidade levam para
+identificar e reportar versões maliciosas publicadas no npm. Ataques do tipo fast-publish
+dependem de uma janela curta de exposição antes da remoção; esse atraso elimina a janela.
+
+Além disso, manter o mesmo limite tanto no `.npmrc` quanto no `check-package-age.js` evita
+inconsistências: uma versão publicada há, por exemplo, 5 dias não passará silenciosamente no
+script para depois falhar no `npm install` por causa do `min-release-age`.
 
 #### Como funciona tecnicamente
 
@@ -444,7 +453,7 @@ O comportamento do script pode ser ajustado via campo `pkgAgeCheck` no `package.
 
 | Campo | Padrão | Descrição |
 |---|---|---|
-| `minAgeDays` | `3` | Número mínimo de dias desde a publicação para aceitar um pacote |
+| `minAgeDays` | `7` | Número mínimo de dias desde a publicação para aceitar um pacote |
 | `maxResponseMB` | `20` | Limite máximo de tamanho por resposta do registry, em MB |
 | `concurrency` | `10` | Número máximo de consultas simultâneas ao registry |
 
@@ -484,7 +493,7 @@ Se qualquer assinatura falhar, o comando retorna erro e o pipeline é interrompi
 
 ### Medida 3 — Auditoria de Vulnerabilidades (`npm audit`)
 
-**Executado automaticamente em:** `npm run setup` e `npm run npm-reinstall` (via `audit=true` no `.npmrc`, ativado pelo `npm ci`)  
+**Executado automaticamente em:** `npm run setup`, `npm run npm-reinstall` e `npm audit fix` (via `audit=true` no `.npmrc`)
 **Executado explicitamente em:** hook de **pré-commit**
 
 O `npm audit --audit-level=high` verifica as dependências instaladas contra o banco de dados de
@@ -540,27 +549,34 @@ git commit
 
 ### Medida 6 — Configuração de Segurança do npm (`.npmrc`)
 
-**Arquivo:** `.npmrc`  
+**Arquivo:** `.npmrc`
 **Ativo em:** todos os comandos npm executados no projeto
 
 O arquivo `.npmrc` estabelece uma camada de defesa base que atua em qualquer operação npm,
 independentemente do fluxo automatizado:
 
-| Configuração     | Valor                             | Proteção                                                                      |
-|------------------|-----------------------------------|-------------------------------------------------------------------------------|
-| `save-exact`     | `true`                            | Novas dependências salvas com versão exata, sem `^` ou `~`                    |
-| `registry`       | `https://registry.npmjs.org/`     | Fixa o registry oficial, impedindo redirect para mirrors comprometidos        |
-| `ignore-scripts` | `true`                            | Bloqueia lifecycle scripts (`preinstall`, `postinstall`) de todos os pacotes  |
-| `engine-strict`  | `true`                            | Bloqueia instalação se Node.js ou npm não atender ao campo `engines`          |
-| `audit`          | `true`                            | Executa `npm audit` automaticamente em todo `npm ci` ou `npm install`         |
-| `audit-level`    | `high`                            | Falha automaticamente se CVEs de severidade alta ou crítica forem detectadas  |
+| Configuração            | Valor                             | Proteção                                                                      |
+|-------------------------|-----------------------------------|-------------------------------------------------------------------------------|
+| `save-exact`            | `true`                            | Novas dependências salvas com versão exata, sem `^` ou `~`                    |
+| `registry`              | `https://registry.npmjs.org/`     | Fixa o registry oficial, impedindo redirect para mirrors comprometidos        |
+| `ignore-scripts`        | `true`                            | Bloqueia lifecycle scripts (`preinstall`, `install`, `postinstall`)           |
+| `engine-strict`         | `true`                            | Bloqueia instalação se Node.js ou npm não atender ao campo `engines`          |
+| `audit`                 | `true`                            | Executa `npm audit` automaticamente em `npm ci`, `npm install` e `npm audit fix` |
+| `audit-level`           | `high`                            | Falha automaticamente se CVEs de severidade alta ou crítica forem detectadas  |
+| `min-release-age`       | `7`                               | Rejeita versões publicadas há menos de 7 dias durante resolução do npm        |
+| `min-release-age-exclude` | (vazio)                         | Lista de pacotes isentos da regra acima; use com cautela                      |
 
 > **`ignore-scripts` e o script `preinstall` do projeto raiz:** o `ignore-scripts=true` bloqueia os lifecycle scripts de pacotes instalados **e também** o script `preinstall` do projeto raiz quando `npm install` é executado diretamente. Por isso, `npm install <pacote>` direto não dispara o `check-package-age.js` automaticamente. O fluxo documentado em [Adicionando Novas Dependências](#adicionando-novas-dependências) via `npm run add` é a única forma de garantir as verificações de segurança ao instalar um novo pacote.
 
 > **Por que `ignore-scripts` é crítico:** os lifecycle scripts de pacotes (`preinstall`,
-> `postinstall`, `install`) são o principal vetor dos ataques mais impactantes da história do
+> `install`, `postinstall`) são o principal vetor dos ataques mais impactantes da história do
 > npm, incluindo event-stream (2018) e ua-parser-js (2021). Bloquear sua execução por padrão
 > elimina esse vetor completamente para todas as dependências instaladas.
+
+> **`min-release-age` e `npm audit fix`:** se um patch de segurança for publicado há menos de
+> 7 dias, o `npm audit fix` pode falhar por causa do `min-release-age=7`. Nesse caso, você pode
+> adicionar o pacote a `min-release-age-exclude` no `.npmrc` temporariamente, ou executar o
+> comando com `--min-release-age=0`. Reverta a configuração assim que possível.
 
 > **Por que o Husky não é afetado por `ignore-scripts`:** `ignore-scripts` bloqueia lifecycle
 > scripts de **pacotes instalados** (dependências de terceiros em `node_modules/`). O script
@@ -577,7 +593,8 @@ independentemente do fluxo automatizado:
 │ Momento              │ Verificação                                             │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Sempre               │ .npmrc                                                  │
-│ (qualquer npm)       │ → save-exact, registry fixo, ignore-scripts, audit      │
+│ (qualquer npm)       │ → save-exact, registry fixo, ignore-scripts, audit,     │
+│                      │   min-release-age                                       │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Ao adicionar         │ add-package.js (npm run add)                            │
 │ nova dependência     │ → check-package-age.js --pkg (bloqueia se muito recente)│
@@ -586,7 +603,7 @@ independentemente do fluxo automatizado:
 │                      │ → npm audit --audit-level=high                          │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Antes do             │ check-package-age.js                                    │
-│ npm ci               │ → bloqueia pacotes publicados há < minAgeDays dias       │
+│ npm ci               │ → bloqueia pacotes publicados há < 7 dias               │
 ├──────────────────────┼────────────────────────────────────────────────────────┤
 │ Após o               │ npm audit signatures                                    │
 │ npm ci               │ → verifica integridade criptográfica                    │
