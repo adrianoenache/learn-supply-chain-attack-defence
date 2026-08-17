@@ -49,7 +49,7 @@ const { fetchPackageAge, resolveExactVersion } = require(path.resolve(__dirname,
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
 // Lê as mesmas configurações do check-package-age.js para manter comportamento consistente.
-const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 3
+const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
 
 // Valida caracteres permitidos em nomes de pacotes npm (incluindo escopo @org/name).
 // Mesma regex do check-package-age.js — rejeita injeção de shell antes de qualquer
