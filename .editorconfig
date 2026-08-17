@@ -1,5 +1,9 @@
+# EditorConfig: maintains consistent coding style across editors and IDEs.
+# https://editorconfig.org
+
 root = true
 
+# Apply to all files unless overridden below.
 [*]
 charset = utf-8
 end_of_line = lf
@@ -8,5 +12,7 @@ indent_style = space
 indent_size = 2
 trim_trailing_whitespace = true
 
+# Markdown files: preserve trailing whitespace because double trailing spaces
+# are used to force a line break in Markdown rendering.
 [*.md]
 trim_trailing_whitespace = false

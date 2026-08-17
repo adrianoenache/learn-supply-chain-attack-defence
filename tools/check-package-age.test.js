@@ -1,9 +1,9 @@
 'use strict'
 
-// Testes para check-package-age.js e add-package.js.
-// Usa node:test + node:assert + node:child_process (módulos nativos, Node.js >= 18) — zero dependências extras.
+// Tests for check-package-age.js and add-package.js.
+// Uses node:test + node:assert + node:child_process (native modules, Node.js >= 18) — zero extra dependencies.
 //
-// Executar:
+// Run:
 //   npm test
 //   node --test tools/check-package-age.test.js
 
@@ -12,8 +12,8 @@ const assert = require('node:assert/strict')
 const path = require('node:path')
 const { EventEmitter } = require('node:events')
 
-// Importa as funções exportadas — o guard `require.main === module` em ambos os arquivos
-// garante que main() não é executado ao importar via require().
+// Imports the exported functions — the `require.main === module` guard in both files
+// ensures main() is not executed when imported via require().
 const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES } = require(path.resolve(__dirname, './check-package-age.js'))
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
@@ -22,62 +22,62 @@ const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirna
 // ---------------------------------------------------------------------------
 
 describe('resolveExactVersion', () => {
-  // Versões exatas devem ser retornadas sem modificação.
-  test('retorna versão exata sem range operators', () => {
+  // Exact versions should be returned unchanged.
+  test('returns exact version without range operators', () => {
     assert.equal(resolveExactVersion('1.0.0'), '1.0.0')
     assert.equal(resolveExactVersion('4.17.21'), '4.17.21')
     assert.equal(resolveExactVersion('0.0.1'), '0.0.1')
   })
 
-  test('retorna versão exata com pre-release tag', () => {
+  test('returns exact version with pre-release tag', () => {
     assert.equal(resolveExactVersion('1.0.0-beta.1'), '1.0.0-beta.1')
     assert.equal(resolveExactVersion('2.0.0-rc.3'), '2.0.0-rc.3')
   })
 
-  test('retorna versão exata com build metadata', () => {
+  test('returns exact version with build metadata', () => {
     assert.equal(resolveExactVersion('1.0.0+build.123'), '1.0.0+build.123')
   })
 
-  // Range operators devem ser removidos, expondo a versão exata subjacente.
-  test('remove operador ^ e retorna versão exata', () => {
+  // Range operators should be removed, exposing the underlying exact version.
+  test('removes ^ operator and returns exact version', () => {
     assert.equal(resolveExactVersion('^1.0.0'), '1.0.0')
     assert.equal(resolveExactVersion('^4.17.21'), '4.17.21')
   })
 
-  test('remove operador ~ e retorna versão exata', () => {
+  test('removes ~ operator and returns exact version', () => {
     assert.equal(resolveExactVersion('~2.0.1'), '2.0.1')
     assert.equal(resolveExactVersion('~1.2.3'), '1.2.3')
   })
 
-  test('remove operadores >= e <= e retorna versão exata', () => {
+  test('removes >= and <= operators and returns exact version', () => {
     assert.equal(resolveExactVersion('>=1.0.0'), '1.0.0')
     assert.equal(resolveExactVersion('<=3.0.0'), '3.0.0')
   })
 
-  // Valores não resolúveis para versão exata devem retornar null.
-  test('retorna null para "latest"', () => {
+  // Values that cannot resolve to an exact version should return null.
+  test('returns null for "latest"', () => {
     assert.equal(resolveExactVersion('latest'), null)
   })
 
-  test('retorna null para "next"', () => {
+  test('returns null for "next"', () => {
     assert.equal(resolveExactVersion('next'), null)
   })
 
-  test('retorna null para wildcard *', () => {
+  test('returns null for wildcard *', () => {
     assert.equal(resolveExactVersion('*'), null)
   })
 
-  test('retorna null para versão com curinga x', () => {
+  test('returns null for version with x wildcard', () => {
     assert.equal(resolveExactVersion('1.x'), null)
     assert.equal(resolveExactVersion('x.x.x'), null)
   })
 
-  test('retorna null para range composto com espaço', () => {
+  test('returns null for composite range with space', () => {
     assert.equal(resolveExactVersion('>=1.0.0 <2.0.0'), null)
     assert.equal(resolveExactVersion('1.2 - 2.0'), null)
   })
 
-  test('retorna null para string vazia', () => {
+  test('returns null for empty string', () => {
     assert.equal(resolveExactVersion(''), null)
   })
 })
@@ -87,60 +87,60 @@ describe('resolveExactVersion', () => {
 // ---------------------------------------------------------------------------
 
 describe('VALID_PKG_SPECIFIER_RE', () => {
-  // Especificadores válidos devem passar na regex.
-  test('aceita nome simples com versão exata', () => {
+  // Valid specifiers should pass the regex.
+  test('accepts simple name with exact version', () => {
     assert.ok(VALID_PKG_SPECIFIER_RE.test('lodash@4.17.21'))
     assert.ok(VALID_PKG_SPECIFIER_RE.test('express@4.21.2'))
     assert.ok(VALID_PKG_SPECIFIER_RE.test('husky@9.1.7'))
   })
 
-  test('aceita pacote com escopo e versão exata', () => {
+  test('accepts scoped package with exact version', () => {
     assert.ok(VALID_PKG_SPECIFIER_RE.test('@types/node@22.15.3'))
     assert.ok(VALID_PKG_SPECIFIER_RE.test('@org/my-pkg@1.0.0'))
   })
 
-  test('aceita versão com pre-release tag', () => {
+  test('accepts version with pre-release tag', () => {
     assert.ok(VALID_PKG_SPECIFIER_RE.test('pkg@1.0.0-beta.1'))
     assert.ok(VALID_PKG_SPECIFIER_RE.test('pkg@2.0.0-rc.3'))
   })
 
-  test('aceita nome simples sem versão', () => {
-    // Sem versão é aceito pela regex — a exigência de versão exata é validada em camada superior.
+  test('accepts simple name without version', () => {
+    // No version is accepted by the regex — the exact-version requirement is validated at a higher layer.
     assert.ok(VALID_PKG_SPECIFIER_RE.test('lodash'))
     assert.ok(VALID_PKG_SPECIFIER_RE.test('my-pkg'))
   })
 
-  // Injeção de shell e caracteres inválidos devem ser rejeitados.
-  test('rejeita ponto-e-vírgula (injeção de shell)', () => {
+  // Shell injection and invalid characters must be rejected.
+  test('rejects semicolon (shell injection)', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('lodash; rm -rf /'))
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('pkg;evil'))
   })
 
-  test('rejeita ampersand (injeção de shell)', () => {
+  test('rejects ampersand (shell injection)', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('pkg&evil'))
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('pkg&&evil'))
   })
 
-  test('rejeita pipe (injeção de shell)', () => {
+  test('rejects pipe (shell injection)', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('pkg|evil'))
   })
 
-  test('rejeita cifrão (expansão de variável de shell)', () => {
+  test('rejects dollar sign (shell variable expansion)', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('$HOME'))
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('pkg$evil'))
   })
 
-  test('rejeita traversal de diretório', () => {
+  test('rejects directory traversal', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('../../../etc/passwd'))
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('../../evil'))
   })
 
-  test('rejeita espaços no especificador', () => {
+  test('rejects spaces in specifier', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('lodash 4.17.21'))
     assert.ok(!VALID_PKG_SPECIFIER_RE.test('evil pkg'))
   })
 
-  test('rejeita string vazia', () => {
+  test('rejects empty string', () => {
     assert.ok(!VALID_PKG_SPECIFIER_RE.test(''))
   })
 })
@@ -150,32 +150,32 @@ describe('VALID_PKG_SPECIFIER_RE', () => {
 // ---------------------------------------------------------------------------
 
 describe('parsePackageArg', () => {
-  // Pacotes sem escopo.
-  test('decompõe nome@versão corretamente', () => {
+  // Packages without scope.
+  test('decomposes name@version correctly', () => {
     assert.deepEqual(parsePackageArg('lodash@4.17.21'), { name: 'lodash', version: '4.17.21' })
     assert.deepEqual(parsePackageArg('express@4.21.2'), { name: 'express', version: '4.21.2' })
   })
 
-  test('retorna version: null quando versão é omitida', () => {
+  test('returns version: null when version is omitted', () => {
     assert.deepEqual(parsePackageArg('lodash'), { name: 'lodash', version: null })
   })
 
-  test('preserva pre-release tag na versão', () => {
+  test('preserves pre-release tag in version', () => {
     assert.deepEqual(parsePackageArg('pkg@1.0.0-beta.1'), { name: 'pkg', version: '1.0.0-beta.1' })
   })
 
-  // Pacotes com escopo (@org/name).
-  test('decompõe @escopo/nome@versão corretamente', () => {
+  // Scoped packages (@org/name).
+  test('decomposes @scope/name@version correctly', () => {
     assert.deepEqual(parsePackageArg('@types/node@22.15.3'), { name: '@types/node', version: '22.15.3' })
     assert.deepEqual(parsePackageArg('@org/my-pkg@1.0.0'), { name: '@org/my-pkg', version: '1.0.0' })
   })
 
-  test('retorna version: null para @escopo/nome sem versão', () => {
+  test('returns version: null for @scope/name without version', () => {
     assert.deepEqual(parsePackageArg('@org/pkg'), { name: '@org/pkg', version: null })
     assert.deepEqual(parsePackageArg('@types/node'), { name: '@types/node', version: null })
   })
 
-  test('preserva o @ do escopo no campo name', () => {
+  test('preserves the scope @ in the name field', () => {
     const result = parsePackageArg('@types/node@22.15.3')
     assert.ok(result.name.startsWith('@'))
     assert.equal(result.name, '@types/node')
@@ -187,12 +187,12 @@ describe('parsePackageArg', () => {
 // ---------------------------------------------------------------------------
 
 describe('runWithConcurrencyLimit', () => {
-  test('resolve com [] para lista de tasks vazia', async () => {
+  test('resolves with [] for empty task list', async () => {
     const results = await runWithConcurrencyLimit([], 5)
     assert.deepEqual(results, [])
   })
 
-  test('executa todas as tasks e retorna resultados no formato allSettled', async () => {
+  test('runs all tasks and returns results in allSettled format', async () => {
     const tasks = [
       () => Promise.resolve('a'),
       () => Promise.resolve('b'),
@@ -206,10 +206,10 @@ describe('runWithConcurrencyLimit', () => {
     ])
   })
 
-  test('tarefa rejeitada nao interrompe as demais', async () => {
+  test('rejected task does not stop the others', async () => {
     const tasks = [
       () => Promise.resolve('ok1'),
-      () => Promise.reject(new Error('falha')),
+      () => Promise.reject(new Error('failure')),
       () => Promise.resolve('ok2'),
     ]
     const results = await runWithConcurrencyLimit(tasks, 3)
@@ -217,23 +217,23 @@ describe('runWithConcurrencyLimit', () => {
     assert.equal(results[0].status, 'fulfilled')
     assert.equal(results[0].value, 'ok1')
     assert.equal(results[1].status, 'rejected')
-    assert.equal(results[1].reason.message, 'falha')
+    assert.equal(results[1].reason.message, 'failure')
     assert.equal(results[2].status, 'fulfilled')
     assert.equal(results[2].value, 'ok2')
   })
 
-  test('mantém ordem dos resultados independente da ordem de conclusão', async () => {
-    // Task 0 usa setImmediate (mais lenta), task 1 resolve imediatamente.
-    // O índice do resultado deve seguir a ordem de inserção, não a de conclusão.
+  test('keeps result order independent of completion order', async () => {
+    // Task 0 uses setImmediate (slower), task 1 resolves immediately.
+    // Result index must follow insertion order, not completion order.
     const results = await runWithConcurrencyLimit([
-      () => new Promise((res) => setImmediate(() => res('lento'))),
-      () => Promise.resolve('rapido'),
+      () => new Promise((res) => setImmediate(() => res('slow'))),
+      () => Promise.resolve('fast'),
     ], 2)
-    assert.equal(results[0].value, 'lento')
-    assert.equal(results[1].value, 'rapido')
+    assert.equal(results[0].value, 'slow')
+    assert.equal(results[1].value, 'fast')
   })
 
-  test('respeita o limite de concorrência', async () => {
+  test('respects the concurrency limit', async () => {
     let running = 0
     let maxRunning = 0
     const LIMIT = 3
@@ -248,7 +248,7 @@ describe('runWithConcurrencyLimit', () => {
       })
     )
     await runWithConcurrencyLimit(tasks, LIMIT)
-    assert.ok(maxRunning <= LIMIT, `Máximo simultâneo foi ${maxRunning}, esperado <= ${LIMIT}`)
+    assert.ok(maxRunning <= LIMIT, `Maximum concurrent was ${maxRunning}, expected <= ${LIMIT}`)
   })
 })
 
@@ -259,15 +259,15 @@ describe('runWithConcurrencyLimit', () => {
 describe('fetchPackageAge', () => {
   const https = require('node:https')
 
-  // Cria um objeto de requisição mock com handlers de evento manuais.
+  // Creates a mock request object with manual event handlers.
   function makeMockRequest() {
     const req = new EventEmitter()
     req.destroy = () => {}
     return req
   }
 
-  // Cria um objeto de resposta mock que emite data+end de forma assíncrona,
-  // garantindo que os listeners sejam registrados antes da emissão.
+  // Creates a mock response object that emits data+end asynchronously,
+  // ensuring listeners are registered before emission.
   function makeMockResponse(statusCode, body) {
     const res = new EventEmitter()
     res.statusCode = statusCode
@@ -279,7 +279,7 @@ describe('fetchPackageAge', () => {
     return res
   }
 
-  test('retorna { name, version, ageDays, published } para HTTP 200 válido', async () => {
+  test('returns { name, version, ageDays, published } for valid HTTP 200', async () => {
     const publishDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
     const body = JSON.stringify({ time: { '1.0.0': publishDate } })
     const originalGet = https.get
@@ -299,7 +299,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Registry returned HTTP" para status não-200', async () => {
+  test('rejects with "Registry returned HTTP" for non-200 status', async () => {
     const originalGet = https.get
     https.get = (_url, _opts, callback) => {
       const req = makeMockRequest()
@@ -316,7 +316,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Timeout fetching registry data" quando timeout dispara', async () => {
+  test('rejects with "Timeout fetching registry data" when timeout fires', async () => {
     const originalGet = https.get
     https.get = (_url, _opts, _callback) => {
       const req = makeMockRequest()
@@ -333,7 +333,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Network error" para erro no req', async () => {
+  test('rejects with "Network error" for error on req', async () => {
     const originalGet = https.get
     https.get = (_url, _opts, _callback) => {
       const req = makeMockRequest()
@@ -350,7 +350,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Stream error" para erro mid-stream no res', async () => {
+  test('rejects with "Stream error" for mid-stream error on res', async () => {
     const originalGet = https.get
     https.get = (_url, _opts, callback) => {
       const req = makeMockRequest()
@@ -373,9 +373,9 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "exceeds" quando payload ultrapassa limite de tamanho', async () => {
+  test('rejects with "exceeds" when payload exceeds size limit', async () => {
     const originalGet = https.get
-    // Buffer.alloc é mais eficiente que uma string literal para alocar MAX_RESPONSE_BYTES + 1.
+    // Buffer.alloc is more efficient than a string literal for allocating MAX_RESPONSE_BYTES + 1.
     const oversizedChunk = Buffer.alloc(MAX_RESPONSE_BYTES + 1, 120).toString() // 120 = 'x'
     https.get = (_url, _opts, callback) => {
       const req = makeMockRequest()
@@ -398,7 +398,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "No publish date found" quando time[version] é ausente', async () => {
+  test('rejects with "No publish date found" when time[version] is missing', async () => {
     const originalGet = https.get
     const body = JSON.stringify({ time: { '2.0.0': '2024-01-01T00:00:00.000Z' } })
     https.get = (_url, _opts, callback) => {
@@ -416,7 +416,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Could not parse publish date" para data inválida', async () => {
+  test('rejects with "Could not parse publish date" for invalid date', async () => {
     const originalGet = https.get
     const body = JSON.stringify({ time: { '1.0.0': 'not-a-date' } })
     https.get = (_url, _opts, callback) => {
@@ -434,7 +434,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejeita com "Failed to parse response" para JSON malformado', async () => {
+  test('rejects with "Failed to parse response" for malformed JSON', async () => {
     const originalGet = https.get
     https.get = (_url, _opts, callback) => {
       const req = makeMockRequest()
@@ -460,13 +460,13 @@ describe('CLI — check-package-age flags', () => {
   const { spawnSync } = require('node:child_process')
   const scriptPath = path.resolve(__dirname, './check-package-age.js')
 
-  test('--pkg sem valor: exit 1 com mensagem de erro', () => {
+  test('--pkg without value: exit 1 with error message', () => {
     const result = spawnSync(process.execPath, [scriptPath, '--pkg'], { encoding: 'utf8' })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /--pkg requires a package name with an exact version/)
   })
 
-  test('--pkg e --transitive combinados: exit 1 com mensagem de exclusão mútua', () => {
+  test('--pkg and --transitive combined: exit 1 with mutual exclusion message', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, '--pkg', 'lodash@4.17.21', '--transitive'],
@@ -476,7 +476,7 @@ describe('CLI — check-package-age flags', () => {
     assert.match(result.stderr, /--pkg and --transitive are mutually exclusive/)
   })
 
-  test('--pkg com especificador inválido: exit 1', () => {
+  test('--pkg with invalid specifier: exit 1', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, '--pkg', 'lodash; rm -rf /'],
@@ -495,13 +495,13 @@ describe('CLI — add-package flags', () => {
   const { spawnSync } = require('node:child_process')
   const scriptPath = path.resolve(__dirname, './add-package.js')
 
-  test('sem argumento de pacote: exit 1', () => {
+  test('missing package argument: exit 1', () => {
     const result = spawnSync(process.execPath, [scriptPath], { encoding: 'utf8' })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /missing package argument/)
   })
 
-  test('--dev e --peer combinados: exit 1 com mensagem de exclusão mútua', () => {
+  test('--dev and --peer combined: exit 1 with mutual exclusion message', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, 'lodash@4.17.21', '--dev', '--peer'],
@@ -511,13 +511,13 @@ describe('CLI — add-package flags', () => {
     assert.match(result.stderr, /--dev and --peer are mutually exclusive/)
   })
 
-  test('versão omitida (nome sem @x.y.z): exit 1', async () => {
+  test('version omitted (name without @x.y.z): exit 1', async () => {
     const result = spawnSync(process.execPath, [scriptPath, 'lodash'], { encoding: 'utf8' })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /exact version required/)
   })
 
-  test('especificador inválido: exit 1', () => {
+  test('invalid specifier: exit 1', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, 'lodash; evil'],

@@ -1,68 +1,68 @@
 'use strict'
 
-// Wrapper seguro para adicionar dependências ao projeto.
-// Garante que a verificação de idade (check-package-age.js) seja executada ANTES
-// de qualquer instalação, fechando o bypass silencioso que ocorre quando alguém
-// roda `npm install <pacote>` diretamente sem passar pelo fluxo de segurança do projeto.
+// Safe wrapper for adding dependencies to the project.
+// Ensures the age check (check-package-age.js) runs BEFORE any installation,
+// closing the silent bypass that happens when someone runs `npm install <pkg>`
+// directly without going through the project's security flow.
 //
-// Uso:
-//   npm run add -- <pacote>@<versão>              — adiciona como dependência de produção
-//   npm run add -- <pacote>@<versão> --dev        — adiciona como devDependency
-//   npm run add -- <pacote>@<versão> --peer       — adiciona como peerDependency
-//   npm run add -- <pacote>@<versão> --dry-run    — verifica a idade sem instalar
+// Usage:
+//   npm run add -- <package>@<version>            — add as production dependency
+//   npm run add -- <package>@<version> --dev      — add as devDependency
+//   npm run add -- <package>@<version> --peer     — add as peerDependency
+//   npm run add -- <package>@<version> --dry-run  — check age without installing
 //
-// Exemplos:
+// Examples:
 //   npm run add -- lodash@4.17.21
 //   npm run add -- express@4.21.2
 //   npm run add -- @types/node@22.15.3 --dev
 //   npm run add -- react-native-svg@12.0.0 --peer
 //   npm run add -- husky@9.1.7 --dry-run
 //
-// Nota sobre peerDependencies (--peer):
-//   O flag --save-peer pina a versão exata no package.json (ex: "12.0.0").
-//   Após a instalação, ajuste manualmente para o range desejado (ex: ">=12.0.0").
-//   --dev e --peer são mutuamente exclusivos.
+// Note on peerDependencies (--peer):
+//   The --save-peer flag pins the exact version in package.json (e.g. "12.0.0").
+//   After installation, manually adjust to the desired range (e.g. ">=12.0.0").
+//   --dev and --peer are mutually exclusive.
 //
-// Fluxo executado:
-//   1. Valida o argumento (nome e versão exata obrigatória)
-//   2. Verifica a idade do pacote via check-package-age.js --pkg (aborta se muito recente)
-//   3. Instala com `npm install --save-exact` (pular se --dry-run)
-//   4. Verifica assinaturas criptográficas com `npm audit signatures`
-//   5. Audita vulnerabilidades conhecidas com `npm audit --audit-level=high`
+// Flow executed:
+//   1. Validate the argument (name and exact version required)
+//   2. Check package age via check-package-age.js --pkg (aborts if too recent)
+//   3. Install with `npm install --save-exact` (skip if --dry-run)
+//   4. Verify cryptographic signatures with `npm audit signatures`
+//   5. Audit known vulnerabilities with `npm audit --audit-level=high`
 //
-// Pacotes com lifecycle scripts (postinstall, preinstall):
-//   O projeto usa ignore-scripts=true no .npmrc, bloqueando lifecycle scripts de todos
-//   os pacotes instalados. Pacotes que necessitem de um postinstall para funcionar
-//   (ex: esbuild, sharp, canvas) precisam de uma etapa adicional manual:
-//     npm_config_ignore_scripts=false npm rebuild <pacote>
-//   Consulte a seção "Adicionando Novas Dependências" no README.md para detalhes.
+// Packages with lifecycle scripts (postinstall, preinstall):
+//   The project uses ignore-scripts=true in .npmrc, blocking lifecycle scripts for all
+//   installed packages. Packages that need a postinstall to work (e.g. esbuild, sharp,
+//   canvas) require an additional manual step:
+//     npm_config_ignore_scripts=false npm rebuild <package>
+//   See the "Adding New Dependencies" section in README.md for details.
 
 const { execSync } = require('node:child_process')
 const path = require('node:path')
 
-// Reutiliza fetchPackageAge e resolveExactVersion do check-package-age.js para manter
-// a lógica de verificação centralizada em um único lugar.
-// O require funciona porque check-package-age.js exporta via module.exports ao final.
-// Somente módulos nativos são usados aqui, pelo mesmo motivo do check-package-age.js.
+// Reuses fetchPackageAge and resolveExactVersion from check-package-age.js to keep
+// the verification logic centralized in one place.
+// The require works because check-package-age.js exports via module.exports at the end.
+// Only native Node.js modules are used here, for the same reason as check-package-age.js.
 const { fetchPackageAge, resolveExactVersion } = require(path.resolve(__dirname, './check-package-age.js'))
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
-// Lê as mesmas configurações do check-package-age.js para manter comportamento consistente.
+// Reads the same settings as check-package-age.js to keep behavior consistent.
 const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
 
-// Parseia os argumentos da linha de comando.
-// process.argv: ["node", "add-package.js", "<pacote>@<versão>", "[--dev|--peer]", "[--dry-run]"]
+// Parses command-line arguments.
+// process.argv: ["node", "add-package.js", "<package>@<version>", "[--dev|--peer]", "[--dry-run]"]
 const args = process.argv.slice(2)
 const pkgArg = args.find((a) => !a.startsWith('-'))
 const isDev = args.includes('--dev')
 const isPeer = args.includes('--peer')
 const isDryRun = args.includes('--dry-run')
 
-// Valida os argumentos antes de qualquer operação de rede ou disco.
-// Falha com mensagem de uso clara para orientar o colaborador.
-// Executado apenas no modo CLI — não dispara ao importar via require().
+// Validates arguments before any network or disk operation.
+// Fails with a clear usage message to guide the contributor.
+// Only executed in CLI mode — does not run when imported via require().
 function validateArgs() {
   if (!pkgArg) {
     console.error('Error: missing package argument.')
@@ -88,8 +88,8 @@ function validateArgs() {
   }
 }
 
-// Retorna os três valores que variam por tipo de dependência.
-// Extraído de main() para reduzir a complexidade cognitiva (SonarQube: cognitive-complexity).
+// Returns the three values that vary by dependency type.
+// Extracted from main() to reduce cognitive complexity (SonarQube: cognitive-complexity).
 function getSaveMode(peer, dev) {
   if (peer) return { typeLabel: ' [peerDependency]', flagHint: ' --peer', saveFlag: '--save-peer' }
   if (dev)  return { typeLabel: ' [devDependency]',  flagHint: ' --dev',  saveFlag: '--save-dev'  }
@@ -99,8 +99,8 @@ function getSaveMode(peer, dev) {
 async function main() {
   const { name, version: rawVersion } = parsePackageArg(pkgArg)
 
-  // Exige versão exata — o colaborador deve decidir explicitamente qual versão está aprovando.
-  // Isso evita que o fluxo automaticamente aprove uma versão recém-publicada ao resolver "latest".
+  // Requires an exact version — the contributor must explicitly decide which version is being approved.
+  // This prevents the flow from automatically approving a recently published version when resolving "latest".
   if (!rawVersion) {
     console.error(`Error: exact version required. Use: npm run add -- ${name}@x.y.z`)
     process.exit(1)
@@ -109,9 +109,9 @@ async function main() {
   const { typeLabel, flagHint, saveFlag } = getSaveMode(isPeer, isDev)
   console.log(`\nadd-package: ${name}@${rawVersion}${typeLabel}${isDryRun ? ' [dry-run]' : ''}\n`)
 
-  // Passo 1 — Confirmar que a versão informada é exata (sem range operators).
-  // resolveExactVersion é importada do check-package-age.js; retorna null para dist-tags
-  // e ranges como "^1.0.0", "~2.0", "latest", etc.
+  // Step 1 — Confirm the provided version is exact (no range operators).
+  // resolveExactVersion is imported from check-package-age.js; returns null for dist-tags
+  // and ranges such as "^1.0.0", "~2.0", "latest", etc.
   const exactVersion = resolveExactVersion(rawVersion)
   if (!exactVersion) {
     console.error(`Error: "${rawVersion}" is not an exact version.`)
@@ -119,9 +119,9 @@ async function main() {
     process.exit(1)
   }
 
-  // Passo 2 — Verificar a idade do pacote antes de qualquer instalação.
-  // fetchPackageAge é importada do check-package-age.js; consulta o registry e retorna
-  // o número de dias desde a publicação. Aborta se o pacote for mais novo que MIN_AGE_DAYS.
+  // Step 2 — Check the package age before any installation.
+  // fetchPackageAge is imported from check-package-age.js; queries the registry and returns
+  // the number of days since publication. Aborts if the package is newer than MIN_AGE_DAYS.
   console.log(`Checking publish age for ${name}@${exactVersion} (minimum: ${MIN_AGE_DAYS} days)...`)
   let ageResult
   try {
@@ -144,35 +144,35 @@ async function main() {
 
   console.log(`  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)
 
-  // Passo 3 — Instalar o pacote (apenas se não for dry-run).
-  // --save-exact garante versão fixada sem operadores ^/~ no package.json,
-  // alinhado com save-exact=true do .npmrc (redundância intencional para clareza).
-  // O .npmrc já define ignore-scripts=true; a flag não é passada explicitamente aqui
-  // pois o npm a lê automaticamente do arquivo de configuração.
+  // Step 3 — Install the package (only if not dry-run).
+  // --save-exact pins the version without ^/~ operators in package.json,
+  // aligned with save-exact=true in .npmrc (intentional redundancy for clarity).
+  // .npmrc already sets ignore-scripts=true; the flag is not passed explicitly here
+  // because npm reads it automatically from the configuration file.
   if (isDryRun) {
     console.log('\nDry-run: age check passed. Skipping installation.')
     console.log(`\nTo install, run: npm run add -- ${pkgArg}${flagHint}`)
     process.exit(0)
   }
 
-  // O valor de name e exactVersion foi validado pelo VALID_PKG_SPECIFIER_RE antes de chegar aqui,
-  // garantindo que não contêm caracteres de injeção de shell.
+  // name and exactVersion were validated by VALID_PKG_SPECIFIER_RE before reaching this point,
+  // ensuring they contain no shell injection characters.
   const installCmd = `npm install ${saveFlag} --save-exact ${name}@${exactVersion}`
 
   console.log(`\nInstalling: ${installCmd}`)
   try {
-    // stdio: 'inherit' repassa stdout/stderr do npm diretamente para o terminal,
-    // permitindo que o colaborador veja o progresso e mensagens de erro em tempo real.
+    // stdio: 'inherit' forwards npm stdout/stderr directly to the terminal,
+    // so the contributor can see progress and error messages in real time.
     execSync(installCmd, { stdio: 'inherit' })
   } catch {
-    // O npm já imprimiu o erro via stdio: 'inherit'; apenas indica o motivo da saída.
+    // npm already printed the error via stdio: 'inherit'; just indicate the reason for exiting.
     console.error('\nInstallation failed. See npm output above.')
     process.exit(1)
   }
 
-  // Passo 4 — Verificar assinaturas criptográficas pós-instalação.
-  // Detecta adulteração do pacote em trânsito (MITM) ou substituição local de node_modules/.
-  // Complementado pelo Passo 5, que verifica CVEs conhecidas após confirmar a integridade.
+  // Step 4 — Verify cryptographic signatures after installation.
+  // Detects package tampering in transit (MITM) or local node_modules/ substitution.
+  // Complemented by Step 5, which checks known CVEs after integrity is confirmed.
   console.log('\nVerifying package signatures...')
   try {
     execSync('npm audit signatures', { stdio: 'inherit' })
@@ -182,9 +182,9 @@ async function main() {
     process.exit(1)
   }
 
-  // Passo 5 — Auditar vulnerabilidades conhecidas pós-instalação.
-  // Garante que o pacote recém-instalado não introduz CVEs de severidade alta ou crítica.
-  // Executado após o audit de assinaturas para cobrir ambos os vetores no mesmo fluxo.
+  // Step 5 — Audit known vulnerabilities after installation.
+  // Ensures the newly installed package does not introduce high or critical severity CVEs.
+  // Runs after the signature audit to cover both vectors in the same flow.
   console.log('\nAuditing for known vulnerabilities...')
   try {
     execSync('npm audit --audit-level=high', { stdio: 'inherit' })
@@ -199,9 +199,9 @@ async function main() {
   console.log('Remember to commit both package.json and package-lock.json.')
 }
 
-// Executa main() apenas quando o script é chamado diretamente via CLI.
-// Quando importado via require() por testes ou outros módulos,
-// apenas as exportações ficam disponíveis — main() não é chamado.
+// Runs main() only when the script is invoked directly from the CLI.
+// When imported via require() by tests or other modules,
+// only the exports are available — main() is not called.
 if (require.main === module) {
   validateArgs()
   main().catch((err) => {
@@ -210,6 +210,6 @@ if (require.main === module) {
   })
 }
 
-// Exporta funções utilitárias para uso nos testes.
+// Exports utility functions for use by tests.
 module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE }
 

@@ -1,41 +1,41 @@
 'use strict'
 
-// Defesa contra supply chain attacks do tipo "fast publish":
-// Impede a instalação de pacotes publicados recentemente no npm registry.
-// Ataques como event-stream (2018) e ua-parser-js (2021) envolvem a publicação
-// de uma versão maliciosa e sua remoção antes de ser amplamente detectada.
-// Um atraso mínimo de dias dá tempo para scanners e a comunidade identificarem a ameaça.
+// Defense against "fast publish" supply-chain attacks.
+// Prevents installation of packages recently published to the npm registry.
+// Attacks such as event-stream (2018) and ua-parser-js (2021) involved publishing
+// a malicious version and removing it before it was widely detected.
+// A minimum release-age delay gives scanners and the community time to spot the threat.
 //
-// Uso:
-//   node ./tools/check-package-age.js                        — checa dependências declaradas em package.json (pré-install)
-//   node ./tools/check-package-age.js --transitive            — checa todas as dependências resolvidas em package-lock.json (pós-install)
-//   node ./tools/check-package-age.js --pkg lodash@4.17.21   — checa um único pacote com versão exata (verificação pontual)
+// Usage:
+//   node ./tools/check-package-age.js                        — check declared package.json dependencies (pre-install)
+//   node ./tools/check-package-age.js --transitive            — check all resolved dependencies in package-lock.json (post-install)
+//   node ./tools/check-package-age.js --pkg lodash@4.17.21   — check a single package with an exact version (point check)
 //
-// Invocado via script `pkg-age-check` (`setup`, `npm-reinstall` pré-install),
-// diretamente com --transitive (`npm-reinstall` pós-install),
-// e pelo `add-package.js` internamente com --pkg antes de qualquer instalação.
+// Invoked via the `pkg-age-check` script (setup, npm-reinstall pre-install),
+// directly with --transitive (npm-reinstall post-install),
+// and internally by add-package.js with --pkg before any installation.
 
 const https = require('node:https')
 const path = require('node:path')
 
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
-// Lê as dependências declaradas no package.json do projeto.
-// Somente módulos nativos são usados aqui — este script não pode depender de
-// pacotes instaláveis, pois é executado antes da própria instalação.
+// Reads the declared dependencies from the project's package.json.
+// Only native modules are used here — this script must not depend on installable
+// packages because it runs before installation itself.
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
-// Resolve o modo de operação a partir dos argumentos da linha de comando:
-// --transitive → lê package-lock.json e checa todas as dependências resolvidas
-// --pkg <nome@versão> → checa um único pacote informado pontualmente
-// (padrão) → checa dependências declaradas em package.json
+// Resolves the operation mode from command-line arguments:
+// --transitive → reads package-lock.json and checks all resolved dependencies
+// --pkg <name@version> → checks a single package provided as a point value
+// (default) → checks declared dependencies in package.json
 const transitive = process.argv.includes('--transitive')
 const pkgArgIndex = process.argv.indexOf('--pkg')
 const pkgArg = pkgArgIndex === -1 ? null : process.argv[pkgArgIndex + 1]
 
-// Valida que --pkg foi fornecido com um valor e que não mistura modos incompatíveis.
-// --pkg e --transitive são mutuamente exclusivos: --transitive opera sobre o lockfile
-// inteiro, enquanto --pkg é uma verificação pontual de um único pacote.
+// Validates that --pkg was supplied with a value and that incompatible modes are not mixed.
+// --pkg and --transitive are mutually exclusive: --transitive operates on the whole
+// lockfile, while --pkg is a point check of a single package.
 if (pkgArgIndex !== -1 && !pkgArg) {
   console.error('Error: --pkg requires a package name with an exact version. Example: --pkg lodash@4.17.21')
   process.exit(1)
@@ -54,19 +54,18 @@ if (pkgArg && !VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
 let deps
 if (transitive) {
   const lock = require(path.resolve(__dirname, '../package-lock.json'))
-  // O formato lockfileVersion 3 armazena cada pacote instalado sob a chave
-  // "node_modules/<name>" no objeto `packages`. A chave "" representa o próprio
-  // projeto raiz e é filtrada. O campo `version` contém sempre a versão exata resolvida.
+  // lockfileVersion 3 stores each installed package under the "node_modules/<name>" key
+  // in the `packages` object. The "" key represents the root project and is filtered out.
+  // The `version` field always contains the resolved exact version.
   deps = Object.fromEntries(
     Object.entries(lock.packages)
       .filter(([key]) => key.startsWith('node_modules/'))
       .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
   )
 } else if (pkgArg) {
-  // Modo --pkg: decompõe "name@version" ou "@scope/name@version" em nome e versão
-  // usando a função compartilhada. Exige versão exata para garantir que a
-  // verificação de idade opere sobre a versão específica que será instalada,
-  // não sobre um dist-tag.
+  // --pkg mode: decompose "name@version" or "@scope/name@version" using the shared helper.
+  // Requires an exact version so the age check operates on the specific version that
+  // will be installed, not on a dist-tag.
   const { name: pkgName, version: pkgVersion } = parsePackageArg(pkgArg)
   if (!pkgVersion) {
     console.error(`Error: --pkg requires an exact version. Use: --pkg ${pkgName}@x.y.z`)
@@ -77,46 +76,46 @@ if (transitive) {
   deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies, ...pkg.optionalDependencies }
 }
 
-// Número mínimo de dias que um pacote deve ter desde sua publicação para ser aceito.
-// Alinhado com min-release-age=7 no .npmrc (camada nativa de defesa do npm).
-// Configurável via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
+// Minimum number of days since publication for a package to be accepted.
+// Aligned with min-release-age=7 in .npmrc (npm's native defense layer).
+// Configurable via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
 const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
 
-// Limite máximo de tamanho por resposta do registry (padrão: 20 MB).
-// Documentos completos de pacotes com histórico longo podem ser grandes, mas nenhum
-// pacote real conhecido ultrapassa 20 MB. O cap protege contra cenários patológicos
-// (resposta malformada, injeção de dados em trânsito, loop infinito de chunks).
-// Para sobrescrever, adicione ao package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
+// Maximum response size per registry call (default: 20 MB).
+// Full package documents with long history can be large, but no known real package
+// exceeds 20 MB. The cap protects against pathological scenarios (malformed response,
+// data injection in transit, infinite chunk loops).
+// Override via package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
 const MAX_RESPONSE_BYTES = ((pkg.pkgAgeCheck?.maxResponseMB) ?? 20) * 1024 * 1024
 
-// Número máximo de consultas simultâneas ao registry (padrão: 10).
-// Evita rate-limiting em projetos com muitas dependências.
-// Configurável via package.json: "pkgAgeCheck": { "concurrency": 5 }
+// Maximum concurrent registry queries (default: 10).
+// Avoids rate-limiting in projects with many dependencies.
+// Configurable via package.json: "pkgAgeCheck": { "concurrency": 5 }
 const CONCURRENCY = (pkg.pkgAgeCheck?.concurrency) ?? 10
 
-// Remove range operators semver (`^`, `~`, `>=`, `<=`, `>`, `<`, `=`) do início
-// de uma string de versão, retornando a versão exata, ou null se não for resolvível
-// (ex: `*`, `latest`, `x.x.x`). O campo `time` do registry só contém versões exatas.
+// Removes semver range operators (`^`, `~`, `>=`, `<=`, `>`, `<`, `=`) from the start
+// of a version string, returning the exact version, or null if not resolvable
+// (e.g. `*`, `latest`, `x.x.x`). The registry `time` field only contains exact versions.
 function resolveExactVersion(version) {
   const exact = version.replace(/^[~^>=<*\s]+/, '').trim()
   if (!exact || exact === 'latest' || exact === 'next' || /[x*]/.test(exact)) return null
-  // Espaço remanescente indica range composto (ex: "1.2 - 2.0", ">=1.0.0 <2.0.0") —
-  // não é possível determinar uma versão exata sem resolver o range.
+  // Remaining whitespace indicates a composite range (e.g. "1.2 - 2.0", ">=1.0.0 <2.0.0") —
+  // an exact version cannot be determined without resolving the range.
   if (/\s/.test(exact)) return null
   return exact
 }
 
-// Consulta o npm registry e retorna a idade em dias de uma versão específica de um pacote.
+// Queries the npm registry and returns the age in days of a specific package version.
 //
-// O endpoint raiz (/name) é usado em vez do endpoint de versão (/name/version) porque
-// apenas o documento completo do pacote contém o mapa `time` com a data de publicação
-// de cada versão individualmente. O abbreviated packument (vnd.npm.install-v1+json) não
-// inclui o campo `time`, portanto o documento completo é obrigatório.
+// The root endpoint (/name) is used instead of the version endpoint (/name/version)
+// because only the full package document contains the `time` map with the publication
+// date of each individual version. The abbreviated packument (vnd.npm.install-v1+json)
+// does not include the `time` field, so the full document is required.
 function fetchPackageAge(name, version) {
   return new Promise((resolve, reject) => {
-    // Guard contra chamadas duplas a resolve/reject: em cenários de erro de socket,
-    // `res.on('error')` e `res.on('end')` podem disparar em sequência no mesmo ciclo.
-    // A Promise ignora silenciosamente o segundo chamado, mas a flag torna isso explícito.
+    // Guard against double resolve/reject calls: in socket error scenarios,
+    // `res.on('error')` and `res.on('end')` may fire in sequence in the same tick.
+    // Promises silently ignore the second call, but the flag makes it explicit.
     let settled = false
     const safeResolve = (val) => { if (!settled) { settled = true; resolve(val) } }
     const safeReject = (err) => { if (!settled) { settled = true; reject(err) } }
@@ -126,8 +125,8 @@ function fetchPackageAge(name, version) {
     const req = https.get(url, { headers: { 'Accept': 'application/json' }, timeout: 10000 }, (res) => {
       let data = ''
 
-      // Acumula os chunks da resposta HTTP em uma string.
-      // Interrompe a transferência se o tamanho acumulado ultrapassar MAX_RESPONSE_BYTES.
+      // Accumulates HTTP response chunks into a string.
+      // Stops the transfer if the accumulated size exceeds MAX_RESPONSE_BYTES.
       res.on('data', (chunk) => {
         data += chunk
         if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
@@ -140,8 +139,8 @@ function fetchPackageAge(name, version) {
         }
       })
 
-      // Erros mid-stream (conexão perdida após o início da resposta) disparam em `res`,
-      // não em `req` — por isso precisam de um handler próprio.
+      // Mid-stream errors (connection lost after response started) fire on `res`,
+      // not on `req` — they need their own handler.
       res.on('error', (err) => { safeReject(new Error(`Stream error for ${name}: ${err.message}`)) })
 
       res.on('end', () => {
@@ -153,9 +152,9 @@ function fetchPackageAge(name, version) {
         try {
           const info = JSON.parse(data)
 
-          // O campo `time` é um objeto onde cada chave é uma versão publicada
-          // e o valor é o timestamp ISO 8601 da publicação.
-          // Exemplo: { "1.0.0": "2024-01-15T10:00:00.000Z", ... }
+          // The `time` field is an object where each key is a published version
+          // and the value is the ISO 8601 publication timestamp.
+          // Example: { "1.0.0": "2024-01-15T10:00:00.000Z", ... }
           if (!info.time?.[version]) {
             safeReject(new Error(`No publish date found for ${name}@${version} in registry`))
             return
@@ -168,7 +167,7 @@ function fetchPackageAge(name, version) {
             return
           }
 
-          // Converte a diferença entre agora e a data de publicação de milissegundos para dias.
+          // Converts the difference between now and the publication date from milliseconds to days.
           const ageDays = (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24)
           safeResolve({ name, version, ageDays, published })
         } catch (err) {
@@ -184,11 +183,11 @@ function fetchPackageAge(name, version) {
   })
 }
 
-// Executa um array de funções assíncronas com no máximo `limit` rodando simultaneamente.
-// Cada elemento de `tasks` é uma função que retorna uma Promise (factory), não a Promise em si —
-// isso garante que a requisição HTTP só é iniciada quando um slot fica disponível.
-// Retorna um array no mesmo formato de Promise.allSettled.
-// Lista vazia resolve imediatamente com [].
+// Runs an array of async functions with at most `limit` running concurrently.
+// Each element of `tasks` is a function that returns a Promise (factory), not the Promise itself —
+// this ensures the HTTP request is only started when a slot becomes available.
+// Returns an array in the same shape as Promise.allSettled.
+// Empty list resolves immediately with [].
 function runWithConcurrencyLimit(tasks, limit) {
   return new Promise((resolve) => {
     if (tasks.length === 0) return resolve([])
@@ -227,11 +226,11 @@ async function main() {
   const scope = transitive ? 'transitive (package-lock.json)' : 'declared (package.json)'
   console.log(`Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${MIN_AGE_DAYS} days)...\n`)
 
-  // Consulta todos os pacotes com concorrência limitada a CONCURRENCY requisições simultâneas.
-  // runWithConcurrencyLimit garante que todas as consultas são concluídas antes de avaliar
-  // os resultados, mesmo que algumas falhem — permitindo um relatório completo.
-  // Versões com range operators (^, ~, >=, etc.) são normalizadas para a versão exata
-  // antes da consulta; ranges não resolvíveis (*, latest) são rejeitados.
+  // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
+  // runWithConcurrencyLimit ensures all queries finish before evaluating results,
+  // even if some fail — enabling a complete report.
+  // Versions with range operators (^, ~, >=, etc.) are normalized to an exact version
+  // before querying; unresolvable ranges (*, latest) are rejected.
   const results = await runWithConcurrencyLimit(
     entries.map(([name, rawVersion]) => () => {
       const version = resolveExactVersion(rawVersion)
@@ -243,8 +242,8 @@ async function main() {
     CONCURRENCY
   )
 
-  // Separa os pacotes em duas listas: bloqueados (muito novos) e com erro de consulta.
-  // Ambos resultam em falha — não é possível instalar um pacote cuja idade não foi confirmada.
+  // Splits packages into two lists: blocked (too new) and lookup errors.
+  // Both result in failure — a package whose age cannot be confirmed must not be installed.
   const blocked = []
   const errors = []
 
@@ -275,8 +274,8 @@ async function main() {
     blocked.forEach((msg) => console.error(msg))
   }
 
-  // Sai com código 1 (falha) se qualquer pacote foi bloqueado ou se alguma consulta
-  // ao registry não pôde ser concluída. Ambos os casos impedem a instalação.
+  // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
+  // Either case prevents installation.
   if (blocked.length > 0 || errors.length > 0) {
     process.exit(1)
   }
@@ -284,9 +283,9 @@ async function main() {
   console.log(`\nAll packages passed the minimum age check.`)
 }
 
-// Executa main() apenas quando o script é chamado diretamente via CLI.
-// Quando importado via require() por outro módulo (ex: add-package.js),
-// apenas as exportações ficam disponíveis — main() não é chamado.
+// Runs main() only when the script is invoked directly from the CLI.
+// When imported via require() by another module (e.g. add-package.js),
+// only the exports are available — main() is not called.
 if (require.main === module) {
   main().catch((err) => {
     console.error(`Unexpected error: ${err.message}`)
@@ -294,6 +293,6 @@ if (require.main === module) {
   })
 }
 
-// Exporta funções utilitárias para reutilização pelo add-package.js.
-// Não afeta o comportamento quando executado diretamente via CLI.
+// Exports utility functions for reuse by add-package.js.
+// Does not affect behavior when run directly from the CLI.
 module.exports = { fetchPackageAge, resolveExactVersion, runWithConcurrencyLimit, MAX_RESPONSE_BYTES }
