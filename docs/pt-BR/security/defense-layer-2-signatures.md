@@ -1,0 +1,25 @@
+# Camada de Defesa 2 — Verificação de Assinaturas
+
+O npm pode verificar se os pacotes foram assinados pelo registry. Isso garante que o tarball não foi alterado após a publicação.
+
+## Comando
+
+```bash
+npm audit signatures
+```
+
+## Onde Executa
+
+- `npm run setup`
+- `npm run add`
+- `.husky/pre-commit`
+
+## O Que Verifica
+
+O npm compara a assinatura do registry e a integridade da chave de cada pacote instalado contra os metadados do `package-lock.json`. Uma falha de assinatura significa que o pacote foi modificado em trânsito ou que o lock file está inconsistente com o registry.
+
+## Modo de Falha
+
+Se uma assinatura estiver ausente ou inválida, o comando sai com código diferente de zero e bloqueia o restante do fluxo.
+
+_Sincronizado em: 2025-06-25_
