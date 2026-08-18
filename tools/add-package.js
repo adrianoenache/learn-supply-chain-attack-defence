@@ -6,17 +6,17 @@
 // directly without going through the project's security flow.
 //
 // Usage:
-//   npm run add -- <package>@<version>            — add as production dependency
-//   npm run add -- <package>@<version> --dev      — add as devDependency
-//   npm run add -- <package>@<version> --peer     — add as peerDependency
-//   npm run add -- <package>@<version> --dry-run  — check age without installing
+//   npm run defence:add -- <package>@<version>            — add as production dependency
+//   npm run defence:add -- <package>@<version> --dev      — add as devDependency
+//   npm run defence:add -- <package>@<version> --peer     — add as peerDependency
+//   npm run defence:add -- <package>@<version> --dry-run  — check age without installing
 //
 // Examples:
-//   npm run add -- lodash@4.17.21
-//   npm run add -- express@4.21.2
-//   npm run add -- @types/node@22.15.3 --dev
-//   npm run add -- react-native-svg@12.0.0 --peer
-//   npm run add -- husky@9.1.7 --dry-run
+//   npm run defence:add -- lodash@4.17.21
+//   npm run defence:add -- express@4.21.2
+//   npm run defence:add -- @types/node@22.15.3 --dev
+//   npm run defence:add -- react-native-svg@12.0.0 --peer
+//   npm run defence:add -- husky@9.1.7 --dry-run
 //
 // Note on peerDependencies (--peer):
 //   The --save-peer flag pins the exact version in package.json (e.g. "12.0.0").
@@ -80,12 +80,12 @@ function validateArgs(argv = process.argv.slice(2)) {
 
   if (!pkgArg) {
     console.error('Error: missing package argument.')
-    console.error('Usage: npm run add -- <package>@<version> [--dev|--peer] [--dry-run]')
+    console.error('Usage: npm run defence:add -- <package>@<version> [--dev|--peer] [--dry-run]')
     console.error('Examples:')
-    console.error('  npm run add -- lodash@4.17.21')
-    console.error('  npm run add -- @types/node@22.15.3 --dev')
-    console.error('  npm run add -- react-native-svg@12.0.0 --peer')
-    console.error('  npm run add -- express@4.21.2 --dry-run')
+    console.error('  npm run defence:add -- lodash@4.17.21')
+    console.error('  npm run defence:add -- @types/node@22.15.3 --dev')
+    console.error('  npm run defence:add -- react-native-svg@12.0.0 --peer')
+    console.error('  npm run defence:add -- express@4.21.2 --dry-run')
     process.exit(1)
   }
 
@@ -117,7 +117,7 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Requires an exact version — the contributor must explicitly decide which version is being approved.
   // This prevents the flow from automatically approving a recently published version when resolving "latest".
   if (!rawVersion) {
-    console.error(`Error: exact version required. Use: npm run add -- ${name}@x.y.z`)
+    console.error(`Error: exact version required. Use: npm run defence:add -- ${name}@x.y.z`)
     exitFn(1)
     return
   }
@@ -131,7 +131,7 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   const exactVersion = checkPackageAge.resolveExactVersion(rawVersion)
   if (!exactVersion) {
     console.error(`Error: "${rawVersion}" is not an exact version.`)
-    console.error(`Use a pinned version, e.g.: npm run add -- ${name}@x.y.z`)
+    console.error(`Use a pinned version, e.g.: npm run defence:add -- ${name}@x.y.z`)
     exitFn(1)
     return
   }
@@ -170,7 +170,7 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // because npm reads it automatically from the configuration file.
   if (isDryRun) {
     console.log('\nDry-run: age check passed. Skipping installation.')
-    console.log(`\nTo install, run: npm run add -- ${pkgArg}${flagHint}`)
+    console.log(`\nTo install, run: npm run defence:add -- ${pkgArg}${flagHint}`)
     exitFn(0)
     return
   }

@@ -16,13 +16,14 @@
     "minAgeDays": 7
   },
   "scripts": {
-    "setup": "node --version && npm --version && npm run pkg-age-check && npm ci && npm audit signatures && npm run prepare",
-    "pkg-age-check": "node ./tools/check-package-age.js",
-    "npm-reinstall": "node --version && npm --version && npm run pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
+    "setup": "node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
+    "defence:bootstrap": "node ./tools/setup-bootstrap.js",
+    "defence:pkg-age-check": "node ./tools/check-package-age.js",
+    "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
     "prepare": "husky",
-    "pre-commit": "npm audit signatures && npm audit --audit-level=high",
-    "add": "node ./tools/add-package.js",
-    "test": "node --test tools/check-package-age.test.js"
+    "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high",
+    "defence:add": "node ./tools/add-package.js",
+    "test": "node --test tools/*.test.js"
   },
   "devDependencies": {
     "husky": "9.1.7"
