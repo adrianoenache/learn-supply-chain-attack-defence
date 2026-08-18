@@ -125,6 +125,14 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# Editor settings
+.vscode/settings.json
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
 # pnpm
 .pnpm-store
 
