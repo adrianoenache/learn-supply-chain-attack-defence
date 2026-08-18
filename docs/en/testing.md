@@ -28,4 +28,4 @@ test('description', () => {
 });
 ```
 
-_Last sync: 2026-08-18_
+_Last sync: 2026-08-18_.

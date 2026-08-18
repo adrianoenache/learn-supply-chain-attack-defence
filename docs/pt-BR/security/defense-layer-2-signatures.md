@@ -22,4 +22,4 @@ O npm compara a assinatura do registry e a integridade da chave de cada pacote i
 
 Se uma assinatura estiver ausente ou inválida, o comando sai com código diferente de zero e bloqueia o restante do fluxo.
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

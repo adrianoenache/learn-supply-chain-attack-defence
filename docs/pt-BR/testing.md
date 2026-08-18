@@ -28,4 +28,4 @@ test('description', () => {
 });
 ```
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

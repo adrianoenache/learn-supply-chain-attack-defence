@@ -64,4 +64,4 @@ flowchart TD
 - **Unexpected lock-file drift** → blocked by `npm ci` and pre-commit checks.
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
 
-_Last sync: 2026-08-18_
+_Last sync: 2026-08-18_.

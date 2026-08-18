@@ -9,4 +9,4 @@
 - [SLSA — Supply-chain Levels for Software Artifacts](https://slsa.dev/)
 - [OpenSSF Scorecard](https://github.com/ossf/scorecard)
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

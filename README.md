@@ -20,7 +20,7 @@ npm run setup
 ## Security Layers at a Glance
 
 | Layer | Protection | Trigger |
-|---|---|---|
+| --- | --- | --- |
 | 1 | [Package age check](docs/en/security/defense-layer-1-package-age.md) | `npm run setup`, `npm run add`, `npm run npm-reinstall` |
 | 2 | [Signature verification](docs/en/security/defense-layer-2-signatures.md) | `npm run setup`, `npm run add`, pre-commit hook |
 | 3 | [Vulnerability audit](docs/en/security/defense-layer-3-vulnerabilities.md) | `npm run setup`, `npm run add`, pre-commit hook |

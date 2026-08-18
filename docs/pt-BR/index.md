@@ -33,4 +33,4 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 
 - 🇺🇸 [English](../en/index.md)
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

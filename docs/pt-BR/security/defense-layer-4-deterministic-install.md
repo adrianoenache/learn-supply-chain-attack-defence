@@ -23,4 +23,4 @@ npm ci
 
 Dentro deste projeto, evite `npm install` para setup rotineiro. Use `npm ci` ou os scripts `npm run add` / `npm run npm-reinstall`.
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

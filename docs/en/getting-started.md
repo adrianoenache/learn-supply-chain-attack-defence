@@ -66,4 +66,4 @@ Then reload the terminal or run:
 source ~/.huskyrc
 ```
 
-_Last sync: 2026-08-18_
+_Last sync: 2026-08-18_.

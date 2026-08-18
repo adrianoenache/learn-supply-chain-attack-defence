@@ -29,4 +29,4 @@ npm run pkg-age-check -- --transitive
 
 A maioria dos lançamentos maliciosos é detectada em poucas horas ou dias. Um período de resfriamento de 7 dias reduz drasticamente a chance de instalar um pacote malicioso recém-publicado, sem atrasar significativamente o trabalho normal.
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

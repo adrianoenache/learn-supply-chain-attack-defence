@@ -35,4 +35,4 @@ npm run add -- lodash --dry-run
 
 Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelo script `add`.
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.

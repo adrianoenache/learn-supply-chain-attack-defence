@@ -66,4 +66,4 @@ Depois recarregue o terminal ou execute:
 source ~/.huskyrc
 ```
 
-_Sincronizado em: 2026-08-18_
+_Sincronizado em: 2026-08-18_.
