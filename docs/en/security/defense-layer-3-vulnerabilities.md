@@ -26,4 +26,4 @@ If `npm audit` fails:
 2. Re-run `npm run add -- <pkg>@<version>`.
 3. If the advisory is a false positive for your use case, explicitly document the exception rather than lowering the audit level.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

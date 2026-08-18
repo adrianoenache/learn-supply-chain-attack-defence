@@ -64,4 +64,4 @@ flowchart TD
 - **Drift inesperado no lock file** → bloqueado pelo `npm ci` e pelos hooks de pré-commit.
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
 
-_Sincronizado em: 2025-06-25_
+_Sincronizado em: 2026-08-18_

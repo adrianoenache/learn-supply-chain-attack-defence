@@ -23,4 +23,4 @@ npm ci
 
 Inside this project, avoid `npm install` for routine setup. Use `npm ci` or the `npm run add` / `npm run npm-reinstall` scripts.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

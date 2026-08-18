@@ -35,4 +35,4 @@ npm run add -- lodash --dry-run
 
 Avoid editing `package.json` or `package-lock.json` by hand. If you do, the pre-commit hook will still run the transitive age check, but fixing failures is harder than going through the `add` script.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

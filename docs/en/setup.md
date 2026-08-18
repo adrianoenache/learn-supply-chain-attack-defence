@@ -23,4 +23,4 @@ The `setup` npm script installs dependencies and runs every security layer in th
 
 If any step fails, the script exits with a non-zero code. Fix the reported issue before continuing.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

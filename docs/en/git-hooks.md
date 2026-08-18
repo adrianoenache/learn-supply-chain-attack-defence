@@ -30,4 +30,4 @@ If you absolutely must bypass it (for example, in a throwaway local branch), use
 git commit --no-verify -m "temporary commit"
 ```
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

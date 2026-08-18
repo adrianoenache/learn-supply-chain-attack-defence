@@ -21,4 +21,4 @@ The `.npmrc` file configures npm with safer defaults. It applies to every npm co
 
 Even if a developer runs a plain npm command by mistake, `.npmrc` reduces the damage surface by disabling scripts, enforcing exact versions, and requiring engine compatibility.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

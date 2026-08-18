@@ -23,4 +23,4 @@ O script npm `setup` instala as dependências e executa todas as camadas de segu
 
 Se algum passo falhar, o script sai com código diferente de zero. Corrija o problema reportado antes de continuar.
 
-_Sincronizado em: 2025-06-25_
+_Sincronizado em: 2026-08-18_

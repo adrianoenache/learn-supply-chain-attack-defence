@@ -14,4 +14,4 @@ A supply-chain attack targets the software you rely on instead of your own code.
 
 No single control catches every threat. A short waiting period catches rushed malicious releases; signature verification catches packages that were not published by the registry; audit catches known CVEs; deterministic install prevents drift; pre-commit hooks catch manual mistakes; and `.npmrc` hardening disables risky npm defaults.
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_

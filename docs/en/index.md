@@ -33,4 +33,4 @@ This repository is a practical learning environment for understanding and applyi
 
 - 🇧🇷 [Português (BR)](../pt-BR/index.md)
 
-_Last sync: 2025-06-25_
+_Last sync: 2026-08-18_
