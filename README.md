@@ -17,6 +17,13 @@ npm run setup
 - 🇺🇸 [English](docs/en/index.md)
 - 🇧🇷 [Português (BR)](docs/pt-BR/index.md)
 
+### Quick Links
+
+- [Architecture](docs/en/architecture.md)
+- [Tools](docs/en/tools.md)
+- [Quick reference](docs/en/quick-reference.md)
+- [Built with GitHub Copilot & Kimi K2.7 Code](docs/en/copilot.md)
+
 ## Security Layers at a Glance
 
 | Layer | Protection | Trigger |
@@ -27,7 +34,7 @@ npm run setup
 | 4 | [Deterministic install](docs/en/security/defense-layer-4-deterministic-install.md) | `npm ci` in `setup` / `defence:reinstall` |
 | 5 | [Pre-commit hook](docs/en/security/defense-layer-5-precommit-hook.md) | Every `git commit` |
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
-| 7 | Lint / format gate | `npm run lint`, `npm run lint:fix`, `npm run format` |
+| 7 | [Lint / format gate](docs/en/security/defense-layer-7-lint-format.md) | `npm run lint`, `npm run lint:fix`, `npm run format` |
 
 ## License
 

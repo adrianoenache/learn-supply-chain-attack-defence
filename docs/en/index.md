@@ -21,6 +21,14 @@ This repository is a practical learning environment for understanding and applyi
 - Layer 4: [Deterministic install](security/defense-layer-4-deterministic-install.md)
 - Layer 5: [Pre-commit hook](security/defense-layer-5-precommit-hook.md)
 - Layer 6: [Hardened `.npmrc`](security/defense-layer-6-npmrc-config.md)
+- Layer 7: [Lint / format gate](security/defense-layer-7-lint-format.md)
+
+### Project
+
+- [Architecture](architecture.md)
+- [Tools](tools.md)
+- [Quick reference](quick-reference.md)
+- [GitHub Copilot & Kimi K2.7 Code](copilot.md)
 
 ### Development
 

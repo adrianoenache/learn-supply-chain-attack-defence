@@ -1,6 +1,6 @@
 # Security Overview
 
-This project protects the dependency tree using six complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
+This project protects the dependency tree using seven complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
 
 ## Defense Layers Diagram
 
@@ -37,6 +37,7 @@ flowchart TD
     end
 
     subgraph Layer5["Layer 5: pre-commit hook"]
+        D --> Q[npm run lint]
         D --> K
         D --> N[transitive age check]
     end
@@ -47,7 +48,12 @@ flowchart TD
         L --> O
     end
 
+    subgraph Layer7["Layer 7: lint / format gate"]
+        Q --> R[Biome check]
+    end
+
     O --> P[Safe dependency tree]
+    R --> P
 ```
 
 ## Layer Reference
@@ -58,6 +64,7 @@ flowchart TD
 4. [Deterministic install](defense-layer-4-deterministic-install.md)
 5. [Pre-commit hook](defense-layer-5-precommit-hook.md)
 6. [Hardened `.npmrc`](defense-layer-6-npmrc-config.md)
+7. [Lint / format gate](defense-layer-7-lint-format.md)
 
 ## Threat Model in a Nutshell
 
@@ -66,5 +73,6 @@ flowchart TD
 - **Known vulnerable package** → blocked by `npm audit`.
 - **Unexpected lock-file drift** → blocked by `npm ci` and pre-commit checks.
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
+- **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
 
 _Last sync: 2026-08-18_.

@@ -13,7 +13,7 @@ New dependencies must be added through the controlled `npm run defence:add` scri
 npm run defence:add -- lodash@4.17.21
 
 # Add a development dependency
-npm run defence:add -- --dev eslint@9.0.0
+npm run defence:add -- --dev @biomejs/biome@2.5.8
 
 # Add a peer dependency
 npm run defence:add -- --peer some-pkg@1.0.0

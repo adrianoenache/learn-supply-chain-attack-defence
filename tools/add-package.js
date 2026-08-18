@@ -32,6 +32,8 @@
 //      validated by VALID_PKG_SPECIFIER_RE.
 //   4. Verify cryptographic signatures with `npm audit signatures`
 //   5. Audit known vulnerabilities with `npm audit --audit-level=high`
+//   6. Run a transitive package-age check to catch newly pulled transitive
+//      packages that are younger than the minimum age.
 //
 // Packages with lifecycle scripts (postinstall, preinstall):
 //   The project uses ignore-scripts=true in .npmrc, blocking lifecycle scripts for all
@@ -288,6 +290,31 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
     )
     console.error(
       'Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.',
+    )
+    console.error(`To remove the package: npm uninstall ${name}`)
+    exitFn(1)
+    return
+  }
+
+  // Step 6 — Transitive package-age check.
+  // Installing a direct dependency can pull new transitive versions. This check
+  // ensures every resolved package (including transitive ones) still satisfies
+  // the minimum age policy before the change is committed.
+  console.log('\nRunning transitive package-age check...')
+  try {
+    const transitiveResult = spawnSyncImpl(
+      'npm',
+      ['run', 'defence:pkg-age-check', '--', '--transitive'],
+      { stdio: 'inherit', shell: false },
+    )
+    if (transitiveResult.status !== 0) {
+      throw new Error(
+        `npm run defence:pkg-age-check -- --transitive exited with code ${transitiveResult.status ?? transitiveResult.signal}`,
+      )
+    }
+  } catch {
+    console.error(
+      '\nTransitive package-age check FAILED — a dependency is younger than the minimum age.',
     )
     console.error(`To remove the package: npm uninstall ${name}`)
     exitFn(1)

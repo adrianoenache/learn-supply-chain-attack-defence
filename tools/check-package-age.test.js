@@ -847,7 +847,7 @@ describe('Integration — add-package flow', () => {
     }
 
     assert.equal(exitCode, 0)
-    assert.equal(calls.length, 3)
+    assert.equal(calls.length, 4)
     assert.deepEqual(calls[0], [
       'install',
       '--save',
@@ -856,6 +856,12 @@ describe('Integration — add-package flow', () => {
     ])
     assert.deepEqual(calls[1], ['audit', 'signatures'])
     assert.deepEqual(calls[2], ['audit', '--audit-level=high'])
+    assert.deepEqual(calls[3], [
+      'run',
+      'defence:pkg-age-check',
+      '--',
+      '--transitive',
+    ])
   })
 
   test('installs dev dependency with --save-dev flag', async () => {

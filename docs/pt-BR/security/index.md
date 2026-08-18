@@ -1,6 +1,6 @@
 # Visão Geral de Segurança
 
-Este projeto protege a árvore de dependências usando seis camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
+Este projeto protege a árvore de dependências usando sete camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
 
 ## Diagrama das Camadas de Defesa
 
@@ -37,6 +37,7 @@ flowchart TD
     end
 
     subgraph Layer5["Camada 5: hook de pré-commit"]
+        D --> Q[npm run lint]
         D --> K
         D --> N[verificação transitiva de idade]
     end
@@ -47,7 +48,12 @@ flowchart TD
         L --> O
     end
 
+    subgraph Layer7["Camada 7: gate de lint / formatação"]
+        Q --> R[Biome check]
+    end
+
     O --> P[Árvore de dependências segura]
+    R --> P
 ```
 
 ## Referência das Camadas
@@ -58,6 +64,7 @@ flowchart TD
 4. [Instalação determinística](defense-layer-4-deterministic-install.md)
 5. [Hook de pré-commit](defense-layer-5-precommit-hook.md)
 6. [`.npmrc` endurecido](defense-layer-6-npmrc-config.md)
+7. [Gate de lint / formatação](defense-layer-7-lint-format.md)
 
 ## Modelo de Ameaça em Resumo
 
@@ -66,5 +73,6 @@ flowchart TD
 - **Pacote com vulnerabilidade conhecida** → bloqueado pelo `npm audit`.
 - **Drift inesperado no lock file** → bloqueado pelo `npm ci` e pelos hooks de pré-commit.
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
+- **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
 
 _Sincronizado em: 2026-08-18_.

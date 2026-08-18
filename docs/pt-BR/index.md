@@ -21,6 +21,14 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - Camada 4: [Instalação determinística](security/defense-layer-4-deterministic-install.md)
 - Camada 5: [Hook de pré-commit](security/defense-layer-5-precommit-hook.md)
 - Camada 6: [`.npmrc` endurecido](security/defense-layer-6-npmrc-config.md)
+- Camada 7: [Gate de lint / formatação](security/defense-layer-7-lint-format.md)
+
+### Projeto
+
+- [Arquitetura](architecture.md)
+- [Ferramentas](tools.md)
+- [Referência rápida](quick-reference.md)
+- [GitHub Copilot e Kimi K2.7 Code](copilot.md)
 
 ### Desenvolvimento
 

@@ -13,7 +13,7 @@ Novas dependências devem ser adicionadas pelo script controlado `npm run defenc
 npm run defence:add -- lodash@4.17.21
 
 # Adicionar uma dependência de desenvolvimento
-npm run defence:add -- --dev eslint@9.0.0
+npm run defence:add -- --dev @biomejs/biome@2.5.8
 
 # Adicionar uma dependência peer
 npm run defence:add -- --peer some-pkg@1.0.0
