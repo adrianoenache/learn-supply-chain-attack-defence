@@ -16,7 +16,12 @@ const { EventEmitter } = require('node:events')
 // ensures main() is not executed when imported via require().
 const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES, main, buildDeps } = require(path.resolve(__dirname, './check-package-age.js'))
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './lib/package-utils.js'))
-const { validateArgs, main: addPackageMain } = require(path.resolve(__dirname, './add-package.js'))
+const {
+  validateArgs,
+  main: addPackageMain,
+  setSpawnSyncImpl,
+  resetSpawnSyncImpl,
+} = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
 // resolveExactVersion
@@ -684,16 +689,20 @@ describe('Integration — check-package-age dependency modes', () => {
 // ---------------------------------------------------------------------------
 
 describe('Integration — add-package flow', () => {
-  test('dry-run approves an old enough package without installing', async () => {
+  function mockFetchPackageAge(ageDays) {
     const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
-    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
-    checkPackageAge.fetchPackageAge = async () => ({
-      name: 'lodash',
-      version: '4.17.21',
-      ageDays: 10,
-      published: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    const original = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = async (name, version) => ({
+      name,
+      version,
+      ageDays,
+      published: new Date(Date.now() - ageDays * 24 * 60 * 60 * 1000),
     })
+    return original
+  }
 
+  test('dry-run approves an old enough package without installing', async () => {
+    const originalFetch = mockFetchPackageAge(10)
     const argv = ['lodash@4.17.21', '--dry-run']
     let exitCode = null
     const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
@@ -704,22 +713,15 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
     }
 
     assert.equal(exitCode, 0)
   })
 
   test('dry-run blocks a package younger than MIN_AGE_DAYS', async () => {
-    const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
-    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
-    checkPackageAge.fetchPackageAge = async () => ({
-      name: 'recent-pkg',
-      version: '1.0.0',
-      ageDays: 1,
-      published: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    })
-
+    const originalFetch = mockFetchPackageAge(1)
     const argv = ['recent-pkg@1.0.0', '--dry-run']
     let exitCode = null
     const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
@@ -730,7 +732,114 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
+    }
+
+    assert.equal(exitCode, 1)
+  })
+
+  test('installs production dependency with correct spawn arguments', async () => {
+    const originalFetch = mockFetchPackageAge(10)
+    const calls = []
+    setSpawnSyncImpl((_cmd, args, _opts) => {
+      calls.push(args)
+      return { status: 0 }
+    })
+
+    const argv = ['lodash@4.17.21']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
+      resetSpawnSyncImpl()
+    }
+
+    assert.equal(exitCode, 0)
+    assert.equal(calls.length, 3)
+    assert.deepEqual(calls[0], ['install', '--save', '--save-exact', 'lodash@4.17.21'])
+    assert.deepEqual(calls[1], ['audit', 'signatures'])
+    assert.deepEqual(calls[2], ['audit', '--audit-level=high'])
+  })
+
+  test('installs dev dependency with --save-dev flag', async () => {
+    const originalFetch = mockFetchPackageAge(10)
+    const calls = []
+    setSpawnSyncImpl((_cmd, args, _opts) => {
+      calls.push(args)
+      return { status: 0 }
+    })
+
+    const argv = ['eslint@9.0.0', '--dev']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
+      resetSpawnSyncImpl()
+    }
+
+    assert.equal(exitCode, 0)
+    assert.deepEqual(calls[0], ['install', '--save-dev', '--save-exact', 'eslint@9.0.0'])
+  })
+
+  test('installs peer dependency with --save-peer flag', async () => {
+    const originalFetch = mockFetchPackageAge(10)
+    const calls = []
+    setSpawnSyncImpl((_cmd, args, _opts) => {
+      calls.push(args)
+      return { status: 0 }
+    })
+
+    const argv = ['react-native-svg@12.0.0', '--peer']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
+      resetSpawnSyncImpl()
+    }
+
+    assert.equal(exitCode, 0)
+    assert.deepEqual(calls[0], ['install', '--save-peer', '--save-exact', 'react-native-svg@12.0.0'])
+  })
+
+  test('installation failure exits with code 1', async () => {
+    const originalFetch = mockFetchPackageAge(10)
+    setSpawnSyncImpl((_cmd, _args, _opts) => ({ status: 1 }))
+
+    const argv = ['lodash@4.17.21']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      checkPackageAge.fetchPackageAge = originalFetch
+      resetSpawnSyncImpl()
     }
 
     assert.equal(exitCode, 1)

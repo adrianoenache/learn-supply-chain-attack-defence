@@ -27,6 +27,9 @@
 //   1. Validate the argument (name and exact version required)
 //   2. Check package age via check-package-age.js --pkg (aborts if too recent)
 //   3. Install with `npm install --save-exact` (skip if --dry-run)
+//      The command is built as an argument array and executed with spawnSync,
+//      so shell interpolation is impossible even though the input is already
+//      validated by VALID_PKG_SPECIFIER_RE.
 //   4. Verify cryptographic signatures with `npm audit signatures`
 //   5. Audit known vulnerabilities with `npm audit --audit-level=high`
 //
@@ -37,7 +40,7 @@
 //     npm_config_ignore_scripts=false npm rebuild <package>
 //   See the "Adding New Dependencies" section in README.md for details.
 
-const { execSync } = require('node:child_process')
+const { spawnSync } = require('node:child_process')
 const path = require('node:path')
 
 // Reuses fetchPackageAge and resolveExactVersion from check-package-age.js to keep
@@ -47,6 +50,11 @@ const path = require('node:path')
 // Only native Node.js modules are used here, for the same reason as check-package-age.js.
 const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
+
+// Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
+let spawnSyncImpl = spawnSync
+function setSpawnSyncImpl(fn) { spawnSyncImpl = fn }
+function resetSpawnSyncImpl() { spawnSyncImpl = spawnSync }
 
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
@@ -167,15 +175,19 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
     return
   }
 
-  // name and exactVersion were validated by VALID_PKG_SPECIFIER_RE before reaching this point,
-  // ensuring they contain no shell injection characters.
-  const installCmd = `npm install ${saveFlag} --save-exact ${name}@${exactVersion}`
+  // Build the npm install command as an array of arguments.
+  // Each value is passed verbatim to the npm executable, so no shell
+  // metacharacter can be interpreted even if the regex above were bypassed.
+  const installArgs = ['install', saveFlag, '--save-exact', `${name}@${exactVersion}`]
 
-  console.log(`\nInstalling: ${installCmd}`)
+  console.log(`\nInstalling: npm ${installArgs.join(' ')}`)
   try {
     // stdio: 'inherit' forwards npm stdout/stderr directly to the terminal,
     // so the contributor can see progress and error messages in real time.
-    execSync(installCmd, { stdio: 'inherit' })
+    const installResult = spawnSyncImpl('npm', installArgs, { stdio: 'inherit', shell: false })
+    if (installResult.status !== 0) {
+      throw new Error(`npm install exited with code ${installResult.status ?? installResult.signal}`)
+    }
   } catch {
     // npm already printed the error via stdio: 'inherit'; just indicate the reason for exiting.
     console.error('\nInstallation failed. See npm output above.')
@@ -188,7 +200,10 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Complemented by Step 5, which checks known CVEs after integrity is confirmed.
   console.log('\nVerifying package signatures...')
   try {
-    execSync('npm audit signatures', { stdio: 'inherit' })
+    const signatureResult = spawnSyncImpl('npm', ['audit', 'signatures'], { stdio: 'inherit', shell: false })
+    if (signatureResult.status !== 0) {
+      throw new Error(`npm audit signatures exited with code ${signatureResult.status ?? signatureResult.signal}`)
+    }
   } catch {
     console.error('\nSignature verification failed. The installation may be compromised.')
     console.error('Run `npm ci` to restore a clean state from package-lock.json.')
@@ -201,7 +216,10 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Runs after the signature audit to cover both vectors in the same flow.
   console.log('\nAuditing for known vulnerabilities...')
   try {
-    execSync('npm audit --audit-level=high', { stdio: 'inherit' })
+    const auditResult = spawnSyncImpl('npm', ['audit', '--audit-level=high'], { stdio: 'inherit', shell: false })
+    if (auditResult.status !== 0) {
+      throw new Error(`npm audit exited with code ${auditResult.status ?? auditResult.signal}`)
+    }
   } catch {
     console.error('\nVulnerability audit FAILED — high or critical CVE detected.')
     console.error('Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.')
@@ -212,6 +230,7 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
 
   console.log(`\nDone. ${name}@${exactVersion} added successfully.`)
   console.log('Remember to commit both package.json and package-lock.json.')
+  exitFn(0)
 }
 
 // Runs main() only when the script is invoked directly from the CLI.
@@ -227,5 +246,12 @@ if (require.main === module) {
 }
 
 // Exports utility functions for use by tests.
-module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE, validateArgs, main }
+module.exports = {
+  parsePackageArg,
+  VALID_PKG_SPECIFIER_RE,
+  validateArgs,
+  main,
+  setSpawnSyncImpl,
+  resetSpawnSyncImpl,
+}
 
