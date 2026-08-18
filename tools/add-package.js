@@ -48,18 +48,26 @@ const path = require('node:path')
 // The module is imported as a whole so tests can monkey-patch its exported functions
 // and the patch is visible here (Node.js caches the module object).
 // Only native Node.js modules are used here, for the same reason as check-package-age.js.
-const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
-const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
+const checkPackageAge = require(
+  path.resolve(__dirname, './check-package-age.js'),
+)
+const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
+  path.resolve(__dirname, './lib/package-utils.js'),
+)
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
-function setSpawnSyncImpl(fn) { spawnSyncImpl = fn }
-function resetSpawnSyncImpl() { spawnSyncImpl = spawnSync }
+function setSpawnSyncImpl(fn) {
+  spawnSyncImpl = fn
+}
+function resetSpawnSyncImpl() {
+  spawnSyncImpl = spawnSync
+}
 
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
 // Reads the same settings as check-package-age.js to keep behavior consistent.
-const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
+const MIN_AGE_DAYS = pkg.pkgAgeCheck?.minAgeDays ?? 7
 
 // Parses command-line arguments.
 // argv format: ["<package>@<version>", "[--dev|--peer]", "[--dry-run]"]
@@ -80,7 +88,9 @@ function validateArgs(argv = process.argv.slice(2)) {
 
   if (!pkgArg) {
     console.error('Error: missing package argument.')
-    console.error('Usage: npm run defence:add -- <package>@<version> [--dev|--peer] [--dry-run]')
+    console.error(
+      'Usage: npm run defence:add -- <package>@<version> [--dev|--peer] [--dry-run]',
+    )
     console.error('Examples:')
     console.error('  npm run defence:add -- lodash@4.17.21')
     console.error('  npm run defence:add -- @types/node@22.15.3 --dev')
@@ -97,7 +107,9 @@ function validateArgs(argv = process.argv.slice(2)) {
 
   if (!VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
     console.error(`Error: invalid package specifier "${pkgArg}".`)
-    console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
+    console.error(
+      'Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)',
+    )
     process.exit(1)
   }
 }
@@ -105,9 +117,19 @@ function validateArgs(argv = process.argv.slice(2)) {
 // Returns the three values that vary by dependency type.
 // Extracted from main() to reduce cognitive complexity (SonarQube: cognitive-complexity).
 function getSaveMode(peer, dev) {
-  if (peer) return { typeLabel: ' [peerDependency]', flagHint: ' --peer', saveFlag: '--save-peer' }
-  if (dev)  return { typeLabel: ' [devDependency]',  flagHint: ' --dev',  saveFlag: '--save-dev'  }
-  return          { typeLabel: '',                  flagHint: '',         saveFlag: '--save'       }
+  if (peer)
+    return {
+      typeLabel: ' [peerDependency]',
+      flagHint: ' --peer',
+      saveFlag: '--save-peer',
+    }
+  if (dev)
+    return {
+      typeLabel: ' [devDependency]',
+      flagHint: ' --dev',
+      saveFlag: '--save-dev',
+    }
+  return { typeLabel: '', flagHint: '', saveFlag: '--save' }
 }
 
 async function main(argv = process.argv.slice(2), exitFn = process.exit) {
@@ -117,13 +139,17 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Requires an exact version — the contributor must explicitly decide which version is being approved.
   // This prevents the flow from automatically approving a recently published version when resolving "latest".
   if (!rawVersion) {
-    console.error(`Error: exact version required. Use: npm run defence:add -- ${name}@x.y.z`)
+    console.error(
+      `Error: exact version required. Use: npm run defence:add -- ${name}@x.y.z`,
+    )
     exitFn(1)
     return
   }
 
   const { typeLabel, flagHint, saveFlag } = getSaveMode(isPeer, isDev)
-  console.log(`\nadd-package: ${name}@${rawVersion}${typeLabel}${isDryRun ? ' [dry-run]' : ''}\n`)
+  console.log(
+    `\nadd-package: ${name}@${rawVersion}${typeLabel}${isDryRun ? ' [dry-run]' : ''}\n`,
+  )
 
   // Step 1 — Confirm the provided version is exact (no range operators).
   // resolveExactVersion is imported from check-package-age.js; returns null for dist-tags
@@ -131,7 +157,9 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   const exactVersion = checkPackageAge.resolveExactVersion(rawVersion)
   if (!exactVersion) {
     console.error(`Error: "${rawVersion}" is not an exact version.`)
-    console.error(`Use a pinned version, e.g.: npm run defence:add -- ${name}@x.y.z`)
+    console.error(
+      `Use a pinned version, e.g.: npm run defence:add -- ${name}@x.y.z`,
+    )
     exitFn(1)
     return
   }
@@ -139,7 +167,9 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Step 2 — Check the package age before any installation.
   // fetchPackageAge is imported from check-package-age.js; queries the registry and returns
   // the number of days since publication. Aborts if the package is newer than MIN_AGE_DAYS.
-  console.log(`Checking publish age for ${name}@${exactVersion} (minimum: ${MIN_AGE_DAYS} days)...`)
+  console.log(
+    `Checking publish age for ${name}@${exactVersion} (minimum: ${MIN_AGE_DAYS} days)...`,
+  )
   let ageResult
   try {
     ageResult = await checkPackageAge.fetchPackageAge(name, exactVersion)
@@ -154,14 +184,20 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   const publishedStr = ageResult.published.toISOString().slice(0, 10)
 
   if (ageResult.ageDays < MIN_AGE_DAYS) {
-    console.error(`\n  BLOCKED  ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)
-    console.error(`\nPackage age check FAILED — below minimum age of ${MIN_AGE_DAYS} days.`)
+    console.error(
+      `\n  BLOCKED  ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
+    )
+    console.error(
+      `\nPackage age check FAILED — below minimum age of ${MIN_AGE_DAYS} days.`,
+    )
     console.error('Installation aborted.')
     exitFn(1)
     return
   }
 
-  console.log(`  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)
+  console.log(
+    `  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
+  )
 
   // Step 3 — Install the package (only if not dry-run).
   // --save-exact pins the version without ^/~ operators in package.json,
@@ -170,7 +206,9 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // because npm reads it automatically from the configuration file.
   if (isDryRun) {
     console.log('\nDry-run: age check passed. Skipping installation.')
-    console.log(`\nTo install, run: npm run defence:add -- ${pkgArg}${flagHint}`)
+    console.log(
+      `\nTo install, run: npm run defence:add -- ${pkgArg}${flagHint}`,
+    )
     exitFn(0)
     return
   }
@@ -178,15 +216,25 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Build the npm install command as an array of arguments.
   // Each value is passed verbatim to the npm executable, so no shell
   // metacharacter can be interpreted even if the regex above were bypassed.
-  const installArgs = ['install', saveFlag, '--save-exact', `${name}@${exactVersion}`]
+  const installArgs = [
+    'install',
+    saveFlag,
+    '--save-exact',
+    `${name}@${exactVersion}`,
+  ]
 
   console.log(`\nInstalling: npm ${installArgs.join(' ')}`)
   try {
     // stdio: 'inherit' forwards npm stdout/stderr directly to the terminal,
     // so the contributor can see progress and error messages in real time.
-    const installResult = spawnSyncImpl('npm', installArgs, { stdio: 'inherit', shell: false })
+    const installResult = spawnSyncImpl('npm', installArgs, {
+      stdio: 'inherit',
+      shell: false,
+    })
     if (installResult.status !== 0) {
-      throw new Error(`npm install exited with code ${installResult.status ?? installResult.signal}`)
+      throw new Error(
+        `npm install exited with code ${installResult.status ?? installResult.signal}`,
+      )
     }
   } catch {
     // npm already printed the error via stdio: 'inherit'; just indicate the reason for exiting.
@@ -200,13 +248,22 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Complemented by Step 5, which checks known CVEs after integrity is confirmed.
   console.log('\nVerifying package signatures...')
   try {
-    const signatureResult = spawnSyncImpl('npm', ['audit', 'signatures'], { stdio: 'inherit', shell: false })
+    const signatureResult = spawnSyncImpl('npm', ['audit', 'signatures'], {
+      stdio: 'inherit',
+      shell: false,
+    })
     if (signatureResult.status !== 0) {
-      throw new Error(`npm audit signatures exited with code ${signatureResult.status ?? signatureResult.signal}`)
+      throw new Error(
+        `npm audit signatures exited with code ${signatureResult.status ?? signatureResult.signal}`,
+      )
     }
   } catch {
-    console.error('\nSignature verification failed. The installation may be compromised.')
-    console.error('Run `npm ci` to restore a clean state from package-lock.json.')
+    console.error(
+      '\nSignature verification failed. The installation may be compromised.',
+    )
+    console.error(
+      'Run `npm ci` to restore a clean state from package-lock.json.',
+    )
     exitFn(1)
     return
   }
@@ -216,13 +273,22 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   // Runs after the signature audit to cover both vectors in the same flow.
   console.log('\nAuditing for known vulnerabilities...')
   try {
-    const auditResult = spawnSyncImpl('npm', ['audit', '--audit-level=high'], { stdio: 'inherit', shell: false })
+    const auditResult = spawnSyncImpl('npm', ['audit', '--audit-level=high'], {
+      stdio: 'inherit',
+      shell: false,
+    })
     if (auditResult.status !== 0) {
-      throw new Error(`npm audit exited with code ${auditResult.status ?? auditResult.signal}`)
+      throw new Error(
+        `npm audit exited with code ${auditResult.status ?? auditResult.signal}`,
+      )
     }
   } catch {
-    console.error('\nVulnerability audit FAILED — high or critical CVE detected.')
-    console.error('Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.')
+    console.error(
+      '\nVulnerability audit FAILED — high or critical CVE detected.',
+    )
+    console.error(
+      'Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.',
+    )
     console.error(`To remove the package: npm uninstall ${name}`)
     exitFn(1)
     return
@@ -254,4 +320,3 @@ module.exports = {
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
 }
-

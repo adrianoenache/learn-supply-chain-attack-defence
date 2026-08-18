@@ -7,18 +7,20 @@ This project uses [Husky](https://typicode.github.io/husky/) to manage Git hooks
 The pre-commit hook is defined in `.husky/pre-commit`:
 
 ```bash
-# Husky pre-commit hook: runs the project pre-commit script (signatures + CVE audit)
+# Husky pre-commit hook: runs lint, the project pre-commit script (signatures + CVE audit)
 # and a transitive package-age check to catch manual edits to package.json/package-lock.json.
+npm run lint
 npm run defence:pre-commit
 npm run defence:pkg-age-check -- --transitive
 ```
 
 ### What It Does
 
-1. Runs `npm run defence:pre-commit`, which executes:
+1. Runs `npm run lint` to enforce Biome lint and format rules.
+2. Runs `npm run defence:pre-commit`, which executes:
    - `npm audit signatures`
    - `npm audit --audit-level=high`
-2. Runs a transitive package-age check so that any manual change to `package.json` or `package-lock.json` is also validated.
+3. Runs a transitive package-age check so that any manual change to `package.json` or `package-lock.json` is also validated.
 
 ### Skipping the Hook
 

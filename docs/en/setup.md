@@ -32,6 +32,26 @@ The bootstrap script:
 
 After bootstrap, review `package.json` and `package-lock.json` and commit both. From then on, use `npm run setup` normally.
 
+## Lint and Format
+
+After setup, keep code quality checks in the pre-commit flow:
+
+```bash
+npm run lint      # check code with Biome
+npm run lint:fix  # auto-fix Biome issues
+npm run format    # format code with Biome
+```
+
+## Updating Dependencies
+
+To update existing dependencies in a controlled way, use the dedicated script instead of `npm update` directly:
+
+```bash
+npm run defence:update
+```
+
+The `defence:update` script runs `npm update`, then re-runs the transitive package-age check, signature verification, and vulnerability audit.
+
 ## When to Run `setup`
 
 - Right after cloning the repository.

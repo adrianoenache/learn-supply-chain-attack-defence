@@ -15,7 +15,7 @@ O arquivo `.npmrc` configura o npm com defaults mais seguros. Ele se aplica a to
 - `engine-strict=true` — exigir os requisitos de engine Node/npm.
 - `min-release-age=7` — exigir que pacotes tenham pelo menos 7 dias quando suportado.
 - `ignore-scripts=true` — não executar scripts de lifecycle durante a instalação, reduzindo o risco de malware no momento da instalação.
-- `omit=optional` — ignorar dependências opcionais, que podem mascarar riscos de supply chain.
+- Dependências opcionais não são mais omitidas globalmente, permitindo que os pacotes de CLI nativa do Biome sejam instalados. Elas continuam sujeitas às verificações de `min-release-age` e audit.
 
 ## Impacto
 

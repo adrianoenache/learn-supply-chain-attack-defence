@@ -20,12 +20,17 @@
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
     "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
+    "defence:update": "node ./tools/update-packages.js",
     "prepare": "husky",
     "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high",
     "defence:add": "node ./tools/add-package.js",
-    "test": "node --test tools/*.test.js"
+    "test": "node --test tools/*.test.js",
+    "lint": "biome check tools/",
+    "lint:fix": "biome check --write tools/",
+    "format": "biome format --write tools/"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.8",
     "husky": "9.1.7"
   }
 }

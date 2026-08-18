@@ -15,7 +15,7 @@ The `.npmrc` file configures npm with safer defaults. It applies to every npm co
 - `engine-strict=true` — enforce the Node/npm engine requirements.
 - `min-release-age=7` — require packages to be at least 7 days old when supported.
 - `ignore-scripts=true` — do not run lifecycle scripts during install, reducing the risk of install-time malware.
-- `omit=optional` — skip optional dependencies, which can mask supply-chain risks.
+- Optional dependencies are no longer globally omitted so that Biome's platform-specific CLI packages can be installed. They remain subject to `min-release-age` and audit checks.
 
 ## Impact
 

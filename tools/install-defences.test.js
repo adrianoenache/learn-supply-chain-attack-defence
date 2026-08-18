@@ -13,7 +13,8 @@ function makeTempTarget(pkg = {}) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'defence-install-'))
   fs.writeFileSync(
     path.join(tmpDir, 'package.json'),
-    JSON.stringify({ name: 'target', version: '1.0.0', ...pkg }, null, 2) + '\n'
+    JSON.stringify({ name: 'target', version: '1.0.0', ...pkg }, null, 2) +
+      '\n',
   )
   return tmpDir
 }
@@ -24,9 +25,21 @@ function cleanup(dir) {
 
 describe('install-defences', () => {
   test('parseArgs extracts target, dryRun and force', () => {
-    assert.deepEqual(parseArgs(['/some/path']), { target: '/some/path', dryRun: false, force: false })
-    assert.deepEqual(parseArgs(['/some/path', '--dry-run']), { target: '/some/path', dryRun: true, force: false })
-    assert.deepEqual(parseArgs(['--force', '/some/path']), { target: '/some/path', dryRun: false, force: true })
+    assert.deepEqual(parseArgs(['/some/path']), {
+      target: '/some/path',
+      dryRun: false,
+      force: false,
+    })
+    assert.deepEqual(parseArgs(['/some/path', '--dry-run']), {
+      target: '/some/path',
+      dryRun: true,
+      force: false,
+    })
+    assert.deepEqual(parseArgs(['--force', '/some/path']), {
+      target: '/some/path',
+      dryRun: false,
+      force: true,
+    })
   })
 
   test('main returns 1 when target is missing', () => {
@@ -60,17 +73,73 @@ describe('install-defences', () => {
       assert.equal(code, 0)
 
       assert.equal(fs.existsSync(path.join(target, '.npmrc')), true)
-      assert.equal(fs.existsSync(path.join(target, '.husky', 'pre-commit')), true)
-      assert.equal(fs.existsSync(path.join(target, 'tools', 'check-package-age.js')), true)
-      assert.equal(fs.existsSync(path.join(target, 'tools', 'add-package.js')), true)
-      assert.equal(fs.existsSync(path.join(target, 'tools', 'lib', 'package-utils.js')), true)
-      assert.equal(fs.existsSync(path.join(target, 'tools', 'setup-bootstrap.js')), true)
-      assert.equal(fs.existsSync(path.join(target, 'tools', 'check-package-age.test.js')), true)
+      assert.equal(
+        fs.existsSync(path.join(target, '.husky', 'pre-commit')),
+        true,
+      )
+      assert.equal(fs.existsSync(path.join(target, 'biome.json')), true)
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'check-package-age.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'add-package.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'lib', 'package-utils.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'setup-bootstrap.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'setup-bootstrap.test.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'check-package-age.test.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'install-defences.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'install-defences.test.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'update-packages.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'update-packages.test.js')),
+        true,
+      )
 
-      const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'))
-      assert.equal(pkg.scripts['defence:pkg-age-check'], 'node ./tools/check-package-age.js')
-      assert.equal(pkg.scripts['defence:bootstrap'], 'node ./tools/setup-bootstrap.js')
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(target, 'package.json'), 'utf8'),
+      )
+      assert.equal(
+        pkg.scripts['defence:pkg-age-check'],
+        'node ./tools/check-package-age.js',
+      )
+      assert.equal(
+        pkg.scripts['defence:bootstrap'],
+        'node ./tools/setup-bootstrap.js',
+      )
+      assert.equal(
+        pkg.scripts['defence:update'],
+        'node ./tools/update-packages.js',
+      )
+      assert.equal(pkg.scripts.test, 'node --test tools/*.test.js')
+      assert.equal(pkg.scripts.lint, 'biome check tools/')
+      assert.equal(pkg.scripts['lint:fix'], 'biome check --write tools/')
+      assert.equal(pkg.scripts.format, 'biome format --write tools/')
       assert.equal(pkg.devDependencies.husky, '9.1.7')
+      assert.equal(pkg.devDependencies['@biomejs/biome'], '2.5.8')
     } finally {
       cleanup(target)
     }
@@ -83,7 +152,7 @@ describe('install-defences', () => {
       let code
       try {
         code = main([target])
-      } catch (err) {
+      } catch (_err) {
         code = 1
       }
       assert.equal(code, 1)
@@ -98,21 +167,29 @@ describe('install-defences', () => {
     try {
       const code = main([target, '--force'])
       assert.equal(code, 0)
-      const backups = fs.readdirSync(target).filter((f) => f.startsWith('.npmrc.backup-'))
+      const backups = fs
+        .readdirSync(target)
+        .filter((f) => f.startsWith('.npmrc.backup-'))
       assert.ok(backups.length >= 1, 'expected a backup file to be created')
-      assert.ok(fs.readFileSync(path.join(target, '.npmrc'), 'utf8').includes('save-exact'))
+      assert.ok(
+        fs
+          .readFileSync(path.join(target, '.npmrc'), 'utf8')
+          .includes('save-exact'),
+      )
     } finally {
       cleanup(target)
     }
   })
 
   test('install aborts on conflicting script values', () => {
-    const target = makeTempTarget({ scripts: { 'defence:add': 'something-else' } })
+    const target = makeTempTarget({
+      scripts: { 'defence:add': 'something-else' },
+    })
     try {
       let code
       try {
         code = main([target])
-      } catch (err) {
+      } catch (_err) {
         code = 1
       }
       assert.equal(code, 1)
@@ -126,7 +203,9 @@ describe('install-defences', () => {
     try {
       const code = main([target])
       assert.equal(code, 0)
-      const pkg = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf8'))
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(target, 'package.json'), 'utf8'),
+      )
       assert.equal(pkg.scripts.build, 'tsc')
       assert.equal(pkg.scripts['defence:add'], 'node ./tools/add-package.js')
     } finally {

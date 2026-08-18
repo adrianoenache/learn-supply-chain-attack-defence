@@ -1,4 +1,5 @@
-# Husky pre-commit hook: runs the project pre-commit script (signatures + CVE audit)
+# Husky pre-commit hook: runs lint, the project pre-commit script (signatures + CVE audit),
 # and a transitive package-age check to catch manual edits to package.json/package-lock.json.
+npm run lint
 npm run defence:pre-commit
 npm run defence:pkg-age-check -- --transitive

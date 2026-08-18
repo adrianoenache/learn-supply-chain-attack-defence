@@ -16,6 +16,17 @@ npm test
 - Integration scenarios for `check-package-age` and `add-package` using injected dependencies, so mocks and file-system changes work without spawning child processes.
 - First-setup bootstrap behavior when `package-lock.json` is missing.
 - Cross-project installer behavior, including `--dry-run`, `--force`, conflict detection, and backup creation.
+- Controlled dependency update flow in `update-packages.js`.
+
+## Lint and Format Checks
+
+The project uses Biome for linting and formatting. Run these checks before committing:
+
+```bash
+npm run lint      # report lint and format issues
+npm run lint:fix  # auto-fix safe issues
+npm run format    # format all configured files
+```
 
 ## Writing New Tests
 

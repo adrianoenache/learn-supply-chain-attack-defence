@@ -13,6 +13,7 @@ npm audit --audit-level=high
 - `npm run defence:bootstrap` (during first install without `package-lock.json`)
 - `npm run setup`
 - `npm run defence:add`
+- `npm run defence:update`
 - `.husky/pre-commit`
 
 ## Audit Level

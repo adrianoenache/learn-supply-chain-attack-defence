@@ -12,6 +12,7 @@ Implementado em:
 
 - [tools/check-package-age.js](../../../tools/check-package-age.js)
 - [tools/add-package.js](../../../tools/add-package.js)
+- [tools/update-packages.js](../../../tools/update-packages.js)
 
 O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-lock.json` (dependências transitivas), consulta o registry do npm para o timestamp de publicação de cada versão e falha se algum pacote for muito novo.
 

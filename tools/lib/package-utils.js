@@ -14,7 +14,8 @@
 // Rejects: any input with shell injection characters.
 //
 // npm naming reference: https://docs.npmjs.com/cli/v10/configuring-npm/package-json#name
-const VALID_PKG_SPECIFIER_RE = /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
+const VALID_PKG_SPECIFIER_RE =
+  /^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*(@\d+\.\d+\.\d+[a-z0-9._+-]*)?$/i
 
 // Decomposes "name@version" or "@scope/name@version" into name and version.
 // For scoped packages the leading @ is preserved by stripping it first,
@@ -26,8 +27,8 @@ function parsePackageArg(input) {
     const atIdx = withoutLeadingAt.indexOf('@')
     if (atIdx === -1) return { name: input, version: null }
     return {
-      name: '@' + withoutLeadingAt.slice(0, atIdx), // "@org/name"
-      version: withoutLeadingAt.slice(atIdx + 1),    // "x.y.z"
+      name: `@${withoutLeadingAt.slice(0, atIdx)}`, // "@org/name"
+      version: withoutLeadingAt.slice(atIdx + 1), // "x.y.z"
     }
   }
 

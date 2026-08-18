@@ -31,8 +31,18 @@ npm run defence:add -- lodash@4.17.21 --dry-run
 5. Executa `npm audit --audit-level=high`.
 6. Executa uma verificação transitiva de idade dos pacotes.
 
+## Atualizando Dependências Existentes
+
+Para atualizar dependências já declaradas no `package.json`, use o script de atualização controlada:
+
+```bash
+npm run defence:update
+```
+
+Ele executa `npm update` e depois reexecuta a verificação de idade dos pacotes (`--transitive`), a verificação de assinaturas e o audit de vulnerabilidades. Respeita as mesmas restrições do `.npmrc` usadas no restante do projeto.
+
 ## Edições Manuais
 
-Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelo script `defence:add`.
+Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelos scripts `defence:add` ou `defence:update`.
 
 _Sincronizado em: 2026-08-18_.

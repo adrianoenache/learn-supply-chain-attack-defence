@@ -26,13 +26,27 @@ const path = require('node:path')
 
 const LOCK_FILE = path.resolve(process.cwd(), 'package-lock.json')
 
+// Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
+let spawnSyncImpl = spawnSync
+function setSpawnSyncImpl(fn) {
+  spawnSyncImpl = fn
+}
+function resetSpawnSyncImpl() {
+  spawnSyncImpl = spawnSync
+}
+
 function runCmd(label, cmd, args, opts = {}) {
   console.log(`\n${label}: ${cmd} ${args.join(' ')}`)
-  const result = spawnSync(cmd, args, { stdio: 'inherit', shell: false, ...opts })
+  const result = spawnSyncImpl(cmd, args, {
+    stdio: 'inherit',
+    shell: false,
+    ...opts,
+  })
   if (result.status !== 0) {
-    const reason = result.status === null
-      ? `killed by signal ${result.signal}`
-      : `exited with code ${result.status}`
+    const reason =
+      result.status === null
+        ? `killed by signal ${result.signal}`
+        : `exited with code ${result.status}`
     throw new Error(`${label} failed (${reason}).`)
   }
 }
@@ -51,7 +65,7 @@ function main() {
     'First install',
     'npm',
     ['install', '--ignore-scripts', '--save-exact'],
-    { env: { ...process.env, NPM_CONFIG_PACKAGE_LOCK: 'true' } }
+    { env: { ...process.env, NPM_CONFIG_PACKAGE_LOCK: 'true' } },
   )
 
   runCmd('Package age check', 'npm', ['run', 'defence:pkg-age-check'])
@@ -59,14 +73,20 @@ function main() {
   runCmd('Vulnerability audit', 'npm', ['audit', '--audit-level=high'])
 
   console.log('\nBootstrap complete.')
-  console.log('Review package.json and package-lock.json, then commit both files.')
+  console.log(
+    'Review package.json and package-lock.json, then commit both files.',
+  )
   return 0
 }
 
-try {
-  const code = main()
-  process.exit(code)
-} catch (err) {
-  console.error(`\nBootstrap failed: ${err.message}`)
-  process.exit(1)
+if (require.main === module) {
+  try {
+    const code = main()
+    process.exit(code)
+  } catch (err) {
+    console.error(`\nBootstrap failed: ${err.message}`)
+    process.exit(1)
+  }
 }
+
+module.exports = { main, setSpawnSyncImpl, resetSpawnSyncImpl }

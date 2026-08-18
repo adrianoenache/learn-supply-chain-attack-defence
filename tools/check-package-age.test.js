@@ -14,8 +14,17 @@ const { EventEmitter } = require('node:events')
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
-const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES, main, buildDeps } = require(path.resolve(__dirname, './check-package-age.js'))
-const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './lib/package-utils.js'))
+const {
+  resolveExactVersion,
+  fetchPackageAge,
+  runWithConcurrencyLimit,
+  MAX_RESPONSE_BYTES,
+  main,
+  buildDeps,
+} = require(path.resolve(__dirname, './check-package-age.js'))
+const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(
+  path.resolve(__dirname, './lib/package-utils.js'),
+)
 const {
   validateArgs,
   main: addPackageMain,
@@ -158,27 +167,51 @@ describe('VALID_PKG_SPECIFIER_RE', () => {
 describe('parsePackageArg', () => {
   // Packages without scope.
   test('decomposes name@version correctly', () => {
-    assert.deepEqual(parsePackageArg('lodash@4.17.21'), { name: 'lodash', version: '4.17.21' })
-    assert.deepEqual(parsePackageArg('express@4.21.2'), { name: 'express', version: '4.21.2' })
+    assert.deepEqual(parsePackageArg('lodash@4.17.21'), {
+      name: 'lodash',
+      version: '4.17.21',
+    })
+    assert.deepEqual(parsePackageArg('express@4.21.2'), {
+      name: 'express',
+      version: '4.21.2',
+    })
   })
 
   test('returns version: null when version is omitted', () => {
-    assert.deepEqual(parsePackageArg('lodash'), { name: 'lodash', version: null })
+    assert.deepEqual(parsePackageArg('lodash'), {
+      name: 'lodash',
+      version: null,
+    })
   })
 
   test('preserves pre-release tag in version', () => {
-    assert.deepEqual(parsePackageArg('pkg@1.0.0-beta.1'), { name: 'pkg', version: '1.0.0-beta.1' })
+    assert.deepEqual(parsePackageArg('pkg@1.0.0-beta.1'), {
+      name: 'pkg',
+      version: '1.0.0-beta.1',
+    })
   })
 
   // Scoped packages (@org/name).
   test('decomposes @scope/name@version correctly', () => {
-    assert.deepEqual(parsePackageArg('@types/node@22.15.3'), { name: '@types/node', version: '22.15.3' })
-    assert.deepEqual(parsePackageArg('@org/my-pkg@1.0.0'), { name: '@org/my-pkg', version: '1.0.0' })
+    assert.deepEqual(parsePackageArg('@types/node@22.15.3'), {
+      name: '@types/node',
+      version: '22.15.3',
+    })
+    assert.deepEqual(parsePackageArg('@org/my-pkg@1.0.0'), {
+      name: '@org/my-pkg',
+      version: '1.0.0',
+    })
   })
 
   test('returns version: null for @scope/name without version', () => {
-    assert.deepEqual(parsePackageArg('@org/pkg'), { name: '@org/pkg', version: null })
-    assert.deepEqual(parsePackageArg('@types/node'), { name: '@types/node', version: null })
+    assert.deepEqual(parsePackageArg('@org/pkg'), {
+      name: '@org/pkg',
+      version: null,
+    })
+    assert.deepEqual(parsePackageArg('@types/node'), {
+      name: '@types/node',
+      version: null,
+    })
   })
 
   test('preserves the scope @ in the name field', () => {
@@ -231,10 +264,13 @@ describe('runWithConcurrencyLimit', () => {
   test('keeps result order independent of completion order', async () => {
     // Task 0 uses setImmediate (slower), task 1 resolves immediately.
     // Result index must follow insertion order, not completion order.
-    const results = await runWithConcurrencyLimit([
-      () => new Promise((res) => setImmediate(() => res('slow'))),
-      () => Promise.resolve('fast'),
-    ], 2)
+    const results = await runWithConcurrencyLimit(
+      [
+        () => new Promise((res) => setImmediate(() => res('slow'))),
+        () => Promise.resolve('fast'),
+      ],
+      2,
+    )
     assert.equal(results[0].value, 'slow')
     assert.equal(results[1].value, 'fast')
   })
@@ -243,18 +279,23 @@ describe('runWithConcurrencyLimit', () => {
     let running = 0
     let maxRunning = 0
     const LIMIT = 3
-    const tasks = Array.from({ length: 10 }, () => () =>
-      new Promise((resolve) => {
-        running++
-        if (running > maxRunning) maxRunning = running
-        setImmediate(() => {
-          running--
-          resolve()
-        })
-      })
+    const tasks = Array.from(
+      { length: 10 },
+      () => () =>
+        new Promise((resolve) => {
+          running++
+          if (running > maxRunning) maxRunning = running
+          setImmediate(() => {
+            running--
+            resolve()
+          })
+        }),
     )
     await runWithConcurrencyLimit(tasks, LIMIT)
-    assert.ok(maxRunning <= LIMIT, `Maximum concurrent was ${maxRunning}, expected <= ${LIMIT}`)
+    assert.ok(
+      maxRunning <= LIMIT,
+      `Maximum concurrent was ${maxRunning}, expected <= ${LIMIT}`,
+    )
   })
 })
 
@@ -286,7 +327,9 @@ describe('fetchPackageAge', () => {
   }
 
   test('returns { name, version, ageDays, published } for valid HTTP 200', async () => {
-    const publishDate = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString()
+    const publishDate = new Date(
+      Date.now() - 10 * 24 * 60 * 60 * 1000,
+    ).toISOString()
     const body = JSON.stringify({ time: { '1.0.0': publishDate } })
     const originalGet = https.get
     https.get = (_url, _opts, callback) => {
@@ -315,7 +358,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Registry returned HTTP 404 for mypkg/
+        /Registry returned HTTP 404 for mypkg/,
       )
     } finally {
       https.get = originalGet
@@ -332,7 +375,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Timeout fetching registry data for mypkg/
+        /Timeout fetching registry data for mypkg/,
       )
     } finally {
       https.get = originalGet
@@ -349,7 +392,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Network error for mypkg: ECONNREFUSED/
+        /Network error for mypkg: ECONNREFUSED/,
       )
     } finally {
       https.get = originalGet
@@ -372,7 +415,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Stream error for mypkg: socket hang up/
+        /Stream error for mypkg: socket hang up/,
       )
     } finally {
       https.get = originalGet
@@ -397,7 +440,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /exceeds \d+ MB limit/
+        /exceeds \d+ MB limit/,
       )
     } finally {
       https.get = originalGet
@@ -406,7 +449,9 @@ describe('fetchPackageAge', () => {
 
   test('rejects with "No publish date found" when time[version] is missing', async () => {
     const originalGet = https.get
-    const body = JSON.stringify({ time: { '2.0.0': '2024-01-01T00:00:00.000Z' } })
+    const body = JSON.stringify({
+      time: { '2.0.0': '2024-01-01T00:00:00.000Z' },
+    })
     https.get = (_url, _opts, callback) => {
       const req = makeMockRequest()
       callback(makeMockResponse(200, body))
@@ -415,7 +460,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /No publish date found for mypkg@1\.0\.0/
+        /No publish date found for mypkg@1\.0\.0/,
       )
     } finally {
       https.get = originalGet
@@ -433,7 +478,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Could not parse publish date for mypkg@1\.0\.0/
+        /Could not parse publish date for mypkg@1\.0\.0/,
       )
     } finally {
       https.get = originalGet
@@ -450,7 +495,7 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Failed to parse response for mypkg/
+        /Failed to parse response for mypkg/,
       )
     } finally {
       https.get = originalGet
@@ -467,16 +512,21 @@ describe('CLI — check-package-age flags', () => {
   const scriptPath = path.resolve(__dirname, './check-package-age.js')
 
   test('--pkg without value: exit 1 with error message', () => {
-    const result = spawnSync(process.execPath, [scriptPath, '--pkg'], { encoding: 'utf8' })
+    const result = spawnSync(process.execPath, [scriptPath, '--pkg'], {
+      encoding: 'utf8',
+    })
     assert.equal(result.status, 1)
-    assert.match(result.stderr, /--pkg requires a package name with an exact version/)
+    assert.match(
+      result.stderr,
+      /--pkg requires a package name with an exact version/,
+    )
   })
 
   test('--pkg and --transitive combined: exit 1 with mutual exclusion message', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, '--pkg', 'lodash@4.17.21', '--transitive'],
-      { encoding: 'utf8' }
+      { encoding: 'utf8' },
     )
     assert.equal(result.status, 1)
     assert.match(result.stderr, /--pkg and --transitive are mutually exclusive/)
@@ -486,7 +536,7 @@ describe('CLI — check-package-age flags', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, '--pkg', 'lodash; rm -rf /'],
-      { encoding: 'utf8' }
+      { encoding: 'utf8' },
     )
     assert.equal(result.status, 1)
     assert.match(result.stderr, /invalid package specifier/)
@@ -502,7 +552,9 @@ describe('CLI — add-package flags', () => {
   const scriptPath = path.resolve(__dirname, './add-package.js')
 
   test('missing package argument: exit 1', () => {
-    const result = spawnSync(process.execPath, [scriptPath], { encoding: 'utf8' })
+    const result = spawnSync(process.execPath, [scriptPath], {
+      encoding: 'utf8',
+    })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /missing package argument/)
   })
@@ -511,24 +563,24 @@ describe('CLI — add-package flags', () => {
     const result = spawnSync(
       process.execPath,
       [scriptPath, 'lodash@4.17.21', '--dev', '--peer'],
-      { encoding: 'utf8' }
+      { encoding: 'utf8' },
     )
     assert.equal(result.status, 1)
     assert.match(result.stderr, /--dev and --peer are mutually exclusive/)
   })
 
   test('version omitted (name without @x.y.z): exit 1', async () => {
-    const result = spawnSync(process.execPath, [scriptPath, 'lodash'], { encoding: 'utf8' })
+    const result = spawnSync(process.execPath, [scriptPath, 'lodash'], {
+      encoding: 'utf8',
+    })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /exact version required/)
   })
 
   test('invalid specifier: exit 1', () => {
-    const result = spawnSync(
-      process.execPath,
-      [scriptPath, 'lodash; evil'],
-      { encoding: 'utf8' }
-    )
+    const result = spawnSync(process.execPath, [scriptPath, 'lodash; evil'], {
+      encoding: 'utf8',
+    })
     assert.equal(result.status, 1)
     assert.match(result.stderr, /invalid package specifier/)
   })
@@ -546,7 +598,9 @@ describe('Integration — check-package-age dependency modes', () => {
   function mockRegistry(publishDates) {
     const originalGet = https.get
     https.get = (url, _opts, callback) => {
-      const name = decodeURIComponent(url.replace('https://registry.npmjs.org/', ''))
+      const name = decodeURIComponent(
+        url.replace('https://registry.npmjs.org/', ''),
+      )
       const req = new EventEmitter()
       req.destroy = () => {}
       const res = new EventEmitter()
@@ -556,7 +610,7 @@ describe('Integration — check-package-age dependency modes', () => {
         Object.entries(publishDates[name] || {}).map(([version, daysAgo]) => [
           version,
           new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-        ])
+        ]),
       )
       setImmediate(() => {
         callback(res)
@@ -567,7 +621,9 @@ describe('Integration — check-package-age dependency modes', () => {
       })
       return req
     }
-    return () => { https.get = originalGet }
+    return () => {
+      https.get = originalGet
+    }
   }
 
   test('default mode reads all dependency types from package.json', async () => {
@@ -609,7 +665,11 @@ describe('Integration — check-package-age dependency modes', () => {
           lockfileVersion: 3,
           requires: true,
           packages: {
-            '': { name: 'test-project', version: '1.0.0', dependencies: { lodash: '4.17.21' } },
+            '': {
+              name: 'test-project',
+              version: '1.0.0',
+              dependencies: { lodash: '4.17.21' },
+            },
             'node_modules/lodash': { version: '4.17.21' },
             'node_modules/is-odd': { version: '3.0.1' },
           },
@@ -627,7 +687,10 @@ describe('Integration — check-package-age dependency modes', () => {
     })
 
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       await main({
@@ -663,7 +726,11 @@ describe('Integration — check-package-age dependency modes', () => {
   })
 
   test('buildDeps returns single package for --pkg mode', () => {
-    const result = buildDeps({ transitive: false, pkgArg: 'lodash@4.17.21', pkg: {} })
+    const result = buildDeps({
+      transitive: false,
+      pkgArg: 'lodash@4.17.21',
+      pkg: {},
+    })
     assert.deepEqual(result, { lodash: '4.17.21' })
   })
 
@@ -690,7 +757,9 @@ describe('Integration — check-package-age dependency modes', () => {
 
 describe('Integration — add-package flow', () => {
   function mockFetchPackageAge(ageDays) {
-    const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
     const original = checkPackageAge.fetchPackageAge
     checkPackageAge.fetchPackageAge = async (name, version) => ({
       name,
@@ -705,7 +774,10 @@ describe('Integration — add-package flow', () => {
     const originalFetch = mockFetchPackageAge(10)
     const argv = ['lodash@4.17.21', '--dry-run']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -713,7 +785,9 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
     }
 
@@ -724,7 +798,10 @@ describe('Integration — add-package flow', () => {
     const originalFetch = mockFetchPackageAge(1)
     const argv = ['recent-pkg@1.0.0', '--dry-run']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -732,7 +809,9 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
     }
 
@@ -749,7 +828,10 @@ describe('Integration — add-package flow', () => {
 
     const argv = ['lodash@4.17.21']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -757,14 +839,21 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
     }
 
     assert.equal(exitCode, 0)
     assert.equal(calls.length, 3)
-    assert.deepEqual(calls[0], ['install', '--save', '--save-exact', 'lodash@4.17.21'])
+    assert.deepEqual(calls[0], [
+      'install',
+      '--save',
+      '--save-exact',
+      'lodash@4.17.21',
+    ])
     assert.deepEqual(calls[1], ['audit', 'signatures'])
     assert.deepEqual(calls[2], ['audit', '--audit-level=high'])
   })
@@ -779,7 +868,10 @@ describe('Integration — add-package flow', () => {
 
     const argv = ['eslint@9.0.0', '--dev']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -787,13 +879,20 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
     }
 
     assert.equal(exitCode, 0)
-    assert.deepEqual(calls[0], ['install', '--save-dev', '--save-exact', 'eslint@9.0.0'])
+    assert.deepEqual(calls[0], [
+      'install',
+      '--save-dev',
+      '--save-exact',
+      'eslint@9.0.0',
+    ])
   })
 
   test('installs peer dependency with --save-peer flag', async () => {
@@ -806,7 +905,10 @@ describe('Integration — add-package flow', () => {
 
     const argv = ['react-native-svg@12.0.0', '--peer']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -814,13 +916,20 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
     }
 
     assert.equal(exitCode, 0)
-    assert.deepEqual(calls[0], ['install', '--save-peer', '--save-exact', 'react-native-svg@12.0.0'])
+    assert.deepEqual(calls[0], [
+      'install',
+      '--save-peer',
+      '--save-exact',
+      'react-native-svg@12.0.0',
+    ])
   })
 
   test('installation failure exits with code 1', async () => {
@@ -829,7 +938,10 @@ describe('Integration — add-package flow', () => {
 
     const argv = ['lodash@4.17.21']
     let exitCode = null
-    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
 
     try {
       validateArgs(argv)
@@ -837,7 +949,9 @@ describe('Integration — add-package flow', () => {
     } catch (err) {
       if (err.message !== 'EXIT_CALLED') throw err
     } finally {
-      const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+      const checkPackageAge = require(
+        path.resolve(__dirname, './check-package-age.js'),
+      )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
     }

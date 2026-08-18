@@ -16,6 +16,17 @@ npm test
 - Cenários de integração para `check-package-age` e `add-package` usando dependências injetadas, para que mocks e alterações no sistema de arquivos funcionem sem precisar iniciar processos filhos.
 - Comportamento do bootstrap de primeiro setup quando `package-lock.json` está ausente.
 - Comportamento do instalador cross-project, incluindo `--dry-run`, `--force`, detecção de conflitos e criação de backups.
+- Fluxo controlado de atualização de dependências em `update-packages.js`.
+
+## Verificações de Lint e Formatação
+
+O projeto usa Biome para lint e formatação. Execute essas verificações antes de commitar:
+
+```bash
+npm run lint      # reporta problemas de lint e formatação
+npm run lint:fix  # corrige automaticamente problemas seguros
+npm run format    # formata todos os arquivos configurados
+```
 
 ## Escrevendo Novos Testes
 

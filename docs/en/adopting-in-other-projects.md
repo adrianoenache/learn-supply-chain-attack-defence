@@ -27,29 +27,41 @@ node ./tools/install-defences.js /path/to/target-project --force
 1. Copies the following files into the target project:
    - `.npmrc`
    - `.husky/pre-commit`
+   - `biome.json`
    - `tools/check-package-age.js`
    - `tools/add-package.js`
    - `tools/lib/package-utils.js`
    - `tools/setup-bootstrap.js`
+   - `tools/setup-bootstrap.test.js`
    - `tools/check-package-age.test.js`
+   - `tools/install-defences.js`
+   - `tools/install-defences.test.js`
+   - `tools/update-packages.js`
+   - `tools/update-packages.test.js`
 2. Adds `defence:*` scripts to `package.json`:
    - `setup`
    - `defence:bootstrap`
    - `defence:pkg-age-check`
    - `defence:reinstall`
+   - `defence:update`
    - `defence:pre-commit`
    - `defence:add`
    - `test`
+   - `lint`
+   - `lint:fix`
+   - `format`
    - `prepare`
-3. Adds `husky` to `devDependencies` if it is not already present.
+3. Adds `husky` and `@biomejs/biome` to `devDependencies` if they are not already present.
 
 Existing scripts that do not conflict are preserved. If a target script already exists with a different value, the installer aborts so nothing is overwritten silently.
 
 ## After Running the Installer
 
-1. Run `npm install` in the target project to install husky and generate a lock file (or run `npm run defence:bootstrap` if there is no `package-lock.json`).
+1. Run `npm install` in the target project to install husky, Biome, and generate a lock file.
+   - Alternatively, if there is no `package-lock.json`, run `npm run defence:bootstrap` after the install.
 2. Verify the pre-commit hook: `bash .husky/pre-commit`
-3. Commit `.npmrc`, `.husky/`, `tools/`, and the updated `package.json`.
+3. Verify code quality: `npm run lint`
+4. Commit `.npmrc`, `.husky/`, `biome.json`, `tools/`, and the updated `package.json`.
 
 ## Keeping Files in Sync
 

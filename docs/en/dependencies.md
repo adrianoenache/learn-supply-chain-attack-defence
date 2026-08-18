@@ -31,8 +31,18 @@ npm run defence:add -- lodash@4.17.21 --dry-run
 5. Runs `npm audit --audit-level=high`.
 6. Runs a transitive package-age check.
 
+## Updating Existing Dependencies
+
+To update dependencies that are already declared in `package.json`, use the controlled update script:
+
+```bash
+npm run defence:update
+```
+
+This runs `npm update` and then re-runs the package-age check (`--transitive`), signature verification, and vulnerability audit. It respects the same `.npmrc` constraints as the rest of the project.
+
 ## Manual Edits
 
-Avoid editing `package.json` or `package-lock.json` by hand. If you do, the pre-commit hook will still run the transitive age check, but fixing failures is harder than going through the `defence:add` script.
+Avoid editing `package.json` or `package-lock.json` by hand. If you do, the pre-commit hook will still run the transitive age check, but fixing failures is harder than going through the `defence:add` or `defence:update` scripts.
 
 _Last sync: 2026-08-18_.
