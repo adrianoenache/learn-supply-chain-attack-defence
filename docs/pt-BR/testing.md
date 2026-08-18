@@ -14,6 +14,8 @@ npm test
 - Cálculo de idade dos pacotes e limitador de concorrência.
 - Resolução de modo de dependência (`--dev`, `--peer`, padrão).
 - Cenários de integração para `check-package-age` e `add-package` usando dependências injetadas, para que mocks e alterações no sistema de arquivos funcionem sem precisar iniciar processos filhos.
+- Comportamento do bootstrap de primeiro setup quando `package-lock.json` está ausente.
+- Comportamento do instalador cross-project, incluindo `--dry-run`, `--force`, detecção de conflitos e criação de backups.
 
 ## Escrevendo Novos Testes
 

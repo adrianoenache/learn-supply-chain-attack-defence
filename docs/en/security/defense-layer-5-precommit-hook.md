@@ -9,8 +9,8 @@ Husky runs a pre-commit hook on every `git commit`. It executes the same checks 
 ```bash
 # Husky pre-commit hook: runs the project pre-commit script (signatures + CVE audit)
 # and a transitive package-age check to catch manual edits to package.json/package-lock.json.
-npm run pre-commit
-npm run pkg-age-check -- --transitive
+npm run defence:pre-commit
+npm run defence:pkg-age-check -- --transitive
 ```
 
 ## Why Transitive?

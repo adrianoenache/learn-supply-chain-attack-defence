@@ -10,8 +10,9 @@ npm audit signatures
 
 ## Where It Runs
 
+- `npm run defence:bootstrap` (during first install without `package-lock.json`)
 - `npm run setup`
-- `npm run add`
+- `npm run defence:add`
 - `.husky/pre-commit`
 
 ## What It Checks

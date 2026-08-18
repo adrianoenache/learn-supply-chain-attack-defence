@@ -19,10 +19,10 @@ O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-
 
 ```bash
 # Apenas dependências diretas
-npm run pkg-age-check
+npm run defence:pkg-age-check
 
 # Todas as dependências, incluindo as transitivas
-npm run pkg-age-check -- --transitive
+npm run defence:pkg-age-check -- --transitive
 ```
 
 ## Por Que 7 Dias?

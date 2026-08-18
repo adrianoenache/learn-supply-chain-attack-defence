@@ -28,6 +28,7 @@ This repository is a practical learning environment for understanding and applyi
 - [Adding dependencies](dependencies.md)
 - [Testing](testing.md)
 - [References](references.md)
+- [Adopting in other projects](adopting-in-other-projects.md)
 
 ## Other Languages
 

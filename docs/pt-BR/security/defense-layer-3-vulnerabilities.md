@@ -10,8 +10,9 @@ npm audit --audit-level=high
 
 ## Onde Executa
 
+- `npm run defence:bootstrap` (durante a primeira instalação sem `package-lock.json`)
 - `npm run setup`
-- `npm run add`
+- `npm run defence:add`
 - `.husky/pre-commit`
 
 ## Nível de Auditoria
@@ -23,7 +24,7 @@ O projeto permite apenas vulnerabilidades `low`, `moderate` ou `info`. Qualquer 
 Se o `npm audit` falhar:
 
 1. Atualize a dependência afetada para uma versão corrigida.
-2. Execute novamente `npm run add -- <pkg>@<versão>`.
+2. Execute novamente `npm run defence:add -- <pkg>@<versão>`.
 3. Se o advisory for um falso positivo para o seu caso de uso, documente explicitamente a exceção em vez de abaixar o nível de auditoria.
 
 _Sincronizado em: 2026-08-18_.

@@ -5,15 +5,34 @@ The `setup` npm script installs dependencies and runs every security layer in th
 ## What It Runs
 
 ```bash
-"setup": "npm ci && npm audit signatures && npm audit --audit-level=high && npm run pkg-age-check"
+"setup": "node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare"
 ```
 
-1. `npm ci` — deterministic install from `package-lock.json`.
-2. `npm audit signatures` — verify registry signatures of installed packages.
-3. `npm audit --audit-level=high` — fail the build if any high or critical CVE is found.
-4. `npm run pkg-age-check` — ensure every direct dependency is at least 7 days old.
+1. `npm run defence:pkg-age-check` — ensure every direct dependency is at least 7 days old.
+2. `npm ci` — deterministic install from `package-lock.json`.
+3. `npm audit signatures` — verify registry signatures of installed packages.
+4. `npm run prepare` — install Husky hooks.
 
-## When to Run It
+The script `defence:pre-commit` (used by the Git hook) also runs `npm audit --audit-level=high` to fail on high or critical CVEs.
+
+## First-Time Setup (No `package-lock.json`)
+
+If the repository was just created or `package-lock.json` is missing, `npm ci` will fail. In that case, run the controlled bootstrap:
+
+```bash
+npm run defence:bootstrap
+```
+
+The bootstrap script:
+
+1. Runs `npm install --ignore-scripts --save-exact` to generate the first lock file without executing lifecycle scripts.
+2. Runs `npm run defence:pkg-age-check`.
+3. Runs `npm audit signatures`.
+4. Runs `npm audit --audit-level=high`.
+
+After bootstrap, review `package.json` and `package-lock.json` and commit both. From then on, use `npm run setup` normally.
+
+## When to Run `setup`
 
 - Right after cloning the repository.
 - After pulling updates from another branch.

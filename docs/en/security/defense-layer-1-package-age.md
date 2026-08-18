@@ -19,10 +19,10 @@ Implemented in:
 
 ```bash
 # Direct dependencies only
-npm run pkg-age-check
+npm run defence:pkg-age-check
 
 # All dependencies, including transitive
-npm run pkg-age-check -- --transitive
+npm run defence:pkg-age-check -- --transitive
 ```
 
 ## Why 7 Days?

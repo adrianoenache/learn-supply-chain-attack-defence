@@ -28,6 +28,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - [Adicionando dependências](dependencies.md)
 - [Testes](testing.md)
 - [Referências](references.md)
+- [Adotando em outros projetos](adopting-in-other-projects.md)
 
 ## Outros Idiomas
 

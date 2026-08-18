@@ -1,25 +1,25 @@
 # Adicionando Dependências
 
-Novas dependências devem ser adicionadas pelo script controlado `npm run add` em vez de `npm install`.
+Novas dependências devem ser adicionadas pelo script controlado `npm run defence:add` em vez de `npm install`.
 
 ## Por Que Usar um Script?
 
-`npm install` pode atualizar silenciosamente dependências transitivas e ignorar o gate de idade dos pacotes. O script `add` envolve o processo com as mesmas defesas usadas no setup.
+`npm install` pode atualizar silenciosamente dependências transitivas e ignorar o gate de idade dos pacotes. O script `defence:add` envolve o processo com as mesmas defesas usadas no setup.
 
 ## Uso
 
 ```bash
 # Adicionar uma dependência de runtime
-npm run add -- lodash
+npm run defence:add -- lodash@4.17.21
 
 # Adicionar uma dependência de desenvolvimento
-npm run add -- --dev eslint
+npm run defence:add -- --dev eslint@9.0.0
 
 # Adicionar uma dependência peer
-npm run add -- --peer some-pkg
+npm run defence:add -- --peer some-pkg@1.0.0
 
 # Simular a operação sem alterar arquivos
-npm run add -- lodash --dry-run
+npm run defence:add -- lodash@4.17.21 --dry-run
 ```
 
 ## O Que o Script Verifica
@@ -33,6 +33,6 @@ npm run add -- lodash --dry-run
 
 ## Edições Manuais
 
-Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelo script `add`.
+Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelo script `defence:add`.
 
 _Sincronizado em: 2026-08-18_.

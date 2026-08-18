@@ -9,13 +9,13 @@ O hook de pré-commit está definido em `.husky/pre-commit`:
 ```bash
 # Husky pre-commit hook: runs the project pre-commit script (signatures + CVE audit)
 # and a transitive package-age check to catch manual edits to package.json/package-lock.json.
-npm run pre-commit
-npm run pkg-age-check -- --transitive
+npm run defence:pre-commit
+npm run defence:pkg-age-check -- --transitive
 ```
 
 ### O Que Ele Faz
 
-1. Executa `npm run pre-commit`, que por sua vez executa:
+1. Executa `npm run defence:pre-commit`, que por sua vez executa:
    - `npm audit signatures`
    - `npm audit --audit-level=high`
 2. Executa uma verificação transitiva de idade dos pacotes, garantindo que qualquer alteração manual em `package.json` ou `package-lock.json` também seja validada.

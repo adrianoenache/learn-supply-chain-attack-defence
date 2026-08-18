@@ -14,6 +14,8 @@ npm test
 - Package-age calculation and concurrency limiter.
 - Dependency mode resolution (`--dev`, `--peer`, default).
 - Integration scenarios for `check-package-age` and `add-package` using injected dependencies, so mocks and file-system changes work without spawning child processes.
+- First-setup bootstrap behavior when `package-lock.json` is missing.
+- Cross-project installer behavior, including `--dry-run`, `--force`, conflict detection, and backup creation.
 
 ## Writing New Tests
 

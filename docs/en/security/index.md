@@ -10,6 +10,7 @@ flowchart TD
         A[Add dependency] --> B[tools/add-package.js]
         C[Commit changes] --> D[.husky/pre-commit]
         E[Fresh clone] --> F[npm run setup]
+        Z[No lock file] --> Y[npm run defence:bootstrap]
     end
 
     subgraph Layer1["Layer 1: package age"]
@@ -22,6 +23,7 @@ flowchart TD
 
     subgraph Layer2["Layer 2: signature verification"]
         J --> K[npm audit signatures]
+        Y --> K
     end
 
     subgraph Layer3["Layer 3: vulnerability audit"]
@@ -31,6 +33,7 @@ flowchart TD
     subgraph Layer4["Layer 4: deterministic install"]
         F --> M[npm ci from lock file]
         L --> M
+        Y --> M
     end
 
     subgraph Layer5["Layer 5: pre-commit hook"]

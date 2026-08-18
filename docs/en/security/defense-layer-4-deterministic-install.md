@@ -11,7 +11,7 @@ npm ci
 ## Where It Runs
 
 - `npm run setup`
-- `npm run npm-reinstall`
+- `npm run defence:reinstall`
 
 ## Benefits
 
@@ -21,6 +21,6 @@ npm ci
 
 ## When NOT to Use `npm install`
 
-Inside this project, avoid `npm install` for routine setup. Use `npm ci` or the `npm run add` / `npm run npm-reinstall` scripts.
+Inside this project, avoid `npm install` for routine setup. Use `npm ci` or the `npm run defence:add` / `npm run defence:reinstall` scripts.
 
 _Last sync: 2026-08-18_.

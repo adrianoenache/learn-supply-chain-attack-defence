@@ -10,6 +10,7 @@ flowchart TD
         A[Adicionar dependência] --> B[tools/add-package.js]
         C[Commitar alterações] --> D[.husky/pre-commit]
         E[Clone novo] --> F[npm run setup]
+        Z[Sem lock file] --> Y[npm run defence:bootstrap]
     end
 
     subgraph Layer1["Camada 1: idade do pacote"]
@@ -22,6 +23,7 @@ flowchart TD
 
     subgraph Layer2["Camada 2: verificação de assinaturas"]
         J --> K[npm audit signatures]
+        Y --> K
     end
 
     subgraph Layer3["Camada 3: auditoria de vulnerabilidades"]
@@ -31,6 +33,7 @@ flowchart TD
     subgraph Layer4["Camada 4: instalação determinística"]
         F --> M[npm ci a partir do lock file]
         L --> M
+        Y --> M
     end
 
     subgraph Layer5["Camada 5: hook de pré-commit"]

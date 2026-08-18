@@ -21,10 +21,10 @@ npm run setup
 
 | Layer | Protection | Trigger |
 | --- | --- | --- |
-| 1 | [Package age check](docs/en/security/defense-layer-1-package-age.md) | `npm run setup`, `npm run add`, `npm run npm-reinstall` |
-| 2 | [Signature verification](docs/en/security/defense-layer-2-signatures.md) | `npm run setup`, `npm run add`, pre-commit hook |
-| 3 | [Vulnerability audit](docs/en/security/defense-layer-3-vulnerabilities.md) | `npm run setup`, `npm run add`, pre-commit hook |
-| 4 | [Deterministic install](docs/en/security/defense-layer-4-deterministic-install.md) | `npm ci` in `setup` / `npm-reinstall` |
+| 1 | [Package age check](docs/en/security/defense-layer-1-package-age.md) | `npm run setup`, `npm run defence:add`, `npm run defence:reinstall`, `npm run defence:bootstrap` |
+| 2 | [Signature verification](docs/en/security/defense-layer-2-signatures.md) | `npm run setup`, `npm run defence:add`, `npm run defence:bootstrap`, pre-commit hook |
+| 3 | [Vulnerability audit](docs/en/security/defense-layer-3-vulnerabilities.md) | `npm run setup`, `npm run defence:add`, `npm run defence:bootstrap`, pre-commit hook |
+| 4 | [Deterministic install](docs/en/security/defense-layer-4-deterministic-install.md) | `npm ci` in `setup` / `defence:reinstall` |
 | 5 | [Pre-commit hook](docs/en/security/defense-layer-5-precommit-hook.md) | Every `git commit` |
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
 
