@@ -14,8 +14,9 @@ const { EventEmitter } = require('node:events')
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
-const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES } = require(path.resolve(__dirname, './check-package-age.js'))
+const { resolveExactVersion, fetchPackageAge, runWithConcurrencyLimit, MAX_RESPONSE_BYTES, main, buildDeps } = require(path.resolve(__dirname, './check-package-age.js'))
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(path.resolve(__dirname, './lib/package-utils.js'))
+const { validateArgs, main: addPackageMain } = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
 // resolveExactVersion
@@ -525,5 +526,213 @@ describe('CLI — add-package flags', () => {
     )
     assert.equal(result.status, 1)
     assert.match(result.stderr, /invalid package specifier/)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Integration — check-package-age dependency modes
+// ---------------------------------------------------------------------------
+
+describe('Integration — check-package-age dependency modes', () => {
+  const https = require('node:https')
+
+  // Mocks the npm registry by replacing https.get so check-package-age reads
+  // from a local fixture instead of the real registry. Returns a restore function.
+  function mockRegistry(publishDates) {
+    const originalGet = https.get
+    https.get = (url, _opts, callback) => {
+      const name = decodeURIComponent(url.replace('https://registry.npmjs.org/', ''))
+      const req = new EventEmitter()
+      req.destroy = () => {}
+      const res = new EventEmitter()
+      res.statusCode = 200
+      res.destroy = () => {}
+      const time = Object.fromEntries(
+        Object.entries(publishDates[name] || {}).map(([version, daysAgo]) => [
+          version,
+          new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+        ])
+      )
+      setImmediate(() => {
+        callback(res)
+        setImmediate(() => {
+          res.emit('data', JSON.stringify({ time }))
+          setImmediate(() => res.emit('end'))
+        })
+      })
+      return req
+    }
+    return () => { https.get = originalGet }
+  }
+
+  test('default mode reads all dependency types from package.json', async () => {
+    const restore = mockRegistry({
+      prod: { '1.0.0': 10 },
+      dev: { '2.0.0': 10 },
+      peer: { '3.0.0': 10 },
+      optional: { '4.0.0': 10 },
+    })
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: { prod: '1.0.0' },
+          devDependencies: { dev: '2.0.0' },
+          peerDependencies: { peer: '3.0.0' },
+          optionalDependencies: { optional: '4.0.0' },
+        },
+      })
+    } finally {
+      restore()
+    }
+  })
+
+  test('--transitive mode reads resolved versions from package-lock.json', async () => {
+    const restore = mockRegistry({
+      lodash: { '4.17.21': 10 },
+      'is-odd': { '3.0.1': 10 },
+    })
+
+    try {
+      await main({
+        argv: ['--transitive'],
+        pkg: { name: 'test-project', version: '1.0.0' },
+        lock: {
+          name: 'test-project',
+          lockfileVersion: 3,
+          requires: true,
+          packages: {
+            '': { name: 'test-project', version: '1.0.0', dependencies: { lodash: '4.17.21' } },
+            'node_modules/lodash': { version: '4.17.21' },
+            'node_modules/is-odd': { version: '3.0.1' },
+          },
+        },
+      })
+    } finally {
+      restore()
+    }
+  })
+
+  test('respects custom minAgeDays from package.json', async () => {
+    const restore = mockRegistry({
+      recent: { '1.0.0': 3 },
+      old: { '2.0.0': 30 },
+    })
+
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          pkgAgeCheck: { minAgeDays: 5 },
+          dependencies: { recent: '1.0.0', old: '2.0.0' },
+        },
+        exitFn,
+      })
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      restore()
+    }
+
+    assert.equal(exitCode, 1)
+  })
+
+  test('buildDeps returns merged dependency types by default', () => {
+    const result = buildDeps({
+      transitive: false,
+      pkgArg: null,
+      pkg: {
+        dependencies: { a: '1.0.0' },
+        devDependencies: { b: '2.0.0' },
+        peerDependencies: { c: '3.0.0' },
+        optionalDependencies: { d: '4.0.0' },
+      },
+    })
+    assert.deepEqual(result, { a: '1.0.0', b: '2.0.0', c: '3.0.0', d: '4.0.0' })
+  })
+
+  test('buildDeps returns single package for --pkg mode', () => {
+    const result = buildDeps({ transitive: false, pkgArg: 'lodash@4.17.21', pkg: {} })
+    assert.deepEqual(result, { lodash: '4.17.21' })
+  })
+
+  test('buildDeps returns lockfile packages for --transitive mode', () => {
+    const result = buildDeps({
+      transitive: true,
+      pkgArg: null,
+      pkg: {},
+      lock: {
+        packages: {
+          '': {},
+          'node_modules/lodash': { version: '4.17.21' },
+          'node_modules/is-odd': { version: '3.0.1' },
+        },
+      },
+    })
+    assert.deepEqual(result, { lodash: '4.17.21', 'is-odd': '3.0.1' })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Integration — add-package flow with mocked dependencies
+// ---------------------------------------------------------------------------
+
+describe('Integration — add-package flow', () => {
+  test('dry-run approves an old enough package without installing', async () => {
+    const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = async () => ({
+      name: 'lodash',
+      version: '4.17.21',
+      ageDays: 10,
+      published: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    })
+
+    const argv = ['lodash@4.17.21', '--dry-run']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+    }
+
+    assert.equal(exitCode, 0)
+  })
+
+  test('dry-run blocks a package younger than MIN_AGE_DAYS', async () => {
+    const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = async () => ({
+      name: 'recent-pkg',
+      version: '1.0.0',
+      ageDays: 1,
+      published: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    })
+
+    const argv = ['recent-pkg@1.0.0', '--dry-run']
+    let exitCode = null
+    const exitFn = (code) => { exitCode = code; throw new Error('EXIT_CALLED') }
+
+    try {
+      validateArgs(argv)
+      await addPackageMain(argv, exitFn)
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+    }
+
+    assert.equal(exitCode, 1)
   })
 })

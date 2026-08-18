@@ -42,9 +42,10 @@ const path = require('node:path')
 
 // Reuses fetchPackageAge and resolveExactVersion from check-package-age.js to keep
 // the verification logic centralized in one place.
-// The require works because check-package-age.js exports via module.exports at the end.
+// The module is imported as a whole so tests can monkey-patch its exported functions
+// and the patch is visible here (Node.js caches the module object).
 // Only native Node.js modules are used here, for the same reason as check-package-age.js.
-const { fetchPackageAge, resolveExactVersion } = require(path.resolve(__dirname, './check-package-age.js'))
+const checkPackageAge = require(path.resolve(__dirname, './check-package-age.js'))
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirname, './lib/package-utils.js'))
 
 const pkg = require(path.resolve(__dirname, '../package.json'))
@@ -53,17 +54,22 @@ const pkg = require(path.resolve(__dirname, '../package.json'))
 const MIN_AGE_DAYS = (pkg.pkgAgeCheck?.minAgeDays) ?? 7
 
 // Parses command-line arguments.
-// process.argv: ["node", "add-package.js", "<package>@<version>", "[--dev|--peer]", "[--dry-run]"]
-const args = process.argv.slice(2)
-const pkgArg = args.find((a) => !a.startsWith('-'))
-const isDev = args.includes('--dev')
-const isPeer = args.includes('--peer')
-const isDryRun = args.includes('--dry-run')
+// argv format: ["<package>@<version>", "[--dev|--peer]", "[--dry-run]"]
+function parseCliArgs(argv) {
+  return {
+    pkgArg: argv.find((a) => !a.startsWith('-')),
+    isDev: argv.includes('--dev'),
+    isPeer: argv.includes('--peer'),
+    isDryRun: argv.includes('--dry-run'),
+  }
+}
 
 // Validates arguments before any network or disk operation.
 // Fails with a clear usage message to guide the contributor.
 // Only executed in CLI mode — does not run when imported via require().
-function validateArgs() {
+function validateArgs(argv = process.argv.slice(2)) {
+  const { pkgArg, isDev, isPeer } = parseCliArgs(argv)
+
   if (!pkgArg) {
     console.error('Error: missing package argument.')
     console.error('Usage: npm run add -- <package>@<version> [--dev|--peer] [--dry-run]')
@@ -96,14 +102,16 @@ function getSaveMode(peer, dev) {
   return          { typeLabel: '',                  flagHint: '',         saveFlag: '--save'       }
 }
 
-async function main() {
+async function main(argv = process.argv.slice(2), exitFn = process.exit) {
+  const { pkgArg, isDev, isPeer, isDryRun } = parseCliArgs(argv)
   const { name, version: rawVersion } = parsePackageArg(pkgArg)
 
   // Requires an exact version — the contributor must explicitly decide which version is being approved.
   // This prevents the flow from automatically approving a recently published version when resolving "latest".
   if (!rawVersion) {
     console.error(`Error: exact version required. Use: npm run add -- ${name}@x.y.z`)
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   const { typeLabel, flagHint, saveFlag } = getSaveMode(isPeer, isDev)
@@ -112,11 +120,12 @@ async function main() {
   // Step 1 — Confirm the provided version is exact (no range operators).
   // resolveExactVersion is imported from check-package-age.js; returns null for dist-tags
   // and ranges such as "^1.0.0", "~2.0", "latest", etc.
-  const exactVersion = resolveExactVersion(rawVersion)
+  const exactVersion = checkPackageAge.resolveExactVersion(rawVersion)
   if (!exactVersion) {
     console.error(`Error: "${rawVersion}" is not an exact version.`)
     console.error(`Use a pinned version, e.g.: npm run add -- ${name}@x.y.z`)
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   // Step 2 — Check the package age before any installation.
@@ -125,11 +134,12 @@ async function main() {
   console.log(`Checking publish age for ${name}@${exactVersion} (minimum: ${MIN_AGE_DAYS} days)...`)
   let ageResult
   try {
-    ageResult = await fetchPackageAge(name, exactVersion)
+    ageResult = await checkPackageAge.fetchPackageAge(name, exactVersion)
   } catch (err) {
     console.error(`\nPackage age check FAILED: ${err.message}`)
     console.error('Installation aborted — package age could not be confirmed.')
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   const ageDays = ageResult.ageDays.toFixed(1)
@@ -139,7 +149,8 @@ async function main() {
     console.error(`\n  BLOCKED  ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)
     console.error(`\nPackage age check FAILED — below minimum age of ${MIN_AGE_DAYS} days.`)
     console.error('Installation aborted.')
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   console.log(`  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)
@@ -152,7 +163,8 @@ async function main() {
   if (isDryRun) {
     console.log('\nDry-run: age check passed. Skipping installation.')
     console.log(`\nTo install, run: npm run add -- ${pkgArg}${flagHint}`)
-    process.exit(0)
+    exitFn(0)
+    return
   }
 
   // name and exactVersion were validated by VALID_PKG_SPECIFIER_RE before reaching this point,
@@ -167,7 +179,8 @@ async function main() {
   } catch {
     // npm already printed the error via stdio: 'inherit'; just indicate the reason for exiting.
     console.error('\nInstallation failed. See npm output above.')
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   // Step 4 — Verify cryptographic signatures after installation.
@@ -179,7 +192,8 @@ async function main() {
   } catch {
     console.error('\nSignature verification failed. The installation may be compromised.')
     console.error('Run `npm ci` to restore a clean state from package-lock.json.')
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   // Step 5 — Audit known vulnerabilities after installation.
@@ -192,7 +206,8 @@ async function main() {
     console.error('\nVulnerability audit FAILED — high or critical CVE detected.')
     console.error('Run `npm audit` for details, or `npm audit fix` to apply automatic fixes.')
     console.error(`To remove the package: npm uninstall ${name}`)
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   console.log(`\nDone. ${name}@${exactVersion} added successfully.`)
@@ -203,13 +218,14 @@ async function main() {
 // When imported via require() by tests or other modules,
 // only the exports are available — main() is not called.
 if (require.main === module) {
-  validateArgs()
-  main().catch((err) => {
+  const argv = process.argv.slice(2)
+  validateArgs(argv)
+  main(argv).catch((err) => {
     console.error(`Unexpected error: ${err.message}`)
     process.exit(1)
   })
 }
 
 // Exports utility functions for use by tests.
-module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE }
+module.exports = { parsePackageArg, VALID_PKG_SPECIFIER_RE, validateArgs, main }
 

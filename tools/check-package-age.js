@@ -25,57 +25,6 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(path.resolve(__dirna
 // packages because it runs before installation itself.
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
-// Resolves the operation mode from command-line arguments:
-// --transitive → reads package-lock.json and checks all resolved dependencies
-// --pkg <name@version> → checks a single package provided as a point value
-// (default) → checks declared dependencies in package.json
-const transitive = process.argv.includes('--transitive')
-const pkgArgIndex = process.argv.indexOf('--pkg')
-const pkgArg = pkgArgIndex === -1 ? null : process.argv[pkgArgIndex + 1]
-
-// Validates that --pkg was supplied with a value and that incompatible modes are not mixed.
-// --pkg and --transitive are mutually exclusive: --transitive operates on the whole
-// lockfile, while --pkg is a point check of a single package.
-if (pkgArgIndex !== -1 && !pkgArg) {
-  console.error('Error: --pkg requires a package name with an exact version. Example: --pkg lodash@4.17.21')
-  process.exit(1)
-}
-if (pkgArg && transitive) {
-  console.error('Error: --pkg and --transitive are mutually exclusive.')
-  process.exit(1)
-}
-
-if (pkgArg && !VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
-  console.error(`Error: invalid package specifier "${pkgArg}".`)
-  console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
-  process.exit(1)
-}
-
-let deps
-if (transitive) {
-  const lock = require(path.resolve(__dirname, '../package-lock.json'))
-  // lockfileVersion 3 stores each installed package under the "node_modules/<name>" key
-  // in the `packages` object. The "" key represents the root project and is filtered out.
-  // The `version` field always contains the resolved exact version.
-  deps = Object.fromEntries(
-    Object.entries(lock.packages)
-      .filter(([key]) => key.startsWith('node_modules/'))
-      .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
-  )
-} else if (pkgArg) {
-  // --pkg mode: decompose "name@version" or "@scope/name@version" using the shared helper.
-  // Requires an exact version so the age check operates on the specific version that
-  // will be installed, not on a dist-tag.
-  const { name: pkgName, version: pkgVersion } = parsePackageArg(pkgArg)
-  if (!pkgVersion) {
-    console.error(`Error: --pkg requires an exact version. Use: --pkg ${pkgName}@x.y.z`)
-    process.exit(1)
-  }
-  deps = { [pkgName]: pkgVersion }
-} else {
-  deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies, ...pkg.optionalDependencies }
-}
-
 // Minimum number of days since publication for a package to be accepted.
 // Aligned with min-release-age=7 in .npmrc (npm's native defense layer).
 // Configurable via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
@@ -92,6 +41,66 @@ const MAX_RESPONSE_BYTES = ((pkg.pkgAgeCheck?.maxResponseMB) ?? 20) * 1024 * 102
 // Avoids rate-limiting in projects with many dependencies.
 // Configurable via package.json: "pkgAgeCheck": { "concurrency": 5 }
 const CONCURRENCY = (pkg.pkgAgeCheck?.concurrency) ?? 10
+
+// Resolves the operation mode from command-line arguments.
+// Returns an object with { transitive, pkgArg } or exits on invalid input.
+function resolveMode(argv) {
+  const transitive = argv.includes('--transitive')
+  const pkgArgIndex = argv.indexOf('--pkg')
+  const pkgArg = pkgArgIndex === -1 ? null : argv[pkgArgIndex + 1]
+
+  if (pkgArgIndex !== -1 && !pkgArg) {
+    console.error('Error: --pkg requires a package name with an exact version. Example: --pkg lodash@4.17.21')
+    process.exit(1)
+  }
+  if (pkgArg && transitive) {
+    console.error('Error: --pkg and --transitive are mutually exclusive.')
+    process.exit(1)
+  }
+  if (pkgArg && !VALID_PKG_SPECIFIER_RE.test(pkgArg)) {
+    console.error(`Error: invalid package specifier "${pkgArg}".`)
+    console.error('Use the format: name@x.y.z or @scope/name@x.y.z (exact version required)')
+    process.exit(1)
+  }
+
+  return { transitive, pkgArg }
+}
+
+// Builds the dependency map to be checked based on the operation mode.
+// - transitive: reads resolved versions from package-lock.json
+// - pkgArg: checks a single package specified on the CLI
+// - default: merges all dependency types from package.json
+function buildDeps({ transitive, pkgArg, pkg: pkgInput, lock }) {
+  if (transitive) {
+    // lockfileVersion 3 stores each installed package under the "node_modules/<name>" key
+    // in the `packages` object. The "" key represents the root project and is filtered out.
+    // The `version` field always contains the resolved exact version.
+    return Object.fromEntries(
+      Object.entries(lock.packages)
+        .filter(([key]) => key.startsWith('node_modules/'))
+        .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version])
+    )
+  }
+
+  if (pkgArg) {
+    // --pkg mode: decompose "name@version" or "@scope/name@version" using the shared helper.
+    // Requires an exact version so the age check operates on the specific version that
+    // will be installed, not on a dist-tag.
+    const { name: pkgName, version: pkgVersion } = parsePackageArg(pkgArg)
+    if (!pkgVersion) {
+      console.error(`Error: --pkg requires an exact version. Use: --pkg ${pkgName}@x.y.z`)
+      process.exit(1)
+    }
+    return { [pkgName]: pkgVersion }
+  }
+
+  return {
+    ...pkgInput.dependencies,
+    ...pkgInput.devDependencies,
+    ...pkgInput.peerDependencies,
+    ...pkgInput.optionalDependencies,
+  }
+}
 
 // Removes semver range operators (`^`, `~`, `>=`, `<=`, `>`, `<`, `=`) from the start
 // of a version string, returning the exact version, or null if not resolvable
@@ -215,16 +224,26 @@ function runWithConcurrencyLimit(tasks, limit) {
   })
 }
 
-async function main() {
+async function main(options = {}) {
+  // In test mode, allow injecting a custom package manifest, lockfile, argv, and exit function.
+  // Otherwise, fall back to the CLI environment loaded at module evaluation time.
+  const exitFn = options.exitFn ?? process.exit
+  const mode = options.argv ? resolveMode(options.argv) : resolveMode(process.argv.slice(2))
+  const pkgInput = options.pkg ?? pkg
+  const lock = options.lock ?? (mode.transitive ? require(path.resolve(__dirname, '../package-lock.json')) : null)
+  const deps = buildDeps({ transitive: mode.transitive, pkgArg: mode.pkgArg, pkg: pkgInput, lock })
+  const minAgeDays = options.minAgeDays ?? MIN_AGE_DAYS
+
   const entries = Object.entries(deps)
 
   if (entries.length === 0) {
     console.log('No dependencies to check.')
-    process.exit(0)
+    exitFn(0)
+    return
   }
 
-  const scope = transitive ? 'transitive (package-lock.json)' : 'declared (package.json)'
-  console.log(`Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${MIN_AGE_DAYS} days)...\n`)
+  const scope = mode.transitive ? 'transitive (package-lock.json)' : 'declared (package.json)'
+  console.log(`Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${minAgeDays} days)...\n`)
 
   // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
   // runWithConcurrencyLimit ensures all queries finish before evaluating results,
@@ -257,7 +276,7 @@ async function main() {
     const age = ageDays.toFixed(1)
     const publishedStr = published.toISOString().slice(0, 10)
 
-    if (ageDays < MIN_AGE_DAYS) {
+    if (ageDays < minAgeDays) {
       blocked.push(`  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`)
     } else {
       console.log(`  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`)
@@ -270,14 +289,15 @@ async function main() {
   }
 
   if (blocked.length > 0) {
-    console.error(`\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${MIN_AGE_DAYS} days:`)
+    console.error(`\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${minAgeDays} days:`)
     blocked.forEach((msg) => console.error(msg))
   }
 
   // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
   // Either case prevents installation.
   if (blocked.length > 0 || errors.length > 0) {
-    process.exit(1)
+    exitFn(1)
+    return
   }
 
   console.log(`\nAll packages passed the minimum age check.`)
@@ -293,6 +313,14 @@ if (require.main === module) {
   })
 }
 
-// Exports utility functions for reuse by add-package.js.
+// Exports utility functions for reuse by add-package.js and for testing.
 // Does not affect behavior when run directly from the CLI.
-module.exports = { fetchPackageAge, resolveExactVersion, runWithConcurrencyLimit, MAX_RESPONSE_BYTES }
+module.exports = {
+  fetchPackageAge,
+  resolveExactVersion,
+  runWithConcurrencyLimit,
+  MAX_RESPONSE_BYTES,
+  main,
+  buildDeps,
+  resolveMode,
+}
