@@ -20,4 +20,3 @@ O arquivo `.npmrc` configura o npm com defaults mais seguros. Ele se aplica a to
 ## Impacto
 
 Mesmo que um desenvolvedor execute um comando npm simples por engano, o `.npmrc` reduz a superfície de dano ao desabilitar scripts, exigir versões exatas e requerer compatibilidade de engines.
-

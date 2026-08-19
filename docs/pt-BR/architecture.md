@@ -4,7 +4,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
 
 ## Estrutura do Repositório
 
-```
+```bash
 .
 ├── .husky/pre-commit        # Hook do Git executado a cada commit
 ├── .npmrc                   # Defaults endurecidos do npm
@@ -67,4 +67,3 @@ sequenceDiagram
 - **Apenas módulos nativos do Node.js** nos scripts de tooling, para que possam rodar antes de qualquer dependência estar instalada.
 - **Padrão de injeção** (`setSpawnSyncImpl` / `resetSpawnSyncImpl`) torna os scripts testáveis sem executar comandos reais do `npm`.
 - **Prefixo defence:*** agrupa todos os scripts relacionados à segurança e reduz o atrito ao adotar as defesas em outros projetos.
-

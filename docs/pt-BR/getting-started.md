@@ -65,4 +65,3 @@ Depois recarregue o terminal ou execute:
 ```bash
 source ~/.huskyrc
 ```
-

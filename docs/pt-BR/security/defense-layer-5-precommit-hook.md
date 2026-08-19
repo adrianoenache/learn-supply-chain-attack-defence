@@ -20,4 +20,3 @@ O `npm install` pode alterar dependências aninhadas que não estão listadas em
 ## Ignorando o Hook
 
 Use `--no-verify` apenas em branches locais descartáveis. Nunca use para commits que serão compartilhados ou mergeados.
-

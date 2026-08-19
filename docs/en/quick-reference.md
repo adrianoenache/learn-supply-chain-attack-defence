@@ -55,4 +55,3 @@ node ./tools/install-defences.js /path/to/target-project --dry-run
 # Overwrite existing files (backups are created)
 node ./tools/install-defences.js /path/to/target-project --force
 ```
-

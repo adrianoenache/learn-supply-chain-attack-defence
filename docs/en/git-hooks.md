@@ -31,4 +31,3 @@ If you absolutely must bypass it (for example, in a throwaway local branch), use
 ```bash
 git commit --no-verify -m "temporary commit"
 ```
-

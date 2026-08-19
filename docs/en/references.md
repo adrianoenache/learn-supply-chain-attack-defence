@@ -8,4 +8,3 @@
 - [Node.js test runner](https://nodejs.org/api/test.html)
 - [SLSA — Supply-chain Levels for Software Artifacts](https://slsa.dev/)
 - [OpenSSF Scorecard](https://github.com/ossf/scorecard)
-

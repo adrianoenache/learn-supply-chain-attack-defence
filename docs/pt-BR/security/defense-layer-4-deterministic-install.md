@@ -22,4 +22,3 @@ npm ci
 ## Quando NÃO Usar `npm install`
 
 Dentro deste projeto, evite `npm install` para setup rotineiro. Use `npm ci` ou os scripts `npm run defence:add` / `npm run defence:reinstall`.
-

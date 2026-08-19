@@ -28,4 +28,3 @@ Veja [biome.json](../../../biome.json) para a configuração completa. Principai
 ## Por Que Isso Importa
 
 Um código-base uniforme reduz a carga cognitiva, simplifica revisões e evita que bugs triviais (como imports não utilizados ou variáveis faltantes) sejam commitados.
-

@@ -31,4 +31,3 @@ Se for absolutamente necessário ignorá-lo (por exemplo, em um branch local tem
 ```bash
 git commit --no-verify -m "commit temporário"
 ```
-

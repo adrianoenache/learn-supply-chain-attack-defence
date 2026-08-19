@@ -54,4 +54,3 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 ## Why No Third-Party Test Framework?
 
 The native `node:test` runner is sufficient for this project. Avoiding Jest, Mocha, or Vitest removes another dependency from the supply chain and keeps the setup reproducible with `npm ci`.
-

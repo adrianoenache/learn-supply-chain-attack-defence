@@ -74,4 +74,3 @@ flowchart TD
 - **Unexpected lock-file drift** → blocked by `npm ci` and pre-commit checks.
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
 - **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
-

@@ -20,4 +20,3 @@ npm run defence:pkg-age-check -- --transitive
 ## Bypassing the Hook
 
 Only use `--no-verify` in throwaway local branches. Never use it for commits that will be shared or merged.
-

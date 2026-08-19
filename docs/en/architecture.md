@@ -4,7 +4,7 @@ This document describes the high-level architecture of the project: how the file
 
 ## Repository Layout
 
-```
+```bash
 .
 ├── .husky/pre-commit        # Git hook executed on every commit
 ├── .npmrc                   # Hardened npm defaults
@@ -66,5 +66,4 @@ sequenceDiagram
 
 - **Native Node.js modules only** in the tooling scripts, so they can run before any dependency is installed.
 - **Injection pattern** (`setSpawnSyncImpl` / `resetSpawnSyncImpl`) makes the scripts testable without running real `npm` commands.
-- ** defence:* prefix** groups all security-related scripts and reduces friction when adopting the defences in other projects.
-
+- **defence:* prefix** groups all security-related scripts and reduces friction when adopting the defences in other projects.

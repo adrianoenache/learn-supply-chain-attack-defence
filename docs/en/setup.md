@@ -61,4 +61,3 @@ The `defence:update` script runs `npm update`, then re-runs the transitive packa
 ## Exit Codes
 
 If any step fails, the script exits with a non-zero code. Fix the reported issue before continuing.
-

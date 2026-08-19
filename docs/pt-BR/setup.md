@@ -61,4 +61,3 @@ O script `defence:update` executa `npm update` e depois reexecuta a verificaçã
 ## Códigos de Saída
 
 Se algum passo falhar, o script sai com código diferente de zero. Corrija o problema reportado antes de continuar.
-

@@ -27,4 +27,3 @@ Se o `npm audit` falhar:
 1. Atualize a dependência afetada para uma versão corrigida.
 2. Execute novamente `npm run defence:add -- <pkg>@<versão>`.
 3. Se o advisory for um falso positivo para o seu caso de uso, documente explicitamente a exceção em vez de abaixar o nível de auditoria.
-

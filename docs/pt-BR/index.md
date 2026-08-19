@@ -41,4 +41,3 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 ## Outros Idiomas
 
 - 🇺🇸 [English](../en/index.md)
-

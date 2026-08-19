@@ -69,4 +69,3 @@ Existing scripts that do not conflict are preserved. If a target script already 
 ## Keeping Files in Sync
 
 Because the installer copies files, future updates to the defence scripts in this repository must be re-copied manually. Re-run the installer with `--force` to update the target project, or copy only the files that changed.
-

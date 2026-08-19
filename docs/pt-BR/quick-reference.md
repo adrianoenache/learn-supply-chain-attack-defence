@@ -55,4 +55,3 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --dry-run
 # Sobrescreve arquivos existentes (backups são criados)
 node ./tools/install-defences.js /caminho/do/projeto-destino --force
 ```
-

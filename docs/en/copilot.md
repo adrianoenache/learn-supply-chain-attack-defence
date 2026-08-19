@@ -34,4 +34,3 @@ Transparency about AI-assisted development matters for:
 ## Recommendation
 
 If you reuse any code from this repository, review it carefully. AI-generated code can be a powerful starting point, but it is not a substitute for human judgment, especially in security-sensitive contexts.
-

@@ -41,4 +41,3 @@ This repository is a practical learning environment for understanding and applyi
 ## Other Languages
 
 - 🇧🇷 [Português (BR)](../pt-BR/index.md)
-

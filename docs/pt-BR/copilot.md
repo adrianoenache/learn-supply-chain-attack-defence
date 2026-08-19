@@ -34,4 +34,3 @@ A transparência sobre o uso de IA no desenvolvimento importa para:
 ## Recomendação
 
 Se você reutilizar qualquer código deste repositório, revise-o com atenção. Código gerado por IA pode ser um ponto de partida poderoso, mas não substitui o julgamento humano, especialmente em contextos sensíveis à segurança.
-

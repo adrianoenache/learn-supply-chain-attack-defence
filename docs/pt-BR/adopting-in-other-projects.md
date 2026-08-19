@@ -69,4 +69,3 @@ Scripts existentes que não entram em conflito são preservados. Se um script de
 ## Mantendo os Arquivos em Sincronia
 
 Como o instalador apenas copia arquivos, futuras atualizações dos scripts de defesa neste repositório devem ser re-copiadas manualmente. Reexecute o instalador com `--force` para atualizar o projeto de destino, ou copie apenas os arquivos que mudaram.
-

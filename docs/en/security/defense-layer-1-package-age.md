@@ -29,4 +29,3 @@ npm run defence:pkg-age-check -- --transitive
 ## Why 7 Days?
 
 Most malicious releases are detected within hours or days. A 7-day cooling-off period dramatically reduces the chance of installing a freshly published malicious package without significantly slowing down normal work.
-

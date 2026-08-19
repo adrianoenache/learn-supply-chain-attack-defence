@@ -23,4 +23,3 @@ O npm compara a assinatura do registry e a integridade da chave de cada pacote i
 ## Modo de Falha
 
 Se uma assinatura estiver ausente ou inválida, o comando sai com código diferente de zero e bloqueia o restante do fluxo.
-

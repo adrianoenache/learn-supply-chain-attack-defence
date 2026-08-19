@@ -74,4 +74,3 @@ flowchart TD
 - **Drift inesperado no lock file** → bloqueado pelo `npm ci` e pelos hooks de pré-commit.
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
 - **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
-

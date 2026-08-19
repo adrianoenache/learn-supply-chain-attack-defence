@@ -41,4 +41,3 @@ test('description', () => {
   assert.equal(1 + 1, 2);
 });
 ```
-

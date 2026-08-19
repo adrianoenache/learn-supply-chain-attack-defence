@@ -23,4 +23,3 @@ npm compares the registry signature and key integrity of each installed package 
 ## Failure Mode
 
 If a signature is missing or invalid, the command exits with a non-zero code and blocks the rest of the workflow.
-
