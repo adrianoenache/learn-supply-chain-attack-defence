@@ -11,6 +11,8 @@ const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
 const { EventEmitter } = require('node:events')
+// EventEmitter is used to mock HTTP request/response streams when testing
+// fetchPackageAge() without making real network calls.
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().

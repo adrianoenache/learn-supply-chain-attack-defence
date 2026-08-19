@@ -64,6 +64,22 @@ npm run defence:update-check -- --format=markdown
 # Verificação de sincronia standalone
 npm run defence:sync-check
 npm run defence:sync-check -- --fix
+
+# Modo offline (usa scan em cache, sem chamadas de rede)
+npm run defence:update-check -- --offline
+npm run defence:update-check:offline
+```
+
+## Modo offline
+
+Quando você estiver sem acesso à rede, use `--offline` para evitar chamadas ao registry e ao `npm outdated`:
+
+- Se existir um scan em cache, ele é usado mesmo que o TTL tenha expirado.
+- Se não houver cache, o script imprime um aviso e sai com código 0 para não quebrar o hook de pré-commit.
+- A verificação local de sincronia de `node_modules` ainda é executada, pois não exige rede.
+
+```bash
+npm run defence:update-check:offline
 ```
 
 ## Exemplo de saída

@@ -15,7 +15,7 @@ npm run setup
 
 | Comando | O que faz |
 | --- | --- |
-| `npm run setup` | Executa verificação de idade, `npm ci`, audit de assinaturas e instala os hooks do Husky. |
+| `npm run setup` | Executa verificação de idade, `npm ci`, audit de assinaturas e instala os hooks do Husky. Começa com `node --version && npm --version` para impor os requisitos do campo `engines`. |
 | `npm test` | Executa a suite de testes completa com o runner nativo do Node.js. |
 | `npm run lint` | Reporta problemas de lint e formatação com Biome. |
 | `npm run lint:fix` | Corrige automaticamente problemas seguros do Biome. |
@@ -35,6 +35,7 @@ npm run setup
 | `npm run defence:update-check:force` | Ignora cache e executa novo scan de atualizações. |
 | `npm run defence:update-check:json` | Saída JSON das atualizações disponíveis. |
 | `npm run defence:update-check -- --format=markdown` | Saída Markdown das atualizações disponíveis. |
+| `npm run defence:update-check:offline` | Usa o scan em cache sem chamadas de rede. |
 | `npm run defence:sync-check` | Verifica se `node_modules` corresponde ao `package-lock.json`. |
 | `npm run defence:sync-check -- --fix` | Exibe o comando `npm ci` quando desatualizado. |
 | `npm run defence:license-check` | Escaneia licenças de dependências contra listas de permissões e proibições. |

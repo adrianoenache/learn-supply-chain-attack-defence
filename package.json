@@ -75,6 +75,7 @@
     "defence:update-check": "node ./tools/check-updates.js",
     "defence:update-check:force": "node ./tools/check-updates.js --force",
     "defence:update-check:json": "node ./tools/check-updates.js --format=json",
+    "defence:update-check:offline": "node ./tools/check-updates.js --offline",
     "defence:sync-check": "node ./tools/check-sync.js",
     "defence:sync-check:fix": "node ./tools/check-sync.js --fix",
     "format": "biome format --write tools/",

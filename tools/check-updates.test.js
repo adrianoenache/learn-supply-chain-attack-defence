@@ -538,4 +538,157 @@ describe('check-updates', () => {
       mod.resetImpls()
     }
   })
+
+  test('--offline uses cache without network or npm outdated calls', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    const state = {
+      lastScan: new Date(baseTime - 1000).toISOString(),
+      lastReminder: null,
+      installedLockfileHash: lockHash,
+      eligible: [
+        {
+          name: 'cached',
+          current: '1.0.0',
+          latest: '1.1.0',
+          daysOld: 10,
+          severity: 'minor',
+          links: {},
+        },
+      ],
+      quarantine: [],
+    }
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {}),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--offline'])
+      assert.equal(code, 0)
+      assert.equal(calls.length, 0)
+      assert.ok(
+        logs.some((line) => line.includes('cached')),
+        logs.join('\n'),
+      )
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('--offline with no cache warns and exits 0', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {}),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--offline'])
+      assert.equal(code, 0)
+      assert.equal(calls.length, 0)
+      assert.ok(logs.some((line) => line.includes('offline')))
+      assert.ok(logs.some((line) => line.includes('no cached scan')))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('--offline with stale cache still uses it', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    const state = {
+      lastScan: new Date(baseTime - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      lastReminder: null,
+      installedLockfileHash: lockHash,
+      eligible: [
+        {
+          name: 'stale',
+          current: '1.0.0',
+          latest: '1.1.0',
+          daysOld: 10,
+          severity: 'minor',
+          links: {},
+        },
+      ],
+      quarantine: [],
+    }
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {}),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--offline'])
+      assert.equal(code, 0)
+      assert.equal(calls.length, 0)
+      assert.ok(logs.some((line) => line.includes('offline')))
+      assert.ok(logs.some((line) => line.includes('stale')))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
 })

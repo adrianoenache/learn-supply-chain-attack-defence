@@ -27,6 +27,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/pt-BR/security/defense-layer-9-license-check.md`
 - Security overview, indexes, README, tools page and quick reference updated to list Layer 9 and the new license-check commands.
 - README test badge updated from `83/83` to `122/122`.
+- Offline mode for `defence:update-check`:
+  - `--offline` flag in `tools/check-updates.js` skips `npm outdated` and registry calls; uses cached state even if TTL expired.
+  - New `defence:update-check:offline` npm script.
+  - Offline mode exits 0 when no cache exists to avoid breaking pre-commit without network.
+  - Local `node_modules` sync check still runs in offline mode.
+  - Tests in `tools/check-updates.test.js` cover offline cache usage, missing cache, and stale cache.
+  - Documented offline mode in `docs/en/security/defense-layer-8-update-check.md`, `docs/pt-BR/security/defense-layer-8-update-check.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md`.
+- Explanatory comment in `tools/check-package-age.test.js` describing the `EventEmitter` mock usage.
+- Documentation for environment version checks in `docs/en/setup.md`, `docs/pt-BR/setup.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md`.
 
 ### Added
 

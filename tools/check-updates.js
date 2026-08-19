@@ -10,6 +10,7 @@
 //   npm run defence:update-check            — run the check
 //   npm run defence:update-check -- --force — ignore cache and rescan
 //   npm run defence:update-check -- --silent — suppress non-error output
+//   npm run defence:update-check -- --offline — rely only on local cache, no network calls
 //
 // Before scanning the registry, the script verifies that node_modules is in
 // sync with package-lock.json. If it is not, it recommends `npm ci` first.
@@ -106,6 +107,7 @@ function resetImpls() {
 function parseCliArgs(argv = process.argv.slice(2)) {
   const isForce = argv.includes('--force')
   const isSilent = argv.includes('--silent')
+  const isOffline = argv.includes('--offline')
 
   const formatArg = argv.find((arg) => arg.startsWith('--format='))
   const format = formatArg?.slice('--format='.length) ?? 'table'
@@ -116,7 +118,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
     )
   }
 
-  return { isForce, isSilent, format }
+  return { isForce, isSilent, isOffline, format }
 }
 
 // ---------------------------------------------------------------------------
@@ -533,7 +535,7 @@ function printReport(state, format) {
 // ---------------------------------------------------------------------------
 
 async function main(argv = process.argv.slice(2)) {
-  const { isForce, isSilent, format } = parseCliArgs(argv)
+  const { isForce, isSilent, isOffline, format } = parseCliArgs(argv)
   const currentLockfileHash = readLockfileHash()
 
   // Step 1: local sync check.
@@ -553,35 +555,53 @@ async function main(argv = process.argv.slice(2)) {
   let state = loadState()
 
   if (isForce || !state || !isCacheValid(state)) {
-    const outdated = runNpmOutdated()
-    const entries = Object.entries(outdated)
+    if (isOffline) {
+      if (!state) {
+        if (!isSilent) {
+          console.log(
+            '\nℹ️  Update check is offline and no cached scan was found.',
+          )
+          console.log('   Connect to the network or run without --offline.')
+          console.log()
+        }
+        return 0
+      }
+      // In offline mode, use the existing cache even if TTL expired.
+      if (!isSilent) {
+        console.log('\nℹ️  Update check is offline; using the last cached scan.')
+        console.log()
+      }
+    } else {
+      const outdated = runNpmOutdated()
+      const entries = Object.entries(outdated)
 
-    const results = await runWithConcurrencyLimit(
-      entries.map(
-        ([name, data]) =>
-          () =>
-            classifyUpdate(name, data),
-      ),
-      CONCURRENCY,
-    )
+      const results = await runWithConcurrencyLimit(
+        entries.map(
+          ([name, data]) =>
+            () =>
+              classifyUpdate(name, data),
+        ),
+        CONCURRENCY,
+      )
 
-    const eligible = []
-    const quarantine = []
+      const eligible = []
+      const quarantine = []
 
-    for (const result of results) {
-      if (result.status === 'rejected') continue
-      if (result.value.eligible) eligible.push(result.value.eligible)
-      if (result.value.quarantine) quarantine.push(result.value.quarantine)
+      for (const result of results) {
+        if (result.status === 'rejected') continue
+        if (result.value.eligible) eligible.push(result.value.eligible)
+        if (result.value.quarantine) quarantine.push(result.value.quarantine)
+      }
+
+      state = {
+        lastScan: new Date(nowImpl()).toISOString(),
+        lastReminder: null,
+        installedLockfileHash: currentLockfileHash,
+        eligible,
+        quarantine,
+      }
+      saveState(state)
     }
-
-    state = {
-      lastScan: new Date(nowImpl()).toISOString(),
-      lastReminder: null,
-      installedLockfileHash: currentLockfileHash,
-      eligible,
-      quarantine,
-    }
-    saveState(state)
   }
 
   // Step 3: show reminder if needed.

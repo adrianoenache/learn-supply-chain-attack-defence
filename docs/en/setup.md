@@ -8,6 +8,8 @@ The `setup` npm script installs dependencies and runs every security layer in th
 "setup": "node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare"
 ```
 
+The script starts with `node --version && npm --version` so it fails early if the local environment does not satisfy the `engines` field in `package.json` (Node.js >= 24.16.0 and npm >= 11.13.0). This prevents confusing failures later in the setup flow.
+
 1. `npm run defence:pkg-age-check` — ensure every direct dependency is at least 7 days old.
 2. `npm ci` — deterministic install from `package-lock.json`.
 3. `npm audit signatures` — verify registry signatures of installed packages.

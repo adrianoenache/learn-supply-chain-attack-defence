@@ -15,7 +15,7 @@ npm run setup
 
 | Command | What it does |
 | --- | --- |
-| `npm run setup` | Runs age check, `npm ci`, signature audit, and installs Husky hooks. |
+| `npm run setup` | Runs age check, `npm ci`, signature audit, and installs Husky hooks. Starts with `node --version && npm --version` to enforce `engines` requirements. |
 | `npm test` | Runs the full test suite with the native Node.js test runner. |
 | `npm run lint` | Reports lint and format issues with Biome. |
 | `npm run lint:fix` | Auto-fixes safe Biome issues. |
@@ -35,6 +35,7 @@ npm run setup
 | `npm run defence:update-check:force` | Ignores cache and rescans for available updates. |
 | `npm run defence:update-check:json` | JSON output of available updates. |
 | `npm run defence:update-check -- --format=markdown` | Markdown output of available updates. |
+| `npm run defence:update-check:offline` | Uses cached scan without network calls. |
 | `npm run defence:sync-check` | Verifies `node_modules` matches `package-lock.json`. |
 | `npm run defence:sync-check -- --fix` | Prints the `npm ci` command when out of sync. |
 | `npm run defence:license-check` | Scans dependency licenses against allow / deny lists. |

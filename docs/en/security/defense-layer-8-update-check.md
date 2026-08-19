@@ -64,6 +64,22 @@ npm run defence:update-check -- --format=markdown
 # Standalone sync check
 npm run defence:sync-check
 npm run defence:sync-check -- --fix
+
+# Offline mode (uses cached scan, no network calls)
+npm run defence:update-check -- --offline
+npm run defence:update-check:offline
+```
+
+## Offline mode
+
+When you are without network access, use `--offline` to avoid registry calls and `npm outdated`:
+
+- If a cached scan exists, it is used even if the TTL has expired.
+- If no cache exists, the script prints a warning and exits 0 so the pre-commit hook does not fail.
+- The local `node_modules` sync check still runs because it requires no network.
+
+```bash
+npm run defence:update-check:offline
 ```
 
 ## Output example
