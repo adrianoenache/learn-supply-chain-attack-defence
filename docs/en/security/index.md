@@ -40,6 +40,7 @@ flowchart TD
         D --> Q[npm run lint]
         D --> K
         D --> N[transitive age check]
+        D --> U[update availability check]
     end
 
     subgraph Layer6["Layer 6: hardened npm config"]
@@ -52,8 +53,13 @@ flowchart TD
         Q --> R[Biome check]
     end
 
+    subgraph Layer8["Layer 8: update availability check"]
+        U --> V[eligible / quarantine]
+    end
+
     O --> P[Safe dependency tree]
     R --> P
+    V --> P
 ```
 
 ## Layer Reference
@@ -65,6 +71,7 @@ flowchart TD
 5. [Pre-commit hook](defense-layer-5-precommit-hook.md)
 6. [Hardened `.npmrc`](defense-layer-6-npmrc-config.md)
 7. [Lint / format gate](defense-layer-7-lint-format.md)
+8. [Update availability check](defense-layer-8-update-check.md)
 
 ## Threat Model in a Nutshell
 
@@ -74,3 +81,4 @@ flowchart TD
 - **Unexpected lock-file drift** → blocked by `npm ci` and pre-commit checks.
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
 - **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
+- **Dependencies drifting out of date unnoticed** → surfaced by the update availability check in the pre-commit hook.

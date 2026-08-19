@@ -48,6 +48,7 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `add-package.js` | Safely adds a dependency with age, signature, audit, and transitive checks. |
 | `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. |
 | `update-packages.js` | Controlled wrapper for `npm update` with post-update checks. |
+| `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. |
 | `install-defences.js` | Copies the defences into another Node.js project. |
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
 

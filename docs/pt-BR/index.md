@@ -22,6 +22,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - Camada 5: [Hook de pré-commit](security/defense-layer-5-precommit-hook.md)
 - Camada 6: [`.npmrc` endurecido](security/defense-layer-6-npmrc-config.md)
 - Camada 7: [Gate de lint / formatação](security/defense-layer-7-lint-format.md)
+- Camada 8: [Verificação de atualizações disponíveis](security/defense-layer-8-update-check.md)
 
 ### Projeto
 

@@ -70,6 +70,9 @@ web_modules/
 .env.*
 !.env.example
 
+# Local update-check cache (never commit; per-developer state)
+.defence-update-check.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

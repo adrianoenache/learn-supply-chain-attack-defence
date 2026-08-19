@@ -28,14 +28,24 @@
   "pkgAgeCheck": {
     "minAgeDays": 7
   },
+  "updateCheck": {
+    "minAgeDays": 7,
+    "remindEveryDays": 1,
+    "alwaysRemind": false,
+    "includeTransitive": false,
+    "registryTimeoutMs": 10000,
+    "cacheTtlHours": 24
+  },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
-    "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high",
+    "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high && npm run defence:update-check",
     "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
     "defence:update": "node ./tools/update-packages.js",
+    "defence:update-check": "node ./tools/check-updates.js",
+    "defence:update-check:force": "node ./tools/check-updates.js --force",
     "format": "biome format --write tools/",
     "lint:fix": "biome check --write tools/",
     "lint": "biome check tools/",

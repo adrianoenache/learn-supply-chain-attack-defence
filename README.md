@@ -7,7 +7,7 @@
 
 A hands-on project for learning how to defend Node.js/npm projects against supply-chain attacks.
 
-> 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, and Biome lint/format gates.
+> 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, Biome lint/format gates, and update availability checks.
 
 ## Quick Start
 
@@ -40,6 +40,7 @@ npm run setup
 | 5 | [Pre-commit hook](docs/en/security/defense-layer-5-precommit-hook.md) | Every `git commit` |
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
 | 7 | [Lint / format gate](docs/en/security/defense-layer-7-lint-format.md) | `npm run lint`, `npm run lint:fix`, `npm run format` |
+| 8 | [Update availability check](docs/en/security/defense-layer-8-update-check.md) | `npm run defence:update-check`, pre-commit hook |
 
 ## Security
 

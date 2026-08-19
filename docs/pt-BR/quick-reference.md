@@ -31,6 +31,8 @@ npm run setup
 | `npm run defence:add -- pkg@x.y.z --dry-run` | Simula a verificação de idade sem instalar. |
 | `npm run defence:update` | Atualiza dependências com verificações de segurança pós-atualização. |
 | `npm run defence:update -- --dry-run` | Simula o fluxo de atualização. |
+| `npm run defence:update-check` | Avisa sobre atualizações disponíveis sem instalá-las. |
+| `npm run defence:update-check:force` | Ignora cache e executa novo scan de atualizações. |
 
 ## Comandos de Segurança / Manutenção
 
@@ -40,7 +42,7 @@ npm run setup
 | `npm run defence:pkg-age-check -- --transitive` | Verifica todos os pacotes resolvidos no `package-lock.json`. |
 | `npm run defence:bootstrap` | Helper de primeira instalação quando `package-lock.json` está ausente. |
 | `npm run defence:reinstall` | Apaga `node_modules`, reinstala e reexecuta todas as verificações. |
-| `npm run defence:pre-commit` | Executa manualmente os audits de assinatura e vulnerabilidade. |
+| `npm run defence:pre-commit` | Executa audits de assinatura, vulnerabilidade e verificação de atualizações. |
 | `bash .husky/pre-commit` | Executa o hook de pré-commit completo localmente. |
 
 ## Adoção em Outros Projetos

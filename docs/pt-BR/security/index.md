@@ -40,6 +40,7 @@ flowchart TD
         D --> Q[npm run lint]
         D --> K
         D --> N[verificação transitiva de idade]
+        D --> U[verificação de atualizações]
     end
 
     subgraph Layer6["Camada 6: configuração npm endurecida"]
@@ -52,8 +53,13 @@ flowchart TD
         Q --> R[Biome check]
     end
 
+    subgraph Layer8["Camada 8: verificação de atualizações disponíveis"]
+        U --> V[elegível / quarentena]
+    end
+
     O --> P[Árvore de dependências segura]
     R --> P
+    V --> P
 ```
 
 ## Referência das Camadas
@@ -65,6 +71,7 @@ flowchart TD
 5. [Hook de pré-commit](defense-layer-5-precommit-hook.md)
 6. [`.npmrc` endurecido](defense-layer-6-npmrc-config.md)
 7. [Gate de lint / formatação](defense-layer-7-lint-format.md)
+8. [Verificação de atualizações disponíveis](defense-layer-8-update-check.md)
 
 ## Modelo de Ameaça em Resumo
 
@@ -74,3 +81,4 @@ flowchart TD
 - **Drift inesperado no lock file** → bloqueado pelo `npm ci` e pelos hooks de pré-commit.
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
 - **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
+- **Dependências ficando desatualizadas sem aviso** → destacado pela verificação de atualizações disponíveis no hook de pré-commit.
