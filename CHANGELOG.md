@@ -66,8 +66,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-08-18
 
-### Added
-
 - Seven defense-in-depth layers against npm supply-chain attacks:
   - Package age check (minimum 7 days).
   - Registry signature verification (`npm audit signatures`).
