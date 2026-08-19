@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Defense Layer 8 — Update availability check:
+  - New `defence:update-check` and `defence:update-check:force` scripts.
+  - Read-only pre-commit helper that warns about available dependency updates.
+  - Classifies updates as **eligible** (old enough) or **quarantine** (too recent or registry lookup failed).
+  - Local `node_modules` sync check that recommends `npm ci` when the installed tree is out of sync with `package-lock.json`.
+  - Configurable via `updateCheck` in `package.json` (age, reminder interval, transitive scope, timeout, cache TTL).
+  - Release links inferred from npm registry `repository.url` and best-effort GitHub tag patterns.
+  - Local cache stored in `.defence-update-check.json` (git-ignored).
+- New tool script `tools/check-updates.js` and its test suite `tools/check-updates.test.js`.
+- Documentation for Layer 8 in English and Portuguese:
+  - `docs/en/security/defense-layer-8-update-check.md`
+  - `docs/pt-BR/security/defense-layer-8-update-check.md`
+- Security overview, indexes, README, tools page and quick reference updated to list Layer 8.
+
 ## [1.0.0] - 2026-08-18
 
 ### Added
