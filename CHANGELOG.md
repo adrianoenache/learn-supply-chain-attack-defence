@@ -36,9 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documented offline mode in `docs/en/security/defense-layer-8-update-check.md`, `docs/pt-BR/security/defense-layer-8-update-check.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md`.
 - Explanatory comment in `tools/check-package-age.test.js` describing the `EventEmitter` mock usage.
 - Documentation for environment version checks in `docs/en/setup.md`, `docs/pt-BR/setup.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md`.
-
-### Added
-
 - Defense Layer 8 — Update availability check:
   - New `defence:update-check` and `defence:update-check:force` scripts.
   - Read-only pre-commit helper that warns about available dependency updates.
@@ -52,9 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/en/security/defense-layer-8-update-check.md`
   - `docs/pt-BR/security/defense-layer-8-update-check.md`
 - Security overview, indexes, README, tools page and quick reference updated to list Layer 8.
-
-### Added (Phase 2)
-
 - Dependency sync check:
   - Extracted shared sync logic into `tools/lib/sync-check.js`.
   - New standalone `tools/check-sync.js` CLI with `--silent` and `--fix` flags.
