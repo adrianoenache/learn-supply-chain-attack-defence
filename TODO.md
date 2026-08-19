@@ -6,11 +6,7 @@ This file tracks future improvements that are **not required** for the project t
 
 ### High Value
 
-- **GitHub issue and PR templates**
-  Add `.github/ISSUE_TEMPLATE/` and `.github/pull_request_template.md` to standardize bug reports, feature requests, and contributions.
-
-- **Dependency license checker**
-  Add a `defence:license-check` script that scans installed packages for licenses incompatible with the project's MIT license. This strengthens supply-chain governance without adding runtime dependencies.
+_No items in this section._
 
 ### Medium Value
 
@@ -42,6 +38,10 @@ This file tracks future improvements that are **not required** for the project t
 
 ## Completed
 
+- [x] **GitHub issue and PR templates**
+  Add `.github/ISSUE_TEMPLATE/` with bug report and feature request forms, plus `.github/pull_request_template.md` with a contribution checklist.
+- [x] **Dependency license checker**
+  Add `defence:license-check`, `defence:license-check:fail`, and `defence:license-check:json` scripts that scan `package-lock.json` for licenses incompatible with the project's MIT license. Includes SPDX expression handling, single-package mode, and JSON/Markdown/table formatters.
 - [x] Add extra reference documentation for secret management, artifact signing, SBOM standards, and secret scanning.
 - [x] Keep `references.md` as a single file instead of splitting into subpages.
 - [x] Fix internal documentation in `install-defences.js` to list all copied files.

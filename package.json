@@ -36,10 +36,38 @@
     "registryTimeoutMs": 10000,
     "cacheTtlHours": 24
   },
+  "licensesCheck": {
+    "allowed": [
+      "MIT",
+      "Apache-2.0",
+      "BSD-2-Clause",
+      "BSD-3-Clause",
+      "ISC",
+      "0BSD"
+    ],
+    "prohibited": [
+      "GPL-1.0",
+      "GPL-2.0",
+      "GPL-3.0",
+      "AGPL-1.0",
+      "AGPL-3.0",
+      "LGPL-2.0",
+      "LGPL-2.1",
+      "LGPL-3.0",
+      "MPL-1.0",
+      "MPL-1.1",
+      "MPL-2.0",
+      "UNLICENSED"
+    ],
+    "failOnUnknown": false
+  },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
+    "defence:license-check": "node ./tools/check-licenses.js",
+    "defence:license-check:fail": "node ./tools/check-licenses.js --fail",
+    "defence:license-check:json": "node ./tools/check-licenses.js --format=json",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
     "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high && npm run defence:update-check",
     "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",

@@ -37,6 +37,11 @@ npm run setup
 | `npm run defence:update-check -- --format=markdown` | Markdown output of available updates. |
 | `npm run defence:sync-check` | Verifies `node_modules` matches `package-lock.json`. |
 | `npm run defence:sync-check -- --fix` | Prints the `npm ci` command when out of sync. |
+| `npm run defence:license-check` | Scans dependency licenses against allow / deny lists. |
+| `npm run defence:license-check:fail` | Exits 1 on prohibited or unknown licenses. |
+| `npm run defence:license-check:json` | JSON output of the license scan. |
+| `npm run defence:license-check -- --format=markdown` | Markdown output of the license scan. |
+| `npm run defence:license-check -- --pkg=name@version` | Checks a single package's license. |
 
 ## Security / Maintenance Commands
 

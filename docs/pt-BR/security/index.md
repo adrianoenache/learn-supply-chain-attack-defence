@@ -1,6 +1,6 @@
 # Visão Geral de Segurança
 
-Este projeto protege a árvore de dependências usando sete camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
+Este projeto protege a árvore de dependências usando nove camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
 
 ## Diagrama das Camadas de Defesa
 
@@ -57,13 +57,14 @@ flowchart TD
         U --> V[elegível / quarentena]
     end
 
-    O --> P[Árvore de dependências segura]
-    R --> P
-    V --> P
-```
+  subgraph Layer9["Camada 9: verificação de licenças"]
+    W[ler lock file] --> X[permitida / proibida / sinalizada]
+  end
 
-## Referência das Camadas
-
+  O --> P[Árvore de dependências segura]
+  R --> P
+  V --> P
+  X --> P
 1. [Verificação de idade dos pacotes](defense-layer-1-package-age.md)
 2. [Verificação de assinaturas](defense-layer-2-signatures.md)
 3. [Auditoria de vulnerabilidades](defense-layer-3-vulnerabilities.md)
@@ -72,6 +73,7 @@ flowchart TD
 6. [`.npmrc` endurecido](defense-layer-6-npmrc-config.md)
 7. [Gate de lint / formatação](defense-layer-7-lint-format.md)
 8. [Verificação de atualizações disponíveis](defense-layer-8-update-check.md)
+9. [Verificação de licenças](defense-layer-9-license-check.md)
 
 ## Modelo de Ameaça em Resumo
 
@@ -82,3 +84,4 @@ flowchart TD
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
 - **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
 - **Dependências ficando desatualizadas sem aviso** → destacado pela verificação de atualizações disponíveis no hook de pré-commit.
+- **Incompatibilidade legal devido a licenças de dependências** → destacado pela verificação de licenças.

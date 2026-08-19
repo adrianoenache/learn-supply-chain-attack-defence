@@ -23,6 +23,7 @@ This repository is a practical learning environment for understanding and applyi
 - Layer 6: [Hardened `.npmrc`](security/defense-layer-6-npmrc-config.md)
 - Layer 7: [Lint / format gate](security/defense-layer-7-lint-format.md)
 - Layer 8: [Update availability check](security/defense-layer-8-update-check.md)
+- Layer 9: [License check](security/defense-layer-9-license-check.md)
 
 ### Project
 

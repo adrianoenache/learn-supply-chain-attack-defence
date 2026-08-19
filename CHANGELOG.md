@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Defense Layer 9 — Dependency license check:
+  - New `defence:license-check`, `defence:license-check:fail`, and `defence:license-check:json` scripts.
+  - Read-only scanner that parses `package-lock.json` v3 and classifies each package license as **allowed**, **prohibited**, or **flagged for review**.
+  - Configurable via `licensesCheck` in `package.json` with explicit `allowed`, `prohibited`, and `failOnUnknown` fields.
+  - Supports SPDX compound expressions with `OR` and `AND` operators.
+  - Single-package mode via `--pkg=name@version` for quick triage.
+  - Table, JSON, and Markdown output formatters.
+  - Native Node.js implementation in `tools/check-licenses.js` with full test coverage in `tools/check-licenses.test.js`.
+- GitHub issue and PR templates:
+  - `.github/ISSUE_TEMPLATE/bug_report.yml` bug report form.
+  - `.github/ISSUE_TEMPLATE/feature_request.yml` feature request form.
+  - `.github/ISSUE_TEMPLATE/config.yml` redirecting security reports to `SECURITY.md` and questions to discussions.
+  - `.github/pull_request_template.md` with a contribution checklist.
+- Documentation for Layer 9 in English and Portuguese:
+  - `docs/en/security/defense-layer-9-license-check.md`
+  - `docs/pt-BR/security/defense-layer-9-license-check.md`
+- Security overview, indexes, README, tools page and quick reference updated to list Layer 9 and the new license-check commands.
+- README test badge updated from `83/83` to `122/122`.
+
+### Added
+
 - Defense Layer 8 — Update availability check:
   - New `defence:update-check` and `defence:update-check:force` scripts.
   - Read-only pre-commit helper that warns about available dependency updates.

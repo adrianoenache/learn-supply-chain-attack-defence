@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/adrianoenache/learn-supply-chain-attack-defence/blob/main/SECURITY.md
+    about: Please report security vulnerabilities privately following the instructions in SECURITY.md.
+  - name: Question or discussion
+    url: https://github.com/adrianoenache/learn-supply-chain-attack-defence/discussions
+    about: Ask questions, share ideas, or discuss the project with the community.

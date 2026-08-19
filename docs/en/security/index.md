@@ -1,6 +1,6 @@
 # Security Overview
 
-This project protects the dependency tree using seven complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
+This project protects the dependency tree using nine complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
 
 ## Defense Layers Diagram
 
@@ -57,13 +57,14 @@ flowchart TD
         U --> V[eligible / quarantine]
     end
 
-    O --> P[Safe dependency tree]
-    R --> P
-    V --> P
-```
+  subgraph Layer9["Layer 9: license check"]
+    W[read lock file] --> X[allowed / prohibited / flagged]
+  end
 
-## Layer Reference
-
+  O --> P[Safe dependency tree]
+  R --> P
+  V --> P
+  X --> P
 1. [Package age check](defense-layer-1-package-age.md)
 2. [Signature verification](defense-layer-2-signatures.md)
 3. [Vulnerability audit](defense-layer-3-vulnerabilities.md)
@@ -72,6 +73,7 @@ flowchart TD
 6. [Hardened `.npmrc`](defense-layer-6-npmrc-config.md)
 7. [Lint / format gate](defense-layer-7-lint-format.md)
 8. [Update availability check](defense-layer-8-update-check.md)
+9. [License check](defense-layer-9-license-check.md)
 
 ## Threat Model in a Nutshell
 
@@ -82,3 +84,4 @@ flowchart TD
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
 - **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
 - **Dependencies drifting out of date unnoticed** → surfaced by the update availability check in the pre-commit hook.
+- **Legal incompatibility from dependency licenses** → surfaced by the license check.

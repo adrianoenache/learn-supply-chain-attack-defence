@@ -3,11 +3,11 @@
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.16.0-339933?logo=node.js&logoColor=white)
 ![npm](https://img.shields.io/badge/npm-%3E%3D%2011.13.0-CB3837?logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-83%2F83%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-122%2F122%20passing-brightgreen)
 
 A hands-on project for learning how to defend Node.js/npm projects against supply-chain attacks.
 
-> 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, Biome lint/format gates, and update availability checks.
+> 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, Biome lint/format gates, update availability checks, and dependency license checks.
 
 ## Quick Start
 
@@ -41,6 +41,7 @@ npm run setup
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
 | 7 | [Lint / format gate](docs/en/security/defense-layer-7-lint-format.md) | `npm run lint`, `npm run lint:fix`, `npm run format` |
 | 8 | [Update availability check](docs/en/security/defense-layer-8-update-check.md) | `npm run defence:update-check`, pre-commit hook |
+| 9 | [License check](docs/en/security/defense-layer-9-license-check.md) | `npm run defence:license-check` |
 
 ## Security
 

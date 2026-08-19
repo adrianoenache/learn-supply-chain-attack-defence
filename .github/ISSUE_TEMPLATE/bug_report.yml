@@ -1,0 +1,73 @@
+name: Bug report
+description: Report a problem with the project or its documentation.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill out the sections below so we can reproduce and fix the issue quickly.
+
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Before submitting
+      description: Please confirm you have searched existing issues.
+      options:
+        - label: I have searched existing issues and this bug has not been reported yet.
+          required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current behavior
+      description: What is happening? Include exact error messages if any.
+      placeholder: The pre-commit hook fails with...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen instead?
+      placeholder: The hook should complete without errors when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Provide a minimal sequence of commands or actions that trigger the bug.
+      placeholder: |
+        1. Clone the repository
+        2. Run `npm ci`
+        3. Run `bash .husky/pre-commit`
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Versions and operating system where the bug occurs.
+      value: |
+        - Node.js: (run `node --version`)
+        - npm: (run `npm --version`)
+        - OS:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any command output, stack traces, or screenshots. This will be automatically formatted as code.
+      render: shell
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that might help us understand the issue, such as recent changes or related defense layers.

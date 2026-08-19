@@ -1,0 +1,53 @@
+name: Feature request
+description: Suggest an enhancement or a new defense layer.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement. Please describe the problem you are trying to solve and how the project could solve it.
+
+  - type: checkboxes
+    id: searched
+    attributes:
+      label: Before submitting
+      description: Please confirm you have searched existing issues and documentation.
+      options:
+        - label: I have searched existing issues and this feature has not been requested yet.
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What limitation or risk are you trying to address?
+      placeholder: When reviewing dependency updates, it is hard to know which packages...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the feature, new script, or documentation change you would like to see.
+      placeholder: Add a `--format=summary` option to `defence:update-check` that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider and why did you prefer this one?
+
+  - type: textarea
+    id: defense-layer
+    attributes:
+      label: Relation to defense layers
+      description: If applicable, explain how this feature fits into the existing supply-chain defense-in-depth model.
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any references, examples, or prior art that support this request.
