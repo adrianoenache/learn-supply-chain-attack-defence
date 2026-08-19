@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Bumped minimum engine requirements to Node.js `>=24.19.0` and npm `>=11.17.0`.
+  - Updated `engines` field in `package.json` and synchronized `package-lock.json`.
+  - Updated README, CONTRIBUTING, and documentation in `docs/en/` and `docs/pt-BR/` to reflect the new requirements.
+  - Added `.nvmrc` with `24.19.0` for consistent local version switching.
+  - Replaced `node --version && npm --version` with `npm run defence:check-engines` in `setup` and `defence:reinstall` scripts for a clearer failure message when the environment is out of date.
+
 ### Added
 
 - Defense Layer 9 — Dependency license check:
@@ -63,6 +71,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `tools/check-sync.test.js` covering hash, version fallback, fix command suggestion, and CLI flags.
   - `tools/check-updates.test.js` extended with formatter and sync integration tests.
 - Quick reference and tools documentation updated in English and Portuguese to describe the new commands and scripts.
+- New engine validation tool:
+  - `tools/check-engines.js` reads `engines` from `package.json` and validates the active Node.js and npm versions.
+  - `tools/check-engines.test.js` provides full test coverage with mocked fs, spawnSync, and console output.
+  - New `defence:check-engines` npm script.
 
 ## [1.0.0] - 2026-08-18
 

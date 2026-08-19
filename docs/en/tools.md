@@ -4,7 +4,7 @@ This project relies on a small set of carefully chosen tools. Every tool is nati
 
 ## Runtime
 
-### Node.js >= 24.16.0
+### Node.js >= 24.19.0
 
 The project targets a recent Node.js LTS line to guarantee support for:
 
@@ -12,7 +12,7 @@ The project targets a recent Node.js LTS line to guarantee support for:
 - `min-release-age` enforcement in npm.
 - Modern `fetch` and `AbortController` APIs if needed in the future.
 
-### npm >= 11.13.0
+### npm >= 11.17.0
 
 npm is the package manager. The project uses it both for installation and as a security primitive through commands like `npm audit signatures` and `npm audit --audit-level=high`.
 
@@ -44,6 +44,7 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 
 | Script | Purpose |
 | --- | --- |
+| `check-engines.js` | Validates that the active Node.js and npm satisfy `engines` in package.json. |
 | `check-package-age.js` | Enforces minimum package age for direct or transitive dependencies. |
 | `add-package.js` | Safely adds a dependency with age, signature, audit, and transitive checks. |
 | `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. |

@@ -5,7 +5,7 @@ Uma lista concisa de todos os comandos necessários para trabalhar com este proj
 ## Setup Inicial
 
 ```bash
-# Clone e instalação (requer Node.js >= 24.16.0 e npm >= 11.13.0)
+# Clone e instalação (requer Node.js >= 24.19.0 e npm >= 11.17.0)
 git clone git@github.com:adrianoenache/learn-supply-chain-attack-defence.git
 cd learn-supply-chain-attack-defence
 npm run setup
@@ -15,7 +15,7 @@ npm run setup
 
 | Comando | O que faz |
 | --- | --- |
-| `npm run setup` | Executa verificação de idade, `npm ci`, audit de assinaturas e instala os hooks do Husky. Começa com `node --version && npm --version` para impor os requisitos do campo `engines`. |
+| `npm run setup` | Executa verificação de engines, verificação de idade, `npm ci`, audit de assinaturas e instala os hooks do Husky. Começa com `npm run defence:check-engines` para impor os requisitos do campo `engines`. |
 | `npm test` | Executa a suite de testes completa com o runner nativo do Node.js. |
 | `npm run lint` | Reporta problemas de lint e formatação com Biome. |
 | `npm run lint:fix` | Corrige automaticamente problemas seguros do Biome. |

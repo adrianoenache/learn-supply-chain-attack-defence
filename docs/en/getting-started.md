@@ -5,7 +5,7 @@
 ### Prerequisites
 
 - WSL 2, Git, and nvm installed (this guide assumes a Debian/Ubuntu-based WSL 2 environment).
-- Node.js `>=24.16.0` and npm `>=11.13.0`.
+- Node.js `>=24.19.0` and npm `>=11.17.0`.
 - A GitHub account with an SSH key configured.
 
 ### Git Identity

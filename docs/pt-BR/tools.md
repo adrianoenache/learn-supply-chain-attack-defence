@@ -4,7 +4,7 @@ Este projeto depende de um pequeno conjunto de ferramentas cuidadosamente escolh
 
 ## Runtime
 
-### Node.js >= 24.16.0
+### Node.js >= 24.19.0
 
 O projeto utiliza uma versão recente da linha LTS do Node.js para garantir suporte a:
 
@@ -12,7 +12,7 @@ O projeto utiliza uma versão recente da linha LTS do Node.js para garantir supo
 - Aplicação do `min-release-age` no npm.
 - APIs modernas como `fetch` e `AbortController`, se necessário no futuro.
 
-### npm >= 11.13.0
+### npm >= 11.17.0
 
 O npm é o gerenciador de pacotes. O projeto o utiliza tanto para instalação quanto como primitivo de segurança por meio de comandos como `npm audit signatures` e `npm audit --audit-level=high`.
 
@@ -44,6 +44,7 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 
 | Script | Propósito |
 | --- | --- |
+| `check-engines.js` | Valida se o Node.js e o npm ativos satisfazem o campo `engines` do package.json. |
 | `check-package-age.js` | Impõe a idade mínima dos pacotes para dependências diretas ou transitivas. |
 | `add-package.js` | Adiciona uma dependência com segurança, com verificações de idade, assinatura, audit e idade transitiva. |
 | `setup-bootstrap.js` | Realiza a primeira instalação controlada quando `package-lock.json` está ausente. |

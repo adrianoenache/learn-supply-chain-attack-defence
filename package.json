@@ -64,13 +64,14 @@
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
+    "defence:check-engines": "node ./tools/check-engines.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
     "defence:license-check": "node ./tools/check-licenses.js",
     "defence:license-check:fail": "node ./tools/check-licenses.js --fail",
     "defence:license-check:json": "node ./tools/check-licenses.js --format=json",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
     "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high && npm run defence:update-check",
-    "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
+    "defence:reinstall": "npm run defence:check-engines && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
     "defence:update": "node ./tools/update-packages.js",
     "defence:update-check": "node ./tools/check-updates.js",
     "defence:update-check:force": "node ./tools/check-updates.js --force",
@@ -82,7 +83,7 @@
     "lint:fix": "biome check --write tools/",
     "lint": "biome check tools/",
     "prepare": "husky",
-    "setup": "node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
+    "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
     "test": "node --test tools/*.test.js"
   },
   "devDependencies": {
