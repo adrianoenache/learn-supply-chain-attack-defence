@@ -872,7 +872,7 @@ describe('Integration — add-package flow', () => {
       return { status: 0 }
     })
 
-    const argv = ['eslint@9.0.0', '--dev']
+    const argv = ['@biomejs/biome@2.5.8', '--dev']
     let exitCode = null
     const exitFn = (code) => {
       exitCode = code
@@ -897,7 +897,7 @@ describe('Integration — add-package flow', () => {
       'install',
       '--save-dev',
       '--save-exact',
-      'eslint@9.0.0',
+      '@biomejs/biome@2.5.8',
     ])
   })
 

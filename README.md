@@ -1,5 +1,10 @@
 # Learn Supply Chain Attack Defence
 
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.16.0-339933?logo=node.js&logoColor=white)
+![npm](https://img.shields.io/badge/npm-%3E%3D%2011.13.0-CB3837?logo=npm&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Tests](https://img.shields.io/badge/Tests-83%2F83%20passing-brightgreen)
+
 A hands-on project for learning how to defend Node.js/npm projects against supply-chain attacks.
 
 > 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, and Biome lint/format gates.
@@ -35,6 +40,14 @@ npm run setup
 | 5 | [Pre-commit hook](docs/en/security/defense-layer-5-precommit-hook.md) | Every `git commit` |
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
 | 7 | [Lint / format gate](docs/en/security/defense-layer-7-lint-format.md) | `npm run lint`, `npm run lint:fix`, `npm run format` |
+
+## Security
+
+If you discover a security issue, please follow the instructions in [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow, dependency policy, and code-style guidelines.
 
 ## License
 

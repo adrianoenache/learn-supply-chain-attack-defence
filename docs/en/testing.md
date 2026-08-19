@@ -18,14 +18,15 @@ npm test
 - Cross-project installer behavior, including `--dry-run`, `--force`, conflict detection, and backup creation.
 - Controlled dependency update flow in `update-packages.js`.
 
-## Lint and Format Checks
+## Lint, Format and Link Checks
 
 The project uses Biome for linting and formatting. Run these checks before committing:
 
 ```bash
-npm run lint      # report lint and format issues
-npm run lint:fix  # auto-fix safe issues
-npm run format    # format all configured files
+npm run lint                  # report lint and format issues
+npm run lint:fix              # auto-fix safe issues
+npm run format                # format all configured files
+npm run defence:check-md-links  # validate local markdown links
 ```
 
 ## Writing New Tests
@@ -41,4 +42,3 @@ test('description', () => {
 });
 ```
 
-_Last sync: 2026-08-18_.

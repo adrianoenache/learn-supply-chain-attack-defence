@@ -28,4 +28,3 @@ If `npm audit` fails:
 2. Re-run `npm run defence:add -- <pkg>@<version>`.
 3. If the advisory is a false positive for your use case, explicitly document the exception rather than lowering the audit level.
 
-_Last sync: 2026-08-18_.

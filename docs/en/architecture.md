@@ -68,4 +68,3 @@ sequenceDiagram
 - **Injection pattern** (`setSpawnSyncImpl` / `resetSpawnSyncImpl`) makes the scripts testable without running real `npm` commands.
 - ** defence:* prefix** groups all security-related scripts and reduces friction when adopting the defences in other projects.
 
-_Last sync: 2026-08-18_.

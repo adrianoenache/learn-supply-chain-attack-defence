@@ -21,4 +21,3 @@ npm run defence:pkg-age-check -- --transitive
 
 Only use `--no-verify` in throwaway local branches. Never use it for commits that will be shared or merged.
 
-_Last sync: 2026-08-18_.

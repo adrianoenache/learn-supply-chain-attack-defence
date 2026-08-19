@@ -24,4 +24,3 @@ npm compares the registry signature and key integrity of each installed package 
 
 If a signature is missing or invalid, the command exits with a non-zero code and blocks the rest of the workflow.
 
-_Last sync: 2026-08-18_.

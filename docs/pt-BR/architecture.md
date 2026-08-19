@@ -68,4 +68,3 @@ sequenceDiagram
 - **Padrão de injeção** (`setSpawnSyncImpl` / `resetSpawnSyncImpl`) torna os scripts testáveis sem executar comandos reais do `npm`.
 - **Prefixo defence:*** agrupa todos os scripts relacionados à segurança e reduz o atrito ao adotar as defesas em outros projetos.
 
-_Sincronizado em: 2026-08-18_.

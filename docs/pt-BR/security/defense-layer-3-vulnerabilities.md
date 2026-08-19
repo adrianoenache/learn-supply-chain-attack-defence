@@ -28,4 +28,3 @@ Se o `npm audit` falhar:
 2. Execute novamente `npm run defence:add -- <pkg>@<versão>`.
 3. Se o advisory for um falso positivo para o seu caso de uso, documente explicitamente a exceção em vez de abaixar o nível de auditoria.
 
-_Sincronizado em: 2026-08-18_.

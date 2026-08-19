@@ -87,6 +87,14 @@ describe('install-defences', () => {
         true,
       )
       assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'check-md-links.js')),
+        true,
+      )
+      assert.equal(
+        fs.existsSync(path.join(target, 'tools', 'check-md-links.test.js')),
+        true,
+      )
+      assert.equal(
         fs.existsSync(path.join(target, 'tools', 'lib', 'package-utils.js')),
         true,
       )
@@ -125,6 +133,10 @@ describe('install-defences', () => {
       assert.equal(
         pkg.scripts['defence:pkg-age-check'],
         'node ./tools/check-package-age.js',
+      )
+      assert.equal(
+        pkg.scripts['defence:check-md-links'],
+        'node ./tools/check-md-links.js',
       )
       assert.equal(
         pkg.scripts['defence:bootstrap'],

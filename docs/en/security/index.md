@@ -75,4 +75,3 @@ flowchart TD
 - **Accidental insecure npm behavior** → blocked by hardened `.npmrc`.
 - **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
 
-_Last sync: 2026-08-18_.

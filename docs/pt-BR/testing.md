@@ -18,14 +18,15 @@ npm test
 - Comportamento do instalador cross-project, incluindo `--dry-run`, `--force`, detecção de conflitos e criação de backups.
 - Fluxo controlado de atualização de dependências em `update-packages.js`.
 
-## Verificações de Lint e Formatação
+## Verificações de Lint, Formatação e Links
 
-O projeto usa Biome para lint e formatação. Execute essas verificações antes de commitar:
+O projeto usa Biome para lint e formatação. Execute estes comandos antes de commitar:
 
 ```bash
-npm run lint      # reporta problemas de lint e formatação
-npm run lint:fix  # corrige automaticamente problemas seguros
-npm run format    # formata todos os arquivos configurados
+npm run lint                    # reporta problemas de lint e formatação
+npm run lint:fix                # corrige automaticamente problemas seguros
+npm run format                  # formata todos os arquivos configurados
+npm run defence:check-md-links  # valida links locais de markdown
 ```
 
 ## Escrevendo Novos Testes
@@ -41,4 +42,3 @@ test('description', () => {
 });
 ```
 
-_Sincronizado em: 2026-08-18_.

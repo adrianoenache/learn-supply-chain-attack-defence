@@ -29,4 +29,3 @@ See [biome.json](../../../biome.json) for the full configuration. Key settings:
 
 A uniform codebase reduces cognitive load, simplifies reviews, and prevents trivial bugs (e.g., unused imports, missing variables) from being committed.
 
-_Last sync: 2026-08-18_.

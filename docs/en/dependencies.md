@@ -45,4 +45,3 @@ This runs `npm update` and then re-runs the package-age check (`--transitive`), 
 
 Avoid editing `package.json` or `package-lock.json` by hand. If you do, the pre-commit hook will still run the transitive age check, but fixing failures is harder than going through the `defence:add` or `defence:update` scripts.
 
-_Last sync: 2026-08-18_.

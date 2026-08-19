@@ -23,4 +23,3 @@ npm ci
 
 Dentro deste projeto, evite `npm install` para setup rotineiro. Use `npm ci` ou os scripts `npm run defence:add` / `npm run defence:reinstall`.
 
-_Sincronizado em: 2026-08-18_.

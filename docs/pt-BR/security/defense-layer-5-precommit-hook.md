@@ -21,4 +21,3 @@ O `npm install` pode alterar dependências aninhadas que não estão listadas em
 
 Use `--no-verify` apenas em branches locais descartáveis. Nunca use para commits que serão compartilhados ou mergeados.
 
-_Sincronizado em: 2026-08-18_.

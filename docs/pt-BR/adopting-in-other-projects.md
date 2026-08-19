@@ -30,6 +30,8 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --force
    - `biome.json`
    - `tools/check-package-age.js`
    - `tools/add-package.js`
+   - `tools/check-md-links.js`
+   - `tools/check-md-links.test.js`
    - `tools/lib/package-utils.js`
    - `tools/setup-bootstrap.js`
    - `tools/setup-bootstrap.test.js`
@@ -41,6 +43,7 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --force
 2. Adiciona scripts com prefixo `defence:*` ao `package.json`:
    - `setup`
    - `defence:bootstrap`
+   - `defence:check-md-links`
    - `defence:pkg-age-check`
    - `defence:reinstall`
    - `defence:update`
@@ -67,4 +70,3 @@ Scripts existentes que não entram em conflito são preservados. Se um script de
 
 Como o instalador apenas copia arquivos, futuras atualizações dos scripts de defesa neste repositório devem ser re-copiadas manualmente. Reexecute o instalador com `--force` para atualizar o projeto de destino, ou copie apenas os arquivos que mudaram.
 
-_Sincronizado em: 2026-08-18_.

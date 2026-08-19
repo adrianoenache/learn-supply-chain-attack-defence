@@ -32,4 +32,3 @@ Se for absolutamente necessário ignorá-lo (por exemplo, em um branch local tem
 git commit --no-verify -m "commit temporário"
 ```
 
-_Sincronizado em: 2026-08-18_.

@@ -45,4 +45,3 @@ Ele executa `npm update` e depois reexecuta a verificação de idade dos pacotes
 
 Evite editar `package.json` ou `package-lock.json` manualmente. Se fizer isso, o hook de pré-commit ainda executará a verificação transitiva de idade, mas corrigir falhas é mais difícil do que passar pelos scripts `defence:add` ou `defence:update`.
 
-_Sincronizado em: 2026-08-18_.

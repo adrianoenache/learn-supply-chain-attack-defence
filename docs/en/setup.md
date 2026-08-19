@@ -62,4 +62,3 @@ The `defence:update` script runs `npm update`, then re-runs the transitive packa
 
 If any step fails, the script exits with a non-zero code. Fix the reported issue before continuing.
 
-_Last sync: 2026-08-18_.

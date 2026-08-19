@@ -56,4 +56,3 @@ node ./tools/install-defences.js /path/to/target-project --dry-run
 node ./tools/install-defences.js /path/to/target-project --force
 ```
 
-_Last sync: 2026-08-18_.

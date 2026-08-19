@@ -4,10 +4,23 @@
   "license": "MIT",
   "author": "Adriano Enache",
   "description": "Learn supply chain attack defence",
+  "homepage": "https://github.com/adrianoenache/learn-supply-chain-attack-defence#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/adrianoenache/learn-supply-chain-attack-defence.git"
   },
+  "bugs": {
+    "url": "https://github.com/adrianoenache/learn-supply-chain-attack-defence/issues"
+  },
+  "keywords": [
+    "supply-chain",
+    "security",
+    "npm",
+    "nodejs",
+    "defense-in-depth",
+    "biome",
+    "husky"
+  ],
   "engines": {
     "node": ">=24.16.0",
     "npm": ">=11.13.0"
@@ -18,6 +31,7 @@
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
+    "defence:check-md-links": "node ./tools/check-md-links.js",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
     "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high",
     "defence:reinstall": "node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",

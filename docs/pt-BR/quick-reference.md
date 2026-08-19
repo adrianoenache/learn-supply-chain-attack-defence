@@ -56,4 +56,3 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --dry-run
 node ./tools/install-defences.js /caminho/do/projeto-destino --force
 ```
 
-_Sincronizado em: 2026-08-18_.

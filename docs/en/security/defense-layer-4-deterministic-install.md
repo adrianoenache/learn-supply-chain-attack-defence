@@ -23,4 +23,3 @@ npm ci
 
 Inside this project, avoid `npm install` for routine setup. Use `npm ci` or the `npm run defence:add` / `npm run defence:reinstall` scripts.
 
-_Last sync: 2026-08-18_.

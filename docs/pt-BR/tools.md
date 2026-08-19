@@ -55,4 +55,3 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 
 O runner nativo `node:test` é suficiente para este projeto. Evitar Jest, Mocha ou Vitest remove outra dependência da supply chain e mantém o setup reprodutível com `npm ci`.
 
-_Sincronizado em: 2026-08-18_.

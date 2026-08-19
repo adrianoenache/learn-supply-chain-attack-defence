@@ -55,4 +55,3 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 
 The native `node:test` runner is sufficient for this project. Avoiding Jest, Mocha, or Vitest removes another dependency from the supply chain and keeps the setup reproducible with `npm ci`.
 
-_Last sync: 2026-08-18_.

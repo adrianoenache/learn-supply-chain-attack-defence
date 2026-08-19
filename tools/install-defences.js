@@ -45,6 +45,8 @@ const FILES_TO_COPY = [
   'biome.json',
   'tools/check-package-age.js',
   'tools/add-package.js',
+  'tools/check-md-links.js',
+  'tools/check-md-links.test.js',
   'tools/lib/package-utils.js',
   'tools/setup-bootstrap.js',
   'tools/setup-bootstrap.test.js',
@@ -59,6 +61,7 @@ const SCRIPTS_TO_ADD = {
   setup:
     'node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare',
   'defence:pkg-age-check': 'node ./tools/check-package-age.js',
+  'defence:check-md-links': 'node ./tools/check-md-links.js',
   'defence:reinstall':
     'node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated',
   'defence:pre-commit': 'npm audit signatures && npm audit --audit-level=high',

@@ -14,4 +14,3 @@ Um ataque de supply chain tem como alvo o software do qual você depende em vez 
 
 Nenhum controle sozinho detecta todas as ameaças. Um período de espera curto pega lançamentos maliciosos apressados; a verificação de assinaturas pega pacotes não publicados pelo registry; a auditoria pega CVEs conhecidas; a instalação determinística evita drift; os hooks de pré-commit pegam erros manuais; e o endurecimento do `.npmrc` desabilita comportamentos arriscados do npm.
 
-_Sincronizado em: 2026-08-18_.

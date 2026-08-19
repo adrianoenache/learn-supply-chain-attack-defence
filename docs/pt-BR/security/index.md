@@ -75,4 +75,3 @@ flowchart TD
 - **Comportamento inseguro acidental do npm** → bloqueado pelo `.npmrc` endurecido.
 - **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
 
-_Sincronizado em: 2026-08-18_.

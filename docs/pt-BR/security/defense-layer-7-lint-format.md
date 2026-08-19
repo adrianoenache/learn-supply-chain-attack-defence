@@ -29,4 +29,3 @@ Veja [biome.json](../../../biome.json) para a configuração completa. Principai
 
 Um código-base uniforme reduz a carga cognitiva, simplifica revisões e evita que bugs triviais (como imports não utilizados ou variáveis faltantes) sejam commitados.
 
-_Sincronizado em: 2026-08-18_.
