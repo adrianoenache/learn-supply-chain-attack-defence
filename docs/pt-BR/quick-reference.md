@@ -33,6 +33,10 @@ npm run setup
 | `npm run defence:update -- --dry-run` | Simula o fluxo de atualização. |
 | `npm run defence:update-check` | Avisa sobre atualizações disponíveis sem instalá-las. |
 | `npm run defence:update-check:force` | Ignora cache e executa novo scan de atualizações. |
+| `npm run defence:update-check:json` | Saída JSON das atualizações disponíveis. |
+| `npm run defence:update-check -- --format=markdown` | Saída Markdown das atualizações disponíveis. |
+| `npm run defence:sync-check` | Verifica se `node_modules` corresponde ao `package-lock.json`. |
+| `npm run defence:sync-check -- --fix` | Exibe o comando `npm ci` quando desatualizado. |
 
 ## Comandos de Segurança / Manutenção
 

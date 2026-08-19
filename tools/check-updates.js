@@ -16,11 +16,17 @@
 // This prevents a developer from acting on update alerts while still running
 // stale packages (e.g. after pulling another collaborator's changes).
 
-const crypto = require('node:crypto')
 const fs = require('node:fs')
 const https = require('node:https')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
+
+const {
+  isNodeModulesInSync,
+  readLockfileHash,
+  setImpls: setSyncImpls,
+  resetImpls: resetSyncImpls,
+} = require(path.resolve(__dirname, './lib/sync-check.js'))
 
 // Reads the project manifest. Only native modules are used so this script can
 // run before any installation is complete.
@@ -61,11 +67,6 @@ const CONCURRENCY = 10
 
 // Local state file; never committed (see .gitignore).
 const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
-const LOCK_FILE = path.resolve(__dirname, '../package-lock.json')
-const NODE_MODULES_LOCK_FILE = path.resolve(
-  __dirname,
-  '../node_modules/.package-lock.json',
-)
 
 // ---------------------------------------------------------------------------
 // Dependency injection hooks — exposed for tests.
@@ -83,6 +84,10 @@ function setImpls(impls) {
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.now) nowImpl = impls.now
   if (impls.exit) exitImpl = impls.exit
+  setSyncImpls({
+    fs: impls.fs,
+    spawnSync: impls.spawnSync,
+  })
 }
 
 function resetImpls() {
@@ -91,6 +96,7 @@ function resetImpls() {
   spawnSyncImpl = spawnSync
   nowImpl = () => Date.now()
   exitImpl = process.exit
+  resetSyncImpls()
 }
 
 // ---------------------------------------------------------------------------
@@ -98,10 +104,19 @@ function resetImpls() {
 // ---------------------------------------------------------------------------
 
 function parseCliArgs(argv = process.argv.slice(2)) {
-  return {
-    isForce: argv.includes('--force'),
-    isSilent: argv.includes('--silent'),
+  const isForce = argv.includes('--force')
+  const isSilent = argv.includes('--silent')
+
+  const formatArg = argv.find((arg) => arg.startsWith('--format='))
+  const format = formatArg?.slice('--format='.length) ?? 'table'
+  const validFormats = ['table', 'json', 'markdown']
+  if (!validFormats.includes(format)) {
+    throw new Error(
+      `Invalid format "${format}". Use one of: ${validFormats.join(', ')}.`,
+    )
   }
+
+  return { isForce, isSilent, format }
 }
 
 // ---------------------------------------------------------------------------
@@ -125,19 +140,6 @@ function writeJson(filePath, data) {
   fsImpl.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
 }
 
-function sha256(content) {
-  return crypto.createHash('sha256').update(content).digest('hex')
-}
-
-function readLockfileHash() {
-  try {
-    const content = fsImpl.readFileSync(LOCK_FILE, 'utf8')
-    return sha256(content)
-  } catch {
-    return null
-  }
-}
-
 function resolveNpmrcMinReleaseAge() {
   try {
     const npmrcPath = path.resolve(__dirname, '../.npmrc')
@@ -146,68 +148,6 @@ function resolveNpmrcMinReleaseAge() {
     return match ? Number.parseInt(match[1], 10) : null
   } catch {
     return null
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Local dependency sync check.
-//
-// Determines whether node_modules matches package-lock.json. This must run
-// before any registry lookup so developers do not act on update alerts while
-// their local tree is stale.
-// ---------------------------------------------------------------------------
-
-function isNodeModulesInSync() {
-  // Fast path: compare the embedded lockfile hash in node_modules/.package-lock.json
-  // against a hash of the current package-lock.json.
-  const currentHash = readLockfileHash()
-  if (!currentHash) {
-    // No package-lock.json to compare against; treat as in-sync to avoid noise.
-    return { inSync: true }
-  }
-
-  const installedLock = readJsonSafe(NODE_MODULES_LOCK_FILE)
-  if (installedLock?.packageLockHash === currentHash) {
-    return { inSync: true }
-  }
-
-  // Fallback path: compare top-level installed versions with package.json.
-  const result = spawnSyncImpl('npm', ['ls', '--json', '--depth=0'], {
-    encoding: 'utf8',
-    shell: false,
-  })
-
-  if (result.status !== 0 || !result.stdout) {
-    // npm ls failed (e.g. node_modules missing); report out-of-sync.
-    return { inSync: false, reason: 'node_modules appears outdated or missing' }
-  }
-
-  try {
-    const ls = JSON.parse(result.stdout)
-    const declared = {
-      ...pkg.dependencies,
-      ...pkg.devDependencies,
-      ...pkg.peerDependencies,
-      ...pkg.optionalDependencies,
-    }
-
-    for (const [name, declaredVersion] of Object.entries(declared)) {
-      const installed = ls.dependencies?.[name]
-      if (!installed?.version) {
-        return { inSync: false, reason: `${name} is not installed` }
-      }
-      // Declared versions are exact because save-exact=true in .npmrc.
-      if (installed.version !== declaredVersion) {
-        return {
-          inSync: false,
-          reason: `${name} is ${installed.version}, expected ${declaredVersion}`,
-        }
-      }
-    }
-
-    return { inSync: true }
-  } catch {
-    return { inSync: false, reason: 'could not verify installed packages' }
   }
 }
 
@@ -488,7 +428,66 @@ function printSyncWarning(reason) {
   console.log()
 }
 
-function printReport(state) {
+function formatJsonReport(state) {
+  return JSON.stringify(state, null, 2)
+}
+
+function formatMarkdownReport(state) {
+  const lines = ['# Dependency Update Report\n']
+  lines.push(`*Generated at ${state.lastScan}*\n`)
+
+  if (state.eligible.length > 0) {
+    lines.push('## Eligible for update\n')
+    lines.push('| Package | Current | Latest | Severity | Age |')
+    lines.push('|---|---|---|---|---|')
+    for (const item of state.eligible) {
+      const age =
+        item.daysOld !== null ? `${Math.floor(item.daysOld)} days` : '—'
+      lines.push(
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} |`,
+      )
+    }
+    lines.push('')
+  }
+
+  if (state.quarantine.length > 0) {
+    lines.push('## Quarantine\n')
+    lines.push('| Package | Current | Latest | Severity | Reason |')
+    lines.push('|---|---|---|---|---|')
+    for (const item of state.quarantine) {
+      const reason = item.reason ?? formatDays(item.daysOld) ?? '—'
+      lines.push(
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} |`,
+      )
+    }
+    lines.push('')
+  }
+
+  if (state.eligible.length === 0 && state.quarantine.length === 0) {
+    lines.push('No dependency updates available.\n')
+  }
+
+  lines.push('Run the command below to review and apply updates safely:')
+  lines.push('```bash')
+  lines.push('npm run defence:update')
+  lines.push('```')
+  lines.push('')
+
+  return lines.join('\n')
+}
+
+function printReport(state, format) {
+  if (format === 'json') {
+    console.log(formatJsonReport(state))
+    return
+  }
+
+  if (format === 'markdown') {
+    console.log(formatMarkdownReport(state))
+    return
+  }
+
+  // Default table format.
   const { eligible, quarantine } = state
   const hasItems = eligible.length > 0 || quarantine.length > 0
   if (!hasItems) return
@@ -534,7 +533,7 @@ function printReport(state) {
 // ---------------------------------------------------------------------------
 
 async function main(argv = process.argv.slice(2)) {
-  const { isForce, isSilent } = parseCliArgs(argv)
+  const { isForce, isSilent, format } = parseCliArgs(argv)
   const currentLockfileHash = readLockfileHash()
 
   // Step 1: local sync check.
@@ -587,10 +586,18 @@ async function main(argv = process.argv.slice(2)) {
 
   // Step 3: show reminder if needed.
   const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
-  if (hasItems && shouldRemind(state)) {
-    if (!isSilent) printReport(state)
-    state.lastReminder = new Date(nowImpl()).toISOString()
-    saveState(state)
+  if (hasItems || format !== 'table') {
+    // JSON/Markdown formatters always produce output (unless silent).
+    // Table output respects the reminder interval.
+    const shouldShow =
+      format !== 'table' ||
+      shouldRemind(state) ||
+      state.eligible.length + state.quarantine.length === 0
+    if (!isSilent && shouldShow) {
+      printReport(state, format)
+      state.lastReminder = new Date(nowImpl()).toISOString()
+      saveState(state)
+    }
   }
 
   return 0

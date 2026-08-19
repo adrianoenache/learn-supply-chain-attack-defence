@@ -1,0 +1,9 @@
+# Husky post-merge hook: warns when node_modules is out of sync with
+# package-lock.json after a pull or merge. This helps collaborators notice
+# when they need to run `npm ci` before continuing development.
+npm run defence:sync-check -- --silent || {
+  echo
+  echo "⚠️  Your installed dependencies may be out of sync with the updated lock file."
+  echo "   Run 'npm ci' to synchronize before continuing."
+  echo
+}

@@ -49,6 +49,8 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. |
 | `update-packages.js` | Controlled wrapper for `npm update` with post-update checks. |
 | `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. |
+| `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. |
+| `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
 | `install-defences.js` | Copies the defences into another Node.js project. |
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
 

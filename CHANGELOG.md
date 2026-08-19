@@ -23,6 +23,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/pt-BR/security/defense-layer-8-update-check.md`
 - Security overview, indexes, README, tools page and quick reference updated to list Layer 8.
 
+### Added (Phase 2)
+
+- Dependency sync check:
+  - Extracted shared sync logic into `tools/lib/sync-check.js`.
+  - New standalone `tools/check-sync.js` CLI with `--silent` and `--fix` flags.
+  - New `defence:sync-check` and `defence:sync-check:fix` scripts.
+  - New `.husky/post-merge` hook that warns after `git pull`/`git merge` when `node_modules` is out of sync with `package-lock.json`.
+  - Pre-commit hook now calls `defence:update-check`, which performs a sync check before scanning for available updates.
+- Update check formatters:
+  - `defence:update-check:json` script outputs valid JSON.
+  - `--format=markdown` option produces a Markdown report suitable for PRs and issues.
+  - Table format remains the default for interactive use.
+- New and expanded test suites:
+  - `tools/check-sync.test.js` covering hash, version fallback, fix command suggestion, and CLI flags.
+  - `tools/check-updates.test.js` extended with formatter and sync integration tests.
+- Quick reference and tools documentation updated in English and Portuguese to describe the new commands and scripts.
+
 ## [1.0.0] - 2026-08-18
 
 ### Added

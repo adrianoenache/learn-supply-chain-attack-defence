@@ -410,4 +410,132 @@ describe('check-updates', () => {
       mod.resetImpls()
     }
   })
+
+  test('--format=json produces valid JSON output', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json': {
+          status: 0,
+          stdout: JSON.stringify({
+            biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
+          }),
+        },
+      }),
+      httpsGet: makeMockHttpsGet({
+        biome: {
+          statusCode: 200,
+          body: JSON.stringify({
+            time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+            repository: { url: 'git+https://github.com/biomejs/biome.git' },
+          }),
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--format=json'])
+      assert.equal(code, 0)
+      const output = logs.join('\n')
+      const parsed = JSON.parse(output)
+      assert.ok(Array.isArray(parsed.eligible))
+      assert.ok(Array.isArray(parsed.quarantine))
+      assert.equal(parsed.eligible.length, 1)
+      assert.equal(parsed.eligible[0].name, 'biome')
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('--format=markdown produces markdown report', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json': {
+          status: 0,
+          stdout: JSON.stringify({
+            biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
+          }),
+        },
+      }),
+      httpsGet: makeMockHttpsGet({
+        biome: {
+          statusCode: 200,
+          body: JSON.stringify({
+            time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+            repository: { url: 'git+https://github.com/biomejs/biome.git' },
+          }),
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--format=markdown'])
+      assert.equal(code, 0)
+      const output = logs.join('\n')
+      assert.ok(output.includes('# Dependency Update Report'))
+      assert.ok(output.includes('Eligible for update'))
+      assert.ok(output.includes('| biome |'))
+      assert.ok(output.includes('npm run defence:update'))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('invalid format throws a clear error', async () => {
+    const mod = readScriptExports()
+
+    try {
+      await mod.main(['--format=xml'])
+      assert.fail('should have thrown')
+    } catch (err) {
+      assert.ok(err.message.includes('Invalid format'))
+    } finally {
+      mod.resetImpls()
+    }
+  })
 })

@@ -53,6 +53,17 @@ npm run defence:update-check:force
 
 # Suprime a saída (útil em CI)
 npm run defence:update-check -- --silent
+
+# Saída JSON para CI / automação
+npm run defence:update-check -- --format=json
+npm run defence:update-check:json
+
+# Saída Markdown para pull requests / issues
+npm run defence:update-check -- --format=markdown
+
+# Verificação de sincronia standalone
+npm run defence:sync-check
+npm run defence:sync-check -- --fix
 ```
 
 ## Exemplo de saída
@@ -83,12 +94,34 @@ Os links de release são fornecidos com o melhor esforço possível: eles são i
 - **Controle do desenvolvedor**: atualizações ainda exigem revisão e commit explícitos.
 - **Hook rápido**: a etapa de pré-commit apenas lê dados; nunca compila ou instala pacotes.
 
+## Verificação de sincronia de dependências
+
+Antes de escanear por novas atualizações, o script sempre verifica se `node_modules` está em sincronia com `package-lock.json`. Você também pode executar essa verificação de forma isolada:
+
+```bash
+npm run defence:sync-check
+```
+
+Se a árvore instalada estiver desatualizada, ele sai com código 1 e recomenda `npm ci`. A flag `--fix` exibe o comando exato a ser executado.
+
+Um hook `post-merge` também é instalado para que o `git pull` avise quando as dependências precisarem ser reinstaladas.
+
+## Formatadores de saída
+
+A saída padrão é uma tabela legível para humanos, mas dois formatos legíveis por máquina estão disponíveis:
+
+- `--format=json` — JSON determinístico contendo `lastScan`, `eligible` e `quarantine`.
+- `--format=markdown` — Resumo em Markdown com tabelas, adequado para colar em pull requests ou issues.
+
 ## Implementação
 
 Implementado em:
 
 - [tools/check-updates.js](../../../tools/check-updates.js)
 - [tools/check-updates.test.js](../../../tools/check-updates.test.js)
+- [tools/check-sync.js](../../../tools/check-sync.js)
+- [tools/check-sync.test.js](../../../tools/check-sync.test.js)
+- [tools/lib/sync-check.js](../../../tools/lib/sync-check.js)
 
 O estado local é armazenado em `.defence-update-check.json`, que é ignorado pelo git para que cada desenvolvedor mantenha seu próprio estado de lembrete.
 

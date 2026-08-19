@@ -53,6 +53,17 @@ npm run defence:update-check:force
 
 # Suppress output (useful in CI)
 npm run defence:update-check -- --silent
+
+# JSON output for CI / automation
+npm run defence:update-check -- --format=json
+npm run defence:update-check:json
+
+# Markdown output for pull requests / issues
+npm run defence:update-check -- --format=markdown
+
+# Standalone sync check
+npm run defence:sync-check
+npm run defence:sync-check -- --fix
 ```
 
 ## Output example
@@ -83,12 +94,34 @@ Release links are best-effort: they are inferred from the `repository.url` field
 - **Developer control**: updates still require explicit review and commit.
 - **Fast hook**: the pre-commit step only reads data; it never compiles or installs packages.
 
+## Dependency sync check
+
+Before scanning for new updates, the script always verifies that `node_modules` matches `package-lock.json`. You can also run this check standalone:
+
+```bash
+npm run defence:sync-check
+```
+
+If the installed tree is stale, it exits with code 1 and recommends `npm ci`. The `--fix` flag prints the exact command to run.
+
+A `post-merge` hook is also installed so that `git pull` warns when dependencies need to be reinstalled.
+
+## Output formatters
+
+The default output is a human-readable table, but two machine-readable formats are available:
+
+- `--format=json` — deterministic JSON containing `lastScan`, `eligible`, and `quarantine`.
+- `--format=markdown` — Markdown summary with tables, suitable for pasting into pull requests or issues.
+
 ## Implementation
 
 Implemented in:
 
 - [tools/check-updates.js](../../../tools/check-updates.js)
 - [tools/check-updates.test.js](../../../tools/check-updates.test.js)
+- [tools/check-sync.js](../../../tools/check-sync.js)
+- [tools/check-sync.test.js](../../../tools/check-sync.test.js)
+- [tools/lib/sync-check.js](../../../tools/lib/sync-check.js)
 
 The local state is stored in `.defence-update-check.json`, which is ignored by git so each developer has their own reminder state.
 
