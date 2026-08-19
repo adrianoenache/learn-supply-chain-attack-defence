@@ -12,14 +12,16 @@
 //   - .npmrc
 //   - .husky/pre-commit
 //   - biome.json
-//   - tools/check-package-age.js
 //   - tools/add-package.js
-//   - tools/lib/package-utils.js
-//   - tools/setup-bootstrap.js
-//   - tools/setup-bootstrap.test.js
+//   - tools/check-md-links.js
+//   - tools/check-md-links.test.js
+//   - tools/check-package-age.js
 //   - tools/check-package-age.test.js
 //   - tools/install-defences.js
 //   - tools/install-defences.test.js
+//   - tools/lib/package-utils.js
+//   - tools/setup-bootstrap.js
+//   - tools/setup-bootstrap.test.js
 //   - tools/update-packages.js
 //   - tools/update-packages.test.js
 //
