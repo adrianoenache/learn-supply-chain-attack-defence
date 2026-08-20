@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- End-to-end test suite (`tools/e2e/`) against the real npm registry:
+  - Opt-in via `RUN_E2E_TESTS=true` and runnable with `npm run test:e2e`.
+  - Validates `tools/check-package-age.js --pkg <name>@<version>` and `tools/add-package.js <name>@<version> --dry-run` against stable packages (`lodash@4.17.21`, `is-odd@3.0.1`, `semver@7.6.3`).
+  - Per-test and per-spawn timeouts prevent hangs from network failures or misbehaving scripts.
+  - Local registry-response cache in `tools/e2e/.cache/` (git-ignored) with 24-hour TTL; bypass with `E2E_NO_CACHE=true`.
+  - Documented in `docs/en/testing.md`, `docs/pt-BR/testing.md`, and `tools/e2e/README.md`.
 - Automated README test badge update:
   - New `tools/update-badge.js` and `tools/update-badge.test.js`.
   - New `defence:update-badge` and `defence:update-badge:dry-run` npm scripts.

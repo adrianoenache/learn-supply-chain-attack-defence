@@ -91,7 +91,8 @@
     "lint": "biome check tools/",
     "prepare": "husky",
     "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
-    "test": "node --test tools/*.test.js"
+    "test": "node --test tools/*.test.js",
+    "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",

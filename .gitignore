@@ -76,6 +76,9 @@ web_modules/
 # Per-developer interactive update decisions (never commit)
 .defence-update-decisions.json
 
+# E2E test registry-response cache (never commit; per-developer state)
+tools/e2e/.cache/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

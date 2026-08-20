@@ -8,6 +8,16 @@ The project uses the native Node.js test runner (`node:test`) and assertion modu
 npm test
 ```
 
+## End-to-end Tests
+
+The project also includes an opt-in E2E suite that validates `check-package-age.js` and `add-package.js` against stable packages on the real npm registry. These tests are skipped by default to keep the regular suite fast and offline-friendly.
+
+```bash
+npm run test:e2e
+```
+
+Registry responses are cached in `tools/e2e/.cache/` for 24 hours to speed up repeated local runs. Use `E2E_NO_CACHE=true` to force fresh network calls.
+
 ## What Is Covered
 
 - Parsing of valid and invalid package specifiers.

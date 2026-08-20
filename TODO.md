@@ -10,14 +10,16 @@ _No items in this section._
 
 ### Medium Value
 
-- **End-to-end tests against the real npm registry**
-  Add a small, opt-in test suite that validates `check-package-age.js` and `add-package.js` against a known, stable package on npm. These tests should be skipped by default to avoid network fragility in CI-like environments.
+_No items in this section._
 
 ### Low Value / Polish
 
 _No items in this section._
 
 ## Completed
+
+- [x] **End-to-end tests against the real npm registry**
+  Added `tools/e2e/` with an opt-in E2E suite that validates `check-package-age.js` and `add-package.js` against stable npm packages (`lodash@4.17.21`, `is-odd@3.0.1`, `semver@7.6.3`). Tests are skipped by default; run with `npm run test:e2e`. Includes a local registry-response cache in `tools/e2e/.cache/` to speed up repeated runs and strict timeouts to prevent hangs.
 
 - [x] **Automated README badge update**
   Added `tools/update-badge.js` and `tools/update-badge.test.js` to count `test()` calls in `tools/*.test.js` and refresh the test-count badge in `README.md`. Integrated into the pre-commit hook so the badge stays synchronized automatically. New scripts: `defence:update-badge` and `defence:update-badge:dry-run`.

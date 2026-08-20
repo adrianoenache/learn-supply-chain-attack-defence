@@ -8,6 +8,16 @@ O projeto usa o test runner nativo do Node.js (`node:test`) e o módulo de asser
 npm test
 ```
 
+## Testes End-to-end
+
+O projeto também inclui uma suíte E2E opcional que valida `check-package-age.js` e `add-package.js` contra pacotes estáveis no npm registry real. Esses testes são pulados por padrão para manter a suíte regular rápida e independente de rede.
+
+```bash
+npm run test:e2e
+```
+
+As respostas do registry são cacheadas em `tools/e2e/.cache/` por 24 horas para acelerar execuções repetidas localmente. Use `E2E_NO_CACHE=true` para forçar chamadas de rede frescas.
+
 ## O Que Está Coberto
 
 - Parse de especificadores de pacotes válidos e inválidos.
