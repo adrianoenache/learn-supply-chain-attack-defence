@@ -163,7 +163,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
@@ -218,7 +218,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             husky: { current: '9.1.7', wanted: '9.1.7', latest: '9.2.0' },
@@ -302,7 +302,11 @@ describe('check-updates', () => {
       await mod.main(['--force'])
       assert.ok(calls.length > 0)
       assert.equal(calls[0].cmd, 'npm')
-      assert.deepEqual(calls[0].args, ['outdated', '--json'])
+      assert.deepEqual(calls[0].args, [
+        'outdated',
+        '--json',
+        '--min-release-age=0',
+      ])
     } finally {
       console.log = originalLog
       mod.resetImpls()
@@ -330,7 +334,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
@@ -384,7 +388,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
@@ -432,7 +436,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
@@ -490,7 +494,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
@@ -873,7 +877,7 @@ describe('check-updates', () => {
         nodeModulesLock: { packageLockHash: lockHash },
       }),
       spawnSync: makeMockSpawn(calls, {
-        'npm outdated --json': {
+        'npm outdated --json --min-release-age=0': {
           status: 0,
           stdout: JSON.stringify({
             biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },

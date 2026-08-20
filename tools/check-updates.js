@@ -163,9 +163,13 @@ function resolveNpmrcMinReleaseAge() {
 // ---------------------------------------------------------------------------
 
 function runNpmOutdated() {
+  // Override min-release-age so the script itself decides whether an update
+  // is old enough (eligible) or too recent (quarantine). Without this flag,
+  // the .npmrc min-release-age setting would hide fresh updates from the
+  // report before the quarantine logic could classify them.
   const args = INCLUDE_TRANSITIVE
-    ? ['outdated', '--json', '--all']
-    : ['outdated', '--json']
+    ? ['outdated', '--json', '--all', '--min-release-age=0']
+    : ['outdated', '--json', '--min-release-age=0']
   const result = spawnSyncImpl('npm', args, {
     encoding: 'utf8',
     shell: false,

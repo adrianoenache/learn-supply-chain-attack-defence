@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `defence:update-check` missing recently published updates in quarantine.
+  `npm outdated` now runs with `--min-release-age=0` so the script's own age-based
+  classification controls what appears as eligible vs. quarantined, instead of
+  the `.npmrc` setting hiding updates before they can be reported.
+
 ### Added
 
 - End-to-end test suite (`tools/e2e/`) against the real npm registry:
