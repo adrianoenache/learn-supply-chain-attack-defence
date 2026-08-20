@@ -48,11 +48,12 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 | `check-package-age.js` | Impõe a idade mínima dos pacotes para dependências diretas ou transitivas. |
 | `add-package.js` | Adiciona uma dependência com segurança, com verificações de idade, assinatura, audit e idade transitiva. |
 | `setup-bootstrap.js` | Realiza a primeira instalação controlada quando `package-lock.json` está ausente. |
-| `update-packages.js` | Wrapper controlado para `npm update` com verificações pós-atualização. |
+| `update-packages.js` | Wrapper controlado para `npm update` com verificações pós-atualização e aprovação interativa opcional. |
 | `check-updates.js` | Auxiliar somente leitura para pré-commit que avisa sobre atualizações elegíveis e em quarentena. |
 | `check-licenses.js` | Scanner somente leitura de licenças de dependências com classificação por lista de permissões e proibições. |
 | `check-sync.js` | Comando standalone que verifica se `node_modules` corresponde ao `package-lock.json`. |
 | `lib/sync-check.js` | Lógica compartilhada de sync-check usada por `check-updates.js` e `check-sync.js`. |
+| `update-badge.js` | Atualiza o badge de contagem de testes no `README.md` a partir de `tools/*.test.js`. |
 | `install-defences.js` | Copia as defesas para outro projeto Node.js. |
 | `lib/package-utils.js` | Utilitários compartilhados para parse e validação de especificadores de pacotes. |
 

@@ -34,7 +34,10 @@
     "alwaysRemind": false,
     "includeTransitive": false,
     "registryTimeoutMs": 10000,
-    "cacheTtlHours": 24
+    "cacheTtlHours": 24,
+    "historyMaxEntries": 30,
+    "stuckInQuarantineThreshold": 3,
+    "highReleaseCadenceDays": 7
   },
   "licensesCheck": {
     "allowed": [
@@ -73,6 +76,10 @@
     "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high && npm run defence:update-check",
     "defence:reinstall": "npm run defence:check-engines && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
     "defence:update": "node ./tools/update-packages.js",
+    "defence:update:interactive": "node ./tools/update-packages.js --interactive",
+    "defence:update:interactive:dry-run": "node ./tools/update-packages.js --interactive --dry-run",
+    "defence:update-badge": "node ./tools/update-badge.js",
+    "defence:update-badge:dry-run": "node ./tools/update-badge.js --dry-run",
     "defence:update-check": "node ./tools/check-updates.js",
     "defence:update-check:force": "node ./tools/check-updates.js --force",
     "defence:update-check:json": "node ./tools/check-updates.js --format=json",

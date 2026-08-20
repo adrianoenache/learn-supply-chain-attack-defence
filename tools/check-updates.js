@@ -66,6 +66,11 @@ const MAX_RESPONSE_BYTES = 20 * 1024 * 1024
 // Maximum concurrent registry queries, mirroring check-package-age.js.
 const CONCURRENCY = 10
 
+// Historical scan tracking settings.
+const HISTORY_MAX_ENTRIES = config.historyMaxEntries ?? 30
+const STUCK_IN_QUARANTINE_THRESHOLD = config.stuckInQuarantineThreshold ?? 3
+const HIGH_RELEASE_CADENCE_DAYS = config.highReleaseCadenceDays ?? 7
+
 // Local state file; never committed (see .gitignore).
 const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
 
@@ -394,6 +399,138 @@ function saveState(state) {
   writeJson(STATE_FILE, state)
 }
 
+// ---------------------------------------------------------------------------
+// Historical scan tracking.
+// ---------------------------------------------------------------------------
+
+function buildHistoryEntry(state) {
+  return {
+    scannedAt: state.lastScan,
+    lockfileHash: state.installedLockfileHash,
+    eligible: state.eligible.map((item) => ({
+      name: item.name,
+      current: item.current,
+      latest: item.latest,
+      severity: item.severity,
+      daysOld: item.daysOld,
+    })),
+    quarantine: state.quarantine.map((item) => ({
+      name: item.name,
+      current: item.current,
+      latest: item.latest,
+      severity: item.severity,
+      reason: item.reason,
+    })),
+  }
+}
+
+function appendHistory(state) {
+  const entry = buildHistoryEntry(state)
+  const history = state.history ?? []
+  history.push(entry)
+  while (history.length > HISTORY_MAX_ENTRIES) {
+    history.shift()
+  }
+  state.history = history
+  return state
+}
+
+function countPackageOccurrences(history, name, status) {
+  return history.reduce((count, entry) => {
+    const list = entry[status] ?? []
+    return count + (list.some((item) => item.name === name) ? 1 : 0)
+  }, 0)
+}
+
+function isStuckInQuarantine(history, name) {
+  let consecutive = 0
+  for (const entry of history.slice().reverse()) {
+    const inQuarantine = entry.quarantine?.some((item) => item.name === name)
+    const anywhere =
+      inQuarantine || entry.eligible?.some((item) => item.name === name)
+    if (inQuarantine) {
+      consecutive++
+    } else if (anywhere) {
+      break
+    }
+  }
+  return consecutive >= STUCK_IN_QUARANTINE_THRESHOLD
+}
+
+function calculateReleaseCadence(history, name) {
+  const appearances = []
+  for (const entry of history) {
+    const found =
+      entry.eligible?.find((item) => item.name === name) ??
+      entry.quarantine?.find((item) => item.name === name)
+    if (found) {
+      appearances.push(new Date(entry.scannedAt).getTime())
+    }
+  }
+  if (appearances.length < 2) return null
+  let totalDays = 0
+  for (let i = 1; i < appearances.length; i++) {
+    totalDays += daysBetween(appearances[i - 1], appearances[i])
+  }
+  return totalDays / (appearances.length - 1)
+}
+
+// ---------------------------------------------------------------------------
+// Confidence score.
+// ---------------------------------------------------------------------------
+
+function calculateConfidence(entry, history) {
+  const { daysOld, severity } = entry
+
+  // Age contributes up to 40 points. Older releases are safer.
+  const agePoints = Math.min(40, Math.floor((daysOld ?? 0) / 7) * 10)
+
+  // Semver severity contributes up to 30 points.
+  const severityPoints =
+    severity === 'patch' ? 30 : severity === 'minor' ? 20 : 0
+
+  // Release cadence can reduce the score by up to 30 points.
+  const cadence = calculateReleaseCadence(history, entry.name)
+  let cadencePenalty = 0
+  if (cadence !== null && cadence < HIGH_RELEASE_CADENCE_DAYS) {
+    cadencePenalty = Math.min(
+      30,
+      Math.floor((HIGH_RELEASE_CADENCE_DAYS - cadence) / 2) * 5,
+    )
+  }
+
+  const score = Math.max(0, agePoints + severityPoints - cadencePenalty)
+
+  let label
+  if (score >= 70) {
+    label = 'recommended'
+  } else if (score >= 40) {
+    label = 'review required'
+  } else {
+    label = 'high risk'
+  }
+
+  return { score, label }
+}
+
+function enrichEligibleWithConfidence(eligible, history) {
+  return eligible.map((item) => {
+    const { score, label } = calculateConfidence(item, history ?? [])
+    return { ...item, confidence: score, confidenceLabel: label }
+  })
+}
+
+function findStuckInQuarantine(state) {
+  const history = state.history ?? []
+  const stuck = new Set()
+  for (const item of state.quarantine) {
+    if (isStuckInQuarantine(history, item.name)) {
+      stuck.add(item.name)
+    }
+  }
+  return Array.from(stuck).sort()
+}
+
 function isCacheValid(state) {
   if (!state?.lastScan) return false
   if (state.installedLockfileHash !== readLockfileHash()) return false
@@ -440,13 +577,14 @@ function formatMarkdownReport(state) {
 
   if (state.eligible.length > 0) {
     lines.push('## Eligible for update\n')
-    lines.push('| Package | Current | Latest | Severity | Age |')
-    lines.push('|---|---|---|---|---|')
+    lines.push('| Package | Current | Latest | Severity | Age | Confidence |')
+    lines.push('|---|---|---|---|---|---|')
     for (const item of state.eligible) {
       const age =
         item.daysOld !== null ? `${Math.floor(item.daysOld)} days` : '—'
+      const confidence = `${item.confidenceLabel} (${item.confidence})`
       lines.push(
-        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} |`,
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} | ${confidence} |`,
       )
     }
     lines.push('')
@@ -461,6 +599,18 @@ function formatMarkdownReport(state) {
       lines.push(
         `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} |`,
       )
+    }
+    lines.push('')
+  }
+
+  const stuck = findStuckInQuarantine(state)
+  if (stuck.length > 0) {
+    lines.push('## Stuck in quarantine\n')
+    lines.push(
+      `These packages have been in quarantine for at least ${STUCK_IN_QUARANTINE_THRESHOLD} consecutive scans:`,
+    )
+    for (const name of stuck) {
+      lines.push(`- ${name}`)
     }
     lines.push('')
   }
@@ -501,7 +651,7 @@ function printReport(state, format) {
     console.log(`\n   Eligible for update (age >= ${MIN_AGE_DAYS} days):`)
     for (const item of eligible) {
       console.log(
-        `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${formatDays(item.daysOld)}`,
+        `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${formatDays(item.daysOld)} — ${item.confidenceLabel} (${item.confidence})`,
       )
       if (item.links?.npm) console.log(`       npm:     ${item.links.npm}`)
       if (item.links?.release) {
@@ -522,6 +672,14 @@ function printReport(state, format) {
       if (item.links?.release) {
         console.log(`       release: ${item.links.release}`)
       }
+    }
+  }
+
+  const stuck = findStuckInQuarantine(state)
+  if (stuck.length > 0) {
+    console.log('\n   Stuck in quarantine (review recommended):')
+    for (const name of stuck) {
+      console.log(`     ${name}`)
     }
   }
 
@@ -597,12 +755,18 @@ async function main(argv = process.argv.slice(2)) {
         lastScan: new Date(nowImpl()).toISOString(),
         lastReminder: null,
         installedLockfileHash: currentLockfileHash,
-        eligible,
+        eligible: enrichEligibleWithConfidence(eligible, state?.history),
         quarantine,
+        history: state?.history ?? [],
       }
+      appendHistory(state)
       saveState(state)
     }
   }
+
+  // Ensure cached state carries the new fields even if it predates them.
+  state.history = state.history ?? []
+  state.eligible = enrichEligibleWithConfidence(state.eligible, state.history)
 
   // Step 3: show reminder if needed.
   const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
@@ -634,4 +798,12 @@ module.exports = {
   main,
   setImpls,
   resetImpls,
+  appendHistory,
+  buildHistoryEntry,
+  countPackageOccurrences,
+  isStuckInQuarantine,
+  calculateReleaseCadence,
+  calculateConfidence,
+  enrichEligibleWithConfidence,
+  findStuckInQuarantine,
 }

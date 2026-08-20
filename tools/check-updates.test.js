@@ -691,4 +691,221 @@ describe('check-updates', () => {
       mod.resetImpls()
     }
   })
+
+  test('appends scan to history and limits its size', () => {
+    const mod = readScriptExports()
+    const state = {
+      lastScan: new Date(baseTime).toISOString(),
+      installedLockfileHash: 'hash',
+      eligible: [
+        {
+          name: 'pkg',
+          current: '1.0.0',
+          latest: '1.1.0',
+          severity: 'minor',
+          daysOld: 10,
+        },
+      ],
+      quarantine: [],
+      history: [],
+    }
+    for (let i = 0; i < 35; i++) {
+      mod.appendHistory(state)
+    }
+    assert.equal(state.history.length, 30)
+    assert.equal(state.history[0].eligible[0].current, '1.0.0')
+  })
+
+  test('detects package stuck in quarantine', () => {
+    const mod = readScriptExports()
+    const history = [
+      {
+        scannedAt: new Date(baseTime - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [],
+        quarantine: [{ name: 'stuck-pkg' }],
+      },
+      {
+        scannedAt: new Date(baseTime - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [],
+        quarantine: [{ name: 'stuck-pkg' }],
+      },
+      {
+        scannedAt: new Date(baseTime - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [],
+        quarantine: [{ name: 'stuck-pkg' }],
+      },
+    ]
+    assert.equal(mod.isStuckInQuarantine(history, 'stuck-pkg'), true)
+    assert.equal(mod.isStuckInQuarantine(history, 'other-pkg'), false)
+  })
+
+  test('calculates release cadence from history', () => {
+    const mod = readScriptExports()
+    const history = [
+      {
+        scannedAt: new Date(baseTime - 6 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [
+          {
+            name: 'freq',
+            current: '1.0.0',
+            latest: '1.1.0',
+            severity: 'minor',
+            daysOld: 10,
+          },
+        ],
+        quarantine: [],
+      },
+      {
+        scannedAt: new Date(baseTime - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [
+          {
+            name: 'freq',
+            current: '1.1.0',
+            latest: '1.2.0',
+            severity: 'minor',
+            daysOld: 10,
+          },
+        ],
+        quarantine: [],
+      },
+      {
+        scannedAt: new Date(baseTime).toISOString(),
+        eligible: [
+          {
+            name: 'freq',
+            current: '1.2.0',
+            latest: '1.3.0',
+            severity: 'minor',
+            daysOld: 10,
+          },
+        ],
+        quarantine: [],
+      },
+    ]
+    const cadence = mod.calculateReleaseCadence(history, 'freq')
+    assert.equal(cadence, 3)
+  })
+
+  test('confidence score reflects age, severity and cadence', () => {
+    const mod = readScriptExports()
+    const history = []
+
+    const patchOld = mod.calculateConfidence(
+      { name: 'a', daysOld: 30, severity: 'patch' },
+      history,
+    )
+    assert.equal(patchOld.label, 'recommended')
+    assert.ok(patchOld.score >= 70)
+
+    const majorRecent = mod.calculateConfidence(
+      { name: 'b', daysOld: 2, severity: 'major' },
+      history,
+    )
+    assert.equal(majorRecent.label, 'high risk')
+    assert.ok(majorRecent.score < 40)
+
+    const minorMiddle = mod.calculateConfidence(
+      { name: 'c', daysOld: 14, severity: 'minor' },
+      history,
+    )
+    assert.equal(minorMiddle.label, 'review required')
+  })
+
+  test('high release cadence penalizes confidence score', () => {
+    const mod = readScriptExports()
+    const history = [
+      {
+        scannedAt: new Date(baseTime - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        eligible: [
+          {
+            name: 'rapid',
+            current: '1.0.0',
+            latest: '1.1.0',
+            severity: 'patch',
+            daysOld: 10,
+          },
+        ],
+        quarantine: [],
+      },
+      {
+        scannedAt: new Date(baseTime).toISOString(),
+        eligible: [
+          {
+            name: 'rapid',
+            current: '1.1.0',
+            latest: '1.2.0',
+            severity: 'patch',
+            daysOld: 10,
+          },
+        ],
+        quarantine: [],
+      },
+    ]
+    const withCadence = mod.calculateConfidence(
+      { name: 'rapid', daysOld: 30, severity: 'patch' },
+      history,
+    )
+    const withoutCadence = mod.calculateConfidence(
+      { name: 'rapid', daysOld: 30, severity: 'patch' },
+      [],
+    )
+    assert.ok(withCadence.score < withoutCadence.score)
+  })
+
+  test('includes confidence and history in json output', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json': {
+          status: 0,
+          stdout: JSON.stringify({
+            biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
+          }),
+        },
+      }),
+      httpsGet: makeMockHttpsGet({
+        biome: {
+          statusCode: 200,
+          body: JSON.stringify({
+            time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+            repository: { url: 'git+https://github.com/biomejs/biome.git' },
+          }),
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--format=json'])
+      assert.equal(code, 0)
+      const parsed = JSON.parse(logs.join('\n'))
+      assert.ok(Array.isArray(parsed.history))
+      assert.equal(parsed.history.length, 1)
+      assert.ok('confidence' in parsed.eligible[0])
+      assert.ok('confidenceLabel' in parsed.eligible[0])
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
 })

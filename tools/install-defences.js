@@ -22,6 +22,8 @@
 //   - tools/lib/package-utils.js
 //   - tools/setup-bootstrap.js
 //   - tools/setup-bootstrap.test.js
+//   - tools/update-badge.js
+//   - tools/update-badge.test.js
 //   - tools/update-packages.js
 //   - tools/update-packages.test.js
 //
@@ -55,6 +57,8 @@ const FILES_TO_COPY = [
   'tools/check-package-age.test.js',
   'tools/install-defences.js',
   'tools/install-defences.test.js',
+  'tools/update-badge.js',
+  'tools/update-badge.test.js',
   'tools/update-packages.js',
   'tools/update-packages.test.js',
 ]
@@ -67,9 +71,14 @@ const SCRIPTS_TO_ADD = {
   'defence:reinstall':
     'node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated',
   'defence:pre-commit': 'npm audit signatures && npm audit --audit-level=high',
+  'defence:update-badge': 'node ./tools/update-badge.js',
+  'defence:update-badge:dry-run': 'node ./tools/update-badge.js --dry-run',
   'defence:add': 'node ./tools/add-package.js',
   'defence:bootstrap': 'node ./tools/setup-bootstrap.js',
   'defence:update': 'node ./tools/update-packages.js',
+  'defence:update:interactive': 'node ./tools/update-packages.js --interactive',
+  'defence:update:interactive:dry-run':
+    'node ./tools/update-packages.js --interactive --dry-run',
   test: 'node --test tools/*.test.js',
   lint: 'biome check tools/',
   'lint:fix': 'biome check --write tools/',

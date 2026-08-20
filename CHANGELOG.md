@@ -7,16 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- Bumped minimum engine requirements to Node.js `>=24.19.0` and npm `>=11.17.0`.
-  - Updated `engines` field in `package.json` and synchronized `package-lock.json`.
-  - Updated README, CONTRIBUTING, and documentation in `docs/en/` and `docs/pt-BR/` to reflect the new requirements.
-  - Added `.nvmrc` with `24.19.0` for consistent local version switching.
-  - Replaced `node --version && npm --version` with `npm run defence:check-engines` in `setup` and `defence:reinstall` scripts for a clearer failure message when the environment is out of date.
-
 ### Added
 
+- Automated README test badge update:
+  - New `tools/update-badge.js` and `tools/update-badge.test.js`.
+  - New `defence:update-badge` and `defence:update-badge:dry-run` npm scripts.
+  - Pre-commit hook now refreshes the badge and stages `README.md` before each commit.
+  - Updated `tools/install-defences.js` to copy the badge updater and its scripts to adopted projects.
+  - Documented in `docs/en/tools.md`, `docs/pt-BR/tools.md`, `docs/en/quick-reference.md`, `docs/pt-BR/quick-reference.md`, and the Layer 5 pre-commit hook pages.
+
+- Historical scan tracking and confidence score for `defence:update-check`:
+  - Extended `.defence-update-check.json` with a rolling `history` array (max 30 entries by default, configurable via `updateCheck.historyMaxEntries`).
+  - New helpers in `tools/check-updates.js` to detect packages stuck in quarantine (`updateCheck.stuckInQuarantineThreshold`) and high release cadence (`updateCheck.highReleaseCadenceDays`).
+  - Added `confidence` and `confidenceLabel` to eligible updates, combining age, semver severity, and cadence into `recommended`, `review required`, or `high risk`.
+  - Confidence and history included in table, JSON, and Markdown output.
+  - Extended `tools/check-updates.test.js` with coverage for history limits, quarantine detection, cadence, and score calculation.
+  - Documented in `docs/en/security/defense-layer-8-update-check.md`, `docs/pt-BR/security/defense-layer-8-update-check.md`, and the quick-reference pages.
+
+- Interactive update approval:
+  - Added `--interactive` flag to `tools/update-packages.js` with `node:readline` prompts (`y/n/q`) and a 30-second timeout to prevent hangs.
+  - Persists decisions to `.defence-update-decisions.json` (git-ignored).
+  - Applies only approved packages via `npm update <pkg1> <pkg2> ...` and re-runs the standard verification layers.
+  - New scripts: `defence:update:interactive` and `defence:update:interactive:dry-run`.
+  - Updated `tools/update-packages.test.js` with mocked readline tests for approval, rejection, quit, dry-run, and timeout scenarios.
+  - Documented in Layer 8 pages and quick-reference documentation.
 - Defense Layer 9 — Dependency license check:
   - New `defence:license-check`, `defence:license-check:fail`, and `defence:license-check:json` scripts.
   - Read-only scanner that parses `package-lock.json` v3 and classifies each package license as **allowed**, **prohibited**, or **flagged for review**.

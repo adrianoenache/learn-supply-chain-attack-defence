@@ -31,7 +31,11 @@ npm run setup
 | `npm run defence:add -- pkg@x.y.z --dry-run` | Simulates the age check without installing. |
 | `npm run defence:update` | Updates dependencies with post-update security checks. |
 | `npm run defence:update -- --dry-run` | Simulates the update flow. |
+| `npm run defence:update:interactive` | Select which eligible packages to update from a checklist. |
+| `npm run defence:update:interactive -- --dry-run` | Preview the interactive update checklist. |
 | `npm run defence:update-check` | Warns about available updates without installing them. |
+| `npm run defence:update-badge` | Refreshes the test-count badge in README.md. |
+| `npm run defence:update-badge:dry-run` | Prints the badge value without writing README.md. |
 | `npm run defence:update-check:force` | Ignores cache and rescans for available updates. |
 | `npm run defence:update-check:json` | JSON output of available updates. |
 | `npm run defence:update-check -- --format=markdown` | Markdown output of available updates. |

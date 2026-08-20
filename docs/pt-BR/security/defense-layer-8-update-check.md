@@ -41,6 +41,9 @@ O comportamento é controlado pelo bloco `updateCheck` no `package.json`:
 | `includeTransitive` | `false` | Se `true`, também verifica dependências transitivas. |
 | `registryTimeoutMs` | `10000` | Timeout de rede para chamadas ao registry. |
 | `cacheTtlHours` | `24` | Tempo de vida do cache local de resultados do scan. |
+| `historyMaxEntries` | `30` | Número máximo de scans passados mantidos no histórico local. |
+| `stuckInQuarantineThreshold` | `3` | Quantos scans consecutivos um pacote deve passar em quarentena para ser marcado como preso. |
+| `highReleaseCadenceDays` | `7` | Média de dias entre releases abaixo da qual um pacote é considerado de alta cadência. |
 
 ## Uso
 
@@ -126,8 +129,51 @@ Um hook `post-merge` também é instalado para que o `git pull` avise quando as 
 
 A saída padrão é uma tabela legível para humanos, mas dois formatos legíveis por máquina estão disponíveis:
 
-- `--format=json` — JSON determinístico contendo `lastScan`, `eligible` e `quarantine`.
-- `--format=markdown` — Resumo em Markdown com tabelas, adequado para colar em pull requests ou issues.
+- `--format=json` — JSON determinístico contendo `lastScan`, `eligible`, `quarantine` e `history`.
+- `--format=markdown` — Resumo Markdown com tabelas, adequado para colar em pull requests ou issues.
+
+## Histórico de scans
+
+Cada scan adiciona um snapshot leve a um histórico rolante armazenado em `.defence-update-check.json`. O histórico mantém no máximo `historyMaxEntries` scans (padrão `30`) e contém apenas nomes de pacotes, versões, severidade e status — nenhum dado sensível.
+
+Esse histórico habilita dois alertas extras:
+
+- **Preso em quarentena**: um pacote que ficou em quarentena por pelo menos `stuckInQuarantineThreshold` scans consecutivos é marcado como preso. Esses pacotes podem ter um problema crônico (metadados de registry quebrados, tags de release desaparecendo etc.) e merecem revisão manual.
+- **Alta cadência de releases**: pacotes que aparecem com muita frequência no histórico recebem um score de confiança menor, sinalizando que o mantenedor publica releases rapidamente.
+
+Ambas as verificações são locais e determinísticas; nenhuma chamada de rede extra é necessária.
+
+## Score de confiança
+
+Cada atualização elegível recebe um score de confiança que ajuda a priorizar revisões. O score é derivado de:
+
+1. **Idade** — releases mais antigos pontuam mais alto (até 40 pontos).
+2. **Severidade semver** — patch pontua mais alto, minor menos, major o mínimo (até 30 pontos).
+3. **Cadência de releases** — pacotes que publicam mais rápido que `highReleaseCadenceDays` em média perdem pontos (até 30 pontos).
+
+O rótulo final é:
+
+- `recommended` — score >= 70.
+- `review required` — score entre 40 e 69.
+- `high risk` — score abaixo de 40.
+
+O rótulo aparece na tabela e na saída Markdown, e os valores brutos `confidence` e `confidenceLabel` são incluídos na saída JSON.
+
+## Aprovação interativa de updates
+
+Em vez de atualizar todos os pacotes elegíveis de uma vez, você pode revisar e aprovar cada update individualmente:
+
+```bash
+npm run defence:update:interactive
+```
+
+O script lê a lista de elegíveis de `.defence-update-check.json` e pergunta `y/n/q` para cada pacote. Os pacotes aprovados são atualizados com `npm update <pkg1> <pkg2> ...`, e as mesmas camadas de verificação pós-update são executadas automaticamente. Pacotes rejeitados ou a decisão de quit deixam o workspace inalterado.
+
+Suas escolhas são salvas em `.defence-update-decisions.json` (ignorado pelo git) para que você possa revisar o que foi aprovado ou ignorado. Para pré-visualizar a checklist sem fazer alterações:
+
+```bash
+npm run defence:update:interactive:dry-run
+```
 
 ## Implementação
 

@@ -41,6 +41,9 @@ The behavior is controlled by the `updateCheck` block in `package.json`:
 | `includeTransitive` | `false` | If `true`, also checks transitive dependencies. |
 | `registryTimeoutMs` | `10000` | Network timeout for registry calls. |
 | `cacheTtlHours` | `24` | How long scan results are cached locally. |
+| `historyMaxEntries` | `30` | Maximum number of past scans kept in the local history. |
+| `stuckInQuarantineThreshold` | `3` | How many consecutive scans a package must spend in quarantine to be flagged as stuck. |
+| `highReleaseCadenceDays` | `7` | Average days between releases below which a package is considered high-cadence. |
 
 ## Usage
 
@@ -126,8 +129,51 @@ A `post-merge` hook is also installed so that `git pull` warns when dependencies
 
 The default output is a human-readable table, but two machine-readable formats are available:
 
-- `--format=json` — deterministic JSON containing `lastScan`, `eligible`, and `quarantine`.
+- `--format=json` — deterministic JSON containing `lastScan`, `eligible`, `quarantine`, and `history`.
 - `--format=markdown` — Markdown summary with tables, suitable for pasting into pull requests or issues.
+
+## Historical scan tracking
+
+Every scan appends a lightweight snapshot to a rolling history stored in `.defence-update-check.json`. The history keeps at most `historyMaxEntries` scans (default `30`) and contains only package names, versions, severity, and status — no sensitive data.
+
+This history enables two extra warnings:
+
+- **Stuck in quarantine**: a package that has been in quarantine for at least `stuckInQuarantineThreshold` consecutive scans is flagged as stuck. These packages may have a chronic issue (broken registry metadata, disappearing release tags, etc.) and deserve manual review.
+- **High release cadence**: packages that appear very frequently in the history get a lower confidence score, signaling that the maintainer ships releases rapidly.
+
+Both checks are local and deterministic; no extra network calls are needed.
+
+## Confidence score
+
+Each eligible update gets a confidence score that helps you prioritize reviews. The score is derived from:
+
+1. **Age** — older releases score higher (up to 40 points).
+2. **Semver severity** — patch scores highest, minor less, major lowest (up to 30 points).
+3. **Release cadence** — packages releasing faster than `highReleaseCadenceDays` on average lose points (up to 30 points).
+
+The final label is:
+
+- `recommended` — score >= 70.
+- `review required` — score between 40 and 69.
+- `high risk` — score below 40.
+
+The label appears in the table and Markdown output, and the raw `confidence` value and `confidenceLabel` are included in JSON output.
+
+## Interactive update approval
+
+Instead of updating every eligible package at once, you can review and approve each update individually:
+
+```bash
+npm run defence:update:interactive
+```
+
+The script reads the eligible list from `.defence-update-check.json` and asks `y/n/q` for each package. Approved packages are updated with `npm update <pkg1> <pkg2> ...`, and the same post-update verification layers run automatically. Rejected packages and quit decisions leave the workspace unchanged.
+
+Your choices are saved to `.defence-update-decisions.json` (git-ignored) so you can review what was approved or skipped. To preview the checklist without making changes:
+
+```bash
+npm run defence:update:interactive:dry-run
+```
 
 ## Implementation
 
