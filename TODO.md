@@ -6,7 +6,7 @@ This file tracks the remaining work required for the project to reach a 10/10 qu
 
 ### High Value
 
-#### Security
+#### Security High Value
 
 - [ ] **Add typosquatting and dependency-confusion detection**
   Implement a new tool or extend `add-package.js` / `check-package-age.js` to:
@@ -32,7 +32,7 @@ This file tracks the remaining work required for the project to reach a 10/10 qu
   - Add a script to generate an SBOM (CycloneDX/SPDX) from `package-lock.json` for auditability.
   Files: new tool under `tools/`, [.husky/pre-commit](.husky/pre-commit)
 
-#### Performance
+#### Performance High Value
 
 - [ ] **Implement persistent registry-response cache**
   Reuse the caching logic already present in `tools/e2e/helpers/registry-cache.js` in production code. Cache `registry.npmjs.org` responses with a configurable TTL so `check-package-age.js`, `check-updates.js`, and `add-package.js` avoid redundant network calls.
@@ -50,7 +50,7 @@ This file tracks the remaining work required for the project to reach a 10/10 qu
 
 ### Medium Value
 
-#### Security
+#### Security Medium Value
 
 - [ ] **Add lockfile integrity self-check**
   Create a script that verifies every entry in `package-lock.json` has an `integrity` field and that the hash algorithm is SHA-512 or stronger. Fail if any entry is missing integrity.
@@ -73,7 +73,7 @@ This file tracks the remaining work required for the project to reach a 10/10 qu
   Incorporate these signals into the existing confidence score.
   Files: [tools/check-updates.js](tools/check-updates.js)
 
-#### Performance
+#### Performance Medium Value
 
 - [ ] **Reduce N+1 registry queries in update check**
   Investigate bulk/batch fetching strategies for `check-updates.js` to reduce the number of `https.get` calls (e.g., caching packuments across runs, parallelizing only up to the concurrency limit).
