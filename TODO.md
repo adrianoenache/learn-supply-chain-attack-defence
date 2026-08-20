@@ -1,6 +1,6 @@
 # TODO
 
-This file tracks future improvements that are **not required** for the project to reach a 10/10 quality score. They are kept here as reference for contributors who want to extend the project further.
+This file tracks the remaining work required for the project to reach a 10/10 quality score and an official release. No item here is optional — all must be completed before `v1.0.0` is tagged.
 
 ## Future Enhancements
 
@@ -87,15 +87,24 @@ This file tracks future improvements that are **not required** for the project t
   Create a small benchmark suite that measures execution time and network call counts for `check-package-age.js` and `check-updates.js`, and fail CI on significant regression.
   Files: new `tools/perf/` directory
 
-### Low Value / Polish
+### Hardening & Documentation
 
 - [ ] **Document rebuild procedure for lifecycle-script packages**
-  Add a dedicated doc page explaining how to safely rebuild packages like `esbuild`, `sharp`, or `canvas` after overriding `ignore-scripts`.
+  Add a dedicated doc page explaining how to safely rebuild packages like `esbuild`, `sharp`, or `canvas` after overriding `ignore-scripts`. This is part of the defense-in-depth story because lifecycle scripts are a documented exception path.
   Files: `docs/en/security/rebuilding-lifecycle-packages.md`, `docs/pt-BR/security/rebuilding-lifecycle-packages.md`
 
 - [ ] **Add optional sandbox wrapper for npm commands**
   Provide an experimental wrapper that runs `npm install`/`npm update` inside a restricted environment (e.g., Linux namespaces or `bubblewrap`) to limit blast radius of any malicious lifecycle script that bypasses `ignore-scripts`.
   Files: new `tools/sandboxed-install.sh`
+
+- [ ] **Comprehensive documentation review before official release**
+  Perform a full bilingual documentation review:
+  - Synchronize `docs/en/` and `docs/pt-BR/`.
+  - Update `docs/en/tools.md`, `docs/en/architecture.md` and equivalents with all new tools and scripts.
+  - Refresh `README.md` with new scripts, badges, and setup instructions.
+  - Verify all internal links with `npm run defence:check-md-links`.
+  - Review `SECURITY.md`, `CONTRIBUTING.md`, and `CHANGELOG.md` for accuracy and completeness.
+  Files: `docs/en/`, `docs/pt-BR/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`
 
 ## Completed
 
