@@ -111,7 +111,9 @@ function fetchBufferOnce(url, options) {
       reject(new Error('timeout'))
     })
     req.on('error', (err) => {
-      reject(new Error(`network error: ${err.message}`))
+      const error = new Error(`network error: ${err.message}`)
+      if (err.code) error.code = err.code
+      reject(error)
     })
   })
 }

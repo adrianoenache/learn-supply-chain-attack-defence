@@ -69,6 +69,7 @@
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-engines": "node ./tools/check-engines.js",
     "defence:check-lockfile-integrity": "node ./tools/check-lockfile-integrity.js",
+    "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
     "defence:license-check": "node ./tools/check-licenses.js",
     "defence:license-check:fail": "node ./tools/check-licenses.js --fail",

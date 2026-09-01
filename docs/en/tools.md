@@ -53,6 +53,12 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `check-licenses.js` | Read-only dependency license scanner with allow-list / deny-list classification. |
 | `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. |
 | `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
+| `check-md-links.js` | Validates internal and external links in markdown documentation. |
+| `check-lockfile-integrity.js` | Verifies that every lockfile entry has a SHA-512 integrity field. |
+| `check-secrets.js` | Scans files for likely secrets before they are committed. |
+| `lib/registry-cache.js` | Disk-backed registry cache with TTL used by registry-dependent tools. |
+| `lib/retry-fetch.js` | Shared registry fetch layer with retry, gzip, and size limits. |
+| `lib/config.js` | Centralized configuration loader used across the defence tools. |
 | `update-badge.js` | Refreshes the test-count badge in `README.md` from `tools/*.test.js`. |
 | `install-defences.js` | Copies the defences into another Node.js project. |
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |

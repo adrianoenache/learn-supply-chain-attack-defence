@@ -24,8 +24,9 @@ function makeMockResponse(statusCode, body, headers = {}) {
   res.statusCode = statusCode
   res.headers = headers
   res.destroy = () => {}
+  const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body ?? '')
   process.nextTick(() => {
-    res.emit('data', body)
+    res.emit('data', buffer)
     process.nextTick(() => res.emit('end'))
   })
   return res
@@ -122,14 +123,17 @@ describe('retry-fetch', () => {
   })
 
   test('retries network errors', async () => {
+    const networkError = new Error('ECONNRESET')
+    networkError.code = 'ECONNRESET'
     setImpls({
       httpsGet: makeMockHttpsGet([
-        { error: new Error('ECONNRESET') },
+        { error: networkError },
         { statusCode: 200, body: JSON.stringify({ ok: true }) },
       ]),
     })
     const result = await fetchJson('https://example.com', {
       retryMaxAttempts: 2,
+      retryInitialDelayMs: 1,
     })
     assert.deepEqual(result, { ok: true })
   })
@@ -198,6 +202,20 @@ describe('retry-fetch', () => {
     await assert.rejects(
       () => fetchBuffer('https://example.com', { maxResponseBytes: 10 }),
       /response exceeds 10 bytes limit/,
+    )
+  })
+
+  test('rejects on request timeout', async () => {
+    setImpls({
+      httpsGet: (_url, _options, _cb) => {
+        const req = makeMockRequest()
+        process.nextTick(() => req.emit('timeout'))
+        return req
+      },
+    })
+    await assert.rejects(
+      () => fetchJson('https://example.com', { retryMaxAttempts: 1 }),
+      /timeout/,
     )
   })
 

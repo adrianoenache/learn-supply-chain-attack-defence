@@ -18,6 +18,19 @@ Thank you for your interest in improving this project. This guide explains how t
 6. Open a pull request describing what changed and why.
 7. Ensure the CI pipeline is green before merging. Pull requests with failing CI checks will not be merged.
 
+## CI Pipeline
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs the following jobs on pushes and pull requests to `main` and `dev`:
+
+- **Setup** — reads the required Node.js and npm versions from `package.json`.
+- **Test** — runs `npm test`.
+- **Lint & Format** — runs `npm run lint` and checks formatting with `npm run format -- --check`.
+- **Documentation Links** — runs `npm run defence:check-md-links`.
+- **License Check** — runs `npm run defence:license-check:fail`.
+- **Lockfile Integrity** — runs `npm run defence:check-lockfile-integrity`.
+- **Secret Scan** — scans all tracked files with `npm run defence:check-secrets`.
+- **Defence Gates** — runs engine, sync, package-age, signature, audit, and update checks.
+
 ## Adding Dependencies
 
 Never run `npm install <package>` directly. Always use the security wrapper:

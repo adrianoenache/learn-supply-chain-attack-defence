@@ -302,6 +302,57 @@ describe('check-updates', () => {
     }
   })
 
+  test('cache miss when lockfile hash changes', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const newLockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: { 'node_modules/biome': { version: '2.5.8' } },
+    })
+    const newLockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(newLockContent)
+      .digest('hex')
+
+    const state = {
+      lastScan: new Date(baseTime - 1000).toISOString(),
+      lastReminder: null,
+      installedLockfileHash: 'stale-hash',
+      eligible: [{ name: 'cached', current: '1.0.0', latest: '1.1.0' }],
+      quarantine: [],
+    }
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state,
+        lock: newLockContent,
+        nodeModulesLock: { packageLockHash: newLockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json --min-release-age=0': {
+          status: 0,
+          stdout: JSON.stringify({}),
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    try {
+      const code = await mod.main([])
+      assert.equal(code, 0)
+      assert.equal(calls.length, 1)
+      assert.equal(calls[0].cmd, 'npm')
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
   test('silent mode suppresses output but updates state', async () => {
     const calls = []
     const logs = []
