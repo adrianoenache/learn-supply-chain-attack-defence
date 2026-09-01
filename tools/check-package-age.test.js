@@ -32,6 +32,10 @@ const {
   main: addPackageMain,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
+  setHttpsGetImpl,
+  resetHttpsGetImpl,
+  setFsImpl,
+  resetFsImpl,
 } = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
@@ -772,6 +776,43 @@ describe('Integration — add-package flow', () => {
     return original
   }
 
+  function mockHttpsGetForIntegrity(integrity) {
+    return (_url, _options, cb) => {
+      const res = new EventEmitter()
+      res.statusCode = 200
+      res.headers = {}
+      process.nextTick(() => {
+        cb(res)
+        res.emit(
+          'data',
+          JSON.stringify({ dist: { integrity: integrity ?? 'sha512-abc' } }),
+        )
+        res.emit('end')
+      })
+      const req = new EventEmitter()
+      req.destroy = () => {}
+      return req
+    }
+  }
+
+  function mockFsForIntegrity(integrity, pkgName = null) {
+    return {
+      readFileSync: (filePath, _encoding) => {
+        if (filePath.endsWith('package-lock.json')) {
+          return JSON.stringify({
+            packages: {
+              [`node_modules/${pkgName ?? (integrity ? 'lodash' : 'react-native-svg')}`]:
+                {
+                  integrity: integrity ?? 'sha512-abc',
+                },
+            },
+          })
+        }
+        throw new Error(`ENOENT: ${filePath}`)
+      },
+    }
+  }
+
   test('dry-run approves an old enough package without installing', async () => {
     const originalFetch = mockFetchPackageAge(10)
     const argv = ['lodash@4.17.21', '--dry-run']
@@ -780,6 +821,9 @@ describe('Integration — add-package flow', () => {
       exitCode = code
       throw new Error('EXIT_CALLED')
     }
+
+    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFsImpl(mockFsForIntegrity())
 
     try {
       validateArgs(argv)
@@ -791,6 +835,8 @@ describe('Integration — add-package flow', () => {
         path.resolve(__dirname, './check-package-age.js'),
       )
       checkPackageAge.fetchPackageAge = originalFetch
+      resetHttpsGetImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -822,6 +868,8 @@ describe('Integration — add-package flow', () => {
 
   test('installs production dependency with correct spawn arguments', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setHttpsGetImpl(mockHttpsGetForIntegrity('sha512-good'))
+    setFsImpl(mockFsForIntegrity('sha512-good'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -846,6 +894,8 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetHttpsGetImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -868,6 +918,8 @@ describe('Integration — add-package flow', () => {
 
   test('installs dev dependency with --save-dev flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFsImpl(mockFsForIntegrity(null, '@biomejs/biome'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -892,6 +944,8 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetHttpsGetImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -905,6 +959,8 @@ describe('Integration — add-package flow', () => {
 
   test('installs peer dependency with --save-peer flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFsImpl(mockFsForIntegrity(null, 'react-native-svg'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -929,6 +985,8 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetHttpsGetImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -942,6 +1000,8 @@ describe('Integration — add-package flow', () => {
 
   test('installation failure exits with code 1', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFsImpl(mockFsForIntegrity())
     setSpawnSyncImpl((_cmd, _args, _opts) => ({ status: 1 }))
 
     const argv = ['lodash@4.17.21']
@@ -962,6 +1022,8 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetHttpsGetImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 1)

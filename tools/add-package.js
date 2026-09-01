@@ -43,6 +43,8 @@
 //   See the "Adding New Dependencies" section in README.md for details.
 
 const { spawnSync } = require('node:child_process')
+const fs = require('node:fs')
+const https = require('node:https')
 const path = require('node:path')
 
 // Reuses fetchPackageAge and resolveExactVersion from check-package-age.js to keep
@@ -65,6 +67,24 @@ function setSpawnSyncImpl(fn) {
 }
 function resetSpawnSyncImpl() {
   spawnSyncImpl = spawnSync
+}
+
+// Exposed for tests so network calls can be mocked.
+let httpsGetImpl = https.get
+function setHttpsGetImpl(fn) {
+  httpsGetImpl = fn
+}
+function resetHttpsGetImpl() {
+  httpsGetImpl = https.get
+}
+
+// Exposed for tests so filesystem calls can be mocked.
+let fsImpl = fs
+function setFsImpl(fn) {
+  fsImpl = fn
+}
+function resetFsImpl() {
+  fsImpl = fs
 }
 
 const config = loadConfig()
@@ -115,6 +135,129 @@ function validateArgs(argv = process.argv.slice(2)) {
     )
     process.exit(1)
   }
+}
+
+// Fetches the version manifest from the npm registry.
+// Used to obtain the tarball integrity BEFORE installation so we can detect
+// time-of-check/time-of-use substitution after npm install.
+function fetchVersionManifest(name, version) {
+  return new Promise((resolve, reject) => {
+    let settled = false
+    const safeResolve = (val) => {
+      if (!settled) {
+        settled = true
+        resolve(val)
+      }
+    }
+    const safeReject = (err) => {
+      if (!settled) {
+        settled = true
+        reject(err)
+      }
+    }
+
+    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
+
+    const req = httpsGetImpl(
+      url,
+      {
+        headers: { Accept: 'application/json' },
+        timeout: config.pkgAgeCheck.registryTimeoutMs,
+      },
+      (res) => {
+        let data = ''
+        res.on('data', (chunk) => {
+          data += chunk
+          if (
+            Buffer.byteLength(data) >
+            config.pkgAgeCheck.maxResponseMB * 1024 * 1024
+          ) {
+            res.destroy()
+            safeReject(
+              new Error(
+                `Manifest response for ${name}@${version} exceeds ${config.pkgAgeCheck.maxResponseMB} MB limit`,
+              ),
+            )
+          }
+        })
+        res.on('error', (err) => {
+          safeReject(
+            new Error(`Stream error for ${name}@${version}: ${err.message}`),
+          )
+        })
+        res.on('end', () => {
+          if (res.statusCode !== 200) {
+            safeReject(
+              new Error(
+                `Registry returned HTTP ${res.statusCode} for ${name}@${version}`,
+              ),
+            )
+            return
+          }
+          try {
+            safeResolve(JSON.parse(data))
+          } catch (err) {
+            safeReject(
+              new Error(
+                `Failed to parse manifest for ${name}@${version}: ${err.message}`,
+              ),
+            )
+          }
+        })
+      },
+    )
+
+    req.on('timeout', () => {
+      req.destroy()
+      safeReject(new Error(`Timeout fetching manifest for ${name}@${version}`))
+    })
+    req.on('error', (err) => {
+      safeReject(
+        new Error(
+          `Network error fetching manifest for ${name}@${version}: ${err.message}`,
+        ),
+      )
+    })
+  })
+}
+
+// Reads the installed integrity from package-lock.json for a given package.
+// The integrity is written by npm after install and represents the tarball
+// that was actually placed in node_modules.
+function readInstalledIntegrity(name) {
+  try {
+    const lockPath = path.resolve(process.cwd(), 'package-lock.json')
+    const lock = JSON.parse(fsImpl.readFileSync(lockPath, 'utf8'))
+    const pkgKey = `node_modules/${name}`
+    return lock.packages?.[pkgKey]?.integrity ?? null
+  } catch {
+    return null
+  }
+}
+
+// Verifies the tarball integrity installed by npm matches the integrity
+// obtained from the registry before installation.
+async function verifyInstalledIntegrity(name, version, expectedIntegrity) {
+  if (!expectedIntegrity) {
+    throw new Error(
+      `No integrity found in registry manifest for ${name}@${version}`,
+    )
+  }
+
+  const installedIntegrity = readInstalledIntegrity(name)
+  if (!installedIntegrity) {
+    throw new Error(
+      `No integrity found in package-lock.json for ${name}@${version}`,
+    )
+  }
+
+  if (installedIntegrity !== expectedIntegrity) {
+    throw new Error(
+      `Integrity mismatch for ${name}@${version}: expected ${expectedIntegrity}, found ${installedIntegrity}`,
+    )
+  }
+
+  return true
 }
 
 // Returns the three values that vary by dependency type.
@@ -202,6 +345,27 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
     `  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
   )
 
+  // Step 2.5 — Fetch registry manifest and pin tarball integrity before install.
+  // This closes the TOCTOU window: we record the expected integrity at check time
+  // and re-verify it after npm install against the actual lockfile entry.
+  console.log(`\nPinning tarball integrity for ${name}@${exactVersion}...`)
+  let expectedIntegrity
+  try {
+    const manifest = await fetchVersionManifest(name, exactVersion)
+    expectedIntegrity = manifest.dist?.integrity ?? null
+    if (!expectedIntegrity) {
+      throw new Error(
+        `Registry manifest for ${name}@${exactVersion} does not contain dist.integrity`,
+      )
+    }
+    console.log(`  OK       integrity ${expectedIntegrity}`)
+  } catch (err) {
+    console.error(`\nFailed to pin tarball integrity: ${err.message}`)
+    console.error('Installation aborted — cannot verify package after install.')
+    exitFn(1)
+    return
+  }
+
   // Step 3 — Install the package (only if not dry-run).
   // --save-exact pins the version without ^/~ operators in package.json,
   // aligned with save-exact=true in .npmrc (intentional redundancy for clarity).
@@ -267,6 +431,23 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
     console.error(
       'Run `npm ci` to restore a clean state from package-lock.json.',
     )
+    exitFn(1)
+    return
+  }
+
+  // Step 4.5 — Re-verify tarball integrity after installation.
+  // Detects time-of-check/time-of-use substitution: a malicious registry or
+  // MitM could serve a different tarball than the one whose integrity we pinned.
+  console.log('\nRe-verifying installed tarball integrity...')
+  try {
+    await verifyInstalledIntegrity(name, exactVersion, expectedIntegrity)
+    console.log(`  OK       installed integrity matches registry`)
+  } catch (err) {
+    console.error(`\nIntegrity verification FAILED: ${err.message}`)
+    console.error(
+      'The installed tarball may have been substituted after the age check.',
+    )
+    console.error(`Run \`npm uninstall ${name}\` and try again.`)
     exitFn(1)
     return
   }
@@ -347,4 +528,10 @@ module.exports = {
   main,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
+  setHttpsGetImpl,
+  resetHttpsGetImpl,
+  setFsImpl,
+  resetFsImpl,
+  fetchVersionManifest,
+  verifyInstalledIntegrity,
 }

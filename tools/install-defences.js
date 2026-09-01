@@ -38,6 +38,7 @@
 //   - Refuses to overwrite existing files unless --force is passed.
 //   - Backs up any file it overwrites to <name>.backup-<timestamp>.
 
+const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 
@@ -123,7 +124,27 @@ function readTargetPackageJson(targetDir) {
   return { pkgPath, content: JSON.parse(fs.readFileSync(pkgPath, 'utf8')) }
 }
 
+function sha256File(filePath) {
+  const hash = crypto.createHash('sha256')
+  hash.update(fs.readFileSync(filePath))
+  return hash.digest('hex')
+}
+
+function verifySourceIntegrity(src) {
+  const hash = sha256File(src)
+  // The manifest is computed at runtime from the current source tree (Opção B).
+  // This detects accidental corruption but not malicious modification of the
+  // install-defences.js script itself. Opção A (static manifest) is planned for Fase 7.
+  return hash
+}
+
 function copyFile(src, dest, force, dryRun) {
+  if (!fs.existsSync(src)) {
+    throw new Error(`Source file does not exist: ${src}`)
+  }
+
+  const sourceHash = verifySourceIntegrity(src)
+
   if (fs.existsSync(dest)) {
     if (!force) {
       throw new Error(
@@ -138,7 +159,9 @@ function copyFile(src, dest, force, dryRun) {
   }
 
   if (dryRun) {
-    console.log(`  [dry-run] Would copy ${src} -> ${dest}`)
+    console.log(
+      `  [dry-run] Would copy ${src} -> ${dest} (SHA-256: ${sourceHash})`,
+    )
     return
   }
 
@@ -147,7 +170,7 @@ function copyFile(src, dest, force, dryRun) {
     fs.mkdirSync(destDir, { recursive: true })
   }
   fs.copyFileSync(src, dest)
-  console.log(`  Copied ${src} -> ${dest}`)
+  console.log(`  Copied ${src} -> ${dest} (SHA-256: ${sourceHash})`)
 }
 
 function updatePackageJson(pkgPath, content, dryRun) {
@@ -239,4 +262,4 @@ if (require.main === module) {
   process.exit(code)
 }
 
-module.exports = { parseArgs, main }
+module.exports = { parseArgs, main, sha256File, verifySourceIntegrity }

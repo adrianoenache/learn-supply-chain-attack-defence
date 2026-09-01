@@ -101,4 +101,10 @@ describe('config loader', () => {
     assert.ok(config.paths.packageJson.endsWith('package.json'))
     assert.ok(config.paths.packageLockJson.endsWith('package-lock.json'))
   })
+
+  test('exposes huskyPreCommitHash when configured', () => {
+    setImpls({ fs: buildFs({ huskyPreCommitHash: 'abc123' }) })
+    const config = loadConfig()
+    assert.equal(config.huskyPreCommitHash, 'abc123')
+  })
 })

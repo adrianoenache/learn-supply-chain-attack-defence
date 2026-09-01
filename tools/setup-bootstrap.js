@@ -21,10 +21,14 @@
 //   - The generated lock file must be reviewed and committed.
 
 const { spawnSync } = require('node:child_process')
+const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+
 const LOCK_FILE = path.resolve(process.cwd(), 'package-lock.json')
+const PRE_COMMIT_PATH = path.resolve(process.cwd(), '.husky/pre-commit')
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
@@ -33,6 +37,38 @@ function setSpawnSyncImpl(fn) {
 }
 function resetSpawnSyncImpl() {
   spawnSyncImpl = spawnSync
+}
+
+function sha256File(filePath) {
+  const hash = crypto.createHash('sha256')
+  hash.update(fs.readFileSync(filePath))
+  return hash.digest('hex')
+}
+
+function verifyPreCommitHook() {
+  const config = loadConfig()
+  const expectedHash = config.huskyPreCommitHash
+  if (!expectedHash) {
+    console.log(
+      'ℹ️  No huskyPreCommitHash configured; skipping hook integrity check.',
+    )
+    return true
+  }
+
+  if (!fs.existsSync(PRE_COMMIT_PATH)) {
+    throw new Error(`Pre-commit hook not found at ${PRE_COMMIT_PATH}`)
+  }
+
+  const actualHash = sha256File(PRE_COMMIT_PATH)
+  if (actualHash !== expectedHash) {
+    throw new Error(
+      `Pre-commit hook integrity check failed: expected ${expectedHash}, found ${actualHash}. ` +
+        'The hook may have been modified outside the normal workflow.',
+    )
+  }
+
+  console.log('✅ Pre-commit hook integrity verified.')
+  return true
 }
 
 function runCmd(label, cmd, args, opts = {}) {
@@ -71,6 +107,8 @@ function main() {
   runCmd('Package age check', 'npm', ['run', 'defence:pkg-age-check'])
   runCmd('Signature verification', 'npm', ['audit', 'signatures'])
   runCmd('Vulnerability audit', 'npm', ['audit', '--audit-level=high'])
+
+  verifyPreCommitHook()
 
   console.log('\nBootstrap complete.')
   console.log(

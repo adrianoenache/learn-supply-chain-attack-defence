@@ -25,6 +25,8 @@ async function withTempProject(fn, { hasLock = false } = {}) {
   if (hasLock) {
     fs.writeFileSync(path.join(tmpDir, 'package-lock.json'), '{}\n')
   }
+  fs.mkdirSync(path.join(tmpDir, '.husky'), { recursive: true })
+  fs.writeFileSync(path.join(tmpDir, '.husky', 'pre-commit'), 'npm run lint\n')
   process.chdir(tmpDir)
   try {
     return await fn(tmpDir)
@@ -78,6 +80,19 @@ describe('setup-bootstrap', () => {
           cmd: 'npm',
           args: ['audit', '--audit-level=high'],
         })
+      } finally {
+        mod.resetSpawnSyncImpl()
+      }
+    })
+  })
+
+  test('main skips hook check when huskyPreCommitHash is not configured', async () => {
+    await withTempProject(async () => {
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn([]))
+      try {
+        const code = mod.main()
+        assert.equal(code, 0)
       } finally {
         mod.resetSpawnSyncImpl()
       }
