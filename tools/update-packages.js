@@ -30,12 +30,13 @@ const path = require('node:path')
 const readline = require('node:readline')
 const { spawnSync } = require('node:child_process')
 
-const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
-const DECISIONS_FILE = path.resolve(
-  __dirname,
-  '../.defence-update-decisions.json',
-)
-const PROMPT_TIMEOUT_MS = 30000
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+
+const config = loadConfig()
+
+const STATE_FILE = config.paths.updateCheckState
+const DECISIONS_FILE = config.paths.updateDecisions
+const PROMPT_TIMEOUT_MS = config.updatePackages.promptTimeoutMs
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync

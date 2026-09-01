@@ -13,19 +13,18 @@
 //   1 — Node.js or npm is below the required version.
 
 const { spawnSync } = require('node:child_process')
-const fs = require('node:fs')
 const path = require('node:path')
 
-const PKG_PATH = path.resolve(__dirname, '../package.json')
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
-let fsImpl = fs
+let loadConfigImpl = loadConfig
 let spawnSyncImpl = spawnSync
 let exitImpl = process.exit
 let logImpl = console.log
 let errorImpl = console.error
 
 function setImpls(impls) {
-  if (impls.fs) fsImpl = impls.fs
+  if (impls.loadConfig) loadConfigImpl = impls.loadConfig
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.exit) exitImpl = impls.exit
   if (impls.log) logImpl = impls.log
@@ -33,7 +32,7 @@ function setImpls(impls) {
 }
 
 function resetImpls() {
-  fsImpl = fs
+  loadConfigImpl = loadConfig
   spawnSyncImpl = spawnSync
   exitImpl = process.exit
   logImpl = console.log
@@ -109,8 +108,8 @@ function getNpmVersion() {
 }
 
 function main() {
-  const pkg = JSON.parse(fsImpl.readFileSync(PKG_PATH, 'utf8'))
-  const engines = pkg.engines || {}
+  const config = loadConfigImpl()
+  const engines = config.engines || {}
 
   const nodeRange = engines.node
   const npmRange = engines.npm

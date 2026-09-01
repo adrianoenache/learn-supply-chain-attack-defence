@@ -12,10 +12,11 @@ Thank you for your interest in improving this project. This guide explains how t
 
 1. Fork the repository and create a feature branch.
 2. Make your changes.
-3. Run `npm test` and `npm run lint`. Both must pass.
+3. Run `npm test`, `npm run lint`, and `npm run format -- --check`. All must pass.
 4. Run `bash .husky/pre-commit` to simulate the commit gate.
 5. Commit using clear messages in English.
 6. Open a pull request describing what changed and why.
+7. Ensure the CI pipeline is green before merging. Pull requests with failing CI checks will not be merged.
 
 ## Adding Dependencies
 

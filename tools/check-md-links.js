@@ -12,8 +12,12 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+
+const config = loadConfig()
+
 const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/g
-const IGNORED_DIRS = new Set(['node_modules', '.git'])
+const IGNORED_DIRS = new Set(config.checkMdLinks.ignoredDirs)
 
 function findMarkdownFiles(dir) {
   const results = []

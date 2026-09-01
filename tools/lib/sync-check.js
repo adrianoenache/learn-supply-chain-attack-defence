@@ -13,13 +13,13 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
+const { loadConfig } = require(path.resolve(__dirname, './config.js'))
+
+const config = loadConfig()
 const pkg = require(path.resolve(__dirname, '../../package.json'))
 
-const LOCK_FILE = path.resolve(__dirname, '../../package-lock.json')
-const NODE_MODULES_LOCK_FILE = path.resolve(
-  __dirname,
-  '../../node_modules/.package-lock.json',
-)
+const LOCK_FILE = config.paths.packageLockJson
+const NODE_MODULES_LOCK_FILE = config.paths.nodeModulesLockJson
 
 let fsImpl = fs
 let spawnSyncImpl = spawnSync

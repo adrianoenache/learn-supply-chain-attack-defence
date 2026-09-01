@@ -21,28 +21,31 @@ const path = require('node:path')
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
 // Reads the declared dependencies from the project's package.json.
 // Only native modules are used here — this script must not depend on installable
 // packages because it runs before installation itself.
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
+const config = loadConfig()
+
 // Minimum number of days since publication for a package to be accepted.
 // Aligned with min-release-age=7 in .npmrc (npm's native defense layer).
 // Configurable via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
-const MIN_AGE_DAYS = pkg.pkgAgeCheck?.minAgeDays ?? 7
+const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
 
 // Maximum response size per registry call (default: 20 MB).
 // Full package documents with long history can be large, but no known real package
 // exceeds 20 MB. The cap protects against pathological scenarios (malformed response,
 // data injection in transit, infinite chunk loops).
 // Override via package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
-const MAX_RESPONSE_BYTES = (pkg.pkgAgeCheck?.maxResponseMB ?? 20) * 1024 * 1024
+const MAX_RESPONSE_BYTES = config.pkgAgeCheck.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries (default: 10).
 // Avoids rate-limiting in projects with many dependencies.
 // Configurable via package.json: "pkgAgeCheck": { "concurrency": 5 }
-const CONCURRENCY = pkg.pkgAgeCheck?.concurrency ?? 10
+const CONCURRENCY = config.pkgAgeCheck.concurrency
 
 // Resolves the operation mode from command-line arguments.
 // Returns an object with { transitive, pkgArg } or exits on invalid input.
@@ -152,7 +155,10 @@ function fetchPackageAge(name, version) {
 
     const req = https.get(
       url,
-      { headers: { Accept: 'application/json' }, timeout: 10000 },
+      {
+        headers: { Accept: 'application/json' },
+        timeout: config.pkgAgeCheck.registryTimeoutMs,
+      },
       (res) => {
         let data = ''
 

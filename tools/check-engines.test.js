@@ -9,7 +9,6 @@ const SCRIPT_PATH = path.resolve(__dirname, './check-engines.js')
 
 let captured = { logs: [], errors: [] }
 let exitCode = null
-const fsState = {}
 const npmVersion = '11.17.0'
 
 function readScriptExports() {
@@ -20,14 +19,8 @@ function readScriptExports() {
 function setImpls(impls) {
   const script = readScriptExports()
   script.setImpls({
-    fs: impls.fs || {
-      readFileSync: (filePath, _encoding) => {
-        if (filePath.endsWith('package.json')) {
-          return JSON.stringify(impls.pkg || {})
-        }
-        return fsState[filePath]
-      },
-    },
+    loadConfig:
+      impls.loadConfig || (() => ({ engines: impls.pkg?.engines || {} })),
     spawnSync:
       impls.spawnSync || (() => ({ status: 0, stdout: `${npmVersion}\n` })),
     exit: (code) => {

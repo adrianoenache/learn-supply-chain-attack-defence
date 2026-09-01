@@ -15,18 +15,22 @@ const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 
+const { loadConfig } = require(path.resolve(__dirname, '../../lib/config.js'))
+
+const config = loadConfig()
+const e2eConfig = config.e2e
+
 // 24 hours by default; override with E2E_CACHE_TTL_HOURS=<number>.
-const TTL_HOURS = Number.parseInt(process.env.E2E_CACHE_TTL_HOURS, 10) || 24
-const TTL_MS = TTL_HOURS * 60 * 60 * 1000
+const TTL_MS = e2eConfig.cacheTtlHours * 60 * 60 * 1000
 
 const CACHE_DIR = path.resolve(__dirname, '../.cache')
 
 // Maximum response size per registry call (20 MB).
 // Mirrors the cap in check-package-age.js to avoid pathological payloads.
-const MAX_RESPONSE_BYTES = 20 * 1024 * 1024
+const MAX_RESPONSE_BYTES = config.pkgAgeCheck.maxResponseMB * 1024 * 1024
 
 // Network timeout for registry requests (10 seconds).
-const REQUEST_TIMEOUT_MS = 10000
+const REQUEST_TIMEOUT_MS = config.pkgAgeCheck.registryTimeoutMs
 
 function cachePath(name, version) {
   const key = crypto

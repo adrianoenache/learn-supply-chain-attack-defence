@@ -56,6 +56,7 @@ const checkPackageAge = require(
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
@@ -66,10 +67,10 @@ function resetSpawnSyncImpl() {
   spawnSyncImpl = spawnSync
 }
 
-const pkg = require(path.resolve(__dirname, '../package.json'))
+const config = loadConfig()
 
 // Reads the same settings as check-package-age.js to keep behavior consistent.
-const MIN_AGE_DAYS = pkg.pkgAgeCheck?.minAgeDays ?? 7
+const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
 
 // Parses command-line arguments.
 // argv format: ["<package>@<version>", "[--dev|--peer]", "[--dry-run]"]

@@ -16,40 +16,14 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
-const pkg = require(path.resolve(__dirname, '../package.json'))
-const config = pkg.licensesCheck ?? {}
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
-const DEFAULT_ALLOWED = [
-  'MIT',
-  'Apache-2.0',
-  'BSD-2-Clause',
-  'BSD-3-Clause',
-  'ISC',
-  '0BSD',
-]
+const config = loadConfig()
+const licenseConfig = config.licensesCheck
 
-const DEFAULT_PROHIBITED = [
-  'GPL-1.0',
-  'GPL-2.0',
-  'GPL-3.0',
-  'AGPL-1.0',
-  'AGPL-3.0',
-  'LGPL-2.0',
-  'LGPL-2.1',
-  'LGPL-3.0',
-  'MPL-1.0',
-  'MPL-1.1',
-  'MPL-2.0',
-  'UNLICENSED',
-]
-
-const ALLOWED = new Set(
-  (config.allowed ?? DEFAULT_ALLOWED).map(normalizeLicense),
-)
-const PROHIBITED = new Set(
-  (config.prohibited ?? DEFAULT_PROHIBITED).map(normalizeLicense),
-)
-const FAIL_ON_UNKNOWN = config.failOnUnknown ?? false
+const ALLOWED = new Set(licenseConfig.allowed.map(normalizeLicense))
+const PROHIBITED = new Set(licenseConfig.prohibited.map(normalizeLicense))
+const FAIL_ON_UNKNOWN = licenseConfig.failOnUnknown
 
 // ---------------------------------------------------------------------------
 // Dependency injection hooks — exposed for tests.

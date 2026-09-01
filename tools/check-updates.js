@@ -28,51 +28,44 @@ const {
   setImpls: setSyncImpls,
   resetImpls: resetSyncImpls,
 } = require(path.resolve(__dirname, './lib/sync-check.js'))
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
-// Reads the project manifest. Only native modules are used so this script can
-// run before any installation is complete.
-const pkg = require(path.resolve(__dirname, '../package.json'))
-
-// Configuration block, kept next to pkgAgeCheck in package.json.
-const config = pkg.updateCheck ?? {}
+const config = loadConfig()
+const updateConfig = config.updateCheck
 
 // Minimum age for a new release to be considered safe to update to.
 // Falls back to pkgAgeCheck.minAgeDays, then to the .npmrc min-release-age
 // value (7 days in this project). Keeps all age-based defenses aligned.
-const MIN_AGE_DAYS =
-  config.minAgeDays ??
-  pkg.pkgAgeCheck?.minAgeDays ??
-  resolveNpmrcMinReleaseAge() ??
-  7
+const MIN_AGE_DAYS = updateConfig.minAgeDays
 
 // How often (in days) the reminder should be shown when alwaysRemind is false.
-const REMIND_EVERY_DAYS = config.remindEveryDays ?? 1
+const REMIND_EVERY_DAYS = updateConfig.remindEveryDays
 
 // If true, the alert is shown on every run when updates exist.
-const ALWAYS_REMIND = config.alwaysRemind ?? false
+const ALWAYS_REMIND = updateConfig.alwaysRemind
 
 // Whether to include transitive dependencies in the outdated check.
-const INCLUDE_TRANSITIVE = config.includeTransitive ?? false
+const INCLUDE_TRANSITIVE = updateConfig.includeTransitive
 
 // Network timeout for registry calls, to keep pre-commit fast.
-const REGISTRY_TIMEOUT_MS = config.registryTimeoutMs ?? 10000
+const REGISTRY_TIMEOUT_MS = updateConfig.registryTimeoutMs
 
 // How long cached results remain valid before a rescan is needed.
-const CACHE_TTL_HOURS = config.cacheTtlHours ?? 24
+const CACHE_TTL_HOURS = updateConfig.cacheTtlHours
 
 // Maximum response size per registry call (20 MB), mirroring check-package-age.js.
-const MAX_RESPONSE_BYTES = 20 * 1024 * 1024
+const MAX_RESPONSE_BYTES = updateConfig.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries, mirroring check-package-age.js.
-const CONCURRENCY = 10
+const CONCURRENCY = updateConfig.concurrency
 
 // Historical scan tracking settings.
-const HISTORY_MAX_ENTRIES = config.historyMaxEntries ?? 30
-const STUCK_IN_QUARANTINE_THRESHOLD = config.stuckInQuarantineThreshold ?? 3
-const HIGH_RELEASE_CADENCE_DAYS = config.highReleaseCadenceDays ?? 7
+const HISTORY_MAX_ENTRIES = updateConfig.historyMaxEntries
+const STUCK_IN_QUARANTINE_THRESHOLD = updateConfig.stuckInQuarantineThreshold
+const HIGH_RELEASE_CADENCE_DAYS = updateConfig.highReleaseCadenceDays
 
 // Local state file; never committed (see .gitignore).
-const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
+const STATE_FILE = config.paths.updateCheckState
 
 // ---------------------------------------------------------------------------
 // Dependency injection hooks — exposed for tests.
@@ -145,17 +138,6 @@ function readJsonSafe(filePath) {
 
 function writeJson(filePath, data) {
   fsImpl.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
-}
-
-function resolveNpmrcMinReleaseAge() {
-  try {
-    const npmrcPath = path.resolve(__dirname, '../.npmrc')
-    const content = fs.readFileSync(npmrcPath, 'utf8')
-    const match = content.match(/^min-release-age\s*=\s*(\d+)/m)
-    return match ? Number.parseInt(match[1], 10) : null
-  } catch {
-    return null
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -486,29 +468,41 @@ function calculateReleaseCadence(history, name) {
 function calculateConfidence(entry, history) {
   const { daysOld, severity } = entry
 
-  // Age contributes up to 40 points. Older releases are safer.
-  const agePoints = Math.min(40, Math.floor((daysOld ?? 0) / 7) * 10)
+  const scoring = updateConfig.scoringRules
 
-  // Semver severity contributes up to 30 points.
+  // Age contributes up to a configurable number of points. Older releases are safer.
+  const agePoints = Math.min(
+    scoring.agePointsMax,
+    Math.floor((daysOld ?? 0) / scoring.agePointsStepDays) *
+      scoring.agePointsStep,
+  )
+
+  // Semver severity contributes a configurable number of points.
   const severityPoints =
-    severity === 'patch' ? 30 : severity === 'minor' ? 20 : 0
+    severity === 'patch'
+      ? scoring.severityPointsPatch
+      : severity === 'minor'
+        ? scoring.severityPointsMinor
+        : scoring.severityPointsMajor
 
-  // Release cadence can reduce the score by up to 30 points.
+  // Release cadence can reduce the score by a configurable number of points.
   const cadence = calculateReleaseCadence(history, entry.name)
   let cadencePenalty = 0
   if (cadence !== null && cadence < HIGH_RELEASE_CADENCE_DAYS) {
     cadencePenalty = Math.min(
-      30,
-      Math.floor((HIGH_RELEASE_CADENCE_DAYS - cadence) / 2) * 5,
+      scoring.cadencePenaltyMax,
+      Math.floor(
+        (HIGH_RELEASE_CADENCE_DAYS - cadence) / scoring.cadencePenaltyUnitDays,
+      ) * scoring.cadencePenaltyUnit,
     )
   }
 
   const score = Math.max(0, agePoints + severityPoints - cadencePenalty)
 
   let label
-  if (score >= 70) {
+  if (score >= scoring.scoreRecommendedMin) {
     label = 'recommended'
-  } else if (score >= 40) {
+  } else if (score >= scoring.scoreReviewRequiredMin) {
     label = 'review required'
   } else {
     label = 'high risk'
