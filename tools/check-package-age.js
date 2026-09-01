@@ -15,13 +15,15 @@
 // directly with --transitive (npm-reinstall post-install),
 // and internally by add-package.js with --pkg before any installation.
 
-const https = require('node:https')
 const path = require('node:path')
 
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { fetchRegistryJson } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
 
 // Reads the declared dependencies from the project's package.json.
 // Only native modules are used here — this script must not depend on installable
@@ -132,113 +134,33 @@ function resolveExactVersion(version) {
 // because only the full package document contains the `time` map with the publication
 // date of each individual version. The abbreviated packument (vnd.npm.install-v1+json)
 // does not include the `time` field, so the full document is required.
-function fetchPackageAge(name, version) {
-  return new Promise((resolve, reject) => {
-    // Guard against double resolve/reject calls: in socket error scenarios,
-    // `res.on('error')` and `res.on('end')` may fire in sequence in the same tick.
-    // Promises silently ignore the second call, but the flag makes it explicit.
-    let settled = false
-    const safeResolve = (val) => {
-      if (!settled) {
-        settled = true
-        resolve(val)
-      }
-    }
-    const safeReject = (err) => {
-      if (!settled) {
-        settled = true
-        reject(err)
-      }
-    }
-
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-
-    const req = https.get(
-      url,
-      {
-        headers: { Accept: 'application/json' },
-        timeout: config.pkgAgeCheck.registryTimeoutMs,
-      },
-      (res) => {
-        let data = ''
-
-        // Accumulates HTTP response chunks into a string.
-        // Stops the transfer if the accumulated size exceeds MAX_RESPONSE_BYTES.
-        res.on('data', (chunk) => {
-          data += chunk
-          if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
-            res.destroy()
-            const limitMB = MAX_RESPONSE_BYTES / (1024 * 1024)
-            safeReject(
-              new Error(
-                `Response for ${name} exceeds ${limitMB} MB limit. ` +
-                  `Set "pkgAgeCheck": { "maxResponseMB": <value> } in package.json to increase the limit.`,
-              ),
-            )
-          }
-        })
-
-        // Mid-stream errors (connection lost after response started) fire on `res`,
-        // not on `req` — they need their own handler.
-        res.on('error', (err) => {
-          safeReject(new Error(`Stream error for ${name}: ${err.message}`))
-        })
-
-        res.on('end', () => {
-          if (res.statusCode !== 200) {
-            safeReject(
-              new Error(`Registry returned HTTP ${res.statusCode} for ${name}`),
-            )
-            return
-          }
-
-          try {
-            const info = JSON.parse(data)
-
-            // The `time` field is an object where each key is a published version
-            // and the value is the ISO 8601 publication timestamp.
-            // Example: { "1.0.0": "2024-01-15T10:00:00.000Z", ... }
-            if (!info.time?.[version]) {
-              safeReject(
-                new Error(
-                  `No publish date found for ${name}@${version} in registry`,
-                ),
-              )
-              return
-            }
-
-            const published = new Date(info.time[version])
-
-            if (Number.isNaN(published.getTime())) {
-              safeReject(
-                new Error(
-                  `Could not parse publish date for ${name}@${version}`,
-                ),
-              )
-              return
-            }
-
-            // Converts the difference between now and the publication date from milliseconds to days.
-            const ageDays =
-              (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24)
-            safeResolve({ name, version, ageDays, published })
-          } catch (err) {
-            safeReject(
-              new Error(`Failed to parse response for ${name}: ${err.message}`),
-            )
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy()
-      safeReject(new Error(`Timeout fetching registry data for ${name}`))
-    })
-    req.on('error', (err) => {
-      safeReject(new Error(`Network error for ${name}: ${err.message}`))
-    })
+async function fetchPackageAge(name, version) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  const info = await fetchRegistryJson(name, version, {
+    url,
+    cacheTtlHours: config.updateCheck.cacheTtlHours,
+    maxResponseBytes: MAX_RESPONSE_BYTES,
+    timeoutMs: config.pkgAgeCheck.registryTimeoutMs,
+    retryMaxAttempts: config.updateCheck.retryMaxAttempts,
+    retryInitialDelayMs: config.updateCheck.retryInitialDelayMs,
+    retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
+    retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
+    acceptGzip: true,
   })
+
+  if (!info.time?.[version]) {
+    throw new Error(`No publish date found for ${name}@${version} in registry`)
+  }
+
+  const published = new Date(info.time[version])
+
+  if (Number.isNaN(published.getTime())) {
+    throw new Error(`Could not parse publish date for ${name}@${version}`)
+  }
+
+  // Converts the difference between now and the publication date from milliseconds to days.
+  const ageDays = (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24)
+  return { name, version, ageDays, published }
 }
 
 // Runs an array of async functions with at most `limit` running concurrently.

@@ -10,13 +10,19 @@ Quando você executa `npm run defence:update-check` (ou faz commit, o que dispar
 
 1. **Verificação de sincronia local**: verifica se `node_modules` está em sincronia com `package-lock.json`.
 2. **Scan de desatualizados**: executa `npm outdated --json` para descobrir atualizações disponíveis.
-3. **Consulta de idade no registry**: consulta o registry do npm pela data de publicação de cada versão `latest`.
+3. **Consulta de idade no registry**: consulta o registry do npm pela data de publicação de cada versão `latest` através das camadas compartilhadas [`registry-cache.js`](../../../tools/lib/registry-cache.js) e [`retry-fetch.js`](../../../tools/lib/retry-fetch.js).
 4. **Classificação**:
    - **Elegível** — a nova versão tem pelo menos `minAgeDays` de idade, então já teve tempo de ser revisada pela comunidade.
    - **Quarentena** — a nova versão é muito recente, ou a consulta ao registry falhou. Essas atualizações são mostradas apenas para fins de conscientização, ainda não sendo recomendadas.
 5. **Lembrete**: imprime um aviso apenas se existirem atualizações e o intervalo de lembrete configurado já tiver passado.
 
 Se as dependências locais estiverem desatualizadas (por exemplo, após fazer pull das alterações de um colega), o script recomenda executar `npm ci` primeiro. Isso evita que você avalie atualizações sobre uma árvore instalada desatualizada.
+
+As chamadas ao registry reutilizam a mesma camada de cache, gzip e retry da verificação de idade dos pacotes. Para ignorar o cache do registry durante o debug, defina:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:update-check
+```
 
 ## Configuração
 
@@ -40,7 +46,7 @@ O comportamento é controlado pelo bloco `updateCheck` no `package.json`:
 | `alwaysRemind` | `false` | Se `true`, o aviso aparece sempre que houver atualizações. |
 | `includeTransitive` | `false` | Se `true`, também verifica dependências transitivas. |
 | `registryTimeoutMs` | `10000` | Timeout de rede para chamadas ao registry. |
-| `cacheTtlHours` | `24` | Tempo de vida do cache local de resultados do scan. |
+| `cacheTtlHours` | `24` | Tempo de vida do cache de registry por pacote. É independente do estado de scan em `.defence-update-check.json`. |
 | `historyMaxEntries` | `30` | Número máximo de scans passados mantidos no histórico local. |
 | `stuckInQuarantineThreshold` | `3` | Quantos scans consecutivos um pacote deve passar em quarentena para ser marcado como preso. |
 | `highReleaseCadenceDays` | `7` | Média de dias entre releases abaixo da qual um pacote é considerado de alta cadência. |

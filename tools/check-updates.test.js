@@ -12,7 +12,6 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
-const { EventEmitter } = require('node:events')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'check-updates.js')
 
@@ -68,29 +67,19 @@ function makeMockSpawn(calls, responses) {
   }
 }
 
-function makeMockHttpsGet(registryResponses) {
-  return function mockHttpsGet(url, _opts, cb) {
-    const name = decodeURIComponent(
-      url.replace('https://registry.npmjs.org/', ''),
-    )
-    const response = registryResponses[name] ?? { statusCode: 404, body: '{}' }
-
-    const res = new EventEmitter()
-    res.statusCode = response.statusCode ?? 200
-
-    process.nextTick(() => {
-      cb(res)
-      if (response.error) {
-        res.emit('error', response.error)
-      } else {
-        res.emit('data', response.body)
-        res.emit('end')
-      }
-    })
-
-    const req = new EventEmitter()
-    req.destroy = () => {}
-    return req
+function makeMockFetchRegistryJson(registryResponses) {
+  return async function mockFetchRegistryJson(name, _version, _options) {
+    const response = registryResponses[name] ?? {
+      statusCode: 404,
+      body: {},
+    }
+    if (response.error) throw response.error
+    if (response.statusCode && response.statusCode !== 200) {
+      const err = new Error(`HTTP ${response.statusCode}`)
+      err.statusCode = response.statusCode
+      throw err
+    }
+    return response.body
   }
 }
 
@@ -170,13 +159,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/biomejs/biome.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,
@@ -225,13 +214,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         husky: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '9.2.0': '2026-08-17T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/typicode/husky.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,
@@ -341,13 +330,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/biomejs/biome.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,
@@ -395,7 +384,7 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: { statusCode: 500, body: '{}' },
       }),
       now: () => baseTime,
@@ -443,13 +432,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/biomejs/biome.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,
@@ -501,13 +490,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/biomejs/biome.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,
@@ -884,13 +873,13 @@ describe('check-updates', () => {
           }),
         },
       }),
-      httpsGet: makeMockHttpsGet({
+      fetchRegistryJson: makeMockFetchRegistryJson({
         biome: {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
             repository: { url: 'git+https://github.com/biomejs/biome.git' },
-          }),
+          },
         },
       }),
       now: () => baseTime,

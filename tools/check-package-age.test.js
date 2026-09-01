@@ -10,9 +10,6 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
-const { EventEmitter } = require('node:events')
-// EventEmitter is used to mock HTTP request/response streams when testing
-// fetchPackageAge() without making real network calls.
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
@@ -20,10 +17,12 @@ const {
   resolveExactVersion,
   fetchPackageAge,
   runWithConcurrencyLimit,
-  MAX_RESPONSE_BYTES,
   main,
   buildDeps,
 } = require(path.resolve(__dirname, './check-package-age.js'))
+const { setImpls: setRegistryImpls, resetImpls: resetRegistryImpls } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
@@ -32,8 +31,8 @@ const {
   main: addPackageMain,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
-  setHttpsGetImpl,
-  resetHttpsGetImpl,
+  setFetchRegistryJsonImpl,
+  resetFetchRegistryJsonImpl,
   setFsImpl,
   resetFsImpl,
 } = require(path.resolve(__dirname, './add-package.js'))
@@ -309,40 +308,55 @@ describe('runWithConcurrencyLimit', () => {
 // fetchPackageAge
 // ---------------------------------------------------------------------------
 
-describe('fetchPackageAge', () => {
-  const https = require('node:https')
+function registryUrlToName(url) {
+  try {
+    return decodeURIComponent(new URL(url).pathname.slice(1))
+  } catch {
+    return ''
+  }
+}
 
-  // Creates a mock request object with manual event handlers.
-  function makeMockRequest() {
-    const req = new EventEmitter()
-    req.destroy = () => {}
-    return req
+describe('fetchPackageAge', () => {
+  const noOpFs = {
+    existsSync: () => false,
+    mkdirSync: () => {},
+    readFileSync: () => {
+      throw new Error('not found')
+    },
+    writeFileSync: () => {},
+    readdirSync: () => [],
+    unlinkSync: () => {},
   }
 
-  // Creates a mock response object that emits data+end asynchronously,
-  // ensuring listeners are registered before emission.
-  function makeMockResponse(statusCode, body) {
-    const res = new EventEmitter()
-    res.statusCode = statusCode
-    res.destroy = () => {}
-    setImmediate(() => {
-      res.emit('data', body)
-      setImmediate(() => res.emit('end'))
-    })
-    return res
+  function mockFetchRegistryJson(responses) {
+    return async (url) => {
+      const name = registryUrlToName(url)
+      const response = responses[name]
+      if (!response) {
+        const err = new Error(`HTTP 404`)
+        err.statusCode = 404
+        throw err
+      }
+      if (response.error) throw response.error
+      if (response.statusCode && response.statusCode !== 200) {
+        const err = new Error(`HTTP ${response.statusCode}`)
+        err.statusCode = response.statusCode
+        throw err
+      }
+      return response.body
+    }
   }
 
   test('returns { name, version, ageDays, published } for valid HTTP 200', async () => {
     const publishDate = new Date(
       Date.now() - 10 * 24 * 60 * 60 * 1000,
     ).toISOString()
-    const body = JSON.stringify({ time: { '1.0.0': publishDate } })
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: { body: { time: { '1.0.0': publishDate } } },
+      }),
+    })
     try {
       const result = await fetchPackageAge('mypkg', '1.0.0')
       assert.equal(result.name, 'mypkg')
@@ -350,161 +364,43 @@ describe('fetchPackageAge', () => {
       assert.ok(result.ageDays >= 9.9 && result.ageDays <= 10.1)
       assert.ok(result.published instanceof Date)
     } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Registry returned HTTP" for non-200 status', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(404, ''))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Registry returned HTTP 404 for mypkg/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Timeout fetching registry data" when timeout fires', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, _callback) => {
-      const req = makeMockRequest()
-      setImmediate(() => req.emit('timeout'))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Timeout fetching registry data for mypkg/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Network error" for error on req', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, _callback) => {
-      const req = makeMockRequest()
-      setImmediate(() => req.emit('error', new Error('ECONNREFUSED')))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Network error for mypkg: ECONNREFUSED/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Stream error" for mid-stream error on res', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => res.emit('error', new Error('socket hang up')))
-      })
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Stream error for mypkg: socket hang up/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "exceeds" when payload exceeds size limit', async () => {
-    const originalGet = https.get
-    // Buffer.alloc is more efficient than a string literal for allocating MAX_RESPONSE_BYTES + 1.
-    const oversizedChunk = Buffer.alloc(MAX_RESPONSE_BYTES + 1, 120).toString() // 120 = 'x'
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => res.emit('data', oversizedChunk))
-      })
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /exceeds \d+ MB limit/,
-      )
-    } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 
   test('rejects with "No publish date found" when time[version] is missing', async () => {
-    const originalGet = https.get
-    const body = JSON.stringify({
-      time: { '2.0.0': '2024-01-01T00:00:00.000Z' },
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: {
+          body: { time: { '2.0.0': '2024-01-01T00:00:00.000Z' } },
+        },
+      }),
     })
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
         /No publish date found for mypkg@1\.0\.0/,
       )
     } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 
   test('rejects with "Could not parse publish date" for invalid date', async () => {
-    const originalGet = https.get
-    const body = JSON.stringify({ time: { '1.0.0': 'not-a-date' } })
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: { body: { time: { '1.0.0': 'not-a-date' } } },
+      }),
+    })
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
         /Could not parse publish date for mypkg@1\.0\.0/,
       )
     } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Failed to parse response" for malformed JSON', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, 'isto nao e json {{{{'))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Failed to parse response for mypkg/,
-      )
-    } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 })
@@ -597,39 +493,40 @@ describe('CLI — add-package flags', () => {
 // ---------------------------------------------------------------------------
 
 describe('Integration — check-package-age dependency modes', () => {
-  const https = require('node:https')
-
-  // Mocks the npm registry by replacing https.get so check-package-age reads
-  // from a local fixture instead of the real registry. Returns a restore function.
+  // Mocks the npm registry via the registry-cache layer so check-package-age
+  // reads from local fixtures instead of the real registry. Returns a restore function.
   function mockRegistry(publishDates) {
-    const originalGet = https.get
-    https.get = (url, _opts, callback) => {
-      const name = decodeURIComponent(
-        url.replace('https://registry.npmjs.org/', ''),
-      )
-      const req = new EventEmitter()
-      req.destroy = () => {}
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      const time = Object.fromEntries(
-        Object.entries(publishDates[name] || {}).map(([version, daysAgo]) => [
-          version,
-          new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-        ]),
-      )
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => {
-          res.emit('data', JSON.stringify({ time }))
-          setImmediate(() => res.emit('end'))
-        })
-      })
-      return req
-    }
-    return () => {
-      https.get = originalGet
-    }
+    const cache = new Map()
+    setRegistryImpls({
+      fs: {
+        existsSync: () => false,
+        mkdirSync: () => {},
+        readFileSync: () => {
+          throw new Error('not found')
+        },
+        writeFileSync: () => {},
+        readdirSync: () => [],
+        unlinkSync: () => {},
+      },
+      fetchJson: async (url) => {
+        const name = registryUrlToName(url)
+        const key = name
+        if (cache.has(key)) {
+          return cache.get(key)
+        }
+        const versions = publishDates[name] || {}
+        const time = Object.fromEntries(
+          Object.entries(versions).map(([version, daysAgo]) => [
+            version,
+            new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+          ]),
+        )
+        const data = { time }
+        cache.set(key, data)
+        return data
+      },
+    })
+    return () => resetRegistryImpls()
   }
 
   test('default mode reads all dependency types from package.json', async () => {
@@ -776,23 +673,10 @@ describe('Integration — add-package flow', () => {
     return original
   }
 
-  function mockHttpsGetForIntegrity(integrity) {
-    return (_url, _options, cb) => {
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.headers = {}
-      process.nextTick(() => {
-        cb(res)
-        res.emit(
-          'data',
-          JSON.stringify({ dist: { integrity: integrity ?? 'sha512-abc' } }),
-        )
-        res.emit('end')
-      })
-      const req = new EventEmitter()
-      req.destroy = () => {}
-      return req
-    }
+  function mockFetchRegistryJsonForIntegrity(integrity) {
+    return async () => ({
+      dist: { integrity: integrity ?? 'sha512-abc' },
+    })
   }
 
   function mockFsForIntegrity(integrity, pkgName = null) {
@@ -822,7 +706,7 @@ describe('Integration — add-package flow', () => {
       throw new Error('EXIT_CALLED')
     }
 
-    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity())
 
     try {
@@ -835,7 +719,7 @@ describe('Integration — add-package flow', () => {
         path.resolve(__dirname, './check-package-age.js'),
       )
       checkPackageAge.fetchPackageAge = originalFetch
-      resetHttpsGetImpl()
+      resetFetchRegistryJsonImpl()
       resetFsImpl()
     }
 
@@ -868,7 +752,7 @@ describe('Integration — add-package flow', () => {
 
   test('installs production dependency with correct spawn arguments', async () => {
     const originalFetch = mockFetchPackageAge(10)
-    setHttpsGetImpl(mockHttpsGetForIntegrity('sha512-good'))
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity('sha512-good'))
     setFsImpl(mockFsForIntegrity('sha512-good'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
@@ -894,7 +778,7 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
-      resetHttpsGetImpl()
+      resetFetchRegistryJsonImpl()
       resetFsImpl()
     }
 
@@ -918,7 +802,7 @@ describe('Integration — add-package flow', () => {
 
   test('installs dev dependency with --save-dev flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
-    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity(null, '@biomejs/biome'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
@@ -944,7 +828,7 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
-      resetHttpsGetImpl()
+      resetFetchRegistryJsonImpl()
       resetFsImpl()
     }
 
@@ -959,7 +843,7 @@ describe('Integration — add-package flow', () => {
 
   test('installs peer dependency with --save-peer flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
-    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity(null, 'react-native-svg'))
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
@@ -985,7 +869,7 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
-      resetHttpsGetImpl()
+      resetFetchRegistryJsonImpl()
       resetFsImpl()
     }
 
@@ -1000,7 +884,7 @@ describe('Integration — add-package flow', () => {
 
   test('installation failure exits with code 1', async () => {
     const originalFetch = mockFetchPackageAge(10)
-    setHttpsGetImpl(mockHttpsGetForIntegrity())
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity())
     setSpawnSyncImpl((_cmd, _args, _opts) => ({ status: 1 }))
 
@@ -1022,7 +906,7 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
-      resetHttpsGetImpl()
+      resetFetchRegistryJsonImpl()
       resetFsImpl()
     }
 

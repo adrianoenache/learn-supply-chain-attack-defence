@@ -44,7 +44,6 @@
 
 const { spawnSync } = require('node:child_process')
 const fs = require('node:fs')
-const https = require('node:https')
 const path = require('node:path')
 
 // Reuses fetchPackageAge and resolveExactVersion from check-package-age.js to keep
@@ -69,13 +68,16 @@ function resetSpawnSyncImpl() {
   spawnSyncImpl = spawnSync
 }
 
-// Exposed for tests so network calls can be mocked.
-let httpsGetImpl = https.get
-function setHttpsGetImpl(fn) {
-  httpsGetImpl = fn
+// Exposed for tests so the registry fetch layer can be mocked.
+const { fetchRegistryJson } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
+let fetchRegistryJsonImpl = fetchRegistryJson
+function setFetchRegistryJsonImpl(fn) {
+  fetchRegistryJsonImpl = fn
 }
-function resetHttpsGetImpl() {
-  httpsGetImpl = https.get
+function resetFetchRegistryJsonImpl() {
+  fetchRegistryJsonImpl = fetchRegistryJson
 }
 
 // Exposed for tests so filesystem calls can be mocked.
@@ -140,84 +142,18 @@ function validateArgs(argv = process.argv.slice(2)) {
 // Fetches the version manifest from the npm registry.
 // Used to obtain the tarball integrity BEFORE installation so we can detect
 // time-of-check/time-of-use substitution after npm install.
-function fetchVersionManifest(name, version) {
-  return new Promise((resolve, reject) => {
-    let settled = false
-    const safeResolve = (val) => {
-      if (!settled) {
-        settled = true
-        resolve(val)
-      }
-    }
-    const safeReject = (err) => {
-      if (!settled) {
-        settled = true
-        reject(err)
-      }
-    }
-
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
-
-    const req = httpsGetImpl(
-      url,
-      {
-        headers: { Accept: 'application/json' },
-        timeout: config.pkgAgeCheck.registryTimeoutMs,
-      },
-      (res) => {
-        let data = ''
-        res.on('data', (chunk) => {
-          data += chunk
-          if (
-            Buffer.byteLength(data) >
-            config.pkgAgeCheck.maxResponseMB * 1024 * 1024
-          ) {
-            res.destroy()
-            safeReject(
-              new Error(
-                `Manifest response for ${name}@${version} exceeds ${config.pkgAgeCheck.maxResponseMB} MB limit`,
-              ),
-            )
-          }
-        })
-        res.on('error', (err) => {
-          safeReject(
-            new Error(`Stream error for ${name}@${version}: ${err.message}`),
-          )
-        })
-        res.on('end', () => {
-          if (res.statusCode !== 200) {
-            safeReject(
-              new Error(
-                `Registry returned HTTP ${res.statusCode} for ${name}@${version}`,
-              ),
-            )
-            return
-          }
-          try {
-            safeResolve(JSON.parse(data))
-          } catch (err) {
-            safeReject(
-              new Error(
-                `Failed to parse manifest for ${name}@${version}: ${err.message}`,
-              ),
-            )
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy()
-      safeReject(new Error(`Timeout fetching manifest for ${name}@${version}`))
-    })
-    req.on('error', (err) => {
-      safeReject(
-        new Error(
-          `Network error fetching manifest for ${name}@${version}: ${err.message}`,
-        ),
-      )
-    })
+async function fetchVersionManifest(name, version) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
+  return fetchRegistryJsonImpl(name, version, {
+    url,
+    cacheTtlHours: config.updateCheck.cacheTtlHours,
+    maxResponseBytes: config.pkgAgeCheck.maxResponseMB * 1024 * 1024,
+    timeoutMs: config.pkgAgeCheck.registryTimeoutMs,
+    retryMaxAttempts: config.updateCheck.retryMaxAttempts,
+    retryInitialDelayMs: config.updateCheck.retryInitialDelayMs,
+    retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
+    retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
+    acceptGzip: true,
   })
 }
 
@@ -528,8 +464,8 @@ module.exports = {
   main,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
-  setHttpsGetImpl,
-  resetHttpsGetImpl,
+  setFetchRegistryJsonImpl,
+  resetFetchRegistryJsonImpl,
   setFsImpl,
   resetFsImpl,
   fetchVersionManifest,

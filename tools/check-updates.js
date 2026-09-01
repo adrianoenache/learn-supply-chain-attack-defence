@@ -18,7 +18,6 @@
 // stale packages (e.g. after pulling another collaborator's changes).
 
 const fs = require('node:fs')
-const https = require('node:https')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
@@ -29,6 +28,9 @@ const {
   resetImpls: resetSyncImpls,
 } = require(path.resolve(__dirname, './lib/sync-check.js'))
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { fetchRegistryJson } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
 
 const config = loadConfig()
 const updateConfig = config.updateCheck
@@ -72,14 +74,14 @@ const STATE_FILE = config.paths.updateCheckState
 // ---------------------------------------------------------------------------
 
 let fsImpl = fs
-let httpsGetImpl = https.get
+let fetchRegistryJsonImpl = fetchRegistryJson
 let spawnSyncImpl = spawnSync
 let nowImpl = () => Date.now()
 let exitImpl = process.exit
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
-  if (impls.httpsGet) httpsGetImpl = impls.httpsGet
+  if (impls.fetchRegistryJson) fetchRegistryJsonImpl = impls.fetchRegistryJson
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.now) nowImpl = impls.now
   if (impls.exit) exitImpl = impls.exit
@@ -91,7 +93,7 @@ function setImpls(impls) {
 
 function resetImpls() {
   fsImpl = fs
-  httpsGetImpl = https.get
+  fetchRegistryJsonImpl = fetchRegistryJson
   spawnSyncImpl = spawnSync
   nowImpl = () => Date.now()
   exitImpl = process.exit
@@ -184,66 +186,18 @@ function determineSeverity(current, latest) {
 // Registry interaction.
 // ---------------------------------------------------------------------------
 
-function fetchRegistryInfo(name) {
-  return new Promise((resolve, reject) => {
-    let settled = false
-    const safeResolve = (val) => {
-      if (!settled) {
-        settled = true
-        resolve(val)
-      }
-    }
-    const safeReject = (err) => {
-      if (!settled) {
-        settled = true
-        reject(err)
-      }
-    }
-
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-
-    const req = httpsGetImpl(
-      url,
-      { headers: { Accept: 'application/json' }, timeout: REGISTRY_TIMEOUT_MS },
-      (res) => {
-        let data = ''
-
-        res.on('data', (chunk) => {
-          data += chunk
-          if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
-            res.destroy()
-            safeReject(
-              new Error(`response exceeds ${MAX_RESPONSE_BYTES} bytes`),
-            )
-          }
-        })
-
-        res.on('error', (err) => {
-          safeReject(new Error(`stream error: ${err.message}`))
-        })
-
-        res.on('end', () => {
-          if (res.statusCode !== 200) {
-            safeReject(new Error(`HTTP ${res.statusCode}`))
-            return
-          }
-          try {
-            const info = JSON.parse(data)
-            safeResolve(info)
-          } catch (err) {
-            safeReject(new Error(`invalid JSON: ${err.message}`))
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy()
-      safeReject(new Error('timeout'))
-    })
-    req.on('error', (err) => {
-      safeReject(new Error(`network error: ${err.message}`))
-    })
+async function fetchRegistryInfo(name) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  return fetchRegistryJsonImpl(name, null, {
+    url,
+    cacheTtlHours: CACHE_TTL_HOURS,
+    maxResponseBytes: MAX_RESPONSE_BYTES,
+    timeoutMs: REGISTRY_TIMEOUT_MS,
+    retryMaxAttempts: updateConfig.retryMaxAttempts,
+    retryInitialDelayMs: updateConfig.retryInitialDelayMs,
+    retryBackoffMultiplier: updateConfig.retryBackoffMultiplier,
+    retryMaxDelayMs: updateConfig.retryMaxDelayMs,
+    acceptGzip: true,
   })
 }
 

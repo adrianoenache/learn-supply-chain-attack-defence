@@ -10,13 +10,19 @@ When you run `npm run defence:update-check` (or commit changes, which triggers i
 
 1. **Local sync check**: verifies that `node_modules` matches `package-lock.json`.
 2. **Outdated scan**: runs `npm outdated --json` to discover available updates.
-3. **Registry age check**: queries the npm registry for the publication date of each `latest` version.
+3. **Registry age check**: queries the npm registry for the publication date of each `latest` version through the shared [`registry-cache.js`](../../../tools/lib/registry-cache.js) and [`retry-fetch.js`](../../../tools/lib/retry-fetch.js) layers.
 4. **Classification**:
    - **Eligible** — the new version is at least `minAgeDays` old, so it has had time to be reviewed by the community.
    - **Quarantine** — the new version is too recent, or the registry lookup failed. These updates are shown for awareness but are not recommended yet.
 5. **Reminder**: prints a warning only if updates exist and the configured reminder interval has passed.
 
 If your local dependencies are out of sync (for example, after pulling a colleague's changes), the script recommends `npm ci` first. This prevents you from evaluating updates against a stale installed tree.
+
+The registry calls reuse the same caching, gzip, and retry layer as the package-age check. To bypass the registry cache while debugging, set:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:update-check
+```
 
 ## Configuration
 
@@ -40,7 +46,7 @@ The behavior is controlled by the `updateCheck` block in `package.json`:
 | `alwaysRemind` | `false` | If `true`, the alert appears every time updates exist. |
 | `includeTransitive` | `false` | If `true`, also checks transitive dependencies. |
 | `registryTimeoutMs` | `10000` | Network timeout for registry calls. |
-| `cacheTtlHours` | `24` | How long scan results are cached locally. |
+| `cacheTtlHours` | `24` | How long the per-package registry cache is considered fresh. This is independent of the `.defence-update-check.json` scan state. |
 | `historyMaxEntries` | `30` | Maximum number of past scans kept in the local history. |
 | `stuckInQuarantineThreshold` | `3` | How many consecutive scans a package must spend in quarantine to be flagged as stuck. |
 | `highReleaseCadenceDays` | `7` | Average days between releases below which a package is considered high-cadence. |

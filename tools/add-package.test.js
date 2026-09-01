@@ -3,7 +3,6 @@
 
 const { describe, test, beforeEach, afterEach } = require('node:test')
 const assert = require('node:assert/strict')
-const { EventEmitter } = require('node:events')
 const path = require('node:path')
 
 const SCRIPT_PATH = path.resolve(__dirname, './add-package.js')
@@ -38,33 +37,19 @@ function captureConsole() {
   }
 }
 
-function makeMockHttpsGet(responses) {
-  return (url, _options, cb) => {
-    const keyMatch = url.match(/\/([^/]+(?:%2f[^/]+)?)\/([^/]+)$/)
-    const name = keyMatch ? decodeURIComponent(keyMatch[1]) : ''
-    const version = keyMatch ? decodeURIComponent(keyMatch[2]) : ''
-    const responseKey = `${name}@${version}`
+function makeMockFetchRegistryJson(responses) {
+  return async (_name, _version, _options) => {
+    const responseKey = `${_name}@${_version}`
     const response = responses[responseKey] ??
-      responses[name] ?? { statusCode: 404, body: '{}' }
+      responses[_name] ?? { statusCode: 404, body: {} }
 
-    const res = new EventEmitter()
-    res.statusCode = response.statusCode ?? 200
-    res.headers = response.headers ?? {}
-
-    process.nextTick(() => {
-      cb(res)
-      if (response.error) {
-        res.emit('error', response.error)
-        return
-      }
-      const body = response.body ?? '{}'
-      res.emit('data', body)
-      res.emit('end')
-    })
-
-    const req = new EventEmitter()
-    req.destroy = () => {}
-    return req
+    if (response.error) throw response.error
+    if (response.statusCode && response.statusCode !== 200) {
+      const err = new Error(`HTTP ${response.statusCode}`)
+      err.statusCode = response.statusCode
+      throw err
+    }
+    return response.body ?? response
   }
 }
 
@@ -91,7 +76,7 @@ describe('add-package', () => {
   afterEach(() => {
     const mod = readScriptExports()
     mod.resetSpawnSyncImpl()
-    mod.resetHttpsGetImpl()
+    mod.resetFetchRegistryJsonImpl()
     mod.resetFsImpl()
   })
 
@@ -99,16 +84,16 @@ describe('add-package', () => {
     const mod = readScriptExports()
     const restoreConsole = captureConsole()
 
-    mod.setHttpsGetImpl(
-      makeMockHttpsGet({
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
         'safe-pkg@1.0.0': {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             dist: {
               integrity:
                 'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000',
             },
-          }),
+          },
         },
       }),
     )
@@ -180,11 +165,11 @@ describe('add-package', () => {
     const integrity =
       'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
-    mod.setHttpsGetImpl(
-      makeMockHttpsGet({
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
         'safe-pkg@1.0.0': {
           statusCode: 200,
-          body: JSON.stringify({ dist: { integrity } }),
+          body: { dist: { integrity } },
         },
       }),
     )
@@ -241,15 +226,15 @@ describe('add-package', () => {
 
   test('fetchVersionManifest returns parsed registry response', async () => {
     const mod = readScriptExports()
-    mod.setHttpsGetImpl(
-      makeMockHttpsGet({
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
         'lodash@4.17.21': {
           statusCode: 200,
-          body: JSON.stringify({
+          body: {
             name: 'lodash',
             version: '4.17.21',
             dist: { integrity: 'sha512-abc' },
-          }),
+          },
         },
       }),
     )
@@ -261,15 +246,15 @@ describe('add-package', () => {
 
   test('fetchVersionManifest rejects on HTTP error', async () => {
     const mod = readScriptExports()
-    mod.setHttpsGetImpl(
-      makeMockHttpsGet({
-        'missing-pkg@1.0.0': { statusCode: 404, body: '{}' },
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'missing-pkg@1.0.0': { statusCode: 404, body: {} },
       }),
     )
 
     await assert.rejects(
       () => mod.fetchVersionManifest('missing-pkg', '1.0.0'),
-      /Registry returned HTTP 404/,
+      /HTTP 404/,
     )
   })
 

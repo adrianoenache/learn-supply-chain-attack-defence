@@ -13,8 +13,16 @@ Implementado em:
 - [tools/check-package-age.js](../../../tools/check-package-age.js)
 - [tools/add-package.js](../../../tools/add-package.js)
 - [tools/update-packages.js](../../../tools/update-packages.js)
+- [tools/lib/registry-cache.js](../../../tools/lib/registry-cache.js)
+- [tools/lib/retry-fetch.js](../../../tools/lib/retry-fetch.js)
 
-O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-lock.json` (dependências transitivas), consulta o registry do npm para o timestamp de publicação de cada versão e falha se algum pacote for muito novo.
+O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-lock.json` (dependências transitivas) e consulta o registry do npm para o timestamp de publicação de cada versão. As requisições ao registry passam pela camada compartilhada [`retry-fetch.js`](../../../tools/lib/retry-fetch.js) (gzip, limite de tamanho e retry em falhas transitórias) e são cacheadas em disco por [`registry-cache.js`](../../../tools/lib/registry-cache.js) para evitar downloads repetidos.
+
+Para ignorar o cache do registry durante o debug, defina:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:pkg-age-check
+```
 
 ## Uso
 

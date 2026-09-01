@@ -151,6 +151,10 @@ function buildDefaults(pkg) {
       highReleaseCadenceDays: update.highReleaseCadenceDays ?? 7,
       maxResponseMB: update.maxResponseMB ?? pkgAge.maxResponseMB ?? 20,
       concurrency: update.concurrency ?? pkgAge.concurrency ?? 10,
+      retryMaxAttempts: update.retryMaxAttempts ?? 3,
+      retryInitialDelayMs: update.retryInitialDelayMs ?? 1000,
+      retryBackoffMultiplier: update.retryBackoffMultiplier ?? 2,
+      retryMaxDelayMs: update.retryMaxDelayMs ?? 30000,
       scoringRules: deepMerge(DEFAULT_SCORING_RULES, update.scoringRules ?? {}),
     },
     licensesCheck: {
