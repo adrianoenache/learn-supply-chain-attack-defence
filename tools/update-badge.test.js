@@ -9,6 +9,7 @@ const assert = require('node:assert/strict')
 const path = require('node:path')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'update-badge.js')
+const README_PATH = path.resolve(__dirname, '../README.md')
 
 function readScriptExports() {
   delete require.cache[require.resolve(SCRIPT_PATH)]
@@ -124,14 +125,13 @@ describe('update-badge', () => {
   test('main updates README and reports new count', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        [
-          '# Title',
-          '',
-          '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
-          '',
-          'Body',
-        ].join('\n'),
+      [README_PATH]: [
+        '# Title',
+        '',
+        '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
+        '',
+        'Body',
+      ].join('\n'),
       '/tools/a.test.js': "test('a1', () => {})\ntest('a2', () => {})",
     }
     const fs = makeMockFs(files)
@@ -143,16 +143,13 @@ describe('update-badge', () => {
       fs,
       globSync: makeMockGlob(['/tools/a.test.js']),
       exit: () => {},
+      readmePath: README_PATH,
     })
 
     try {
       const code = mod.main([])
       assert.equal(code, 0)
-      assert.ok(
-        files[
-          '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md'
-        ].includes(mod.buildBadgeLine(2)),
-      )
+      assert.ok(files[README_PATH].includes(mod.buildBadgeLine(2)))
       assert.ok(logs.some((line) => line.includes('2/2')))
     } finally {
       console.log = originalLog
@@ -163,14 +160,13 @@ describe('update-badge', () => {
   test('dry-run does not write README', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        [
-          '# Title',
-          '',
-          '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
-          '',
-          'Body',
-        ].join('\n'),
+      [README_PATH]: [
+        '# Title',
+        '',
+        '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
+        '',
+        'Body',
+      ].join('\n'),
       '/tools/a.test.js': "test('a1', () => {})",
     }
     const fs = makeMockFs(files)
@@ -182,16 +178,13 @@ describe('update-badge', () => {
       fs,
       globSync: makeMockGlob(['/tools/a.test.js']),
       exit: () => {},
+      readmePath: README_PATH,
     })
 
     try {
       const code = mod.main(['--dry-run'])
       assert.equal(code, 0)
-      assert.ok(
-        files[
-          '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md'
-        ].includes('1%2F1'),
-      )
+      assert.ok(files[README_PATH].includes('1%2F1'))
       assert.ok(logs.some((line) => line.includes('[dry-run]')))
     } finally {
       console.log = originalLog
@@ -202,8 +195,7 @@ describe('update-badge', () => {
   test('main exits 1 when badge line is missing', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        '# Title\n\nBody',
+      [README_PATH]: '# Title\n\nBody',
       '/tools/a.test.js': "test('a1', () => {})",
     }
     const fs = makeMockFs(files)
@@ -213,6 +205,7 @@ describe('update-badge', () => {
       exit: (code) => {
         throw new Error(`exit ${code}`)
       },
+      readmePath: README_PATH,
     })
 
     try {

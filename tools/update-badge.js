@@ -25,17 +25,20 @@ const BADGE_RE =
 let fsImpl = fs
 let globSyncImpl = globSync
 let exitImpl = process.exit
+let readmePathImpl = README_PATH
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
   if (impls.globSync) globSyncImpl = impls.globSync
   if (impls.exit) exitImpl = impls.exit
+  if (impls.readmePath) readmePathImpl = impls.readmePath
 }
 
 function resetImpls() {
   fsImpl = fs
   globSyncImpl = globSync
   exitImpl = process.exit
+  readmePathImpl = README_PATH
 }
 
 // ---------------------------------------------------------------------------
@@ -131,7 +134,7 @@ function main(argv = process.argv.slice(2)) {
       return 0
     }
 
-    const readmeContent = fsImpl.readFileSync(README_PATH, 'utf8')
+    const readmeContent = fsImpl.readFileSync(readmePathImpl, 'utf8')
     const updatedContent = updateBadgeLine(readmeContent, badgeLine)
 
     if (updatedContent === readmeContent) {
@@ -141,7 +144,7 @@ function main(argv = process.argv.slice(2)) {
       return 0
     }
 
-    fsImpl.writeFileSync(README_PATH, updatedContent, 'utf8')
+    fsImpl.writeFileSync(readmePathImpl, updatedContent, 'utf8')
     console.log(`Updated README.md test badge to ${count}/${count} passing.`)
     return 0
   } catch (err) {
