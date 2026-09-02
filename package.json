@@ -22,8 +22,7 @@
     "husky"
   ],
   "engines": {
-    "node": ">=24.19.0",
-    "npm": ">=10.9.0"
+    "node": ">=24.19.0"
   },
   "pkgAgeCheck": {
     "minAgeDays": 7
