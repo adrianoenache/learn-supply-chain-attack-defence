@@ -41,10 +41,10 @@ function isCacheDisabled() {
   return process.env.DEFENCE_NO_CACHE === '1'
 }
 
-function buildCacheKey(name, version) {
+function buildCacheKey(name, version, url) {
   return crypto
     .createHash('sha256')
-    .update(`${name}@${version ?? ''}`)
+    .update(`${name}@${version ?? ''}@${url ?? ''}`)
     .digest('hex')
 }
 
@@ -89,9 +89,9 @@ function writeCacheEntry(key, data, headers) {
   fsImpl.writeFileSync(filePath, JSON.stringify(entry))
 }
 
-function _invalidateCache(name, version) {
+function _invalidateCache(name, version, url) {
   try {
-    const key = buildCacheKey(name, version)
+    const key = buildCacheKey(name, version, url)
     const filePath = cacheEntryPath(key)
     if (fsImpl.existsSync(filePath)) {
       fsImpl.unlinkSync(filePath)
@@ -107,7 +107,7 @@ async function fetchRegistryJson(name, version, options = {}) {
   const ttlHours = options.cacheTtlHours ?? 24
   const ttlMs = ttlHours * 60 * 60 * 1000
   const force = options.force === true || isCacheDisabled()
-  const key = buildCacheKey(name, version)
+  const key = buildCacheKey(name, version, url)
 
   if (!force) {
     const cached = readCacheEntry(key, ttlMs)
@@ -138,12 +138,11 @@ async function fetchRegistryJson(name, version, options = {}) {
 
 function clearCache() {
   try {
-    if (!fsImpl.existsSync(CACHE_DIR)) return
     for (const file of fsImpl.readdirSync(CACHE_DIR)) {
       fsImpl.unlinkSync(path.resolve(CACHE_DIR, file))
     }
   } catch {
-    // Best-effort cleanup.
+    // Best-effort cleanup (directory may not exist).
   }
 }
 

@@ -178,6 +178,9 @@ jobs:
       - name: Package age check
         run: npm run defence:pkg-age-check -- --transitive
 
+      - name: Check hook integrity
+        run: npm run defence:check-hooks
+
       - name: Pre-commit gate
         run: |
           npm audit signatures

@@ -58,6 +58,8 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const typosquatting = require(path.resolve(__dirname, './lib/typosquatting.js'))
+const provenance = require(path.resolve(__dirname, './lib/provenance.js'))
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
@@ -89,13 +91,30 @@ function resetFsImpl() {
   fsImpl = fs
 }
 
-const config = loadConfig()
+let typosquattingImpl = typosquatting
+function setTyposquattingImpl(fn) {
+  typosquattingImpl = fn
+}
+function resetTyposquattingImpl() {
+  typosquattingImpl = typosquatting
+}
 
-// Reads the same settings as check-package-age.js to keep behavior consistent.
-const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
+let provenanceImpl = provenance
+function setProvenanceImpl(fn) {
+  provenanceImpl = fn
+}
+function resetProvenanceImpl() {
+  provenanceImpl = provenance
+}
 
-// Parses command-line arguments.
-// argv format: ["<package>@<version>", "[--dev|--peer]", "[--dry-run]"]
+let loadConfigImpl = loadConfig
+function setLoadConfigImpl(fn) {
+  loadConfigImpl = fn
+}
+function resetLoadConfigImpl() {
+  loadConfigImpl = loadConfig
+}
+
 function parseCliArgs(argv) {
   return {
     pkgArg: argv.find((a) => !a.startsWith('-')),
@@ -144,15 +163,16 @@ function validateArgs(argv = process.argv.slice(2)) {
 // time-of-check/time-of-use substitution after npm install.
 async function fetchVersionManifest(name, version) {
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}/${encodeURIComponent(version)}`
+  const cfg = loadConfigImpl()
   return fetchRegistryJsonImpl(name, version, {
     url,
-    cacheTtlHours: config.updateCheck.cacheTtlHours,
-    maxResponseBytes: config.pkgAgeCheck.maxResponseMB * 1024 * 1024,
-    timeoutMs: config.pkgAgeCheck.registryTimeoutMs,
-    retryMaxAttempts: config.updateCheck.retryMaxAttempts,
-    retryInitialDelayMs: config.updateCheck.retryInitialDelayMs,
-    retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
-    retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
+    cacheTtlHours: cfg.updateCheck.cacheTtlHours,
+    maxResponseBytes: cfg.pkgAgeCheck.maxResponseMB * 1024 * 1024,
+    timeoutMs: cfg.pkgAgeCheck.registryTimeoutMs,
+    retryMaxAttempts: cfg.updateCheck.retryMaxAttempts,
+    retryInitialDelayMs: cfg.updateCheck.retryInitialDelayMs,
+    retryBackoffMultiplier: cfg.updateCheck.retryBackoffMultiplier,
+    retryMaxDelayMs: cfg.updateCheck.retryMaxDelayMs,
     acceptGzip: true,
   })
 }
@@ -196,6 +216,33 @@ async function verifyInstalledIntegrity(name, version, expectedIntegrity) {
   return true
 }
 
+// Checks whether a package name exists on the public npm registry.
+// Used by the dependency-confusion check to detect internal package names
+// that have been squatted on npm. A 404 means the name is not currently
+// published; any other successful response or unexpected error is treated
+// conservatively as "exists" to avoid silently allowing a confusion attack.
+async function checkPublicPackageExists(name) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  try {
+    await fetchRegistryJsonImpl(name, 'latest', {
+      url,
+      cacheTtlHours: 24,
+      maxResponseBytes: 1024 * 1024,
+      timeoutMs: 10000,
+      retryMaxAttempts: 1,
+      retryInitialDelayMs: 250,
+      retryBackoffMultiplier: 2,
+      retryMaxDelayMs: 1000,
+      acceptGzip: true,
+    })
+    return true
+  } catch (err) {
+    if (err.statusCode === 404) return false
+    // Network or registry errors: assume it exists to stay safe.
+    return true
+  }
+}
+
 // Returns the three values that vary by dependency type.
 // Extracted from main() to reduce cognitive complexity (SonarQube: cognitive-complexity).
 function getSaveMode(peer, dev) {
@@ -215,6 +262,8 @@ function getSaveMode(peer, dev) {
 }
 
 async function main(argv = process.argv.slice(2), exitFn = process.exit) {
+  const config = loadConfigImpl()
+  const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
   const { pkgArg, isDev, isPeer, isDryRun } = parseCliArgs(argv)
   const { name, version: rawVersion } = parsePackageArg(pkgArg)
 
@@ -232,6 +281,38 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   console.log(
     `\nadd-package: ${name}@${rawVersion}${typeLabel}${isDryRun ? ' [dry-run]' : ''}\n`,
   )
+
+  // Step 0.5 — Typosquatting and dependency-confusion check.
+  // Flags packages whose names are suspiciously similar to existing dependencies
+  // or to configured private/internal package names that exist on the public registry.
+  const existingNames = typosquattingImpl.loadExistingNames(process.cwd())
+  const internalNames = config.defences?.internalPackageNames ?? []
+  const threshold = config.defences?.typosquattingThreshold ?? 2
+  const conflicts = await typosquattingImpl.findConflicts(name, {
+    threshold,
+    internalNames,
+    existingNames,
+    publicPackagesResolver: checkPublicPackageExists,
+  })
+  if (conflicts.length > 0) {
+    console.error(
+      `\nPotential typosquatting / dependency-confusion detected for ${name}:`,
+    )
+    for (const conflict of conflicts) {
+      if (conflict.type === 'typosquatting') {
+        console.error(
+          `  - name is ${conflict.distance} edits away from existing package "${conflict.existing}"`,
+        )
+      } else {
+        console.error(
+          `  - internal package name "${conflict.name}" exists on the public registry`,
+        )
+      }
+    }
+    console.error('\nInstallation aborted — review the package name carefully.')
+    exitFn(1)
+    return
+  }
 
   // Step 1 — Confirm the provided version is exact (no range operators).
   // resolveExactVersion is imported from check-package-age.js; returns null for dist-tags
@@ -280,6 +361,63 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
   console.log(
     `  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
   )
+
+  // Step 2.6 — Provenance / SLSA attestation check.
+  // Warns (or blocks, if configured) when the package version lacks provenance.
+  const provenanceMode = config.defences?.provenanceMode ?? 'warn'
+  if (provenanceMode === 'warn' || provenanceMode === 'strict') {
+    try {
+      const provenanceResult = await provenanceImpl.checkProvenance(
+        name,
+        exactVersion,
+        {
+          cacheTtlHours: config.updateCheck.cacheTtlHours,
+          maxResponseBytes: config.pkgAgeCheck.maxResponseMB * 1024 * 1024,
+          timeoutMs: config.pkgAgeCheck.registryTimeoutMs,
+          retryMaxAttempts: config.updateCheck.retryMaxAttempts,
+          retryInitialDelayMs: config.updateCheck.retryInitialDelayMs,
+          retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
+          retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
+        },
+      )
+      if (!provenanceResult.hasProvenance) {
+        const message = `No provenance attestation found for ${name}@${exactVersion}.`
+        if (provenanceMode === 'strict') {
+          console.error(`\n${message}`)
+          console.error(
+            'Installation aborted — strict provenance mode requires an attestation.',
+          )
+          exitFn(1)
+          return
+        }
+        console.log(`\n  WARNING  ${message}`)
+      } else if (!provenanceResult.valid) {
+        const message = `Provenance attestation for ${name}@${exactVersion} is malformed: ${provenanceResult.reason}`
+        if (provenanceMode === 'strict') {
+          console.error(`\n${message}`)
+          console.error(
+            'Installation aborted — strict provenance mode requires a valid attestation.',
+          )
+          exitFn(1)
+          return
+        }
+        console.log(`\n  WARNING  ${message}`)
+      } else {
+        console.log(`\n  OK       provenance attestation verified`)
+      }
+    } catch (err) {
+      const message = `Could not verify provenance for ${name}@${exactVersion}: ${err.message}`
+      if (provenanceMode === 'strict') {
+        console.error(`\n${message}`)
+        console.error(
+          'Installation aborted — strict provenance mode requires a successful verification.',
+        )
+        exitFn(1)
+        return
+      }
+      console.log(`\n  WARNING  ${message}`)
+    }
+  }
 
   // Step 2.5 — Fetch registry manifest and pin tarball integrity before install.
   // This closes the TOCTOU window: we record the expected integrity at check time
@@ -468,6 +606,12 @@ module.exports = {
   resetFetchRegistryJsonImpl,
   setFsImpl,
   resetFsImpl,
+  setTyposquattingImpl,
+  resetTyposquattingImpl,
+  setProvenanceImpl,
+  resetProvenanceImpl,
+  setLoadConfigImpl,
+  resetLoadConfigImpl,
   fetchVersionManifest,
   verifyInstalledIntegrity,
 }

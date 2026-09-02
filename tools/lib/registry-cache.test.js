@@ -44,10 +44,11 @@ describe('registry-cache', () => {
   })
 
   test('buildCacheKey returns stable SHA-256 hex', () => {
-    const key = buildCacheKey('lodash', '4.17.21')
+    const url = 'https://registry.npmjs.org/lodash/4.17.21'
+    const key = buildCacheKey('lodash', '4.17.21', url)
     const expected = crypto
       .createHash('sha256')
-      .update('lodash@4.17.21')
+      .update(`lodash@4.17.21@${url}`)
       .digest('hex')
     assert.equal(key, expected)
   })

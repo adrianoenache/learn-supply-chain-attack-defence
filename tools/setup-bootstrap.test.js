@@ -43,13 +43,26 @@ function makeMockSpawn(calls) {
   }
 }
 
+function makeMockConfig(overrides = {}) {
+  return {
+    huskyPreCommitHash: null,
+    defences: { huskyPreCommitHash: null },
+    ...overrides,
+  }
+}
+
 describe('setup-bootstrap', () => {
   test('main exits 0 when package-lock.json exists', async () => {
     await withTempProject(
       async () => {
-        const { main } = readScriptExports()
-        const code = main()
-        assert.equal(code, 0)
+        const mod = readScriptExports()
+        mod.setLoadConfigImpl(() => makeMockConfig())
+        try {
+          const code = mod.main()
+          assert.equal(code, 0)
+        } finally {
+          mod.resetLoadConfigImpl()
+        }
       },
       { hasLock: true },
     )
@@ -59,11 +72,12 @@ describe('setup-bootstrap', () => {
     await withTempProject(async () => {
       const calls = []
       const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn(calls))
       try {
         const code = mod.main()
         assert.equal(code, 0)
-        assert.equal(calls.length, 4)
+        assert.equal(calls.length, 5)
         assert.deepEqual(calls[0], {
           cmd: 'npm',
           args: ['install', '--ignore-scripts', '--save-exact'],
@@ -80,8 +94,13 @@ describe('setup-bootstrap', () => {
           cmd: 'npm',
           args: ['audit', '--audit-level=high'],
         })
+        assert.deepEqual(calls[4], {
+          cmd: 'npm',
+          args: ['run', 'prepare'],
+        })
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
       }
     })
   })
@@ -89,12 +108,41 @@ describe('setup-bootstrap', () => {
   test('main skips hook check when huskyPreCommitHash is not configured', async () => {
     await withTempProject(async () => {
       const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn([]))
       try {
         const code = mod.main()
         assert.equal(code, 0)
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
+      }
+    })
+  })
+
+  test('main records pre-commit hook hash after bootstrap', async () => {
+    await withTempProject(async (tmpDir) => {
+      const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
+      mod.setSpawnSyncImpl(makeMockSpawn([]))
+      try {
+        const code = mod.main()
+        assert.equal(code, 0)
+        const pkg = JSON.parse(
+          fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8'),
+        )
+        assert.ok(
+          pkg.defences?.huskyPreCommitHash?.length > 0,
+          'defences.huskyPreCommitHash should be recorded',
+        )
+        assert.equal(
+          pkg.defences.huskyPreCommitHash,
+          pkg.huskyPreCommitHash,
+          'legacy huskyPreCommitHash should stay in sync',
+        )
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
       }
     })
   })

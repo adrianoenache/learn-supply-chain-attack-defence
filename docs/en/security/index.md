@@ -1,6 +1,6 @@
 # Security Overview
 
-This project protects the dependency tree using nine complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
+This project protects the dependency tree using twelve complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
 
 ## Defense Layers Diagram
 
@@ -61,10 +61,25 @@ flowchart TD
     W[read lock file] --> X[allowed / prohibited / flagged]
   end
 
+  subgraph Layer10["Layer 10: typosquatting check"]
+    AA[requested name] --> AB{similar to existing?}
+  end
+
+  subgraph Layer11["Layer 11: provenance check"]
+    AC[registry attestation] --> AD[valid / missing]
+  end
+
+  subgraph Layer12["Layer 12: hook integrity"]
+    AE[pre-commit file] --> AF{hash matches?}
+  end
+
   O --> P[Safe dependency tree]
   R --> P
   V --> P
   X --> P
+  AB --> P
+  AD --> P
+  AF --> P
 1. [Package age check](defense-layer-1-package-age.md)
 2. [Signature verification](defense-layer-2-signatures.md)
 3. [Vulnerability audit](defense-layer-3-vulnerabilities.md)
@@ -74,6 +89,9 @@ flowchart TD
 7. [Lint / format gate](defense-layer-7-lint-format.md)
 8. [Update availability check](defense-layer-8-update-check.md)
 9. [License check](defense-layer-9-license-check.md)
+10. [Typosquatting & dependency confusion](defense-layer-10-typosquatting.md)
+11. [Provenance & SLSA attestation](defense-layer-11-provenance.md)
+12. [Pre-commit hook integrity](defense-layer-12-hook-integrity.md)
 
 ## Threat Model in a Nutshell
 
@@ -85,3 +103,6 @@ flowchart TD
 - **Low-quality or inconsistent code reaching the repository** → blocked by the Biome lint / format gate in the pre-commit hook.
 - **Dependencies drifting out of date unnoticed** → surfaced by the update availability check in the pre-commit hook.
 - **Legal incompatibility from dependency licenses** → surfaced by the license check.
+- **Typosquatting and dependency confusion** → blocked by the typosquatting check in `add-package.js`.
+- **Packages built from untrusted sources** → surfaced by the provenance check.
+- **Tampered pre-commit hook** → blocked by the hook integrity check.

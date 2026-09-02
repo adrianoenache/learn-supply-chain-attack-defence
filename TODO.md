@@ -10,19 +10,19 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 1.1 Attack Surface Reduction
 
-- [ ] **[P1]** Add typosquatting and dependency-confusion detection — new or extended tool flags packages whose names are within a configurable Levenshtein distance of top-N downloaded packages, or private/internal names that unexpectedly exist on the public registry; documented in `docs/en/security/` and `docs/pt-BR/security/`.
+- [x] **[P1]** Add typosquatting and dependency-confusion detection — new or extended tool flags packages whose names are within a configurable Levenshtein distance of existing dependencies, or private/internal names that unexpectedly exist on the public registry; documented in `docs/en/security/` and `docs/pt-BR/security/`.
   - Impact: blocks a common supply-chain attack vector at install time.
   - Depends on: central configuration system (Section 3.1).
   - Files: [tools/add-package.js](tools/add-package.js), [tools/lib/package-utils.js](tools/lib/package-utils.js), [docs/en/security/what-is-supply-chain-attack.md](docs/en/security/what-is-supply-chain-attack.md)
 
-- [ ] **[P1]** Verify npm package provenance / SLSA attestations — `add-package.js` or `check-package-age.js` checks whether a package version was published with `--provenance` and validates the attestation bundle when available.
+- [x] **[P1]** Verify npm package provenance / SLSA attestations — `add-package.js` checks whether a package version was published with `--provenance` and validates the attestation bundle when available.
   - Impact: closes the gap between signature verification and build-pipeline compromise.
   - Depends on: central configuration system (Section 3.1).
   - Files: [tools/add-package.js](tools/add-package.js), [tools/check-package-age.js](tools/check-package-age.js)
 
 ### 1.2 Installation Safety
 
-- [ ] **[P0]** Close TOCTOU window between age check and install — after `npm install` in `add-package.js`, re-fetch the package's publish metadata and confirm the installed tarball matches the version that passed the age check; pin tarball integrity before install when possible.
+- [x] **[P0]** Close TOCTOU window between age check and install — after `npm install` in `add-package.js`, re-fetch the package's publish metadata and confirm the installed tarball matches the version that passed the age check; pin tarball integrity before install when possible.
   - Impact: prevents time-of-check/time-of-use substitution during install.
   - Depends on: registry-response cache and retry logic (Section 2.1).
   - Files: [tools/add-package.js](tools/add-package.js)
@@ -39,7 +39,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 1.3 Hook and Tooling Integrity
 
-- [ ] **[P1]** Enforce git-hook integrity check — add pre-commit or setup-time verification that `.husky/pre-commit` matches a known hash, failing if the hook was modified outside the normal workflow.
+- [x] **[P1]** Enforce git-hook integrity check — add pre-commit or setup-time verification that `.husky/pre-commit` matches a known hash, failing if the hook was modified outside the normal workflow.
   - Impact: protects against hook tampering.
   - Depends on: install-defences integrity check (Section 1.2).
   - Files: [tools/setup-bootstrap.js](tools/setup-bootstrap.js), [tools/check-sync.js](tools/check-sync.js)
@@ -57,17 +57,17 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 2.1 Network Resilience
 
-- [ ] **[P1]** Implement persistent registry-response cache — reuse the caching logic from `tools/e2e/helpers/registry-cache.js` in production code, with configurable TTL, so `check-package-age.js`, `check-updates.js`, and `add-package.js` avoid redundant network calls.
+- [x] **[P1]** Implement persistent registry-response cache — reuse the caching logic from `tools/e2e/helpers/registry-cache.js` in production code, with configurable TTL, so `check-package-age.js`, `check-updates.js`, and `add-package.js` avoid redundant network calls.
   - Impact: reduces registry load and speeds up repeated runs.
   - Depends on: none.
   - Files: [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js), new `tools/lib/registry-cache.js`
 
-- [ ] **[P1]** Optimize registry payload size — add `Accept-Encoding: gzip` to all registry requests, evaluate abbreviated packument endpoints where the `time` field is not required, and replace string concatenation with `Buffer` accumulation for response bodies.
+- [x] **[P1]** Optimize registry payload size — add `Accept-Encoding: gzip` to all registry requests, evaluate abbreviated packument endpoints where the `time` field is not required, and replace string concatenation with `Buffer` accumulation for response bodies.
   - Impact: reduces bandwidth and memory usage during registry calls.
   - Depends on: registry-response cache (Section 2.1).
   - Files: [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js)
 
-- [ ] **[P1]** Add retry with exponential backoff and rate-limit handling — handle `429`, `503`, and transient network errors with bounded backoff, respecting `Retry-After` headers.
+- [x] **[P1]** Add retry with exponential backoff and rate-limit handling — handle `429`, `503`, and transient network errors with bounded backoff, respecting `Retry-After` headers.
   - Impact: makes registry-dependent tools reliable in CI and throttled environments.
   - Depends on: registry-response cache (Section 2.1).
   - Files: [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js)
@@ -90,7 +90,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 3.1 Centralized Configuration
 
-- [ ] **[P1]** Create a centralized configuration loader — add `tools/lib/config.js` that reads defaults from `package.json` (`engines`, `pkgAgeCheck`, `updateCheck`, `licensesCheck`) and optional `.defence.config.json` overrides; exposes values instead of hardcoded constants.
+- [x] **[P1]** Create a centralized configuration loader — add `tools/lib/config.js` that reads defaults from `package.json` (`engines`, `pkgAgeCheck`, `updateCheck`, `licensesCheck`, `defences`) and optional `.defence.config.json` overrides; exposes values instead of hardcoded constants.
   - Impact: makes the project adoptable in other repos and testable without editing code.
   - Depends on: none.
   - Files: new `tools/lib/config.js`

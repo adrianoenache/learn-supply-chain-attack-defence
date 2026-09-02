@@ -68,6 +68,29 @@ function makeMockFs(files) {
   }
 }
 
+function makeMockConfig(overrides = {}) {
+  return {
+    pkgAgeCheck: {
+      minAgeDays: 30,
+      registryTimeoutMs: 5000,
+      maxResponseMB: 5,
+    },
+    updateCheck: {
+      cacheTtlHours: 24,
+      retryMaxAttempts: 3,
+      retryInitialDelayMs: 250,
+      retryBackoffMultiplier: 2,
+      retryMaxDelayMs: 10000,
+    },
+    defences: {
+      typosquattingThreshold: 2,
+      internalPackageNames: [],
+      provenanceMode: 'warn',
+    },
+    ...overrides,
+  }
+}
+
 describe('add-package', () => {
   beforeEach(() => {
     resetCaptured()
@@ -78,11 +101,16 @@ describe('add-package', () => {
     mod.resetSpawnSyncImpl()
     mod.resetFetchRegistryJsonImpl()
     mod.resetFsImpl()
+    mod.resetTyposquattingImpl()
+    mod.resetProvenanceImpl()
+    mod.resetLoadConfigImpl()
   })
 
   test('main blocks install when tarball integrity mismatches after install (TOCTOU)', async () => {
     const mod = readScriptExports()
     const restoreConsole = captureConsole()
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
 
     mod.setFetchRegistryJsonImpl(
       makeMockFetchRegistryJson({
@@ -97,6 +125,19 @@ describe('add-package', () => {
         },
       }),
     )
+
+    // Default typosquatting/provenance behaviour should not interfere.
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
 
     mod.setFsImpl(
       makeMockFs({
@@ -165,6 +206,8 @@ describe('add-package', () => {
     const integrity =
       'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
     mod.setFetchRegistryJsonImpl(
       makeMockFetchRegistryJson({
         'safe-pkg@1.0.0': {
@@ -173,6 +216,19 @@ describe('add-package', () => {
         },
       }),
     )
+
+    // Neutralize typosquatting/provenance checks for the happy-path test.
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
 
     mod.setFsImpl(
       makeMockFs({
@@ -246,6 +302,7 @@ describe('add-package', () => {
 
   test('fetchVersionManifest rejects on HTTP error', async () => {
     const mod = readScriptExports()
+    mod.setLoadConfigImpl(() => makeMockConfig())
     mod.setFetchRegistryJsonImpl(
       makeMockFetchRegistryJson({
         'missing-pkg@1.0.0': { statusCode: 404, body: {} },
@@ -282,6 +339,8 @@ describe('add-package', () => {
     const integrity =
       'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
     mod.setFetchRegistryJsonImpl(
       makeMockFetchRegistryJson({
         'safe-pkg@1.0.0': {
@@ -290,6 +349,20 @@ describe('add-package', () => {
         },
       }),
     )
+
+    // Prevent typosquatting/provenance side effects from altering failure path.
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+
     mod.setFsImpl(
       makeMockFs({
         [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
@@ -299,6 +372,7 @@ describe('add-package', () => {
         }),
       }),
     )
+
     mod.setSpawnSyncImpl((cmd, args) => {
       if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
       if (cmd === 'npm' && args[0] === 'audit' && args[1] === 'signatures') {
@@ -344,6 +418,8 @@ describe('add-package', () => {
     const integrity =
       'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
 
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
     mod.setFetchRegistryJsonImpl(
       makeMockFetchRegistryJson({
         'safe-pkg@1.0.0': {
@@ -352,6 +428,19 @@ describe('add-package', () => {
         },
       }),
     )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+
     mod.setFsImpl(
       makeMockFs({
         [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
@@ -399,6 +488,249 @@ describe('add-package', () => {
       assert.ok(
         captured.errors.some((line) =>
           line.includes('Vulnerability audit FAILED'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main aborts when typosquatting conflict is detected', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'saafe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => ['safe-pkg'],
+      findConflicts: (_name, _options) => [
+        {
+          type: 'typosquatting',
+          name: 'saafe-pkg',
+          existing: 'safe-pkg',
+          distance: 1,
+        },
+      ],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: true,
+        valid: true,
+        reason: 'verified',
+      }),
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['saafe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:1/,
+      )
+      assert.equal(exitCode, 1)
+      assert.ok(
+        captured.errors.some((line) =>
+          line.includes('Potential typosquatting'),
+        ),
+      )
+      assert.ok(captured.errors.some((line) => line.includes('safe-pkg')))
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main aborts in strict provenance mode when attestation is missing', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() =>
+      makeMockConfig({ defences: { provenanceMode: 'strict' } }),
+    )
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'missing attestation',
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit' && args[1] === 'signatures') {
+        return { status: 0 }
+      }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'audit' &&
+        args[1] === '--audit-level=high'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:1/,
+      )
+      assert.equal(exitCode, 1)
+      assert.ok(
+        captured.errors.some((line) => line.includes('strict provenance mode')),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main warns but continues in warn provenance mode when attestation is missing', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'missing attestation',
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit' && args[1] === 'signatures') {
+        return { status: 0 }
+      }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'audit' &&
+        args[1] === '--audit-level=high'
+      ) {
+        return { status: 0 }
+      }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:pkg-age-check'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:0/,
+      )
+      assert.equal(exitCode, 0)
+      assert.ok(
+        captured.logs.some((line) =>
+          line.includes('No provenance attestation'),
         ),
       )
     } finally {

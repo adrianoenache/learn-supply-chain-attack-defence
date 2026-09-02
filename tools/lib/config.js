@@ -172,7 +172,16 @@ function buildDefaults(pkg) {
       cacheTtlHours: Number.parseInt(process.env.E2E_CACHE_TTL_HOURS, 10) || 24,
       defaultTimeoutMs: pkg.e2e?.defaultTimeoutMs ?? 30000,
     },
-    huskyPreCommitHash: pkg.huskyPreCommitHash ?? null,
+    defences: {
+      typosquattingThreshold: pkg.defences?.typosquattingThreshold ?? 2,
+      internalPackageNames: pkg.defences?.internalPackageNames ?? [],
+      provenanceMode: pkg.defences?.provenanceMode ?? 'warn',
+      huskyPreCommitHash:
+        pkg.defences?.huskyPreCommitHash ?? pkg.huskyPreCommitHash ?? null,
+    },
+    // Kept for backwards compatibility; prefer defences.huskyPreCommitHash.
+    huskyPreCommitHash:
+      pkg.defences?.huskyPreCommitHash ?? pkg.huskyPreCommitHash ?? null,
     paths: {
       repoRoot: REPO_ROOT,
       packageJson: PKG_PATH,

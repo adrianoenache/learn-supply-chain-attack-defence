@@ -24,6 +24,9 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - Camada 7: [Gate de lint / formatação](security/defense-layer-7-lint-format.md)
 - Camada 8: [Verificação de atualizações disponíveis](security/defense-layer-8-update-check.md)
 - Camada 9: [Verificação de licenças](security/defense-layer-9-license-check.md)
+- Camada 10: [Typosquatting e confusão de dependências](security/defense-layer-10-typosquatting.md)
+- Camada 11: [Provenance e atestado SLSA](security/defense-layer-11-provenance.md)
+- Camada 12: [Integridade do hook de pré-commit](security/defense-layer-12-hook-integrity.md)
 
 ### Projeto
 

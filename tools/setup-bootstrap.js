@@ -29,6 +29,16 @@ const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 
 const LOCK_FILE = path.resolve(process.cwd(), 'package-lock.json')
 const PRE_COMMIT_PATH = path.resolve(process.cwd(), '.husky/pre-commit')
+const PACKAGE_JSON_PATH = path.resolve(process.cwd(), 'package.json')
+
+// Dependency-injection hook for tests so loadConfig can return a controlled value.
+let loadConfigImpl = loadConfig
+function setLoadConfigImpl(fn) {
+  loadConfigImpl = fn
+}
+function resetLoadConfigImpl() {
+  loadConfigImpl = loadConfig
+}
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
@@ -45,8 +55,34 @@ function sha256File(filePath) {
   return hash.digest('hex')
 }
 
+function readPackageJson() {
+  return JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, 'utf8'))
+}
+
+function writePackageJson(pkg) {
+  fs.writeFileSync(PACKAGE_JSON_PATH, `${JSON.stringify(pkg, null, 2)}\n`)
+}
+
+function recordPreCommitHash() {
+  if (!fs.existsSync(PRE_COMMIT_PATH)) {
+    throw new Error(
+      `Cannot record pre-commit hash: hook not found at ${PRE_COMMIT_PATH}`,
+    )
+  }
+
+  const hash = sha256File(PRE_COMMIT_PATH)
+  const pkg = readPackageJson()
+  pkg.defences = pkg.defences ?? {}
+  pkg.defences.huskyPreCommitHash = hash
+  // Keep legacy top-level field in sync for backwards compatibility.
+  pkg.huskyPreCommitHash = hash
+  writePackageJson(pkg)
+  console.log(`✅ Recorded pre-commit hook hash: ${hash}`)
+  return hash
+}
+
 function verifyPreCommitHook() {
-  const config = loadConfig()
+  const config = loadConfigImpl()
   const expectedHash = config.huskyPreCommitHash
   if (!expectedHash) {
     console.log(
@@ -108,6 +144,10 @@ function main() {
   runCmd('Signature verification', 'npm', ['audit', 'signatures'])
   runCmd('Vulnerability audit', 'npm', ['audit', '--audit-level=high'])
 
+  // Install the husky hook after the controlled install (ignore-scripts skipped prepare).
+  runCmd('Install husky hook', 'npm', ['run', 'prepare'])
+
+  recordPreCommitHash()
   verifyPreCommitHook()
 
   console.log('\nBootstrap complete.')
@@ -127,4 +167,10 @@ if (require.main === module) {
   }
 }
 
-module.exports = { main, setSpawnSyncImpl, resetSpawnSyncImpl }
+module.exports = {
+  main,
+  setSpawnSyncImpl,
+  resetSpawnSyncImpl,
+  setLoadConfigImpl,
+  resetLoadConfigImpl,
+}

@@ -64,11 +64,18 @@
     ],
     "failOnUnknown": false
   },
+  "defences": {
+    "typosquattingThreshold": 2,
+    "internalPackageNames": [],
+    "provenanceMode": "warn",
+    "huskyPreCommitHash": "ac5e9570c377c5e8d2c8ae8f022951c3ffb2e32eacbf26b45018cc5d946d4f50"
+  },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-engines": "node ./tools/check-engines.js",
     "defence:check-lockfile-integrity": "node ./tools/check-lockfile-integrity.js",
+    "defence:check-hooks": "node ./tools/check-hooks.js",
     "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
     "defence:license-check": "node ./tools/check-licenses.js",
