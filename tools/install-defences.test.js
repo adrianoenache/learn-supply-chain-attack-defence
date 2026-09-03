@@ -8,7 +8,11 @@ const path = require('node:path')
 const os = require('node:os')
 const { spawnSync } = require('node:child_process')
 
-const { parseArgs, main } = require('./install-defences.js')
+const {
+  parseArgs,
+  main,
+  updateLocalManifest,
+} = require('./install-defences.js')
 const SCRIPT_PATH = path.resolve(__dirname, 'install-defences.js')
 
 function makeTempTarget(pkg = {}) {
@@ -233,5 +237,36 @@ describe('install-defences', () => {
     })
     assert.equal(result.status, 1)
     assert.ok(result.stdout.includes('Usage'))
+  })
+
+  test('updateLocalManifest regenerates manifest from current source tree', () => {
+    const target = makeTempTarget()
+    try {
+      const code = main([target])
+      assert.equal(code, 0)
+      const originalManifest = JSON.parse(
+        fs.readFileSync(path.join(target, '.defence-manifest.json'), 'utf8'),
+      )
+
+      // Simulate a legitimate edit to a copied file.
+      const filePath = path.join(target, 'tools', 'check-package-age.js')
+      fs.appendFileSync(filePath, '\n')
+
+      const manifest = updateLocalManifest(target)
+      assert.ok(Array.isArray(manifest.files))
+      assert.ok(manifest.files.length > 0)
+      const checkPackageAgeEntry = manifest.files.find(
+        (f) => f.path === 'tools/check-package-age.js',
+      )
+      assert.ok(checkPackageAgeEntry)
+      assert.notEqual(
+        checkPackageAgeEntry.hash,
+        originalManifest.files.find(
+          (f) => f.path === 'tools/check-package-age.js',
+        ).hash,
+      )
+    } finally {
+      cleanup(target)
+    }
   })
 })

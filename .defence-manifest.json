@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-03T20:18:43.941Z",
+  "installedAt": "2026-09-03T22:39:35.393Z",
   "files": [
     {
       "path": ".npmrc",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".husky/pre-commit",
-      "hash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
+      "hash": "2b594b324a64c3d3f8ea22a878e89ff7565f824e806d080d60ad2a9f6f6ce6e6"
     },
     {
       "path": "biome.json",
@@ -16,7 +16,7 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "bff9d02e13c5a65e4598b59a37c9c0197bf80d2afa5143cbc3d388ce5bafad9c"
+      "hash": "3f39aff5998340d81fa74f9dc1d541e7f01b4517483521250f9f230fcd386aea"
     },
     {
       "path": "tools/add-package.js",
@@ -24,11 +24,11 @@
     },
     {
       "path": "tools/check-md-links.js",
-      "hash": "78491ba1a22f33302792123527f8961489809497aa5fc032749f235a18c5c8ee"
+      "hash": "ac2d4bd9347a585eeb38b610c425773fc32623b6188a948091510aeb490cdc08"
     },
     {
       "path": "tools/check-md-links.test.js",
-      "hash": "8195a76724deaaec8fd9c200f96710e281d908f05fdc566a851d261a058d9e10"
+      "hash": "b02bd250320369cd486aa2cec7b9d589d05c945e6b9c220ff668e232084c66f2"
     },
     {
       "path": "tools/lib/package-utils.js",
@@ -48,11 +48,11 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "3c742e4d2bf4560d103ced00292d60f2d6e51e14a0ff3519196680242d3943be"
+      "hash": "ac993df4749ae71fe4004d79d57e0039fc57ea77c4803c1077074a88323d826a"
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "9c4c654e220702475e036ab8604c8aeecf54b741b82560af714ffbcf8286b3a5"
+      "hash": "824bcd3585472de3a641db00910aa47e8ed7d7a11b3af4c9325b6a17da7f78dc"
     },
     {
       "path": "tools/update-badge.js",

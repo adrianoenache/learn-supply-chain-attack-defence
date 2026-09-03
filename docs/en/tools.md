@@ -81,6 +81,19 @@ The `tools/perf/benchmark.js` suite measures how the registry-dependent tools be
 
 A regression is flagged when a metric is worse than the baseline by more than 20%. Keep the baseline committed so CI can catch unintended slowdowns or extra network calls.
 
+## Adoption Manifest
+
+When `install-defences.js` copies defences into another project, it writes `.defence-manifest.json` with SHA-256 hashes of every copied file. The source project keeps its own manifest committed so that `npm run defence:verify-defences` can detect drift in CI.
+
+Because legitimate edits to copied files naturally change their hashes, the pre-commit hook regenerates the manifest automatically. You can also update it manually:
+
+| npm script | Purpose |
+| --- | --- |
+| `npm run defence:verify-defences` | Compares current files against `.defence-manifest.json` and reports mismatches. |
+| `npm run defence:verify-defences:fix` | Recomputes hashes from the current source tree and overwrites `.defence-manifest.json`. |
+
+Run the fix script after any deliberate change to the files listed in `install-defences.js`, then commit the updated manifest.
+
 ## Tests
 
 | Script | Purpose |

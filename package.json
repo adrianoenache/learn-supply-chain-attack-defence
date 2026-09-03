@@ -82,7 +82,7 @@
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
     "provenanceMode": "warn",
-    "huskyPreCommitHash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
+    "huskyPreCommitHash": "2b594b324a64c3d3f8ea22a878e89ff7565f824e806d080d60ad2a9f6f6ce6e6"
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
@@ -114,6 +114,7 @@
     "defence:sync-check": "node ./tools/check-sync.js",
     "defence:sync-check:fix": "node ./tools/check-sync.js --fix",
     "defence:verify-defences": "node ./tools/verify-defences.js",
+    "defence:verify-defences:fix": "node ./tools/install-defences.js --update-local-manifest",
     "defence:generate-sbom": "node ./tools/generate-sbom.js",
     "format": "biome format --write tools/",
     "lint:fix": "biome check --write tools/",

@@ -5,6 +5,7 @@
 git diff --cached --name-only -z | xargs -0 -r npm run defence:check-secrets --
 npm run defence:check-hooks
 npm run lint
+npm run defence:verify-defences:fix && git add .defence-manifest.json
 npm run defence:update-badge && git add README.md
 npm run defence:pre-commit
 npm run defence:pkg-age-check -- --transitive

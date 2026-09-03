@@ -81,6 +81,19 @@ A suite `tools/perf/benchmark.js` mede o comportamento das ferramentas dependent
 
 Uma regressão é sinalizada quando uma métrica fica pior que a baseline em mais de 20%. Mantenha a baseline commitada para que o CI possa detectar lentidões ou chamadas de rede extras não intencionais.
 
+## Manifesto de Adoção
+
+Quando `install-defences.js` copia as defesas para outro projeto, ele escreve `.defence-manifest.json` com hashes SHA-256 de cada arquivo copiado. O projeto de origem mantém seu próprio manifesto commitado para que `npm run defence:verify-defences` possa detectar drift no CI.
+
+Como edições legítimas nos arquivos copiados naturalmente alteram seus hashes, o hook de pré-commit regenera o manifesto automaticamente. Você também pode atualizá-lo manualmente:
+
+| Script npm | Propósito |
+| --- | --- |
+| `npm run defence:verify-defences` | Compara os arquivos atuais com `.defence-manifest.json` e reporta divergências. |
+| `npm run defence:verify-defences:fix` | Recomputa os hashes a partir da árvore de origem atual e sobrescreve `.defence-manifest.json`. |
+
+Execute o script de correção após qualquer mudança deliberada nos arquivos listados em `install-defences.js`, depois commit o manifesto atualizado.
+
 ## Testes
 
 | Script | Propósito |

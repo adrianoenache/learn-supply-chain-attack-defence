@@ -92,7 +92,14 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: registry-response cache and retry logic (Section 2.1), CI/CD pipeline (Section 5.1).
   - Files: [tools/perf/benchmark.js](tools/perf/benchmark.js), [tools/perf/benchmark.test.js](tools/perf/benchmark.test.js), [tools/perf/baselines.json](tools/perf/baselines.json), [package.json](package.json)
 
-### 8.2 Risk Scoring
+### 8.2 Adoption Manifest Synchronization
+
+- [x] **[P0]** Prevent `.defence-manifest.json` drift in CI — add `defence:verify-defences:fix` script that regenerates the manifest from the current source tree, and invoke it from `.husky/pre-commit` whenever tracked defence files change. This stops the recurring "Verify adoption manifest" failure after legitimate edits to copied tools.
+  - Impact: eliminates false-positive manifest mismatches in CI and keeps the adoption manifest authoritative.
+  - Depends on: install-defences file list (Section 1.2).
+  - Files: [tools/install-defences.js](tools/install-defences.js), [package.json](package.json), [.husky/pre-commit](.husky/pre-commit), [.defence-manifest.json](.defence-manifest.json), [docs/en/tools.md](docs/en/tools.md), [docs/pt-BR/tools.md](docs/pt-BR/tools.md)
+
+### 8.3 Risk Scoring
 
 - [x] **[P2]** Add package metadata risk scoring — `check-updates.js` now fetches deprecation status, maintainer count, and weekly downloads and incorporates them into the confidence score alongside the existing age, severity, and cadence signals.
   - Impact: improves update decisions with richer risk signals.

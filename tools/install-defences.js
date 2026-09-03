@@ -194,6 +194,19 @@ function buildManifest(targetDir) {
   }
 }
 
+// Regenerates .defence-manifest.json in the current project without copying
+// files. Used by the pre-commit hook and the verify-defences:fix npm script
+// to keep the manifest synchronized with legitimate source edits.
+function updateLocalManifest(cwd = process.cwd()) {
+  const manifest = buildManifest(cwd)
+  const manifestPath = path.join(cwd, MANIFEST_NAME)
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+  console.log(
+    `Updated ${MANIFEST_NAME} with ${manifest.files.length} file hash(es).`,
+  )
+  return manifest
+}
+
 function writeManifest(targetDir, dryRun) {
   const manifest = buildManifest(targetDir)
   const manifestPath = path.join(targetDir, MANIFEST_NAME)
@@ -298,7 +311,12 @@ function main(argv) {
 }
 
 if (require.main === module) {
-  const code = main(process.argv.slice(2))
+  const argv = process.argv.slice(2)
+  if (argv.includes('--update-local-manifest')) {
+    updateLocalManifest()
+    process.exit(0)
+  }
+  const code = main(argv)
   process.exit(code)
 }
 
@@ -309,6 +327,7 @@ module.exports = {
   verifySourceIntegrity,
   buildManifest,
   writeManifest,
+  updateLocalManifest,
   FILES_TO_COPY,
   MANIFEST_NAME,
 }
