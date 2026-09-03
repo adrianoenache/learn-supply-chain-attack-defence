@@ -1,0 +1,44 @@
+{
+  "$schema": "https://code.visualstudio.com/schemas/hooks",
+  "id": "auto-lint-test",
+  "description": "Suggest running lint and tests after edits to code or test files.",
+  "enabled": true,
+  "rules": [
+    {
+      "id": "run-lint-after-code-edit",
+      "description": "After editing a .js file under tools/, remind the user to run lint.",
+      "trigger": "afterEdit",
+      "condition": {
+        "glob": "tools/**/*.js"
+      },
+      "action": {
+        "type": "suggest",
+        "message": "Run `npm run lint` to verify the edited file follows Biome rules."
+      }
+    },
+    {
+      "id": "run-tests-after-test-edit",
+      "description": "After editing or creating a test file, suggest running the test suite.",
+      "trigger": "afterEdit",
+      "condition": {
+        "glob": "tools/**/*.test.js"
+      },
+      "action": {
+        "type": "suggest",
+        "message": "Run `npm test` to confirm the new or updated tests pass (299/299 expected)."
+      }
+    },
+    {
+      "id": "run-md-links-after-doc-edit",
+      "description": "After editing markdown files, suggest checking links.",
+      "trigger": "afterEdit",
+      "condition": {
+        "glob": "{docs,README,SECURITY,CONTRIBUTING,CHANGELOG}/**/*.md"
+      },
+      "action": {
+        "type": "suggest",
+        "message": "Run `npm run defence:check-md-links` to validate markdown links."
+      }
+    }
+  ]
+}

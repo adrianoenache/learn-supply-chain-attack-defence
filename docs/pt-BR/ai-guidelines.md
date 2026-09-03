@@ -6,12 +6,17 @@ Este projeto usa o GitHub Copilot com o modelo **Kimi 2.7 Code** como assistente
 
 Os seguintes arquivos configuram como os assistentes de AI se comportam ao trabalhar com este código:
 
-| Arquivo | Propósito |
+| Arquivo ou Diretório | Propósito |
 | --- | --- |
 | [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Instruções sempre ativas carregadas em toda requisição de chat. |
 | [`.github/instructions/security.instructions.md`](../../.github/instructions/security.instructions.md) | Contexto para `tools/**`, `.npmrc` e `package.json`. |
 | [`.github/instructions/testing.instructions.md`](../../.github/instructions/testing.instructions.md) | Contexto para `tools/**/*.test.js`. |
 | [`.github/instructions/docs.instructions.md`](../../.github/instructions/docs.instructions.md) | Contexto para `docs/**/*.md` e `README.md`. |
+| [`.github/agents/`](../../.github/agents/) | Agents especializados para revisões de segurança, qualidade, performance, documentação e compliance. |
+| [`.github/skills/`](../../.github/skills/) | Procedimentos reutilizáveis para auditorias de segurança, revisão de dependências, atualização de docs, releases e self-review. |
+| [`.github/prompts/`](../../.github/prompts/) | Templates de prompt one-shot para testes, revisões de segurança, atualização de docs, auditoria de hardcodes e revisão de saídas da AI. |
+| [`.github/hooks/`](../../.github/hooks/) | Hooks de ciclo de vida que alertam ou bloqueiam solicitações de alto risco e sugerem comandos de validação. |
+| [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log de erros recorrentes da AI e correções usado para melhorar as instruções ao longo do tempo. |
 
 Esses arquivos são lidos pelo VS Code Copilot / Kimi 2.7 Code quando o workspace é aberto. Eles não alteram o modelo em si; fornecem guardrails específicos do projeto.
 
@@ -44,8 +49,32 @@ Quando a AI comete um erro que não é pego pelas instruções existentes:
 
 1. Corrija o erro no código ou documentação.
 2. Atualize `.github/copilot-instructions.md` ou o `.github/instructions/*.md` relevante para que o mesmo erro seja menos provável de acontecer novamente.
-3. Se o mesmo padrão se repetir, adicione uma nota curta em `.github/ai-lessons-learned.md` (criado em uma fase posterior) para que sessões futuras comecem com esse contexto.
+3. Se o erro se encaixar em um domínio específico, atualize o `.github/agents/*.agent.md` correspondente.
+4. Se o mesmo padrão se repetir, adicione uma nota curta em [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) para que sessões futuras comecem com esse contexto.
+5. Revise `.github/ai-lessons-learned.md` ao final de cada fase ou antes de um release para identificar lacunas nas instruções.
 
 ## Por Que Não `docs/ai/`?
 
 Um diretório `docs/ai/` separado poderia ser confundido com arquivos que a AI lê durante a execução. As instruções reais da AI vivem em `.github/`, onde o VS Code Copilot / Kimi 2.7 Code pode descobri-las automaticamente. A explicação legível por humanos vive aqui, na árvore principal de documentação, junto com os outros guias de contribuição.
+
+## Agents e Skills Disponíveis
+
+Os seguintes agents especializados podem ser invocados explicitamente ou correspondidos automaticamente com base nos arquivos sendo editados:
+
+| Agent | Escopo |
+| --- | --- |
+| [`.github/agents/security.agent.md`](../../.github/agents/security.agent.md) | Revisões de segurança para dependências, hooks, `.npmrc`, `package.json`, CI. |
+| [`.github/agents/quality.agent.md`](../../.github/agents/quality.agent.md) | Lint, testes, cobertura, valores hardcoded. |
+| [`.github/agents/performance.agent.md`](../../.github/agents/performance.agent.md) | Cache, retry, uso de rede, benchmarks. |
+| [`.github/agents/docs.agent.md`](../../.github/agents/docs.agent.md) | Documentação bilíngue, links, glossário, qualidade markdown. |
+| [`.github/agents/compliance.agent.md`](../../.github/agents/compliance.agent.md) | Licenças, SBOM, manifesto de adoção, readiness de release. |
+
+Skills reutilizáveis incluem:
+
+| Skill | Use Quando |
+| --- | --- |
+| [`.github/skills/security-audit/SKILL.md`](../../.github/skills/security-audit/SKILL.md) | Revisar uma mudança contra as 12 camadas de defesa. |
+| [`.github/skills/dependency-review/SKILL.md`](../../.github/skills/dependency-review/SKILL.md) | Adicionar ou avaliar uma dependência. |
+| [`.github/skills/docs-update/SKILL.md`](../../.github/skills/docs-update/SKILL.md) | Atualizar a documentação bilíngue. |
+| [`.github/skills/release-checklist/SKILL.md`](../../.github/skills/release-checklist/SKILL.md) | Criar uma tag de release. |
+| [`.github/skills/self-review/SKILL.md`](../../.github/skills/self-review/SKILL.md) | Revisar uma saída anterior da AI e melhorar as instruções. |

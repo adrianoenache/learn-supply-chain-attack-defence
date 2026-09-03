@@ -183,35 +183,35 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: `.github/copilot-instructions.md` (Section 4.1).
   - Files: `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
 
-### 4.4 Custom Agents (pós-v1.0.0)
+### 4.4 Custom Agents ✅
 
-- [ ] **[P2]** Create custom agents in `.github/agents/` — `security.agent.md`, `quality.agent.md`, `performance.agent.md`, `docs.agent.md`, and `compliance.agent.md`, each with restricted tools, keyword-rich `description`, and clear boundaries.
+- [x] **[P2]** Create custom agents in `.github/agents/` — `security.agent.md`, `quality.agent.md`, `performance.agent.md`, `docs.agent.md`, and `compliance.agent.md`, each with restricted tools, keyword-rich `description`, and clear boundaries.
   - Impact: enables delegation of specialized review tasks to focused subagents.
   - Depends on: file-specific instructions (Section 4.2).
   - Files: `.github/agents/*.agent.md`
 
-### 4.5 Skills and Prompts (pós-v1.0.0)
+### 4.5 Skills and Prompts ✅
 
-- [ ] **[P2]** Create skills in `.github/skills/` — `security-audit/SKILL.md`, `dependency-review/SKILL.md`, `docs-update/SKILL.md`, and `release-checklist/SKILL.md`, each with step-by-step procedures and correct frontmatter.
+- [x] **[P2]** Create skills in `.github/skills/` — `security-audit/SKILL.md`, `dependency-review/SKILL.md`, `docs-update/SKILL.md`, `release-checklist/SKILL.md`, and `self-review/SKILL.md`, each with step-by-step procedures and correct frontmatter.
   - Impact: packages repeatable workflows with bundled assets.
   - Depends on: custom agents (Section 4.4).
   - Files: `.github/skills/*/SKILL.md`
 
-- [ ] **[P2]** Create prompts in `.github/prompts/` — `generate-test.prompt.md`, `review-security.prompt.md`, `update-docs.prompt.md`, and `check-hardcoded-values.prompt.md`, each focused on a single task.
+- [x] **[P2]** Create prompts in `.github/prompts/` — `generate-test.prompt.md`, `review-security.prompt.md`, `update-docs.prompt.md`, `check-hardcoded-values.prompt.md`, and `review-ai-output.prompt.md`, each focused on a single task.
   - Impact: gives developers reusable, one-shot task templates.
   - Depends on: file-specific instructions (Section 4.2).
   - Files: `.github/prompts/*.prompt.md`
 
-### 4.6 Hooks (pós-v1.0.0)
+### 4.6 Hooks ✅
 
-- [ ] **[P2]** Create lifecycle hooks in `.github/hooks/` — `enforce-security.json` (blocks dangerous commands), `auto-lint-test.json` (runs lint and tests after edits), and `inject-context.json` (loads `engines` and TODO state at session start).
+- [x] **[P2]** Create lifecycle hooks in `.github/hooks/` — `enforce-security.json` (blocks dangerous commands), `auto-lint-test.json` (runs lint and tests after edits), and `inject-context.json` (loads `engines` and TODO state at session start).
   - Impact: turns guidelines into deterministic runtime enforcement.
   - Depends on: always-on instructions (Section 4.1).
   - Files: `.github/hooks/*.json`
 
-### 4.7 Self-Improvement Loop (pós-v1.0.0)
+### 4.7 Self-Improvement Loop ✅
 
-- [ ] **[P2]** Create a lightweight self-improvement mechanism for AI instructions:
+- [x] **[P2]** Create a lightweight self-improvement mechanism for AI instructions:
   - `.github/prompts/review-ai-output.prompt.md` to review previous AI outputs against project rules.
   - `.github/skills/self-review/SKILL.md` with a step-by-step self-review procedure.
   - `.github/ai-lessons-learned.md` to log recurring AI mistakes and corrections.

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://code.visualstudio.com/schemas/hooks",
+  "id": "inject-context",
+  "description": "Load project context at session start to reduce redundant searches.",
+  "enabled": true,
+  "rules": [
+    {
+      "id": "load-engines",
+      "description": "Read engines.node and engines.npm from package.json into session context.",
+      "trigger": "sessionStart",
+      "action": {
+        "type": "inject",
+        "source": "package.json",
+        "path": "engines"
+      }
+    },
+    {
+      "id": "load-todo-state",
+      "description": "Summarize open TODO items at session start.",
+      "trigger": "sessionStart",
+      "action": {
+        "type": "inject",
+        "source": "TODO.md",
+        "summary": "openCheckboxes"
+      }
+    },
+    {
+      "id": "load-defence-manifest",
+      "description": "Load the current adoption manifest hash count into session context.",
+      "trigger": "sessionStart",
+      "action": {
+        "type": "inject",
+        "source": ".defence-manifest.json",
+        "path": "files"
+      }
+    }
+  ]
+}

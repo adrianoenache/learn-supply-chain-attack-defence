@@ -1,0 +1,47 @@
+{
+  "$schema": "https://code.visualstudio.com/schemas/hooks",
+  "id": "enforce-security",
+  "description": "Block or warn high-risk requests that could weaken supply-chain defenses.",
+  "enabled": true,
+  "rules": [
+    {
+      "id": "no-direct-install",
+      "description": "Warn when the user asks to install a package with npm install instead of the secure wrapper.",
+      "trigger": "userRequest",
+      "condition": {
+        "pattern": "npm install\\s+(--save|-S|--save-dev|-D)?\\s*[^\\s]+",
+        "flags": "i"
+      },
+      "action": {
+        "type": "warn",
+        "message": "Use `npm run defence:add -- pkg@version` instead of `npm install`. Direct installs bypass age, signature, vulnerability, and license checks."
+      }
+    },
+    {
+      "id": "no-remove-ignore-scripts",
+      "description": "Block requests to remove ignore-scripts from .npmrc.",
+      "trigger": "userRequest",
+      "condition": {
+        "pattern": "(remove|delete|disable)\\s+ignore-scripts",
+        "flags": "i"
+      },
+      "action": {
+        "type": "block",
+        "message": "Removing `ignore-scripts=true` weakens Layer 6 protection. If you need lifecycle scripts for a specific package, follow the safe rebuild procedure documented in the security layers."
+      }
+    },
+    {
+      "id": "no-bypass-gates",
+      "description": "Warn when a user asks to bypass a security gate.",
+      "trigger": "userRequest",
+      "condition": {
+        "pattern": "(bypass|skip|disable|remove)\\s+(age check|signature|audit|license check|hook integrity|pre-commit)",
+        "flags": "i"
+      },
+      "action": {
+        "type": "warn",
+        "message": "Bypassing security gates requires documented maintainer approval. Explain why the gate cannot be satisfied."
+      }
+    }
+  ]
+}

@@ -86,10 +86,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated `docs/en/git-hooks.md` and `docs/pt-BR/git-hooks.md` to reflect the current pre-commit sequence and the new post-merge hook.
   - Updated `SECURITY.md` to describe the twelve defense layers and adoption groups.
   - Updated `CONTRIBUTING.md` with the hardcoded-values rule and AI-assisted contribution guidelines.
-- AI Core customization:
+- AI customization (Fases 6 e 7):
   - New `.github/copilot-instructions.md` with project-wide security, validation, and anti-loop rules.
   - New `.github/instructions/security.instructions.md`, `.github/instructions/testing.instructions.md`, and `.github/instructions/docs.instructions.md`.
+  - New specialized agents in `.github/agents/`: `security`, `quality`, `performance`, `docs`, and `compliance`.
+  - New reusable skills in `.github/skills/`: `security-audit`, `dependency-review`, `docs-update`, `release-checklist`, and `self-review`.
+  - New one-shot prompts in `.github/prompts/`: `generate-test`, `review-security`, `update-docs`, `check-hardcoded-values`, and `review-ai-output`.
+  - New lifecycle hooks in `.github/hooks/`: `enforce-security`, `auto-lint-test`, and `inject-context`.
+  - New `.github/ai-lessons-learned.md` log for continuous improvement of AI instructions.
   - New `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` explaining AI collaboration and the feedback loop.
+  - Updated `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` to describe the full AI customization stack.
 - CI/CD and release readiness:
   - Added `cache: 'npm'` to all `actions/setup-node` steps in `.github/workflows/ci.yml`.
   - Added a dedicated `coverage` job running `npm run test:coverage`.
