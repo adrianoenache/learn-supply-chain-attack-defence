@@ -60,6 +60,11 @@ const DEFAULT_SCORING_RULES = {
   cadencePenaltyMax: 30,
   cadencePenaltyUnit: 5,
   cadencePenaltyUnitDays: 2,
+  deprecatedPenalty: 40,
+  maintainerPenaltyThreshold: 2,
+  maintainerPenalty: 10,
+  downloadsPenaltyThreshold: 100,
+  downloadsPenalty: 10,
   scoreRecommendedMin: 70,
   scoreReviewRequiredMin: 40,
 }

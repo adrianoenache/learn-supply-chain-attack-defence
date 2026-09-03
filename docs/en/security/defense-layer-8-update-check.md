@@ -24,6 +24,21 @@ The registry calls reuse the same caching, gzip, and retry layer as the package-
 DEFENCE_NO_CACHE=1 npm run defence:update-check
 ```
 
+## Metadata Risk Scoring
+
+Eligible updates receive a confidence score that combines several risk signals. The score helps you decide which updates can be applied quickly and which deserve extra review.
+
+Signals used:
+
+- **Age** — older releases earn more points because the community has had time to report issues.
+- **Semver severity** — patch updates earn more points than minor or major updates.
+- **Release cadence** — packages that release very frequently receive a penalty because each release has had less community exposure.
+- **Deprecation** — deprecated versions receive a large penalty and usually become "high risk" or "review required".
+- **Maintainer count** — packages with fewer than two maintainers receive a small penalty.
+- **Weekly downloads** — packages with fewer than 100 weekly downloads receive a small penalty.
+
+The weights for these signals live under `updateCheck.scoringRules` in `package.json` and can be overridden via `.defence.config.json`. Download counts come from the npm downloads API (`https://api.npmjs.org/downloads/point/last-week/<pkg>`) and gracefully fall back to null if the API is unreachable.
+
 ## Configuration
 
 The behavior is controlled by the `updateCheck` block in `package.json`:

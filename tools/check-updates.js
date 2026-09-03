@@ -36,6 +36,7 @@ const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
+const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
 
 const config = loadConfig()
 const updateConfig = config.updateCheck
@@ -82,6 +83,7 @@ const STATE_FILE = config.paths.updateCheckState
 
 let fsImpl = fs
 let fetchRegistryJsonImpl = fetchRegistryJson
+let fetchJsonImpl = fetchJson
 let spawnSyncImpl = spawnSync
 let nowImpl = () => Date.now()
 let exitImpl = process.exit
@@ -89,6 +91,7 @@ let exitImpl = process.exit
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
   if (impls.fetchRegistryJson) fetchRegistryJsonImpl = impls.fetchRegistryJson
+  if (impls.fetchJson) fetchJsonImpl = impls.fetchJson
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.now) nowImpl = impls.now
   if (impls.exit) exitImpl = impls.exit
@@ -101,6 +104,7 @@ function setImpls(impls) {
 function resetImpls() {
   fsImpl = fs
   fetchRegistryJsonImpl = fetchRegistryJson
+  fetchJsonImpl = fetchJson
   spawnSyncImpl = spawnSync
   nowImpl = () => Date.now()
   exitImpl = process.exit
@@ -251,6 +255,32 @@ function buildReleaseLinks(name, version, repositoryUrl) {
   return links
 }
 
+async function fetchWeeklyDownloads(name) {
+  try {
+    const url = `https://api.npmjs.org/downloads/point/last-week/${encodeURIComponent(name)}`
+    const data = await fetchJsonImpl(url, {
+      timeoutMs: REGISTRY_TIMEOUT_MS,
+      retryMaxAttempts: 1,
+      acceptGzip: true,
+    })
+    return typeof data.downloads === 'number' ? data.downloads : null
+  } catch {
+    return null
+  }
+}
+
+function extractVersionMetadata(info, version) {
+  const versionInfo = info.versions?.[version]
+  const isDeprecated =
+    typeof versionInfo?.deprecated === 'string' &&
+    versionInfo.deprecated.length > 0
+  const maintainers = versionInfo?.maintainers ?? info.maintainers ?? []
+  return {
+    isDeprecated,
+    maintainerCount: Array.isArray(maintainers) ? maintainers.length : null,
+  }
+}
+
 async function classifyUpdate(name, data, inMemoryCache, metrics) {
   const current = data.current
   const wanted = data.wanted
@@ -269,6 +299,9 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
     }
 
     const daysOld = daysBetween(publishedDate.getTime(), nowImpl())
+    const metadata = extractVersionMetadata(info, latest)
+    const weeklyDownloads = await fetchWeeklyDownloads(name)
+
     const entry = {
       name,
       current,
@@ -277,6 +310,11 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
       daysOld,
       severity: determineSeverity(current, latest),
       links: buildReleaseLinks(name, latest, info.repository?.url),
+      metadata: {
+        isDeprecated: metadata.isDeprecated,
+        maintainerCount: metadata.maintainerCount,
+        weeklyDownloads,
+      },
     }
 
     if (daysOld >= MIN_AGE_DAYS) {
@@ -470,7 +508,29 @@ function calculateConfidence(entry, history) {
     )
   }
 
-  const score = Math.max(0, agePoints + severityPoints - cadencePenalty)
+  // Package metadata risk signals.
+  const metadata = entry.metadata ?? {}
+  let metadataPenalty = 0
+  if (metadata.isDeprecated) {
+    metadataPenalty += scoring.deprecatedPenalty
+  }
+  if (
+    metadata.maintainerCount !== null &&
+    metadata.maintainerCount < scoring.maintainerPenaltyThreshold
+  ) {
+    metadataPenalty += scoring.maintainerPenalty
+  }
+  if (
+    metadata.weeklyDownloads !== null &&
+    metadata.weeklyDownloads < scoring.downloadsPenaltyThreshold
+  ) {
+    metadataPenalty += scoring.downloadsPenalty
+  }
+
+  const score = Math.max(
+    0,
+    agePoints + severityPoints - cadencePenalty - metadataPenalty,
+  )
 
   let label
   if (score >= scoring.scoreRecommendedMin) {

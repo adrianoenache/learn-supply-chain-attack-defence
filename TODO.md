@@ -74,10 +74,10 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 1.4 Risk Intelligence
 
-- [ ] **[P2]** Add package metadata risk scoring — `check-updates.js` fetches and incorporates deprecation status, maintainer count, weekly downloads, and recent release cadence into the existing confidence score.
+- [x] **[P2]** Add package metadata risk scoring — `check-updates.js` now fetches deprecation status, maintainer count, and weekly downloads and incorporates them into the confidence score alongside the existing age, severity, and cadence signals.
   - Impact: improves update decisions with richer risk signals.
   - Depends on: registry-response cache and retry logic (Section 2.1).
-  - Files: [tools/check-updates.js](tools/check-updates.js)
+  - Files: [tools/check-updates.js](tools/check-updates.js), [tools/check-updates.test.js](tools/check-updates.test.js), [tools/lib/config.js](tools/lib/config.js), [docs/en/security/defense-layer-8-update-check.md](docs/en/security/defense-layer-8-update-check.md), [docs/pt-BR/security/defense-layer-8-update-check.md](docs/pt-BR/security/defense-layer-8-update-check.md)
 
 ---
 
@@ -94,10 +94,10 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 8.2 Risk Scoring
 
-- [ ] **[P2]** Add package metadata risk scoring — `check-updates.js` fetches and incorporates deprecation status, maintainer count, weekly downloads, and recent release cadence into the existing confidence score.
+- [x] **[P2]** Add package metadata risk scoring — `check-updates.js` now fetches deprecation status, maintainer count, and weekly downloads and incorporates them into the confidence score alongside the existing age, severity, and cadence signals.
   - Impact: improves update decisions with richer risk signals.
   - Depends on: registry-response cache and retry logic (Section 2.1).
-  - Files: [tools/check-updates.js](tools/check-updates.js)
+  - Files: [tools/check-updates.js](tools/check-updates.js), [tools/check-updates.test.js](tools/check-updates.test.js), [tools/lib/config.js](tools/lib/config.js), [docs/en/security/defense-layer-8-update-check.md](docs/en/security/defense-layer-8-update-check.md), [docs/pt-BR/security/defense-layer-8-update-check.md](docs/pt-BR/security/defense-layer-8-update-check.md)
 
 ---
 

@@ -19,7 +19,10 @@ const SCRIPT_PATH = path.resolve(__dirname, 'check-updates.js')
 function readScriptExports() {
   // Load module fresh for each test by clearing require cache.
   delete require.cache[require.resolve(SCRIPT_PATH)]
-  return require(SCRIPT_PATH)
+  const mod = require(SCRIPT_PATH)
+  // Avoid network calls to the npm downloads API during tests.
+  mod.setImpls({ fetchJson: DEFAULT_MOCK_FETCH_JSON })
+  return mod
 }
 
 function makeMockFs({
@@ -67,6 +70,8 @@ function makeMockSpawn(calls, responses) {
     }
   }
 }
+
+const DEFAULT_MOCK_FETCH_JSON = async () => ({ downloads: 10000 })
 
 function makeMockFetchRegistryJson(registryResponses) {
   return async function mockFetchRegistryJson(name, _version, _options) {
@@ -1054,6 +1059,137 @@ describe('check-updates', () => {
       assert.equal(parsed.metrics.registryCacheMisses, 1)
     } finally {
       console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('deprecated metadata lowers confidence score', () => {
+    const mod = readScriptExports()
+    const withDeprecation = mod.calculateConfidence(
+      {
+        name: 'deprecated-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: true,
+          maintainerCount: 5,
+          weeklyDownloads: 10000,
+        },
+      },
+      [],
+    )
+    const withoutDeprecation = mod.calculateConfidence(
+      {
+        name: 'normal-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: false,
+          maintainerCount: 5,
+          weeklyDownloads: 10000,
+        },
+      },
+      [],
+    )
+    assert.ok(withDeprecation.score < withoutDeprecation.score)
+  })
+
+  test('few maintainers lowers confidence score', () => {
+    const mod = readScriptExports()
+    const fewMaintainers = mod.calculateConfidence(
+      {
+        name: 'solo-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: false,
+          maintainerCount: 1,
+          weeklyDownloads: 10000,
+        },
+      },
+      [],
+    )
+    const manyMaintainers = mod.calculateConfidence(
+      {
+        name: 'team-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: false,
+          maintainerCount: 5,
+          weeklyDownloads: 10000,
+        },
+      },
+      [],
+    )
+    assert.ok(fewMaintainers.score < manyMaintainers.score)
+  })
+
+  test('low weekly downloads lowers confidence score', () => {
+    const mod = readScriptExports()
+    const lowDownloads = mod.calculateConfidence(
+      {
+        name: 'niche-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: false,
+          maintainerCount: 5,
+          weeklyDownloads: 10,
+        },
+      },
+      [],
+    )
+    const highDownloads = mod.calculateConfidence(
+      {
+        name: 'popular-pkg',
+        daysOld: 30,
+        severity: 'patch',
+        metadata: {
+          isDeprecated: false,
+          maintainerCount: 5,
+          weeklyDownloads: 100000,
+        },
+      },
+      [],
+    )
+    assert.ok(lowDownloads.score < highDownloads.score)
+  })
+
+  test('classifyUpdate includes metadata in eligible entry', async () => {
+    const mod = readScriptExports()
+    mod.setImpls({
+      fetchRegistryJson: makeMockFetchRegistryJson({
+        'meta-pkg': {
+          statusCode: 200,
+          body: {
+            time: { '2.0.0': '2026-08-01T00:00:00.000Z' },
+            versions: {
+              '2.0.0': {
+                deprecated: 'This version is deprecated',
+                maintainers: [{ name: 'solo' }],
+              },
+            },
+            repository: { url: 'git+https://github.com/example/meta-pkg.git' },
+          },
+        },
+      }),
+      fetchJson: async () => ({ downloads: 50 }),
+      now: () => baseTime,
+    })
+
+    try {
+      const result = await mod.classifyUpdate(
+        'meta-pkg',
+        { current: '1.0.0', wanted: '2.0.0', latest: '2.0.0' },
+        new Map(),
+        { registryCacheHits: 0, registryCacheMisses: 0 },
+      )
+      assert.ok(result.eligible)
+      assert.equal(result.eligible.metadata.isDeprecated, true)
+      assert.equal(result.eligible.metadata.maintainerCount, 1)
+      assert.equal(result.eligible.metadata.weeklyDownloads, 50)
+    } finally {
       mod.resetImpls()
     }
   })

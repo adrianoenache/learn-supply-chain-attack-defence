@@ -24,6 +24,21 @@ As chamadas ao registry reutilizam a mesma camada de cache, gzip e retry da veri
 DEFENCE_NO_CACHE=1 npm run defence:update-check
 ```
 
+## Metadata Risk Scoring
+
+Atualizações elegíveis recebem um score de confiança que combina vários sinais de risco. O score ajuda a decidir quais atualizações podem ser aplicadas rapidamente e quais merecem revisão extra.
+
+Sinais utilizados:
+
+- **Idade** — releases mais antigas ganham mais pontos porque a comunidade teve tempo de reportar problemas.
+- **Severidade semver** — atualizações de patch ganham mais pontos do que minor ou major.
+- **Cadência de release** — pacotes que lançam com muita frequência recebem uma penalidade porque cada release teve menos exposição da comunidade.
+- **Depreciação** — versões deprecadas recebem uma grande penalidade e geralmente ficam como "high risk" ou "review required".
+- **Quantidade de mantenedores** — pacotes com menos de dois mantenedores recebem uma pequena penalidade.
+- **Downloads semanais** — pacotes com menos de 100 downloads semanais recebem uma pequena penalidade.
+
+Os pesos desses sinais ficam em `updateCheck.scoringRules` no `package.json` e podem ser sobrescritos via `.defence.config.json`. A contagem de downloads vem da API de downloads do npm (`https://api.npmjs.org/downloads/point/last-week/<pkg>`) e retorna gracefulmente para null se a API estiver indisponível.
+
 ## Configuração
 
 O comportamento é controlado pelo bloco `updateCheck` no `package.json`:
