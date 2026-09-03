@@ -1,8 +1,36 @@
 # TODO
 
-This file tracks the remaining work required for the project to reach a 10/10 quality score across security, code quality, performance, documentation, and AI-assisted development. Items are prioritized with `P0` (critical/blocking for `v1.0.0`), `P1` (important for `v1.0.0`), `P2` (improvement, may ship in `v1.0.0` or `v1.1.0`), and `P3` (future/experimental).
+This file tracks the remaining work required for the project to reach a **10/10 quality score across security, code quality, performance, documentation, and AI-assisted development**, and to produce a **regenerated `PROJECT_STATUS_REPORT.md` with the maximum score in every category**.
+
+The **release v1.0.0 is the final action** and will only happen when:
+
+1. Every TODO item is marked complete.
+2. All validation gates pass: `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run test:coverage` (≥ 95%).
+3. Documentation is fully synchronized between `docs/en/` and `docs/pt-BR/`.
+4. `PROJECT_STATUS_REPORT.md` is regenerated and shows the maximum score in every category.
+
+Items are prioritized with `P0` (critical/blocking for `v1.0.0`), `P1` (important for `v1.0.0`), `P2` (improvement for `v1.0.0`), and `P3` (experimental, included in `v1.0.0` only if feasible before the release gates).
 
 Priority order: **P0 → P1 → P2 → P3**.
+
+---
+
+## Phase Summary
+
+| Phase | Status | Scope |
+|-------|--------|-------|
+| 0 — Foundation | ✅ Done | config, CI, CONTRIBUTING |
+| 1 — Critical Security | ✅ Done | TOCTOU, lockfile, install-defences checksums, hook integrity |
+| 2 — Resilience / Performance | ✅ Done | registry-cache, retry-fetch, gzip, Buffer |
+| 3 — CI/CD + Quality Gates | ✅ Done | secret scanner, CI `dev`, docs, expanded tests |
+| 4 — Attack Surface Reduction | ✅ Done | typosquatting, provenance/SLSA, hook integrity enforcement |
+| 5 — Code Quality + Tests | ✅ Done | 299 tests, native coverage, license check integrated |
+| 6 — Docs + AI Core + Release Readiness | ✅ Done | reorganized docs, AI instructions, CI adjusted, release checklist |
+| 7 — AI Agents / Skills / Prompts / Hooks | ✅ Done | agents, skills, prompts, hooks, self-improvement loop |
+| 7.5 — P1 Technical Debt | 🔄 Next | troubleshooting.md, rebuilding-lifecycle-packages.md |
+| 8 — Benchmarks + Risk Scoring | ⏳ Pending | perf benchmarks, package metadata risk scoring, N+1 reduction |
+| 9 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard |
+| 10 — Release v1.0.0 | ⏳ Final | TODO.md 100%, tests green, PROJECT_STATUS_REPORT.md 10/10 |
 
 ---
 
@@ -50,6 +78,46 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Impact: improves update decisions with richer risk signals.
   - Depends on: registry-response cache and retry logic (Section 2.1).
   - Files: [tools/check-updates.js](tools/check-updates.js)
+
+---
+
+## 8. Benchmarks and Risk Scoring
+
+> This section was previously labeled "pós-v1.0.0". It is now part of the v1.0.0 scope because the release will only happen when every TODO item is complete.
+
+### 8.1 Performance Benchmarks
+
+- [ ] **[P2]** Add performance benchmarks and regression tests — create `tools/perf/` suite measuring execution time and network call counts for `check-package-age.js` and `check-updates.js`; fail CI on significant regression.
+  - Impact: prevents performance degradation as features are added.
+  - Depends on: registry-response cache and retry logic (Section 2.1), CI/CD pipeline (Section 5.1).
+  - Files: new `tools/perf/` directory
+
+### 8.2 Risk Scoring
+
+- [ ] **[P2]** Add package metadata risk scoring — `check-updates.js` fetches and incorporates deprecation status, maintainer count, weekly downloads, and recent release cadence into the existing confidence score.
+  - Impact: improves update decisions with richer risk signals.
+  - Depends on: registry-response cache and retry logic (Section 2.1).
+  - Files: [tools/check-updates.js](tools/check-updates.js)
+
+---
+
+## 9. Experimental Hardening
+
+> This section was previously labeled "pós-v1.0.0". It is now part of the v1.0.0 scope because the release will only happen when every TODO item is complete.
+
+### 9.1 Optional Sandbox Mode
+
+- [ ] **[P3]** Add optional sandbox mode for npm commands — provide an experimental wrapper that runs `npm install`/`npm update` inside a restricted environment (e.g., Linux namespaces or `bubblewrap`) to limit blast radius of malicious lifecycle scripts.
+  - Impact: defense-in-depth for environments that accept the operational overhead.
+  - Depends on: none.
+  - Files: new `tools/sandboxed-install.sh`
+
+### 9.2 Deep Performance Profiling
+
+- [ ] **[P3]** Add deep performance profiling dashboard — add `--profile` flags to all tools and a CI trend dashboard for memory and CPU usage under large dependency trees.
+  - Impact: enables data-driven performance work.
+  - Depends on: performance benchmarks (Section 8.1) and registry optimizations (Section 2.1).
+  - Files: `tools/perf/`
 
 ---
 
@@ -241,13 +309,6 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: none.
   - Files: [tools/generate-sbom.js](tools/generate-sbom.js), [tools/generate-sbom.test.js](tools/generate-sbom.test.js)
 
-### 5.2 Quality Gates
-
-- [ ] **[P2]** Add performance benchmarks and regression tests — create `tools/perf/` suite measuring execution time and network call counts for `check-package-age.js` and `check-updates.js`; fail CI on significant regression.
-  - Impact: prevents performance degradation as features are added.
-  - Depends on: registry-response cache and retry logic (Section 2.1), CI/CD pipeline (Section 5.1).
-  - Files: new `tools/perf/` directory
-
 ---
 
 ## 6. Documentation & Knowledge
@@ -311,9 +372,9 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ---
 
-## 7. Release & Maintenance
+## 10. Release & Maintenance
 
-### 7.1 Release Readiness
+### 10.1 Release Readiness
 
 - [x] **[P0]** Define versioning and release checklist — established semantic versioning, created `docs/en/release-checklist.md` and `docs/pt-BR/release-checklist.md`, and documented the supported Node.js/npm version matrix.
   - Impact: makes releases repeatable and predictable.
@@ -322,20 +383,25 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 - [ ] **[P2]** Add changelog generation automation — script or CI step that updates `CHANGELOG.md` from conventional commits or release tags.
   - Impact: reduces manual release overhead.
-  - Depends on: versioning and release checklist (Section 7.1).
+  - Depends on: versioning and release checklist (Section 10.1).
   - Files: [CHANGELOG.md](CHANGELOG.md)
 
-### 7.2 Experimental Hardening
+### 10.2 Release v1.0.0 Gates
 
-- [ ] **[P3]** Add optional sandbox mode for npm commands — provide an experimental wrapper that runs `npm install`/`npm update` inside a restricted environment (e.g., Linux namespaces or `bubblewrap`) to limit blast radius of malicious lifecycle scripts.
-  - Impact: defense-in-depth for environments that accept the operational overhead.
-  - Depends on: none.
-  - Files: new `tools/sandboxed-install.sh`
+The release v1.0.0 is the final action and is only allowed when every gate below is satisfied.
 
-- [ ] **[P3]** Add deep performance profiling dashboard — add `--profile` flags to all tools and a CI trend dashboard for memory and CPU usage under large dependency trees.
-  - Impact: enables data-driven performance work post-`v1.0.0`.
-  - Depends on: performance benchmarks (Section 5.2) and registry optimizations (Section 2.1).
-  - Files: `tools/perf/`
+- [ ] All TODO items in this file are marked complete.
+- [ ] `npm test` passes — 299/299 (or current count).
+- [ ] `npm run test:coverage` reports ≥ 95% line coverage.
+- [ ] `npm run lint` passes.
+- [ ] `npm run defence:check-md-links` passes.
+- [ ] `bash .husky/pre-commit` passes.
+- [ ] `docs/en/` and `docs/pt-BR/` are structurally aligned and synchronized.
+- [ ] `PROJECT_STATUS_REPORT.md` is regenerated and shows the maximum score in every category.
+- [ ] `CHANGELOG.md` has a `[1.0.0]` entry.
+- [ ] Version is bumped in `package.json` and `package-lock.json`.
+- [ ] Git tag `v1.0.0` is created and pushed.
+- [ ] GitHub Release is published with release notes and SBOM asset.
 
 ## Completed
 
@@ -355,3 +421,5 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] **Environment version check docs** — documented `engines` enforcement in setup and quick-reference pages.
 - [x] **Reference documentation** — added guidance on secret management, artifact signing, SBOM standards, and secret scanning while keeping `references.md` as a single file.
 - [x] **install-defences documentation fix** — corrected internal file list in `tools/install-defences.js`.
+- [x] **AI Core customization** — created `.github/copilot-instructions.md`, `.github/instructions/*.md`, agents, skills, prompts, hooks, and `.github/ai-lessons-learned.md`.
+- [x] **Release checklist** — created bilingual `docs/en/release-checklist.md` and `docs/pt-BR/release-checklist.md`.
