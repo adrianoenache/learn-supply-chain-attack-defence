@@ -127,6 +127,25 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: none.
   - Files: `tools/e2e/fixtures/`
 
+### 3.3 Hardcoded Values Cleanup
+
+> **Rule:** intentional hardcoded values in code must always be accompanied by an inline comment explaining why that specific value remains hardcoded and is not configurable.
+
+- [ ] **[P1]** Audit and remove hardcoded Node.js/npm versions from tests — review `tools/check-engines.test.js`, `tools/lib/config.test.js`, and any other test file that embeds `24.19.0`, `11.17.0`, or similar strings. Replace project-relevant values with dynamic reads from `package.json` `engines`; keep only hardcoded fixtures when they are intentionally testing boundary scenarios, and add a comment justifying each remaining hardcoded value.
+  - Impact: prevents version drift between `package.json` and tests, and ensures the test suite validates the real project configuration.
+  - Depends on: centralized configuration loader (Section 3.1).
+  - Files: `tools/check-engines.test.js`, `tools/lib/config.test.js`
+
+- [ ] **[P1]** Audit and centralize remaining magic numbers — scan all `tools/**/*.js` for literals that should be configurable (timeouts, thresholds, retry counts, cache sizes, concurrency limits). Move values that vary per project or environment into `package.json`/`tools/lib/config.js`; any value that stays hardcoded must carry a comment explaining the rationale.
+  - Impact: improves maintainability and allows other projects to adopt the toolkit without editing source code.
+  - Depends on: centralized configuration loader (Section 3.1).
+  - Files: `tools/*.js`, `tools/lib/config.js`, `package.json`
+
+- [ ] **[P2]** Document intentional hardcodes — add a short "Hardcoded values" section to `CONTRIBUTING.md` or `docs/en/testing.md` describing the rule above, and include it in the code review checklist.
+  - Impact: makes the policy discoverable for contributors and AI assistants.
+  - Depends on: none.
+  - Files: `CONTRIBUTING.md`, `docs/en/testing.md`, `docs/pt-BR/testing.md`
+
 ---
 
 ## 4. AI Customization & Developer Experience
