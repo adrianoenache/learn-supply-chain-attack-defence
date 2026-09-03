@@ -9,6 +9,10 @@ const { loadConfig, setImpls, resetImpls, DEFAULT_SCORING_RULES } = require(
   path.resolve(__dirname, './config.js'),
 )
 
+const { engines: projectEngines } = require(
+  path.resolve(__dirname, '../../package.json'),
+)
+
 function buildFs(pkg, override = null) {
   const files = {
     [path.resolve(__dirname, '../../package.json')]: JSON.stringify(pkg),
@@ -30,8 +34,10 @@ describe('config loader', () => {
     resetImpls()
   })
 
-  const sampleNodeRange = '>=24.19.0'
-  const sampleNpmRange = '>=11.17.0'
+  // Use the real project engine ranges so the config loader test validates
+  // the actual package.json instead of a stale hardcoded fixture.
+  const sampleNodeRange = projectEngines.node
+  const sampleNpmRange = projectEngines.npm
 
   test('loads defaults from engines and known config blocks', () => {
     setImpls({
@@ -52,6 +58,7 @@ describe('config loader', () => {
     assert.equal(config.updateCheck.minAgeDays, 14)
     assert.equal(config.licensesCheck.failOnUnknown, true)
     assert.equal(config.updatePackages.promptTimeoutMs, 30000)
+    assert.equal(config.typosquattingCheck.retryMaxAttempts, 1)
     assert.deepEqual(config.checkMdLinks.ignoredDirs, ['node_modules', '.git'])
   })
 

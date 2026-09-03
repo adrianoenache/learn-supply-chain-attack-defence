@@ -21,6 +21,9 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
+// Hardcoded time-unit conversion: 1000 ms/s * 60 s/min * 60 min/h * 24 h/day.
+// This is a mathematical constant, not a project-specific threshold, so it
+// intentionally stays inline rather than moving to configuration.
 const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 const {
@@ -58,6 +61,8 @@ const REGISTRY_TIMEOUT_MS = updateConfig.registryTimeoutMs
 const CACHE_TTL_HOURS = updateConfig.cacheTtlHours
 
 // Maximum response size per registry call (20 MB), mirroring check-package-age.js.
+// 1024 * 1024 is the fixed bytes-per-MB conversion factor; kept inline as a
+// mathematical constant, not a configurable project value.
 const MAX_RESPONSE_BYTES = updateConfig.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries, mirroring check-package-age.js.

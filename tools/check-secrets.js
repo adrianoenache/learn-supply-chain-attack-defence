@@ -16,10 +16,16 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const DEFAULT_IGNORE_FILE = '.check-secrets-ignore'
+// Hardcoded minimum length: secrets shorter than 10 characters are too common
+// in prose and configuration to be useful signals. This is a scanner heuristic,
+// not a project policy, so it intentionally stays inline.
 const MIN_SECRET_LENGTH = 10
 
 // Patterns that commonly indicate secrets. Each entry has a name and a RegExp.
 // We avoid overly broad patterns to keep false positives manageable.
+// Token lengths (16, 36, 40) are hardcoded intentionally because they match
+// the documented formats of AWS, GitHub and npm tokens; they should not be
+// made configurable, as doing so would break detection accuracy.
 const PATTERNS = [
   {
     name: 'AWS access key ID',
@@ -96,6 +102,8 @@ function buildIgnoreRegex(ignorePatterns) {
 function isBinaryBuffer(buffer) {
   if (!Buffer.isBuffer(buffer)) return false
   // Treat files as binary if they contain a null byte in the first 8 KB.
+  // 8192 bytes is a widely used, sufficient window for null-byte detection;
+  // it is intentionally hardcoded as a scanner implementation detail.
   const sample = buffer.slice(0, 8192)
   for (let i = 0; i < sample.length; i++) {
     if (sample[i] === 0x00) return true

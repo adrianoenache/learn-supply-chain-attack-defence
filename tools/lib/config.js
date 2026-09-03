@@ -158,6 +158,16 @@ function buildDefaults(pkg) {
       retryMaxDelayMs: update.retryMaxDelayMs ?? 30000,
       scoringRules: deepMerge(DEFAULT_SCORING_RULES, update.scoringRules ?? {}),
     },
+    typosquattingCheck: {
+      cacheTtlHours: pkg.typosquattingCheck?.cacheTtlHours ?? 24,
+      maxResponseMB: pkg.typosquattingCheck?.maxResponseMB ?? 1,
+      timeoutMs: pkg.typosquattingCheck?.timeoutMs ?? 10000,
+      retryMaxAttempts: pkg.typosquattingCheck?.retryMaxAttempts ?? 1,
+      retryInitialDelayMs: pkg.typosquattingCheck?.retryInitialDelayMs ?? 250,
+      retryBackoffMultiplier:
+        pkg.typosquattingCheck?.retryBackoffMultiplier ?? 2,
+      retryMaxDelayMs: pkg.typosquattingCheck?.retryMaxDelayMs ?? 1000,
+    },
     licensesCheck: {
       allowed: licenses.allowed ?? DEFAULT_ALLOWED_LICENSES,
       prohibited: licenses.prohibited ?? DEFAULT_PROHIBITED_LICENSES,

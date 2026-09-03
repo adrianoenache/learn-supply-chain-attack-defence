@@ -39,6 +39,15 @@
     "stuckInQuarantineThreshold": 3,
     "highReleaseCadenceDays": 7
   },
+  "typosquattingCheck": {
+    "cacheTtlHours": 24,
+    "maxResponseMB": 1,
+    "timeoutMs": 10000,
+    "retryMaxAttempts": 1,
+    "retryInitialDelayMs": 250,
+    "retryBackoffMultiplier": 2,
+    "retryMaxDelayMs": 1000
+  },
   "licensesCheck": {
     "allowed": [
       "MIT",

@@ -224,15 +224,16 @@ async function verifyInstalledIntegrity(name, version, expectedIntegrity) {
 async function checkPublicPackageExists(name) {
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
   try {
+    const tcfg = config.typosquattingCheck
     await fetchRegistryJsonImpl(name, 'latest', {
       url,
-      cacheTtlHours: 24,
-      maxResponseBytes: 1024 * 1024,
-      timeoutMs: 10000,
-      retryMaxAttempts: 1,
-      retryInitialDelayMs: 250,
-      retryBackoffMultiplier: 2,
-      retryMaxDelayMs: 1000,
+      cacheTtlHours: tcfg.cacheTtlHours,
+      maxResponseBytes: tcfg.maxResponseMB * 1024 * 1024,
+      timeoutMs: tcfg.timeoutMs,
+      retryMaxAttempts: tcfg.retryMaxAttempts,
+      retryInitialDelayMs: tcfg.retryInitialDelayMs,
+      retryBackoffMultiplier: tcfg.retryBackoffMultiplier,
+      retryMaxDelayMs: tcfg.retryMaxDelayMs,
       acceptGzip: true,
     })
     return true

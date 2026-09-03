@@ -55,6 +55,9 @@ function fetchBufferOnce(url, options) {
     const headers = { Accept: 'application/json' }
     if (accept) headers['Accept-Encoding'] = accept
 
+    // 10 s is a conservative default socket timeout for registry calls.
+    // Callers pass options.timeoutMs from config; this literal only applies
+    // when the option is omitted.
     const req = httpsGetImpl(
       url,
       { headers, timeout: options.timeoutMs ?? 10000 },
@@ -144,6 +147,9 @@ function isRetryableError(err) {
 }
 
 async function fetchBuffer(url, options = {}) {
+  // Defaults below define the function's safe fallback behavior when callers
+  // omit retry options. Project-specific values come from config and are
+  // passed by tools such as check-package-age.js and check-updates.js.
   const maxAttempts = options.retryMaxAttempts ?? 1
   const initialDelay = options.retryInitialDelayMs ?? 1000
   const multiplier = options.retryBackoffMultiplier ?? 2

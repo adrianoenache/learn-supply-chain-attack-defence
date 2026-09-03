@@ -42,6 +42,8 @@ const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
 // exceeds 20 MB. The cap protects against pathological scenarios (malformed response,
 // data injection in transit, infinite chunk loops).
 // Override via package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
+// 1024 * 1024 is the fixed bytes-per-MB conversion factor; kept inline
+// because it is a mathematical constant, not a project-specific threshold.
 const MAX_RESPONSE_BYTES = config.pkgAgeCheck.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries (default: 10).

@@ -7,13 +7,20 @@ const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, './check-engines.js')
+const PROJECT_ROOT = path.resolve(__dirname, '..')
+const { engines: projectEngines } = require(
+  path.join(PROJECT_ROOT, 'package.json'),
+)
 
 let captured = { logs: [], errors: [] }
 let exitCode = null
 
-const sampleNodeRange = '>=24.19.0'
-const sampleNpmVersion = '11.17.0'
-const sampleNpmRange = '>=11.17.0'
+// Read project engine requirements from package.json so tests stay in sync
+// with the real configuration. Hardcoded fixtures below (e.g. '>=99.0.0')
+// are intentionally fixed boundary values used to exercise failure paths.
+const sampleNodeRange = projectEngines.node
+const sampleNpmRange = projectEngines.npm
+const sampleNpmVersion = projectEngines.npm.replace(/^>=/, '')
 
 function readScriptExports() {
   delete require.cache[require.resolve(SCRIPT_PATH)]
@@ -72,6 +79,9 @@ describe('check-engines', () => {
     assert.equal(satisfies('11.17.5', `^${npmTarget}`), true)
     assert.equal(satisfies('12.0.0', `^${npmTarget}`), false)
   })
+
+  // Intentionally hardcoded boundary values: they exercise the range parser
+  // against an unsupported "x" wildcard pattern without depending on config.
 
   test('passes when node and npm satisfy engines', () => {
     const script = readScriptExports()
@@ -168,6 +178,7 @@ describe('check-engines', () => {
 
   test('throws on unsupported engine range', () => {
     const { satisfies } = readScriptExports()
+    // '24.x' is intentionally hardcoded: it tests wildcard rejection, not config drift.
     assert.throws(
       () => satisfies(sampleNodeRange.replace(/^>=/, ''), '24.x'),
       /Unsupported engine range/,

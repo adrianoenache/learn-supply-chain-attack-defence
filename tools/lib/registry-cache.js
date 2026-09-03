@@ -104,6 +104,9 @@ function _invalidateCache(name, version, url) {
 async function fetchRegistryJson(name, version, options = {}) {
   const url =
     options.url ?? `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  // 24 hours is a conservative default cache lifetime for immutable registry
+  // packuments. Callers should pass options.cacheTtlHours to enforce project
+  // policy; this literal only defines the function's fallback behavior.
   const ttlHours = options.cacheTtlHours ?? 24
   const ttlMs = ttlHours * 60 * 60 * 1000
   const force = options.force === true || isCacheDisabled()

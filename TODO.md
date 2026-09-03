@@ -131,15 +131,13 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 > **Rule:** intentional hardcoded values in code must always be accompanied by an inline comment explaining why that specific value remains hardcoded and is not configurable.
 
-- [ ] **[P1]** Audit and remove hardcoded Node.js/npm versions from tests — review `tools/check-engines.test.js`, `tools/lib/config.test.js`, and any other test file that embeds `24.19.0`, `11.17.0`, or similar strings. Replace project-relevant values with dynamic reads from `package.json` `engines`; keep only hardcoded fixtures when they are intentionally testing boundary scenarios, and add a comment justifying each remaining hardcoded value.
-  - Impact: prevents version drift between `package.json` and tests, and ensures the test suite validates the real project configuration.
-  - Depends on: centralized configuration loader (Section 3.1).
-  - Files: `tools/check-engines.test.js`, `tools/lib/config.test.js`
+- [x] **[P1]** Audit and remove hardcoded Node.js/npm versions from tests — `tools/check-engines.test.js` and `tools/lib/config.test.js` now read `engines.node`/`engines.npm` from `package.json`. Remaining hardcoded boundary fixtures (e.g. `>=99.0.0`, `24.x`) have inline comments explaining they exercise parser edge cases, not project config.
+  - Impact: prevents version drift between `package.json` and tests.
+  - Files: [tools/check-engines.test.js](tools/check-engines.test.js), [tools/lib/config.test.js](tools/lib/config.test.js)
 
-- [ ] **[P1]** Audit and centralize remaining magic numbers — scan all `tools/**/*.js` for literals that should be configurable (timeouts, thresholds, retry counts, cache sizes, concurrency limits). Move values that vary per project or environment into `package.json`/`tools/lib/config.js`; any value that stays hardcoded must carry a comment explaining the rationale.
+- [x] **[P1]** Audit and centralize remaining magic numbers — added `typosquattingCheck` block to `package.json` and `tools/lib/config.js`; `tools/add-package.js` now reads these values from config instead of hardcoding them. Remaining inline literals (e.g. `1024 * 1024`, `MS_PER_DAY`, secret-token regex lengths) have comments justifying why they stay hardcoded.
   - Impact: improves maintainability and allows other projects to adopt the toolkit without editing source code.
-  - Depends on: centralized configuration loader (Section 3.1).
-  - Files: `tools/*.js`, `tools/lib/config.js`, `package.json`
+  - Files: [package.json](package.json), [tools/lib/config.js](tools/lib/config.js), [tools/add-package.js](tools/add-package.js), [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js), [tools/lib/provenance.js](tools/lib/provenance.js), [tools/lib/registry-cache.js](tools/lib/registry-cache.js), [tools/lib/retry-fetch.js](tools/lib/retry-fetch.js), [tools/check-secrets.js](tools/check-secrets.js)
 
 - [ ] **[P2]** Document intentional hardcodes — add a short "Hardcoded values" section to `CONTRIBUTING.md` or `docs/en/testing.md` describing the rule above, and include it in the code review checklist.
   - Impact: makes the policy discoverable for contributors and AI assistants.

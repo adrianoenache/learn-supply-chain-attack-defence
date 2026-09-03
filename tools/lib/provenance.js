@@ -28,7 +28,11 @@ async function fetchAttestationBundle(name, version, options = {}) {
   const encodedVersion = encodeURIComponent(version)
   const url = `${ATTESTATION_URL}/${encodedName}@${encodedVersion}`
 
-  // Registry-cache options mirror those used elsewhere.
+  // Defaults below are safe fallbacks for a reusable library function.
+  // Callers such as add-package.js pass values from config.typosquattingCheck
+  // or config.pkgAgeCheck; the literals here only apply when a caller omits
+  // an option and should remain hardcoded because they define the function's
+  // conservative out-of-the-box behavior rather than project policy.
   const fetchOptions = {
     url,
     cacheTtlHours: options.cacheTtlHours ?? 24,
