@@ -208,6 +208,22 @@ Implemented in:
 
 The local state is stored in `.defence-update-check.json`, which is ignored by git so each developer has their own reminder state.
 
+## Performance monitoring
+
+The update check is one of the registry-dependent tools tracked by the performance benchmark suite in [`tools/perf/benchmark.js`](../../../tools/perf/benchmark.js). Run the benchmarks with:
+
+```bash
+npm run defence:perf
+```
+
+To update the baseline after deliberate improvements:
+
+```bash
+npm run defence:perf:baseline
+```
+
+Results are compared against [`tools/perf/baselines.json`](../../../tools/perf/baselines.json); a regression above 20% fails the run.
+
 ## Integration with other layers
 
 - Runs inside the pre-commit hook (Layer 5) via `npm run defence:pre-commit`.

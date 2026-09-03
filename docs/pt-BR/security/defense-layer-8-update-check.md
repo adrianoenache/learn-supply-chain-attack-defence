@@ -208,6 +208,22 @@ Implementado em:
 
 O estado local é armazenado em `.defence-update-check.json`, que é ignorado pelo git para que cada desenvolvedor mantenha seu próprio estado de lembrete.
 
+## Monitoramento de performance
+
+A verificação de atualizações é uma das ferramentas dependentes do registry rastreadas pela suite de benchmarks de performance em [`tools/perf/benchmark.js`](../../../tools/perf/benchmark.js). Execute os benchmarks com:
+
+```bash
+npm run defence:perf
+```
+
+Para atualizar a baseline após melhorias deliberadas:
+
+```bash
+npm run defence:perf:baseline
+```
+
+Os resultados são comparados com [`tools/perf/baselines.json`](../../../tools/perf/baselines.json); uma regressão acima de 20% faz a execução falhar.
+
 ## Integração com outras camadas
 
 - Executa dentro do hook de pré-commit (Camada 5) via `npm run defence:pre-commit`.

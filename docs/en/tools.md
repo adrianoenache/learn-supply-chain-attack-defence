@@ -66,6 +66,20 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `verify-defences.js` | Verifies files copied by `install-defences.js` against `.defence-manifest.json`. |
 | `install-defences.js` | Copies the defences into another Node.js project and writes the manifest. |
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
+| `perf/benchmark.js` | Performance benchmark suite measuring execution time and network calls for registry-dependent tools. Compares results against `tools/perf/baselines.json` to detect regressions. |
+
+## Performance Benchmarks
+
+The `tools/perf/benchmark.js` suite measures how the registry-dependent tools behave under controlled conditions:
+
+| npm script | Purpose |
+| --- | --- |
+| `npm run defence:perf` | Runs the full benchmark suite and compares results to `tools/perf/baselines.json`. |
+| `npm run defence:perf:baseline` | Re-saves current results as the baseline. Run this after deliberate performance improvements. |
+| `npm run defence:perf:check-package-age` | Runs only the `check-package-age` benchmark. |
+| `npm run defence:perf:check-updates` | Runs only the `check-updates` benchmark. |
+
+A regression is flagged when a metric is worse than the baseline by more than 20%. Keep the baseline committed so CI can catch unintended slowdowns or extra network calls.
 
 ## Tests
 

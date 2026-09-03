@@ -28,7 +28,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 | 6 — Docs + AI Core + Release Readiness | ✅ Done | reorganized docs, AI instructions, CI adjusted, release checklist |
 | 7 — AI Agents / Skills / Prompts / Hooks | ✅ Done | agents, skills, prompts, hooks, self-improvement loop |
 | 7.5 — P1 Technical Debt | ✅ Done | troubleshooting.md, rebuilding-lifecycle-packages.md |
-| 8 — Benchmarks + Risk Scoring | 🔄 Next | perf benchmarks, package metadata risk scoring, N+1 reduction |
+| 8 — Benchmarks + Risk Scoring | ✅ Done | perf benchmarks, package metadata risk scoring, N+1 reduction |
 | 9 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard |
 | 10 — Release v1.0.0 | ⏳ Final | TODO.md 100%, tests green, PROJECT_STATUS_REPORT.md 10/10 |
 
@@ -87,10 +87,10 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 8.1 Performance Benchmarks
 
-- [ ] **[P2]** Add performance benchmarks and regression tests — create `tools/perf/` suite measuring execution time and network call counts for `check-package-age.js` and `check-updates.js`; fail CI on significant regression.
+- [x] **[P2]** Add performance benchmarks and regression tests — create `tools/perf/` suite measuring execution time and network call counts for `check-package-age.js` and `check-updates.js`; fail CI on significant regression.
   - Impact: prevents performance degradation as features are added.
   - Depends on: registry-response cache and retry logic (Section 2.1), CI/CD pipeline (Section 5.1).
-  - Files: new `tools/perf/` directory
+  - Files: [tools/perf/benchmark.js](tools/perf/benchmark.js), [tools/perf/benchmark.test.js](tools/perf/benchmark.test.js), [tools/perf/baselines.json](tools/perf/baselines.json), [package.json](package.json)
 
 ### 8.2 Risk Scoring
 

@@ -1,0 +1,10 @@
+{
+  "check-package-age": {
+    "durationMs": 0.9664929999999998,
+    "networkCalls": 2
+  },
+  "check-updates": {
+    "durationMs": 0.5326999999999984,
+    "networkCalls": 2
+  }
+}

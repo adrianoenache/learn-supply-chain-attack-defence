@@ -107,6 +107,10 @@
     "defence:update-check:force": "node ./tools/check-updates.js --force",
     "defence:update-check:json": "node ./tools/check-updates.js --format=json",
     "defence:update-check:offline": "node ./tools/check-updates.js --offline",
+    "defence:perf": "node ./tools/perf/benchmark.js",
+    "defence:perf:baseline": "node ./tools/perf/benchmark.js --save-baseline",
+    "defence:perf:check-package-age": "node ./tools/perf/benchmark.js --tool=check-package-age",
+    "defence:perf:check-updates": "node ./tools/perf/benchmark.js --tool=check-updates",
     "defence:sync-check": "node ./tools/check-sync.js",
     "defence:sync-check:fix": "node ./tools/check-sync.js --fix",
     "defence:verify-defences": "node ./tools/verify-defences.js",
@@ -116,8 +120,8 @@
     "lint": "biome check tools/",
     "prepare": "husky",
     "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
-    "test": "node --test tools/*.test.js tools/lib/*.test.js",
-    "test:coverage": "node --experimental-test-coverage --test tools/*.test.js tools/lib/*.test.js",
+    "test": "node --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js",
+    "test:coverage": "node --experimental-test-coverage --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js",
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {

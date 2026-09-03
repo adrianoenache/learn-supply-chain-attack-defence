@@ -335,6 +335,31 @@ async function main(options = {}) {
   console.log(`\nAll packages passed the minimum age check.`)
 }
 
+// Benchmark entry point: checks the age of an arbitrary dependency map.
+// This avoids touching the real package.json/package-lock.json during perf
+// measurements and keeps the benchmark deterministic.
+async function runForBenchmark(deps) {
+  const entries = Object.entries(deps)
+  const results = await runWithConcurrencyLimit(
+    entries.map(([name, rawVersion]) => () => {
+      const version = resolveExactVersion(rawVersion)
+      if (!version) {
+        return Promise.reject(
+          new Error(`Cannot determine exact version for ${name}@${rawVersion}`),
+        )
+      }
+      return fetchPackageAge(name, version)
+    }),
+    CONCURRENCY,
+  )
+
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      throw new Error(result.reason.message)
+    }
+  }
+}
+
 // Runs main() only when the script is invoked directly from the CLI.
 // When imported via require() by another module (e.g. add-package.js),
 // only the exports are available — main() is not called.
@@ -357,4 +382,5 @@ module.exports = {
   resolveMode,
   setNowImpl,
   resetNowImpl,
+  runForBenchmark,
 }
