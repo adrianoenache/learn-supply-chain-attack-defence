@@ -27,8 +27,8 @@ Priority order: **P0 → P1 → P2 → P3**.
 | 5 — Code Quality + Tests | ✅ Done | 299 tests, native coverage, license check integrated |
 | 6 — Docs + AI Core + Release Readiness | ✅ Done | reorganized docs, AI instructions, CI adjusted, release checklist |
 | 7 — AI Agents / Skills / Prompts / Hooks | ✅ Done | agents, skills, prompts, hooks, self-improvement loop |
-| 7.5 — P1 Technical Debt | 🔄 Next | troubleshooting.md, rebuilding-lifecycle-packages.md |
-| 8 — Benchmarks + Risk Scoring | ⏳ Pending | perf benchmarks, package metadata risk scoring, N+1 reduction |
+| 7.5 — P1 Technical Debt | ✅ Done | troubleshooting.md, rebuilding-lifecycle-packages.md |
+| 8 — Benchmarks + Risk Scoring | 🔄 Next | perf benchmarks, package metadata risk scoring, N+1 reduction |
 | 9 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard |
 | 10 — Release v1.0.0 | ⏳ Final | TODO.md 100%, tests green, PROJECT_STATUS_REPORT.md 10/10 |
 
@@ -360,12 +360,12 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 6.6 Additional Reference Content (P1)
 
-- [ ] **[P1]** Document rebuild procedure for lifecycle-script packages — add `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild `esbuild`, `sharp`, `canvas`, etc., after overriding `ignore-scripts`.
+- [x] **[P1]** Document rebuild procedure for lifecycle-script packages — added `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild `esbuild`, `sharp`, `canvas`, etc., after overriding `ignore-scripts`.
   - Impact: closes a documented exception path in the defense-in-depth story.
   - Depends on: none.
   - Files: `docs/en/security/rebuilding-lifecycle-packages.md`, `docs/pt-BR/security/rebuilding-lifecycle-packages.md`
 
-- [ ] **[P1]** Create troubleshooting guide — add `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, remediation steps, and how to run each defense manually.
+- [x] **[P1]** Create troubleshooting guide — added `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, remediation steps, and how to run each defense manually.
   - Impact: reduces support burden and onboarding friction.
   - Depends on: centralized configuration loader (Section 3.1).
   - Files: `docs/en/troubleshooting.md`, `docs/pt-BR/troubleshooting.md`

@@ -46,6 +46,13 @@ Além disso, o toolkit fornece capacidades de suporte que não se encaixam em um
 | Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
 | Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
 
+## Guias de Suporte
+
+Algumas escolhas defensivas exigem caminhos de exceção documentados:
+
+- [Troubleshooting](../troubleshooting.md) — falhas comuns e como executar cada defesa manualmente.
+- [Reconstrução de pacotes com lifecycle scripts](rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
+
 ## Diagrama das Camadas de Defesa
 
 ```mermaid

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Fase 7.5 — P1 technical debt documentation:
+  - New `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, manual remediation steps, and how to run each defense manually.
+  - New `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild native packages such as `esbuild`, `sharp`, and `canvas` after `ignore-scripts`.
+  - Updated `docs/en/index.md`, `docs/pt-BR/index.md`, `docs/en/security/index.md`, and `docs/pt-BR/security/index.md` to link the new support guides.
+
 ### Fixed
 
 - Fixed `defence:update-check` missing recently published updates in quarantine.

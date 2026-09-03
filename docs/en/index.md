@@ -34,6 +34,11 @@ This repository is a practical learning environment for understanding and applyi
 - Layer 11: [Provenance & SLSA attestation](security/defense-layer-11-provenance.md)
 - Layer 12: [Pre-commit hook integrity](security/defense-layer-12-hook-integrity.md)
 
+### Support Guides
+
+- [Troubleshooting](troubleshooting.md) — common failures, fixes, and how to run each defense manually.
+- [Rebuilding lifecycle-script packages](security/rebuilding-lifecycle-packages.md) — safely rebuild native packages after `ignore-scripts`.
+
 ### Project
 
 - [Architecture](architecture.md)

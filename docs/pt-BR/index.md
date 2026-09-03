@@ -34,6 +34,11 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - Camada 11: [Provenance e atestado SLSA](security/defense-layer-11-provenance.md)
 - Camada 12: [Integridade do hook de pré-commit](security/defense-layer-12-hook-integrity.md)
 
+### Guias de Suporte
+
+- [Troubleshooting](troubleshooting.md) — falhas comuns, correções e como executar cada defesa manualmente.
+- [Reconstrução de pacotes com lifecycle scripts](security/rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
+
 ### Projeto
 
 - [Arquitetura](architecture.md)
