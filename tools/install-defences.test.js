@@ -6,8 +6,10 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
+const { spawnSync } = require('node:child_process')
 
 const { parseArgs, main } = require('./install-defences.js')
+const SCRIPT_PATH = path.resolve(__dirname, 'install-defences.js')
 
 function makeTempTarget(pkg = {}) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'defence-install-'))
@@ -223,5 +225,13 @@ describe('install-defences', () => {
     } finally {
       cleanup(target)
     }
+  })
+
+  test('CLI prints usage when called without arguments', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
+    assert.ok(result.stdout.includes('Usage'))
   })
 })

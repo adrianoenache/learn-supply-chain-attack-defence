@@ -4,6 +4,9 @@
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
+
+const SCRIPT_PATH = path.resolve(__dirname, './check-licenses.js')
 
 const {
   main,
@@ -156,6 +159,38 @@ describe('readLockfilePackages', () => {
       resetImpls()
     }
   })
+
+  test('extracts real package name from nested node_modules paths', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/string-width': { version: '5.0.0', license: 'MIT' },
+          'node_modules/cliui/node_modules/string-width': {
+            version: '4.2.3',
+            license: 'MIT',
+          },
+          'node_modules/@scope/pkg': { version: '1.0.0', license: 'MIT' },
+        },
+      }),
+    })
+    try {
+      const packages = readLockfilePackages(LOCKFILE_PATH)
+      assert.equal(packages.length, 3)
+      assert.ok(
+        packages.some(
+          (p) => p.name === 'string-width' && p.version === '5.0.0',
+        ),
+      )
+      assert.ok(
+        packages.some(
+          (p) => p.name === 'string-width' && p.version === '4.2.3',
+        ),
+      )
+      assert.ok(packages.some((p) => p.name === '@scope/pkg'))
+    } finally {
+      resetImpls()
+    }
+  })
 })
 
 describe('main with mock lockfile', () => {
@@ -230,9 +265,18 @@ describe('main with mock lockfile', () => {
         },
       }),
     })
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
     try {
-      assert.equal(main(['--format=json', '--silent']), 0)
+      assert.equal(main(['--format=json']), 0)
+      const parsed = JSON.parse(logs.join('\n'))
+      assert.deepEqual(
+        parsed.allowed.map((i) => i.name),
+        ['foo'],
+      )
     } finally {
+      console.log = originalLog
       resetImpls()
     }
   })
@@ -249,6 +293,36 @@ describe('main with mock lockfile', () => {
     try {
       assert.equal(main(['--pkg=foo@1.0.0', '--silent']), 0)
       assert.equal(main(['--pkg=bar@2.0.0', '--fail', '--silent']), 1)
+    } finally {
+      resetImpls()
+    }
+  })
+
+  test('single package mode supports scoped packages', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/@scope/pkg': { version: '1.0.0', license: 'MIT' },
+        },
+      }),
+    })
+    try {
+      assert.equal(main(['--pkg=@scope/pkg@1.0.0', '--silent']), 0)
+    } finally {
+      resetImpls()
+    }
+  })
+
+  test('single package mode supports scoped package without version', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/@scope/pkg': { version: '1.0.0', license: 'MIT' },
+        },
+      }),
+    })
+    try {
+      assert.equal(main(['--pkg=@scope/pkg', '--silent']), 0)
     } finally {
       resetImpls()
     }
@@ -279,5 +353,78 @@ describe('main with mock lockfile', () => {
     } finally {
       resetImpls()
     }
+  })
+
+  test('returns 1 with --fail when missing license exists', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/missing-license': { version: '1.0.0', license: null },
+        },
+      }),
+    })
+    try {
+      assert.equal(main(['--fail', '--silent']), 1)
+    } finally {
+      resetImpls()
+    }
+  })
+
+  test('markdown format prints report', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/foo': { version: '1.0.0', license: 'MIT' },
+          'node_modules/bar': { version: '2.0.0', license: 'GPL-3.0' },
+          'node_modules/baz': { version: '3.0.0', license: 'Custom' },
+        },
+      }),
+    })
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(main(['--format=markdown']), 0)
+      const output = logs.join('\n')
+      assert.ok(output.includes('Dependency License Report'))
+      assert.ok(output.includes('Prohibited'))
+      assert.ok(output.includes('Flagged for review'))
+      assert.ok(output.includes('Allowed'))
+    } finally {
+      console.log = originalLog
+      resetImpls()
+    }
+  })
+
+  test('table format prints report', () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/foo': { version: '1.0.0', license: 'MIT' },
+          'node_modules/bar': { version: '2.0.0', license: 'GPL-3.0' },
+          'node_modules/baz': { version: '3.0.0', license: 'Custom' },
+        },
+      }),
+    })
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(main([]), 0)
+      assert.ok(logs.some((line) => line.includes('Dependency license check')))
+      assert.ok(logs.some((line) => line.includes('Prohibited')))
+      assert.ok(logs.some((line) => line.includes('Flagged for review')))
+      assert.ok(logs.some((line) => line.includes('Allowed')))
+    } finally {
+      console.log = originalLog
+      resetImpls()
+    }
+  })
+
+  test('CLI exits 0 when checking real lockfile', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH, '--silent'], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

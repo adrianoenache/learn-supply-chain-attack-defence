@@ -95,16 +95,20 @@
     "defence:update-check:offline": "node ./tools/check-updates.js --offline",
     "defence:sync-check": "node ./tools/check-sync.js",
     "defence:sync-check:fix": "node ./tools/check-sync.js --fix",
+    "defence:verify-defences": "node ./tools/verify-defences.js",
+    "defence:generate-sbom": "node ./tools/generate-sbom.js",
     "format": "biome format --write tools/",
     "lint:fix": "biome check --write tools/",
     "lint": "biome check tools/",
     "prepare": "husky",
     "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
-    "test": "node --test tools/*.test.js",
+    "test": "node --test tools/*.test.js tools/lib/*.test.js",
+    "test:coverage": "c8 --reporter=text --reporter=lcov --reporter=json node --test tools/*.test.js tools/lib/*.test.js",
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
+    "c8": "12.0.0",
     "husky": "9.1.7"
   }
 }

@@ -66,6 +66,26 @@ describe('provenance', () => {
     assert.ok(result.reason.includes('payload'))
   })
 
+  test('validateAttestationBundle rejects non-object bundle', () => {
+    const result = validateAttestationBundle(null)
+    assert.equal(result.valid, false)
+    assert.ok(result.reason.includes('not an object'))
+  })
+
+  test('validateAttestationBundle rejects non-object attestation entry', () => {
+    const result = validateAttestationBundle({ attestations: [null] })
+    assert.equal(result.valid, false)
+    assert.ok(result.reason.includes('entry is not an object'))
+  })
+
+  test('validateAttestationBundle rejects missing payloadType', () => {
+    const result = validateAttestationBundle({
+      attestations: [{ payload: 'aGVsbG8=' }],
+    })
+    assert.equal(result.valid, false)
+    assert.ok(result.reason.includes('payloadType'))
+  })
+
   test('fetchAttestationBundle returns body on 200', async () => {
     const body = { attestations: [{ payloadType: 'x', payload: 'y' }] }
     setFetchRegistryJsonImpl(

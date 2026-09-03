@@ -6,6 +6,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
+const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'setup-bootstrap.js')
 
@@ -166,5 +167,48 @@ describe('setup-bootstrap', () => {
         mod.resetSpawnSyncImpl()
       }
     })
+  })
+
+  test('main throws when bootstrap command is killed by signal', async () => {
+    await withTempProject(async () => {
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(function killedSpawn() {
+        return { status: null, signal: 'SIGTERM' }
+      })
+      try {
+        let threw = false
+        try {
+          mod.main()
+        } catch (err) {
+          threw = true
+          assert.ok(err.message.includes('SIGTERM'))
+        }
+        assert.equal(threw, true)
+      } finally {
+        mod.resetSpawnSyncImpl()
+      }
+    })
+  })
+
+  test('CLI exits 0 when lockfile exists', async () => {
+    await withTempProject(
+      async () => {
+        const { spawnSync } = require('node:child_process')
+        const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+          encoding: 'utf8',
+          cwd: process.cwd(),
+        })
+        assert.equal(result.status, 0)
+        assert.ok(result.stdout.includes('package-lock.json already exists'))
+      },
+      { hasLock: true },
+    )
+  })
+
+  test('CLI exits 0 in current project', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

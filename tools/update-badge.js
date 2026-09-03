@@ -2,8 +2,9 @@
 'use strict'
 
 // Updates the test-count badge in README.md to match the number of test()
-// calls found in tools/*.test.js. Intended to run before each commit so the
-// badge stays in sync with the test suite without relying on CI/CD.
+// calls found in tools/*.test.js and tools/lib/*.test.js. Intended to run
+// before each commit so the badge stays in sync with the test suite without
+// relying on CI/CD.
 //
 // Usage:
 //   npm run defence:update-badge              — update README.md badge
@@ -14,7 +15,10 @@ const path = require('node:path')
 const { globSync } = require('node:fs')
 
 const README_PATH = path.resolve(__dirname, '../README.md')
-const TEST_GLOB = path.resolve(__dirname, '*.test.js')
+const TEST_GLOBS = [
+  path.resolve(__dirname, '*.test.js'),
+  path.resolve(__dirname, 'lib', '*.test.js'),
+]
 const BADGE_RE =
   /!\[Tests\]\(https:\/\/img\.shields\.io\/badge\/Tests-\d+%2F\d+%20passing-[a-zA-Z]+\)/
 
@@ -110,7 +114,7 @@ function updateBadgeLine(readmeContent, newBadgeLine) {
 }
 
 function resolveTestFiles() {
-  return globSyncImpl(TEST_GLOB).sort()
+  return TEST_GLOBS.flatMap((g) => globSyncImpl(g)).sort()
 }
 
 // ---------------------------------------------------------------------------
@@ -123,7 +127,9 @@ function main(argv = process.argv.slice(2)) {
   try {
     const testFiles = resolveTestFiles()
     if (testFiles.length === 0) {
-      throw new Error(`No test files found for pattern ${TEST_GLOB}.`)
+      throw new Error(
+        `No test files found for patterns ${TEST_GLOBS.join(', ')}.`,
+      )
     }
 
     const count = countAllTests(testFiles)

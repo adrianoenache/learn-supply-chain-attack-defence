@@ -12,6 +12,8 @@ const {
   findDependencyConfusion,
   readDeclaredPackageNames,
   readInstalledPackageNames,
+  loadExistingNames,
+  loadInternalNames,
   setFsImpl,
   resetFsImpl,
 } = require('./typosquatting.js')
@@ -135,5 +137,57 @@ describe('typosquatting', () => {
     )
     const names = readInstalledPackageNames('/lock.json')
     assert.deepEqual(names.sort(), ['@types/node', 'lodash'])
+  })
+
+  test('readInstalledPackageNames reads legacy dependencies section', () => {
+    setFsImpl(
+      makeMockFs({
+        '/lock.json': JSON.stringify({
+          dependencies: {
+            lodash: { version: '4.17.21' },
+            express: { version: '4.18.0' },
+          },
+        }),
+      }),
+    )
+    const names = readInstalledPackageNames('/lock.json')
+    assert.deepEqual(names.sort(), ['express', 'lodash'])
+  })
+
+  test('readInstalledPackageNames returns empty on missing lockfile', () => {
+    setFsImpl(makeMockFs({}))
+    const names = readInstalledPackageNames('/missing.json')
+    assert.deepEqual(names, [])
+  })
+
+  test('readDeclaredPackageNames returns empty on missing package.json', () => {
+    setFsImpl(makeMockFs({}))
+    const names = readDeclaredPackageNames('/missing.json')
+    assert.deepEqual(names, [])
+  })
+
+  test('loadExistingNames merges declared and installed names', () => {
+    setFsImpl(
+      makeMockFs({
+        '/package.json': JSON.stringify({ dependencies: { lodash: '^4' } }),
+        '/package-lock.json': JSON.stringify({
+          packages: { 'node_modules/express': { version: '4' } },
+        }),
+      }),
+    )
+    const names = loadExistingNames('/')
+    assert.deepEqual(names.sort(), ['express', 'lodash'])
+  })
+
+  test('loadInternalNames reads defences.internalPackageNames', () => {
+    const names = loadInternalNames({
+      defences: { internalPackageNames: ['@co/pkg'] },
+    })
+    assert.deepEqual(names, ['@co/pkg'])
+  })
+
+  test('loadInternalNames returns empty when defences missing', () => {
+    const names = loadInternalNames({})
+    assert.deepEqual(names, [])
   })
 })

@@ -62,7 +62,11 @@ const FILES_TO_COPY = [
   'tools/update-badge.test.js',
   'tools/update-packages.js',
   'tools/update-packages.test.js',
+  'tools/verify-defences.js',
+  'tools/verify-defences.test.js',
 ]
+
+const MANIFEST_NAME = '.defence-manifest.json'
 
 const SCRIPTS_TO_ADD = {
   setup:
@@ -80,6 +84,7 @@ const SCRIPTS_TO_ADD = {
   'defence:update:interactive': 'node ./tools/update-packages.js --interactive',
   'defence:update:interactive:dry-run':
     'node ./tools/update-packages.js --interactive --dry-run',
+  'defence:verify-defences': 'node ./tools/verify-defences.js',
   test: 'node --test tools/*.test.js',
   lint: 'biome check tools/',
   'lint:fix': 'biome check --write tools/',
@@ -173,6 +178,40 @@ function copyFile(src, dest, force, dryRun) {
   console.log(`  Copied ${src} -> ${dest} (SHA-256: ${sourceHash})`)
 }
 
+function buildManifest(targetDir) {
+  const files = []
+  for (const relativePath of FILES_TO_COPY) {
+    const filePath = path.join(targetDir, relativePath)
+    if (!fs.existsSync(filePath)) {
+      continue
+    }
+    files.push({ path: relativePath, hash: sha256File(filePath) })
+  }
+  return {
+    version: 1,
+    installedAt: new Date().toISOString(),
+    files,
+  }
+}
+
+function writeManifest(targetDir, dryRun) {
+  const manifest = buildManifest(targetDir)
+  const manifestPath = path.join(targetDir, MANIFEST_NAME)
+
+  if (dryRun) {
+    console.log(
+      `  [dry-run] Would write ${MANIFEST_NAME} with ${manifest.files.length} file(s).`,
+    )
+    return manifest
+  }
+
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
+  console.log(
+    `  Wrote ${MANIFEST_NAME} with ${manifest.files.length} file hash(es).`,
+  )
+  return manifest
+}
+
 function updatePackageJson(pkgPath, content, dryRun) {
   const originalScripts = content.scripts || {}
   const conflicts = Object.keys(SCRIPTS_TO_ADD).filter(
@@ -239,6 +278,7 @@ function main(argv) {
     copyFile(src, dest, force, dryRun)
   }
 
+  writeManifest(targetDir, dryRun)
   updatePackageJson(pkgPath, content, dryRun)
 
   console.log('\nDone.')
@@ -262,4 +302,13 @@ if (require.main === module) {
   process.exit(code)
 }
 
-module.exports = { parseArgs, main, sha256File, verifySourceIntegrity }
+module.exports = {
+  parseArgs,
+  main,
+  sha256File,
+  verifySourceIntegrity,
+  buildManifest,
+  writeManifest,
+  FILES_TO_COPY,
+  MANIFEST_NAME,
+}

@@ -16,22 +16,29 @@ const { spawnSync } = require('node:child_process')
 const { loadConfig } = require(path.resolve(__dirname, './config.js'))
 
 const config = loadConfig()
-const pkg = require(path.resolve(__dirname, '../../package.json'))
 
 const LOCK_FILE = config.paths.packageLockJson
 const NODE_MODULES_LOCK_FILE = config.paths.nodeModulesLockJson
 
 let fsImpl = fs
 let spawnSyncImpl = spawnSync
+let pkgImpl = null
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
+  if (impls.pkg) pkgImpl = impls.pkg
 }
 
 function resetImpls() {
   fsImpl = fs
   spawnSyncImpl = spawnSync
+  pkgImpl = null
+}
+
+function getPkg() {
+  if (pkgImpl) return pkgImpl
+  return require(path.resolve(__dirname, '../../package.json'))
 }
 
 function sha256(content) {
@@ -85,6 +92,7 @@ function checkInstalledVersions() {
 
   try {
     const ls = JSON.parse(result.stdout)
+    const pkg = getPkg()
     const declared = {
       ...pkg.dependencies,
       ...pkg.devDependencies,

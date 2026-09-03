@@ -224,4 +224,62 @@ describe('retry-fetch', () => {
       assert.ok(RETRYABLE_STATUS_CODES.has(code))
     }
   })
+
+  test('acceptGzip false omits Accept-Encoding header', async () => {
+    const calls = []
+    setImpls({
+      httpsGet: (_url, options, cb) => {
+        calls.push(options.headers)
+        cb(makeMockResponse(200, JSON.stringify({ ok: true })))
+        return makeMockRequest()
+      },
+    })
+    await fetchJson('https://example.com', { acceptGzip: false })
+    assert.equal(calls[0]['Accept-Encoding'], undefined)
+  })
+
+  test('handles stream error during response', async () => {
+    setImpls({
+      httpsGet: (_url, _options, cb) => {
+        const res = new EventEmitter()
+        res.statusCode = 200
+        res.headers = {}
+        res.destroy = () => {}
+        process.nextTick(() => {
+          cb(res)
+          res.emit('error', new Error('stream broke'))
+        })
+        return makeMockRequest()
+      },
+    })
+    await assert.rejects(
+      () => fetchJson('https://example.com', { retryMaxAttempts: 1 }),
+      /stream error/,
+    )
+  })
+
+  test('handles request error', async () => {
+    setImpls({
+      httpsGet: () => {
+        const req = makeMockRequest()
+        process.nextTick(() => {
+          const err = new Error('socket hang up')
+          err.code = 'ECONNRESET'
+          req.emit('error', err)
+        })
+        return req
+      },
+    })
+    await assert.rejects(
+      () => fetchJson('https://example.com', { retryMaxAttempts: 1 }),
+      /network error/,
+    )
+  })
+
+  test('rejects invalid JSON', async () => {
+    setImpls({
+      httpsGet: makeMockHttpsGet([{ statusCode: 200, body: 'not-json' }]),
+    })
+    await assert.rejects(() => fetchJson('https://example.com'), /invalid JSON/)
+  })
 })

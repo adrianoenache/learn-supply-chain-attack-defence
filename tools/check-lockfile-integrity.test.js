@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict'
 
-const { describe, test } = require('node:test')
+const { describe, test, beforeEach } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
 
@@ -25,7 +25,38 @@ function makeMockFs(content) {
   }
 }
 
+function captureExit() {
+  let code = null
+  const fn = (exitCode) => {
+    code = exitCode
+    return exitCode
+  }
+  fn.code = () => code
+  return fn
+}
+
+function runMain(mod, argv) {
+  const exit = captureExit()
+  mod.setExitImpl(exit)
+  const logs = []
+  const originalLog = console.log
+  console.log = (...args) => logs.push(args.join(' '))
+  try {
+    mod.main(argv)
+  } finally {
+    console.log = originalLog
+    mod.resetExitImpl()
+  }
+  return { code: exit.code(), logs }
+}
+
 describe('check-lockfile-integrity', () => {
+  beforeEach(() => {
+    const mod = readScriptExports()
+    mod.resetFsImpl()
+    mod.resetExitImpl()
+  })
+
   test('passes when all entries have sha512 integrity', () => {
     const mod = readScriptExports()
     mod.setFsImpl(
@@ -44,16 +75,12 @@ describe('check-lockfile-integrity', () => {
       }),
     )
 
-    let exitCode = null
-    try {
-      mod.main([])
-    } catch (err) {
-      if (err.message.startsWith('exit:'))
-        exitCode = Number(err.message.slice(5))
-    }
-    assert.equal(exitCode, 0)
+    const { code, logs } = runMain(mod, [])
+    assert.equal(code, 0)
+    assert.ok(
+      logs.some((line) => line.includes('All lockfile entries have SHA-512')),
+    )
     mod.resetFsImpl()
-    mod.resetExitImpl()
   })
 
   test('fails when an entry is missing integrity', () => {
@@ -68,16 +95,10 @@ describe('check-lockfile-integrity', () => {
       }),
     )
 
-    let exitCode = null
-    try {
-      mod.main([])
-    } catch (err) {
-      if (err.message.startsWith('exit:'))
-        exitCode = Number(err.message.slice(5))
-    }
-    assert.equal(exitCode, 1)
+    const { code, logs } = runMain(mod, [])
+    assert.equal(code, 1)
+    assert.ok(logs.some((line) => line.includes('Missing integrity')))
     mod.resetFsImpl()
-    mod.resetExitImpl()
   })
 
   test('fails when an entry uses sha1 integrity', () => {
@@ -92,16 +113,10 @@ describe('check-lockfile-integrity', () => {
       }),
     )
 
-    let exitCode = null
-    try {
-      mod.main([])
-    } catch (err) {
-      if (err.message.startsWith('exit:'))
-        exitCode = Number(err.message.slice(5))
-    }
-    assert.equal(exitCode, 1)
+    const { code, logs } = runMain(mod, [])
+    assert.equal(code, 1)
+    assert.ok(logs.some((line) => line.includes('Weak integrity')))
     mod.resetFsImpl()
-    mod.resetExitImpl()
   })
 
   test('isStrongIntegrity accepts only sha512', () => {
@@ -134,5 +149,125 @@ describe('check-lockfile-integrity', () => {
     assert.deepEqual(result.missing, ['node_modules/b'])
     assert.equal(result.weak.length, 1)
     assert.equal(result.weak[0].path, 'node_modules/c')
+  })
+
+  test('silent mode suppresses output', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, ['--silent'])
+    assert.equal(code, 0)
+    assert.equal(logs.length, 0)
+    mod.resetFsImpl()
+  })
+
+  test('json format produces valid JSON', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, ['--format=json'])
+    assert.equal(code, 0)
+    const parsed = JSON.parse(logs.join('\n'))
+    assert.deepEqual(parsed.missing, [])
+    assert.deepEqual(parsed.weak, [])
+    mod.resetFsImpl()
+  })
+
+  test('markdown format prints weak integrity report', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+          'node_modules/legacy': { integrity: 'sha1-old' },
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, ['--format=markdown'])
+    assert.equal(code, 1)
+    assert.ok(logs.some((line) => line.includes('Lockfile Integrity Report')))
+    mod.resetFsImpl()
+  })
+
+  test('markdown format prints missing integrity report', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': {},
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, ['--format=markdown'])
+    assert.equal(code, 1)
+    const output = logs.join('\n')
+    assert.ok(output.includes('Lockfile Integrity Report'))
+    assert.ok(output.includes('Missing integrity'))
+    mod.resetFsImpl()
+  })
+
+  test('markdown format prints success report', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, ['--format=markdown'])
+    assert.equal(code, 0)
+    const output = logs.join('\n')
+    assert.ok(output.includes('Lockfile Integrity Report'))
+    assert.ok(output.includes('SHA-512'))
+    mod.resetFsImpl()
+  })
+
+  test('parseCliArgs rejects invalid format', () => {
+    const mod = readScriptExports()
+    assert.throws(() => mod.parseCliArgs(['--format=xml']), /Invalid format/)
+  })
+
+  test('CLI exits 0 when lockfile is clean', () => {
+    const { spawnSync } = require('node:child_process')
+    const tmpDir = require('node:os').tmpdir()
+    const lockPath = path.resolve(tmpDir, `clean-lock-${Date.now()}.json`)
+    require('node:fs').writeFileSync(
+      lockPath,
+      JSON.stringify({
+        packages: {
+          'node_modules/lodash': {
+            integrity:
+              'sha512-abc123def4567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234',
+          },
+        },
+      }),
+    )
+    const result = spawnSync(process.execPath, [SCRIPT_PATH, '--silent'], {
+      encoding: 'utf8',
+      cwd: tmpDir,
+    })
+    require('node:fs').unlinkSync(lockPath)
+    assert.equal(result.status, 0)
   })
 })

@@ -21,6 +21,8 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
+const MS_PER_DAY = 1000 * 60 * 60 * 24
+
 const {
   isNodeModulesInSync,
   readLockfileHash,
@@ -126,7 +128,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
 // ---------------------------------------------------------------------------
 
 function daysBetween(a, b) {
-  return (b - a) / (1000 * 60 * 60 * 24)
+  return (b - a) / MS_PER_DAY
 }
 
 function readJsonSafe(filePath) {

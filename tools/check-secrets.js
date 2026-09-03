@@ -190,6 +190,7 @@ module.exports = {
   scanFiles,
   readIgnoreFile,
   buildIgnoreRegex,
+  main,
   setFsImpl,
   resetFsImpl,
   PATTERNS,

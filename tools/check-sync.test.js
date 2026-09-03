@@ -8,6 +8,8 @@ const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
 
+const { spawnSync } = require('node:child_process')
+
 const SYNC_CHECK_PATH = path.resolve(__dirname, 'lib', 'sync-check.js')
 const CHECK_SYNC_PATH = path.resolve(__dirname, 'check-sync.js')
 
@@ -118,6 +120,12 @@ describe('sync-check helper', () => {
           },
         }),
       }),
+      pkg: {
+        devDependencies: {
+          '@biomejs/biome': '2.5.8',
+          husky: '9.1.7',
+        },
+      },
     })
 
     try {
@@ -146,6 +154,12 @@ describe('sync-check helper', () => {
           },
         }),
       }),
+      pkg: {
+        devDependencies: {
+          '@biomejs/biome': '2.5.8',
+          husky: '9.1.7',
+        },
+      },
     })
 
     try {
@@ -236,5 +250,55 @@ describe('check-sync CLI', () => {
     } finally {
       mod.resetImpls()
     }
+  })
+
+  test('prints non-fix recommendation when out of sync', () => {
+    const mod = readCheckSyncExports()
+    const lock = JSON.stringify({ name: 'test', lockfileVersion: 3 })
+
+    mod.setImpls({
+      fs: makeMockFs({
+        lock,
+        nodeModulesLock: { packageLockHash: 'different-hash' },
+      }),
+      spawnSync: () => ({
+        status: 1,
+        stdout: '',
+        stderr: 'ERR!',
+      }),
+    })
+
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      const code = mod.main([])
+      assert.equal(code, 1)
+      assert.ok(logs.some((line) => line.includes('defence:sync-check')))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('setExitImpl and resetExitImpl change exit implementation', () => {
+    const mod = readCheckSyncExports()
+    let called = false
+    mod.setExitImpl(() => {
+      called = true
+    })
+    try {
+      mod.resetExitImpl()
+      assert.equal(called, false)
+    } finally {
+      mod.resetExitImpl()
+    }
+  })
+
+  test('CLI exits 0 when node_modules is in sync', () => {
+    const result = spawnSync(process.execPath, [CHECK_SYNC_PATH, '--silent'], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

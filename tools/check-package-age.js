@@ -83,13 +83,19 @@ function resolveMode(argv) {
 // - default: merges all dependency types from package.json
 function buildDeps({ transitive, pkgArg, pkg: pkgInput, lock }) {
   if (transitive) {
-    // lockfileVersion 3 stores each installed package under the "node_modules/<name>" key
+    // lockfileVersion 3 stores each installed package under a "node_modules/<name>" key
     // in the `packages` object. The "" key represents the root project and is filtered out.
-    // The `version` field always contains the resolved exact version.
+    // Nested dependencies appear as "node_modules/<parent>/node_modules/<name>";
+    // the package name is the segment after the last "node_modules/".
     return Object.fromEntries(
       Object.entries(lock.packages)
         .filter(([key]) => key.startsWith('node_modules/'))
-        .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version]),
+        .map(([key, val]) => {
+          const packageName = key.slice(
+            key.lastIndexOf('node_modules/') + 'node_modules/'.length,
+          )
+          return [packageName, val.version]
+        }),
     )
   }
 
@@ -159,7 +165,8 @@ async function fetchPackageAge(name, version) {
   }
 
   // Converts the difference between now and the publication date from milliseconds to days.
-  const ageDays = (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24)
+  const MS_PER_DAY = config.pkgAgeCheck.msPerDay
+  const ageDays = (Date.now() - published.getTime()) / MS_PER_DAY
   return { name, version, ageDays, published }
 }
 

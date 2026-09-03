@@ -114,7 +114,7 @@ function deepMerge(target, source) {
 function resolveNpmrcMinReleaseAge(pkgRoot) {
   try {
     const npmrcPath = path.resolve(pkgRoot, '.npmrc')
-    const content = fs.readFileSync(npmrcPath, 'utf8')
+    const content = fsImpl.readFileSync(npmrcPath, 'utf8')
     const match = content.match(/^min-release-age\s*=\s*(\d+)/m)
     return match ? Number.parseInt(match[1], 10) : null
   } catch {
@@ -134,6 +134,7 @@ function buildDefaults(pkg) {
       maxResponseMB: pkgAge.maxResponseMB ?? 20,
       concurrency: pkgAge.concurrency ?? 10,
       registryTimeoutMs: pkgAge.registryTimeoutMs ?? 10000,
+      msPerDay: pkgAge.msPerDay ?? 1000 * 60 * 60 * 24,
     },
     updateCheck: {
       minAgeDays:

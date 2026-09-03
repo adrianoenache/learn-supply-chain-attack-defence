@@ -30,19 +30,24 @@ describe('config loader', () => {
     resetImpls()
   })
 
+  const sampleNodeRange = '>=24.19.0'
+  const sampleNpmRange = '>=11.17.0'
+
   test('loads defaults from engines and known config blocks', () => {
     setImpls({
       fs: buildFs({
-        engines: { node: '>=24.19.0', npm: '>=11.17.0' },
+        engines: { node: sampleNodeRange, npm: sampleNpmRange },
         pkgAgeCheck: { minAgeDays: 14 },
         updateCheck: { cacheTtlHours: 12 },
         licensesCheck: { failOnUnknown: true },
       }),
     })
     const config = loadConfig()
-    assert.equal(config.engines.node, '>=24.19.0')
+    assert.equal(config.engines.node, sampleNodeRange)
+    assert.equal(config.engines.npm, sampleNpmRange)
     assert.equal(config.pkgAgeCheck.minAgeDays, 14)
     assert.equal(config.pkgAgeCheck.maxResponseMB, 20)
+    assert.equal(config.pkgAgeCheck.msPerDay, 1000 * 60 * 60 * 24)
     assert.equal(config.updateCheck.cacheTtlHours, 12)
     assert.equal(config.updateCheck.minAgeDays, 14)
     assert.equal(config.licensesCheck.failOnUnknown, true)
@@ -106,5 +111,37 @@ describe('config loader', () => {
     setImpls({ fs: buildFs({ huskyPreCommitHash: 'abc123' }) })
     const config = loadConfig()
     assert.equal(config.huskyPreCommitHash, 'abc123')
+  })
+
+  test('reads min-release-age from .npmrc', () => {
+    const pkgPath = path.resolve(__dirname, '../../package.json')
+    const npmrcPath = path.resolve(__dirname, '../../.npmrc')
+    setImpls({
+      fs: {
+        readFileSync: (filePath) => {
+          if (filePath === pkgPath) {
+            return JSON.stringify({ pkgAgeCheck: {} })
+          }
+          if (filePath === npmrcPath) {
+            return 'min-release-age=21\n'
+          }
+          throw new Error(`ENOENT: ${filePath}`)
+        },
+      },
+    })
+    const config = loadConfig()
+    assert.equal(config.updateCheck.minAgeDays, 21)
+  })
+
+  test('merges nested config objects deeply', () => {
+    setImpls({
+      fs: buildFs(
+        { updateCheck: { scoringRules: { agePointsMax: 50 } } },
+        { updateCheck: { scoringRules: { scoreRecommendedMin: 85 } } },
+      ),
+    })
+    const config = loadConfig()
+    assert.equal(config.updateCheck.scoringRules.agePointsMax, 50)
+    assert.equal(config.updateCheck.scoringRules.scoreRecommendedMin, 85)
   })
 })

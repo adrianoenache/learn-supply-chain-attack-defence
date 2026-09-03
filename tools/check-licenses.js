@@ -156,7 +156,11 @@ function readLockfilePackages(lockfilePath = resolveLockfilePath()) {
   const entries = []
   for (const [key, value] of Object.entries(lockfile.packages)) {
     if (!key.startsWith('node_modules/')) continue
-    const name = key.replace(/^node_modules\//, '')
+    // Nested dependencies appear as "node_modules/<parent>/node_modules/<name>";
+    // the package name is the segment after the last "node_modules/".
+    const name = key.slice(
+      key.lastIndexOf('node_modules/') + 'node_modules/'.length,
+    )
     entries.push({
       name,
       version: value.version ?? null,
@@ -195,8 +199,10 @@ function buildReport(packages) {
   return { allowed, flagged, prohibited }
 }
 
+const JSON_INDENT = 2
+
 function formatJsonReport(report) {
-  return JSON.stringify(report, null, 2)
+  return JSON.stringify(report, null, JSON_INDENT)
 }
 
 function formatMarkdownReport(report) {

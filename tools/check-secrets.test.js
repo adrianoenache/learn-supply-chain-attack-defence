@@ -4,12 +4,16 @@
 const { describe, test, beforeEach, afterEach } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
+
+const SCRIPT_PATH = path.resolve(__dirname, './check-secrets.js')
 
 const {
   scanFile,
   scanFiles,
   readIgnoreFile,
   buildIgnoreRegex,
+  main,
   setFsImpl,
   resetFsImpl,
 } = require(path.resolve(__dirname, './check-secrets.js'))
@@ -173,5 +177,61 @@ describe('check-secrets', () => {
     setFsImpl(makeMockFs(new Map([[path.resolve(filePath), 'hello world']])))
     const findings = scanFiles([filePath], null)
     assert.equal(findings.length, 0)
+  })
+
+  test('scanFiles skips non-file entries', () => {
+    const fsWithDir = {
+      readFileSync: (p) => {
+        throw new Error(`should not read: ${p}`)
+      },
+      statSync: (p) => {
+        if (p.endsWith('dir.txt')) {
+          return { isFile: () => false, isDirectory: () => true }
+        }
+        if (p.endsWith('nostat.txt')) {
+          const err = new Error(`ENOENT: ${p}`)
+          err.code = 'ENOENT'
+          throw err
+        }
+        return { isFile: () => true, isDirectory: () => false }
+      },
+    }
+    setFsImpl(fsWithDir)
+    const findings = scanFiles(['/tmp/dir.txt', '/tmp/nostat.txt'], null)
+    assert.equal(findings.length, 0)
+  })
+
+  test('main returns 1 when no arguments provided', () => {
+    assert.equal(main([]), 1)
+  })
+
+  test('main returns 0 when no secrets found', () => {
+    const filePath = '/tmp/clean.txt'
+    setFsImpl(makeMockFs(new Map([[path.resolve(filePath), 'hello world']])))
+
+    try {
+      assert.equal(main([filePath]), 0)
+    } finally {
+      resetFsImpl()
+    }
+  })
+
+  test('main returns 1 when secrets found', () => {
+    const filePath = '/tmp/secret.txt'
+    setFsImpl(
+      makeMockFs(new Map([[path.resolve(filePath), 'AKIAIOSFODNN7EXAMPLE']])),
+    )
+    try {
+      assert.equal(main([filePath]), 1)
+    } finally {
+      resetFsImpl()
+    }
+  })
+
+  test('CLI exits 1 when called with no arguments', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
   })
 })

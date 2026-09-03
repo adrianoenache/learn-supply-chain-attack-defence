@@ -27,15 +27,15 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: registry-response cache and retry logic (Section 2.1).
   - Files: [tools/add-package.js](tools/add-package.js)
 
-- [ ] **[P1]** Add lockfile integrity self-check — new script verifies every entry in `package-lock.json` has an `integrity` field using SHA-512 or stronger, and exits non-zero on missing or weak hashes.
+- [x] **[P1]** Add lockfile integrity self-check — new script verifies every entry in `package-lock.json` has an `integrity` field using SHA-512 or stronger, and exits non-zero on missing or weak hashes.
   - Impact: detects tampering or incomplete lockfile entries before install.
   - Depends on: none.
-  - Files: new `tools/check-lockfile-integrity.js`
+  - Files: [tools/check-lockfile-integrity.js](tools/check-lockfile-integrity.js)
 
-- [ ] **[P1]** Validate install-defences file integrity — `install-defences.js` computes and verifies SHA-256 checksums of all copied files before copying them to adopted projects.
+- [x] **[P1]** Validate install-defences file integrity — `install-defences.js` now writes `.defence-manifest.json` with SHA-256 checksums of copied files; `verify-defences.js` checks the target project against the manifest.
   - Impact: prevents propagation of tampered tooling during adoption.
   - Depends on: none.
-  - Files: [tools/install-defences.js](tools/install-defences.js)
+  - Files: [tools/install-defences.js](tools/install-defences.js), [tools/verify-defences.js](tools/verify-defences.js), [tools/verify-defences.test.js](tools/verify-defences.test.js)
 
 ### 1.3 Hook and Tooling Integrity
 
@@ -95,24 +95,24 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: none.
   - Files: new `tools/lib/config.js`
 
-- [ ] **[P1]** Remove hardcoded Node.js and npm versions from tests and tools — read required versions from `package.json` `engines`; update `check-engines.js` and all tests that assert version strings.
+- [x] **[P1]** Remove hardcoded Node.js and npm versions from tests and tools — read required versions from `package.json` `engines`; update `check-engines.js` and all tests that assert version strings.
   - Impact: eliminates a common source of stale tests and version drift.
   - Depends on: centralized configuration loader (Section 3.1).
-  - Files: [tools/check-engines.js](tools/check-engines.js), `tools/*.test.js`
+  - Files: [tools/check-engines.js](tools/check-engines.js), [tools/check-engines.test.js](tools/check-engines.test.js)
 
-- [ ] **[P1]** Extract magic numbers from defense scripts — replace hardcoded thresholds (age limits, history sizes, confidence bands, timeouts) in `check-package-age.js`, `check-updates.js`, and `check-licenses.js` with values from the centralized config.
+- [x] **[P1]** Extract magic numbers from defense scripts — replace hardcoded thresholds (age limits, history sizes, confidence bands, timeouts) in `check-package-age.js`, `check-updates.js`, and `check-licenses.js` with values from the centralized config.
   - Impact: improves maintainability and allows per-project tuning.
   - Depends on: centralized configuration loader (Section 3.1).
-  - Files: [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js), [tools/check-licenses.js](tools/check-licenses.js)
+  - Files: [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js), [tools/check-licenses.js](tools/check-licenses.js), [tools/lib/config.js](tools/lib/config.js)
 
 ### 3.2 Test Quality and Coverage
 
-- [ ] **[P1]** Raise test coverage target to 90% or higher — add missing unit tests until `npm test` reports ≥ 90% line coverage across `tools/`.
+- [x] **[P1]** Raise test coverage target to ~95% — add missing unit and CLI subprocess tests until `npm run test:coverage` reports ≥ 95% statement coverage across `tools/`.
   - Impact: increases confidence in refactors and releases.
   - Depends on: none.
   - Files: `tools/*.test.js`
 
-- [ ] **[P2]** Add error-path tests — cover corrupted `package-lock.json`, registry timeouts, invalid SLSA attestations, missing `integrity` fields, and malformed config files.
+- [x] **[P2]** Add error-path tests — cover corrupted `package-lock.json`, registry timeouts, invalid SLSA attestations, missing `integrity` fields, and malformed config files.
   - Impact: prevents silent failures in production.
   - Depends on: centralized configuration loader (Section 3.1).
   - Files: `tools/*.test.js`
@@ -201,15 +201,15 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: none.
   - Files: new `.github/workflows/ci.yml`, [CONTRIBUTING.md](CONTRIBUTING.md)
 
-- [ ] **[P1]** Integrate secrets scanning into pre-commit — add a lightweight secret scanner (custom native script or `git-secrets`) that runs in `.husky/pre-commit` and exits non-zero on likely secrets.
+- [x] **[P1]** Integrate secrets scanning into pre-commit — added a custom native secret scanner that runs in `.husky/pre-commit` and exits non-zero on likely secrets.
   - Impact: prevents accidental secret commits.
   - Depends on: CI/CD pipeline (Section 5.1) for validation.
-  - Files: new tool under `tools/`, [.husky/pre-commit](.husky/pre-commit)
+  - Files: [tools/check-secrets.js](tools/check-secrets.js), [.husky/pre-commit](.husky/pre-commit)
 
-- [ ] **[P1]** Add SBOM generation script — new tool reads `package-lock.json` and emits CycloneDX and/or SPDX SBOMs for auditability.
+- [x] **[P1]** Add SBOM generation script — new tool reads `package-lock.json` and emits CycloneDX 1.4 JSON SBOM for auditability.
   - Impact: supports compliance and incident response.
   - Depends on: none.
-  - Files: new tool under `tools/`
+  - Files: [tools/generate-sbom.js](tools/generate-sbom.js), [tools/generate-sbom.test.js](tools/generate-sbom.test.js)
 
 ### 5.2 Quality Gates
 

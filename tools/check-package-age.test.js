@@ -10,6 +10,9 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
+
+const SCRIPT_PATH = path.resolve(__dirname, './check-package-age.js')
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
@@ -614,6 +617,33 @@ describe('Integration — check-package-age dependency modes', () => {
     assert.equal(exitCode, 1)
   })
 
+  test('reports registry lookup errors and exits 1', async () => {
+    const restore = mockRegistry({})
+
+    let exitCode = null
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: { missing: '1.0.0' },
+        },
+        exitFn,
+      })
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      restore()
+    }
+
+    assert.equal(exitCode, 1)
+  })
+
   test('buildDeps returns merged dependency types by default', () => {
     const result = buildDeps({
       transitive: false,
@@ -647,10 +677,17 @@ describe('Integration — check-package-age dependency modes', () => {
           '': {},
           'node_modules/lodash': { version: '4.17.21' },
           'node_modules/is-odd': { version: '3.0.1' },
+          'node_modules/cliui/node_modules/string-width': { version: '4.2.3' },
+          'node_modules/@scope/bar': { version: '2.0.0' },
         },
       },
     })
-    assert.deepEqual(result, { lodash: '4.17.21', 'is-odd': '3.0.1' })
+    assert.deepEqual(result, {
+      lodash: '4.17.21',
+      'is-odd': '3.0.1',
+      'string-width': '4.2.3',
+      '@scope/bar': '2.0.0',
+    })
   })
 })
 
@@ -911,5 +948,22 @@ describe('Integration — add-package flow', () => {
     }
 
     assert.equal(exitCode, 1)
+  })
+})
+
+describe('CLI subprocess', () => {
+  test('check-package-age CLI exits 0 with no arguments', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
+  })
+
+  test('add-package CLI prints help with no arguments', () => {
+    const addPackagePath = path.resolve(__dirname, './add-package.js')
+    const result = spawnSync(process.execPath, [addPackagePath], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
   })
 })

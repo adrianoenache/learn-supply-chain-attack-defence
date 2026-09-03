@@ -6,10 +6,12 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
+const { spawnSync } = require('node:child_process')
 
 const { findMarkdownFiles, checkFile, main } = require(
   path.resolve(__dirname, './check-md-links.js'),
 )
+const SCRIPT_PATH = path.resolve(__dirname, 'check-md-links.js')
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'md-links-test-'))
@@ -108,5 +110,12 @@ describe('check-md-links', () => {
       process.chdir(origCwd)
       cleanup(tmpDir)
     }
+  })
+
+  test('CLI exits 0 in current project', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

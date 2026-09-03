@@ -4,6 +4,7 @@
 const { describe, test, beforeEach, afterEach } = require('node:test')
 const assert = require('node:assert/strict')
 const crypto = require('node:crypto')
+const path = require('node:path')
 
 const {
   fetchRegistryJson,
@@ -190,5 +191,75 @@ describe('registry-cache', () => {
       onCacheMiss: (name, version) => events.push(`miss:${name}@${version}`),
     })
     assert.deepEqual(events, ['hit:mypkg@1.0.0'])
+  })
+
+  test('ignores malformed cache entries', async () => {
+    const localFiles = new Map()
+    const localFs = {
+      ...fsMock,
+      readFileSync: (p, enc) => {
+        if (!localFiles.has(p)) throw new Error(`ENOENT: ${p}`)
+        const content = localFiles.get(p)
+        if (enc === 'utf8') return content
+        return Buffer.from(content)
+      },
+      writeFileSync: (p, data) => localFiles.set(p, data),
+      readdirSync: () =>
+        Array.from(localFiles.keys()).map((p) => p.split('/').pop()),
+      unlinkSync: (p) => localFiles.delete(p),
+      existsSync: (p) => localFiles.has(p),
+    }
+
+    const cacheDir = path.resolve(__dirname, '../..', '.cache', 'registry')
+    const key = buildCacheKey('mypkg', '1.0.0')
+    const entryPath = path.resolve(cacheDir, `${key}.json`)
+    localFiles.set(entryPath, 'not-json')
+
+    const calls = []
+    setImpls({
+      fs: localFs,
+      now: () => now,
+      fetchJson: async () => {
+        calls.push(1)
+        return { ok: true }
+      },
+    })
+    await fetchRegistryJson('mypkg', '1.0.0', { cacheTtlHours: 1 })
+    assert.equal(calls.length, 1)
+  })
+
+  test('DEFENCE_NO_CACHE bypasses cache', async () => {
+    const original = process.env.DEFENCE_NO_CACHE
+    const calls = []
+    setImpls({
+      fs: fsMock,
+      now: () => now,
+      fetchJson: async () => {
+        calls.push(1)
+        return { ok: true }
+      },
+    })
+    try {
+      process.env.DEFENCE_NO_CACHE = '1'
+      await fetchRegistryJson('mypkg', '1.0.0', { cacheTtlHours: 1 })
+      await fetchRegistryJson('mypkg', '1.0.0', { cacheTtlHours: 1 })
+      assert.equal(calls.length, 2)
+    } finally {
+      if (original === undefined) delete process.env.DEFENCE_NO_CACHE
+      else process.env.DEFENCE_NO_CACHE = original
+    }
+  })
+
+  test('clearCache handles missing directory gracefully', () => {
+    setImpls({
+      fs: {
+        ...fsMock,
+        readdirSync: () => {
+          throw new Error('ENOENT')
+        },
+      },
+      now: () => now,
+    })
+    assert.doesNotThrow(() => clearCache())
   })
 })
