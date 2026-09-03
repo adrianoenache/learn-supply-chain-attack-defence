@@ -73,6 +73,11 @@
     ],
     "failOnUnknown": false
   },
+  "checkMdLinks": {
+    "ignoredDirs": ["node_modules", ".git"],
+    "cacheTtlHours": 24,
+    "cacheFile": ".md-links-cache.json"
+  },
   "defences": {
     "typosquattingThreshold": 2,
     "internalPackageNames": [],

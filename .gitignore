@@ -79,6 +79,9 @@ web_modules/
 # E2E test registry-response cache (never commit; per-developer state)
 tools/e2e/.cache/
 
+# Incremental markdown link-check cache (never commit; per-developer state)
+.md-links-cache.json
+
 # Registry response cache for defence tools (never commit; per-developer state)
 .cache/
 

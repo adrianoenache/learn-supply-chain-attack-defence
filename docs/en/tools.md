@@ -53,7 +53,7 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `check-licenses.js` | Read-only dependency license scanner with allow-list / deny-list classification. |
 | `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. |
 | `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
-| `check-md-links.js` | Validates internal and external links in markdown documentation. |
+| `check-md-links.js` | Validates internal links in markdown documentation. Uses an incremental SHA-256 content-hash cache so repeated runs only re-check changed files. |
 | `check-lockfile-integrity.js` | Verifies that every lockfile entry has a SHA-512 integrity field. |
 | `check-hooks.js` | Verifies that `.husky/pre-commit` matches the known hash in `package.json`. |
 | `check-secrets.js` | Scans files for likely secrets before they are committed. |

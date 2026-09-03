@@ -147,10 +147,10 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: registry-response cache (Section 2.1).
   - Files: [tools/check-updates.js](tools/check-updates.js)
 
-- [ ] **[P2]** Optimize check-md-links with incremental cache — cache last-checked timestamp and result per markdown file so repeated runs only re-check changed files.
+- [x] **[P2]** Optimize check-md-links with incremental cache — added SHA-256 content-hash cache stored in `.md-links-cache.json` so repeated runs only re-check changed files. Added `--force` flag to bypass cache.
   - Impact: speeds up documentation validation in CI and pre-commit.
   - Depends on: none.
-  - Files: [tools/check-md-links.js](tools/check-md-links.js)
+  - Files: [tools/check-md-links.js](tools/check-md-links.js), [tools/check-md-links.test.js](tools/check-md-links.test.js), [tools/lib/config.js](tools/lib/config.js), [package.json](package.json)
 
 ---
 

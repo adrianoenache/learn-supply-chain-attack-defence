@@ -178,6 +178,10 @@ function buildDefaults(pkg) {
     },
     checkMdLinks: {
       ignoredDirs: pkg.checkMdLinks?.ignoredDirs ?? ['node_modules', '.git'],
+      cacheTtlHours: pkg.checkMdLinks?.cacheTtlHours ?? 24,
+      cacheFile:
+        pkg.checkMdLinks?.cacheFile ??
+        path.resolve(REPO_ROOT, '.md-links-cache.json'),
     },
     e2e: {
       cacheTtlHours: Number.parseInt(process.env.E2E_CACHE_TTL_HOURS, 10) || 24,
