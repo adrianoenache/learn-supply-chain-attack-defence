@@ -13,7 +13,7 @@ Armazene o hash esperado em `package.json`:
 ```json
 {
   "defences": {
-    "huskyPreCommitHash": "ac5e9570c377c5e8d2c8ae8f022951c3ffb2e32eacbf26b45018cc5d946d4f50"
+    "huskyPreCommitHash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
   }
 }
 ```

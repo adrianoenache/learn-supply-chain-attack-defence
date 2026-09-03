@@ -820,4 +820,86 @@ describe('add-package', () => {
       restoreConsole()
     }
   })
+
+  test('main fails when dependency license check fails', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit') return { status: 0 }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:license-check:fail'
+      ) {
+        return { status: 1 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:1/,
+      )
+      assert.equal(exitCode, 1)
+      assert.ok(
+        captured.errors.some((line) =>
+          line.includes('Dependency license check FAILED'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
 })

@@ -30,6 +30,7 @@ npm run defence:add -- lodash@4.17.21 --dry-run
 4. Runs `npm audit signatures`.
 5. Runs `npm audit --audit-level=high`.
 6. Runs a transitive package-age check.
+7. Runs a transitive dependency license check (`npm run defence:license-check:fail`).
 
 ## Updating Existing Dependencies
 

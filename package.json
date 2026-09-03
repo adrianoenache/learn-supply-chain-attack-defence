@@ -77,7 +77,7 @@
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
     "provenanceMode": "warn",
-    "huskyPreCommitHash": "ac5e9570c377c5e8d2c8ae8f022951c3ffb2e32eacbf26b45018cc5d946d4f50"
+    "huskyPreCommitHash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
@@ -112,12 +112,11 @@
     "prepare": "husky",
     "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
     "test": "node --test tools/*.test.js tools/lib/*.test.js",
-    "test:coverage": "c8 --reporter=text --reporter=lcov --reporter=json node --test tools/*.test.js tools/lib/*.test.js",
+    "test:coverage": "node --experimental-test-coverage --test tools/*.test.js tools/lib/*.test.js",
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.8",
-    "c8": "12.0.0",
     "husky": "9.1.7"
   }
 }

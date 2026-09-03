@@ -108,6 +108,8 @@ Priority order: **P0 → P1 → P2 → P3**.
 ### 3.2 Test Quality and Coverage
 
 - [x] **[P1]** Raise test coverage target to ~95% — add missing unit and CLI subprocess tests until `npm run test:coverage` reports ≥ 95% statement coverage across `tools/`.
+- [x] **[P1]** Remove external coverage dependency (`c8`) and switch `test:coverage` to Node.js native `--experimental-test-coverage`. `c8@12.0.0` introduced a transitive tree (`glob`, `lru-cache`, `minimatch`, `minipass`, `path-scurry`) licensed under `BlueOak-1.0.0`, which violates the project's license policy. Native coverage keeps the same reporting capability without the external dependency surface.
+- [x] **[P1]** Integrate license check into the dependency-addition pipeline — `defence:add` and the pre-commit hook now run `defence:license-check:fail` after the transitive package-age check so incompatible licenses are caught before commit.
   - Impact: increases confidence in refactors and releases.
   - Depends on: none.
   - Files: `tools/*.test.js`

@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `npm outdated` now runs with `--min-release-age=0` so the script's own age-based
   classification controls what appears as eligible vs. quarantined, instead of
   the `.npmrc` setting hiding updates before they can be reported.
+- Fixed CI failure in `defence:license-check:fail` by removing the `c8`
+  devDependency. `c8@12.0.0` transitively pulled in `glob`, `lru-cache`,
+  `minimatch`, `minipass`, and `path-scurry`, all licensed under
+  `BlueOak-1.0.0`, which is not approved by the project's license policy.
 
 ### Added
 
@@ -52,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Single-package mode via `--pkg=name@version` for quick triage.
   - Table, JSON, and Markdown output formatters.
   - Native Node.js implementation in `tools/check-licenses.js` with full test coverage in `tools/check-licenses.test.js`.
+  - `defence:add` now runs `defence:license-check:fail` after the transitive package-age gate so incompatible licenses are caught before a dependency is committed.
+  - Pre-commit hook now includes `defence:license-check:fail` for the same reason.
 - GitHub issue and PR templates:
   - `.github/ISSUE_TEMPLATE/bug_report.yml` bug report form.
   - `.github/ISSUE_TEMPLATE/feature_request.yml` feature request form.
@@ -62,6 +68,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/pt-BR/security/defense-layer-9-license-check.md`
 - Security overview, indexes, README, tools page and quick reference updated to list Layer 9 and the new license-check commands.
 - README test badge updated from `83/83` to `122/122`.
+- Removed `c8` devDependency and switched `test:coverage` to Node.js native
+  `--experimental-test-coverage`. This eliminates the BlueOak-licensed
+  transitive dependency tree introduced by `c8@12.0.0` and keeps the project
+  aligned with its minimal-dependency security goals.
 - Offline mode for `defence:update-check`:
   - `--offline` flag in `tools/check-updates.js` skips `npm outdated` and registry calls; uses cached state even if TTL expired.
   - New `defence:update-check:offline` npm script.

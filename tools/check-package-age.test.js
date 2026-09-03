@@ -820,7 +820,7 @@ describe('Integration — add-package flow', () => {
     }
 
     assert.equal(exitCode, 0)
-    assert.equal(calls.length, 4)
+    assert.equal(calls.length, 5)
     assert.deepEqual(calls[0], [
       'install',
       '--save',
@@ -835,6 +835,7 @@ describe('Integration — add-package flow', () => {
       '--',
       '--transitive',
     ])
+    assert.deepEqual(calls[4], ['run', 'defence:license-check:fail'])
   })
 
   test('installs dev dependency with --save-dev flag', async () => {

@@ -578,6 +578,34 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
     return
   }
 
+  // Step 7 — Dependency license check.
+  // A new dependency may transitively pull packages whose licenses are not
+  // approved by the project. This check scans the resolved lockfile and fails
+  // fast before the contributor commits an incompatible license.
+  console.log('\nRunning dependency license check...')
+  try {
+    const licenseResult = spawnSyncImpl(
+      'npm',
+      ['run', 'defence:license-check:fail'],
+      { stdio: 'inherit', shell: false },
+    )
+    if (licenseResult.status !== 0) {
+      throw new Error(
+        `npm run defence:license-check:fail exited with code ${licenseResult.status ?? licenseResult.signal}`,
+      )
+    }
+  } catch {
+    console.error(
+      '\nDependency license check FAILED — an incompatible or unknown license was detected.',
+    )
+    console.error(`To remove the package: npm uninstall ${name}`)
+    console.error(
+      'If the license is acceptable, add it to `licensesCheck.allowed` in package.json.',
+    )
+    exitFn(1)
+    return
+  }
+
   console.log(`\nDone. ${name}@${exactVersion} added successfully.`)
   console.log('Remember to commit both package.json and package-lock.json.')
   exitFn(0)
