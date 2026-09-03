@@ -964,4 +964,97 @@ describe('check-updates', () => {
     )
     assert.equal(result.status, 0)
   })
+
+  test('deduplicates registry fetches across dependency lookups', async () => {
+    const mod = readScriptExports()
+    let fetchCount = 0
+    const sharedRegistryBody = {
+      time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+      repository: { url: 'git+https://github.com/biomejs/biome.git' },
+    }
+
+    mod.setImpls({
+      fetchRegistryJson: async (_name, _version, _options) => {
+        fetchCount++
+        return sharedRegistryBody
+      },
+      now: () => baseTime,
+    })
+
+    try {
+      const inMemoryCache = new Map()
+      const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
+      const first = await mod.fetchRegistryInfo(
+        'shared-pkg',
+        inMemoryCache,
+        metrics,
+      )
+      const second = await mod.fetchRegistryInfo(
+        'shared-pkg',
+        inMemoryCache,
+        metrics,
+      )
+      assert.equal(fetchCount, 1)
+      assert.equal(metrics.registryCacheHits, 1)
+      assert.equal(metrics.registryCacheMisses, 1)
+      assert.strictEqual(first, second)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('reports registry cache metrics in state', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json --min-release-age=0': {
+          status: 0,
+          stdout: JSON.stringify({
+            biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
+          }),
+        },
+      }),
+      fetchRegistryJson: makeMockFetchRegistryJson({
+        biome: {
+          statusCode: 200,
+          body: {
+            time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+            repository: { url: 'git+https://github.com/biomejs/biome.git' },
+          },
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--format=json'])
+      assert.equal(code, 0)
+      const parsed = JSON.parse(logs.join('\n'))
+      assert.equal(parsed.metrics.registryCacheHits, 0)
+      assert.equal(parsed.metrics.registryCacheMisses, 1)
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
 })

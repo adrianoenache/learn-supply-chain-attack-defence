@@ -142,10 +142,10 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 2.2 Batch Processing and Caching
 
-- [ ] **[P2]** Reduce N+1 registry queries in update check — implement packument caching across dependency lookups and enforce a bounded concurrency limit in `check-updates.js`.
+- [x] **[P2]** Reduce N+1 registry queries in update check — added per-run in-memory packument cache to `check-updates.js` so duplicate lookups within the same scan only fetch once. Bounded concurrency limit was already enforced; added registry cache hit/miss metrics to the state output.
   - Impact: reduces total network calls and avoids hammering the registry.
   - Depends on: registry-response cache (Section 2.1).
-  - Files: [tools/check-updates.js](tools/check-updates.js)
+  - Files: [tools/check-updates.js](tools/check-updates.js), [tools/check-updates.test.js](tools/check-updates.test.js), [docs/en/tools.md](docs/en/tools.md), [docs/pt-BR/tools.md](docs/pt-BR/tools.md)
 
 - [x] **[P2]** Optimize check-md-links with incremental cache — added SHA-256 content-hash cache stored in `.md-links-cache.json` so repeated runs only re-check changed files. Added `--force` flag to bypass cache.
   - Impact: speeds up documentation validation in CI and pre-commit.

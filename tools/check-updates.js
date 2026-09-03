@@ -193,9 +193,15 @@ function determineSeverity(current, latest) {
 // Registry interaction.
 // ---------------------------------------------------------------------------
 
-async function fetchRegistryInfo(name) {
+async function fetchRegistryInfo(name, inMemoryCache, metrics) {
+  const cacheKey = name
+  if (inMemoryCache?.has(cacheKey)) {
+    metrics.registryCacheHits++
+    return inMemoryCache.get(cacheKey)
+  }
+
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-  return fetchRegistryJsonImpl(name, null, {
+  const info = await fetchRegistryJsonImpl(name, null, {
     url,
     cacheTtlHours: CACHE_TTL_HOURS,
     maxResponseBytes: MAX_RESPONSE_BYTES,
@@ -206,6 +212,12 @@ async function fetchRegistryInfo(name) {
     retryMaxDelayMs: updateConfig.retryMaxDelayMs,
     acceptGzip: true,
   })
+
+  metrics.registryCacheMisses++
+  if (inMemoryCache) {
+    inMemoryCache.set(cacheKey, info)
+  }
+  return info
 }
 
 function buildReleaseLinks(name, version, repositoryUrl) {
@@ -239,13 +251,13 @@ function buildReleaseLinks(name, version, repositoryUrl) {
   return links
 }
 
-async function classifyUpdate(name, data) {
+async function classifyUpdate(name, data, inMemoryCache, metrics) {
   const current = data.current
   const wanted = data.wanted
   const latest = data.latest
 
   try {
-    const info = await fetchRegistryInfo(name)
+    const info = await fetchRegistryInfo(name, inMemoryCache, metrics)
     const published = info.time?.[latest]
     if (!published) {
       throw new Error('no publish date in registry')
@@ -692,11 +704,18 @@ async function main(argv = process.argv.slice(2)) {
       const outdated = runNpmOutdated()
       const entries = Object.entries(outdated)
 
+      // In-memory packument cache shared across all dependency lookups in this
+      // run. This prevents duplicate registry fetches when the same package is
+      // referenced multiple times (e.g. direct + transitive) and complements the
+      // disk-backed cache in registry-cache.js.
+      const inMemoryCache = new Map()
+      const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
+
       const results = await runWithConcurrencyLimit(
         entries.map(
           ([name, data]) =>
             () =>
-              classifyUpdate(name, data),
+              classifyUpdate(name, data, inMemoryCache, metrics),
         ),
         CONCURRENCY,
       )
@@ -717,6 +736,7 @@ async function main(argv = process.argv.slice(2)) {
         eligible: enrichEligibleWithConfidence(eligible, state?.history),
         quarantine,
         history: state?.history ?? [],
+        metrics,
       }
       appendHistory(state)
       saveState(state)
@@ -765,4 +785,6 @@ module.exports = {
   calculateConfidence,
   enrichEligibleWithConfidence,
   findStuckInQuarantine,
+  fetchRegistryInfo,
+  classifyUpdate,
 }

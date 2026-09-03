@@ -49,7 +49,7 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `add-package.js` | Safely adds a dependency with age, signature, audit, and transitive checks. |
 | `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. |
 | `update-packages.js` | Controlled wrapper for `npm update` with post-update checks and optional interactive approval. |
-| `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. |
+| `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. Deduplicates registry fetches per run with an in-memory packument cache and reports hit/miss metrics. |
 | `check-licenses.js` | Read-only dependency license scanner with allow-list / deny-list classification. |
 | `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. |
 | `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
