@@ -51,3 +51,59 @@ test('description', () => {
   assert.equal(1 + 1, 2);
 });
 ```
+
+## Test Design Conventions
+
+### Dependency Injection
+
+Production modules expose setter functions such as `setSpawnSyncImpl`, `setImpls`, `setNowImpl`, and `resetNowImpl`. Prefer these over monkey-patching globals. This makes tests deterministic and avoids spawning real subprocesses.
+
+```javascript
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import * as myTool from './my-tool.js';
+
+test('mocked subprocess', () => {
+  myTool.setSpawnSyncImpl((cmd, args) => ({ status: 0, stdout: '', stderr: '' }));
+  // exercise myTool
+  myTool.resetSpawnSyncImpl();
+});
+```
+
+### Subprocess Tests
+
+When you need to test the CLI surface, use `spawnSync` from `node:child_process` with controlled arguments. Avoid relying on real `npm` commands in unit tests; inject the spawn implementation when the module supports it.
+
+### Integration Tests
+
+Cross-tool behavior is covered in `tools/integration.test.js`. These tests use a centralized mock of the HTTPS registry layer (`tools/lib/retry-fetch.js`) and in-memory file-system fixtures. Every integration test has an explicit `timeout` to prevent hangs.
+
+### Time-Dependent Logic
+
+For code that depends on the current date (for example, package-age calculation), use the module's `setNowImpl` / `resetNowImpl` hooks to make assertions deterministic.
+
+## Coverage
+
+The project targets ≥ 95% line coverage using the native Node.js coverage flag:
+
+```bash
+npm run test:coverage
+```
+
+Do not add external coverage tools such as `c8`; they can introduce transitive dependencies with incompatible licenses. Native coverage is sufficient for the current quality gates.
+
+## Preventing Infinite Loops
+
+Every test that could hang must specify a timeout:
+
+```javascript
+test('description', { timeout: 1000 }, () => {
+  // ...
+});
+```
+
+In production code, use bounded loops, explicit iteration caps, and early-exit conditions when processing external data.
+
+## Intentional Hardcoded Values
+
+If a test needs a hardcoded literal (for example, a parser edge-case fixture like `>=99.0.0`), add an inline comment explaining why that value remains hardcoded and is not read from configuration. This rule applies to production code and tests alike.

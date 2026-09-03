@@ -58,6 +58,11 @@ npm run setup
 | `npm run defence:reinstall` | Apaga `node_modules`, reinstala e reexecuta todas as verificações. |
 | `npm run defence:pre-commit` | Executa audits de assinatura, vulnerabilidade e verificação de atualizações. |
 | `bash .husky/pre-commit` | Executa o hook de pré-commit completo localmente. |
+| `npm run defence:check-hooks` | Verifica se `.husky/pre-commit` corresponde ao hash conhecido. |
+| `npm run defence:check-lockfile-integrity` | Verifica se cada entrada do lockfile possui um campo de integridade SHA-512. |
+| `npm run defence:check-secrets` | Verifica arquivos rastreados em busca de possíveis secrets. |
+| `npm run defence:generate-sbom -- --output=sbom.json` | Gera um SBOM CycloneDX 1.4 JSON. |
+| `npm run defence:verify-defences` | Verifica arquivos copiados pelo `install-defences.js` contra o manifesto. |
 
 ## Adoção em Outros Projetos
 

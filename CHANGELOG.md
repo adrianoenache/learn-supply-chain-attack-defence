@@ -58,6 +58,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Native Node.js implementation in `tools/check-licenses.js` with full test coverage in `tools/check-licenses.test.js`.
   - `defence:add` now runs `defence:license-check:fail` after the transitive package-age gate so incompatible licenses are caught before a dependency is committed.
   - Pre-commit hook now includes `defence:license-check:fail` for the same reason.
+- Adoption integrity verification:
+  - New `tools/verify-defences.js` and `tools/verify-defences.test.js`.
+  - New `defence:verify-defences` npm script.
+  - `tools/install-defences.js` now writes `.defence-manifest.json` with SHA-256 hashes of copied files.
+  - `verify-defences.js` checks the target project against the manifest and reports missing or changed files.
+- SBOM generation:
+  - New `tools/generate-sbom.js` and `tools/generate-sbom.test.js`.
+  - New `defence:generate-sbom` npm script.
+  - Generates CycloneDX 1.4 JSON from `package-lock.json` v3 for compliance and incident response.
+- Integration tests:
+  - New `tools/integration.test.js` with cross-tool scenarios covering `add-package.js`, `check-package-age.js`, and `check-updates.js`.
+  - Uses centralized mock of the HTTPS registry layer (`tools/lib/retry-fetch.js`) and in-memory file-system fixtures.
+  - Every test has an explicit timeout to prevent hangs.
+- Native test coverage:
+  - Removed `c8` from `devDependencies` and switched `test:coverage` to `node --experimental-test-coverage`.
+  - Avoids a transitive dependency tree licensed under `BlueOak-1.0.0` while maintaining ≥ 95% line coverage.
+- Pre-commit hook integrity:
+  - New `tools/check-hooks.js` and `defence:check-hooks` script.
+  - `.husky/pre-commit` now starts with a hook integrity check before running other gates.
+- Documentation reorganization for release readiness:
+  - Reorganized the twelve defense layers into Core, Recommended, and Advanced adoption groups.
+  - New `docs/en/project-overview.md` and `docs/pt-BR/project-overview.md`.
+  - New `docs/en/glossary.md` and `docs/pt-BR/glossary.md`.
+  - Expanded `docs/en/testing.md` and `docs/pt-BR/testing.md` with DI, subprocess, integration, coverage, hardcode, and anti-loop conventions.
+  - Updated `docs/en/tools.md`, `docs/pt-BR/tools.md`, `docs/en/architecture.md`, `docs/pt-BR/architecture.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md` to list all current tools and commands.
+  - Updated `docs/en/git-hooks.md` and `docs/pt-BR/git-hooks.md` to reflect the current pre-commit sequence and the new post-merge hook.
+  - Updated `SECURITY.md` to describe the twelve defense layers and adoption groups.
+  - Updated `CONTRIBUTING.md` with the hardcoded-values rule and AI-assisted contribution guidelines.
+- AI Core customization:
+  - New `.github/copilot-instructions.md` with project-wide security, validation, and anti-loop rules.
+  - New `.github/instructions/security.instructions.md`, `.github/instructions/testing.instructions.md`, and `.github/instructions/docs.instructions.md`.
+  - New `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` explaining AI collaboration and the feedback loop.
+- CI/CD and release readiness:
+  - Added `cache: 'npm'` to all `actions/setup-node` steps in `.github/workflows/ci.yml`.
+  - Added a dedicated `coverage` job running `npm run test:coverage`.
+  - Added `defence:generate-sbom` and `defence:verify-defences` steps to the `defence-gates` job.
+  - Committed `.defence-manifest.json` so `defence:verify-defences` validates this repository's own defence files in CI.
+  - New `docs/en/release-checklist.md` and `docs/pt-BR/release-checklist.md` with pre-release, tagging, and post-release verification steps.
 - GitHub issue and PR templates:
   - `.github/ISSUE_TEMPLATE/bug_report.yml` bug report form.
   - `.github/ISSUE_TEMPLATE/feature_request.yml` feature request form.

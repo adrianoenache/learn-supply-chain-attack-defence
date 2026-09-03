@@ -63,6 +63,21 @@ npm run lint:fix  # auto-fix safe issues
 npm run format    # format files
 ```
 
+## Hardcoded Values
+
+Every intentional hardcoded value in code or tests must be accompanied by an inline comment explaining why that specific value remains hardcoded and is not configurable. Examples of acceptable hardcodes include parser edge-case fixtures, physical constants, and protocol defaults.
+
+This rule keeps the codebase maintainable and helps both human reviewers and AI assistants understand which values should stay fixed.
+
+## AI-Assisted Contributions
+
+This project uses GitHub Copilot / Kimi 2.7 Code with explicit instructions in `.github/copilot-instructions.md`. When contributing with AI assistance:
+
+- Follow the security-first mindset and do not bypass any defense gate.
+- Run `npm test`, `npm run lint`, and `npm run defence:check-md-links` after AI-generated changes.
+- Review AI output carefully before committing, especially changes to `.npmrc`, `.husky/pre-commit`, and `package.json`.
+- See [docs/en/ai-guidelines.md](docs/en/ai-guidelines.md) for the full collaboration guidelines.
+
 ## Security
 
 If you find a security issue, please follow the instructions in [SECURITY.md](SECURITY.md).

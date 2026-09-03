@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "installedAt": "2026-09-03T20:18:43.941Z",
+  "files": [
+    {
+      "path": ".npmrc",
+      "hash": "843c76d03aa6be0713ff3bf378864c58282635cb7d2b234af0c7e570979a9071"
+    },
+    {
+      "path": ".husky/pre-commit",
+      "hash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
+    },
+    {
+      "path": "biome.json",
+      "hash": "34fb7c62be39a2940ecf221172f02041de618dbc2175f6d03ee323f5e17ce73b"
+    },
+    {
+      "path": "tools/check-package-age.js",
+      "hash": "bff9d02e13c5a65e4598b59a37c9c0197bf80d2afa5143cbc3d388ce5bafad9c"
+    },
+    {
+      "path": "tools/add-package.js",
+      "hash": "6ff095abfc598d27880eca44d713d40ca0ff94fabe8b22146d48bb2e50a14fc7"
+    },
+    {
+      "path": "tools/check-md-links.js",
+      "hash": "78491ba1a22f33302792123527f8961489809497aa5fc032749f235a18c5c8ee"
+    },
+    {
+      "path": "tools/check-md-links.test.js",
+      "hash": "8195a76724deaaec8fd9c200f96710e281d908f05fdc566a851d261a058d9e10"
+    },
+    {
+      "path": "tools/lib/package-utils.js",
+      "hash": "7115579da57129b60ed6b4174626d323a0b68dce4cc189291f8f0f962a601a52"
+    },
+    {
+      "path": "tools/setup-bootstrap.js",
+      "hash": "d494fd2cf513c7ba832313476049b66349789ebb39624a563cdce371c504288e"
+    },
+    {
+      "path": "tools/setup-bootstrap.test.js",
+      "hash": "cae9faea930f07b90a20cf618888a1c1be5de8e3855e56bff7de847dfadcc9f9"
+    },
+    {
+      "path": "tools/check-package-age.test.js",
+      "hash": "a40e165c7cc1dea13b4a6b5b214ff68509e81e2891bddc52d220863d948c0c10"
+    },
+    {
+      "path": "tools/install-defences.js",
+      "hash": "3c742e4d2bf4560d103ced00292d60f2d6e51e14a0ff3519196680242d3943be"
+    },
+    {
+      "path": "tools/install-defences.test.js",
+      "hash": "9c4c654e220702475e036ab8604c8aeecf54b741b82560af714ffbcf8286b3a5"
+    },
+    {
+      "path": "tools/update-badge.js",
+      "hash": "d01fe8a1f3f880334271a148186fbc8f942acc6cab70c932d97e592829c607db"
+    },
+    {
+      "path": "tools/update-badge.test.js",
+      "hash": "39590a384c1e3cfd2ead2e9f07d4d641a13586256b9f82c9c193deed5b91b675"
+    },
+    {
+      "path": "tools/update-packages.js",
+      "hash": "37a94ce44761339a62233d95bc35c0189ce4899d6e8ccf63ce1ada496a052118"
+    },
+    {
+      "path": "tools/update-packages.test.js",
+      "hash": "e3ee515557cd9760a06a53421d4201c0b3500d9eb569b8e92f4d3e5df673cbdc"
+    },
+    {
+      "path": "tools/verify-defences.js",
+      "hash": "5688a9830037295bf0a0735d98d8dd7c2f59f9b33f48c32dce6dd1cbf4de9005"
+    },
+    {
+      "path": "tools/verify-defences.test.js",
+      "hash": "2655b1d06831a36d8fba27182ec0772ae82184ce20d0dc0284ca34e473de2abd"
+    }
+  ]
+}

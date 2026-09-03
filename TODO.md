@@ -113,7 +113,7 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Impact: increases confidence in refactors and releases.
   - Depends on: none.
   - Files: `tools/*.test.js`
-
+> **Coverage report format decision:** The project uses Node.js native `--experimental-test-coverage`. This keeps the dependency tree clean and satisfies the ≥ 95% line-coverage target. Services like Codecov/Coveralls require `lcov.info` or JSON reports, which native coverage does not produce. The chosen approach is to stay with native coverage only (Option A). A lightweight custom converter (Option B) may be implemented in the future if Codecov/Coveralls integration becomes a concrete requirement.
 - [x] **[P2]** Add error-path tests — cover corrupted `package-lock.json`, registry timeouts, invalid SLSA attestations, missing `integrity` fields, and malformed config files.
   - Impact: prevents silent failures in production.
   - Depends on: centralized configuration loader (Section 3.1).
@@ -141,73 +141,84 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Impact: improves maintainability and allows other projects to adopt the toolkit without editing source code.
   - Files: [package.json](package.json), [tools/lib/config.js](tools/lib/config.js), [tools/add-package.js](tools/add-package.js), [tools/check-package-age.js](tools/check-package-age.js), [tools/check-updates.js](tools/check-updates.js), [tools/lib/provenance.js](tools/lib/provenance.js), [tools/lib/registry-cache.js](tools/lib/registry-cache.js), [tools/lib/retry-fetch.js](tools/lib/retry-fetch.js), [tools/check-secrets.js](tools/check-secrets.js)
 
-- [ ] **[P2]** Document intentional hardcodes — add a short "Hardcoded values" section to `CONTRIBUTING.md` or `docs/en/testing.md` describing the rule above, and include it in the code review checklist.
+- [x] **[P0]** Document intentional hardcodes — added a short "Hardcoded values" section to `CONTRIBUTING.md` and `docs/en/testing.md` / `docs/pt-BR/testing.md` describing the rule, and referenced it in the AI instructions.
   - Impact: makes the policy discoverable for contributors and AI assistants.
-  - Depends on: none.
+  - Depends on: Fase 6 documentation review.
   - Files: `CONTRIBUTING.md`, `docs/en/testing.md`, `docs/pt-BR/testing.md`
 
 ---
 
 ## 4. AI Customization & Developer Experience
 
-> The AI-specific customization files must live under `.github/` to be automatically discovered by VS Code Copilot / Kimi K2.7 Code. The `docs/ai/` directory is for human-readable documentation about the AI collaboration and should link back to the `.github/` files.
+> The AI-specific customization files must live under `.github/` to be automatically discovered by VS Code Copilot / Kimi K2.7 Code. Human-readable documentation about AI collaboration lives in `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md`, not in a separate `docs/ai/` directory.
 
-### 4.1 Always-On Instructions
+### 4.1 Always-On Instructions (AI Core)
 
-- [ ] **[P2]** Create `.github/copilot-instructions.md` — project-wide instructions that load on every chat request, covering security-first coding, required validation commands (`npm test`, `npm run lint`, `npm run defence:check-md-links`), and the rule of reading `package.json` `engines` before proposing version changes.
+- [x] **[P0]** Create `.github/copilot-instructions.md` — project-wide instructions that load on every chat request, covering security-first coding, required validation commands (`npm test`, `npm run lint`, `npm run defence:check-md-links`), prevention of infinite loops, hardcode justification, and the rule of reading `package.json` `engines` before proposing version changes.
   - Impact: aligns every AI interaction with project standards.
   - Depends on: none.
   - Files: new `.github/copilot-instructions.md`
 
-### 4.2 File- and Task-Specific Instructions
+### 4.2 File- and Task-Specific Instructions (AI Core)
 
-- [ ] **[P2]** Create `.github/instructions/security.instructions.md` — loaded for `tools/**`, `.npmrc`, and `package.json`; covers defense-layer principles, `npm ci`, signature verification, and secrets handling.
+- [x] **[P0]** Create `.github/instructions/security.instructions.md` — loaded for `tools/**`, `.npmrc`, and `package.json`; covers defense-layer principles, `npm ci`, signature verification, license checks, and secrets handling.
   - Impact: contextual security guidance for code that touches dependencies.
   - Depends on: `.github/copilot-instructions.md` (Section 4.1).
   - Files: new `.github/instructions/security.instructions.md`
 
-- [ ] **[P2]** Create `.github/instructions/testing.instructions.md` — loaded for `tools/**/*.test.js`; covers native test runner conventions, mocking external calls, coverage expectations, and fixture patterns.
+- [x] **[P0]** Create `.github/instructions/testing.instructions.md` — loaded for `tools/**/*.test.js`; covers native test runner conventions, DI mocking, subprocess tests, coverage expectations, timeouts, and fixture patterns.
   - Impact: keeps AI-generated tests consistent with project style.
   - Depends on: `.github/copilot-instructions.md` (Section 4.1).
   - Files: new `.github/instructions/testing.instructions.md`
 
-- [ ] **[P2]** Create `.github/instructions/docs.instructions.md` — loaded for `docs/**/*.md` and `README.md`; covers bilingual sync, link validation, and threat-model terminology.
+- [x] **[P0]** Create `.github/instructions/docs.instructions.md` — loaded for `docs/**/*.md` and `README.md`; covers bilingual sync, link validation, and threat-model terminology.
   - Impact: keeps documentation accurate and consistent across languages.
   - Depends on: `.github/copilot-instructions.md` (Section 4.1).
   - Files: new `.github/instructions/docs.instructions.md`
 
-### 4.3 Custom Agents
+### 4.3 Human-Readable AI Guidelines
+
+- [x] **[P0]** Create `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` — explain how this project uses GitHub Copilot / Kimi 2.7 Code, which `.github/` files exist and how they work, security rules for AI interactions, and the feedback loop for improving instructions.
+  - Impact: makes the AI collaboration strategy discoverable for human contributors and auditors.
+  - Depends on: `.github/copilot-instructions.md` (Section 4.1).
+  - Files: `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
+
+### 4.4 Custom Agents (pós-v1.0.0)
 
 - [ ] **[P2]** Create custom agents in `.github/agents/` — `security.agent.md`, `quality.agent.md`, `performance.agent.md`, `docs.agent.md`, and `compliance.agent.md`, each with restricted tools, keyword-rich `description`, and clear boundaries.
   - Impact: enables delegation of specialized review tasks to focused subagents.
   - Depends on: file-specific instructions (Section 4.2).
   - Files: `.github/agents/*.agent.md`
 
-### 4.4 Skills and Prompts
+### 4.5 Skills and Prompts (pós-v1.0.0)
 
 - [ ] **[P2]** Create skills in `.github/skills/` — `security-audit/SKILL.md`, `dependency-review/SKILL.md`, `docs-update/SKILL.md`, and `release-checklist/SKILL.md`, each with step-by-step procedures and correct frontmatter.
   - Impact: packages repeatable workflows with bundled assets.
-  - Depends on: custom agents (Section 4.3).
-  - Files: `.github/skills/*/`SKILL.md
+  - Depends on: custom agents (Section 4.4).
+  - Files: `.github/skills/*/SKILL.md`
 
 - [ ] **[P2]** Create prompts in `.github/prompts/` — `generate-test.prompt.md`, `review-security.prompt.md`, `update-docs.prompt.md`, and `check-hardcoded-values.prompt.md`, each focused on a single task.
   - Impact: gives developers reusable, one-shot task templates.
   - Depends on: file-specific instructions (Section 4.2).
   - Files: `.github/prompts/*.prompt.md`
 
-### 4.5 Hooks
+### 4.6 Hooks (pós-v1.0.0)
 
 - [ ] **[P2]** Create lifecycle hooks in `.github/hooks/` — `enforce-security.json` (blocks dangerous commands), `auto-lint-test.json` (runs lint and tests after edits), and `inject-context.json` (loads `engines` and TODO state at session start).
   - Impact: turns guidelines into deterministic runtime enforcement.
   - Depends on: always-on instructions (Section 4.1).
   - Files: `.github/hooks/*.json`
 
-### 4.6 Human-Readable AI Documentation
+### 4.7 Self-Improvement Loop (pós-v1.0.0)
 
-- [ ] **[P2]** Create `docs/ai/` documentation set — `README.md`, `INSTRUCTIONS.md`, `AGENTS.md`, `SKILLS.md`, `SECURITY.md`, `QUALITY.md`, `PERFORMANCE.md`, and `CONTEXT.md`, linking back to the corresponding `.github/` files.
-  - Impact: documents the AI collaboration strategy for human contributors and auditors.
-  - Depends on: all subsections above.
-  - Files: `docs/ai/*.md`
+- [ ] **[P2]** Create a lightweight self-improvement mechanism for AI instructions:
+  - `.github/prompts/review-ai-output.prompt.md` to review previous AI outputs against project rules.
+  - `.github/skills/self-review/SKILL.md` with a step-by-step self-review procedure.
+  - `.github/ai-lessons-learned.md` to log recurring AI mistakes and corrections.
+  - Periodic review of `.github/copilot-instructions.md` and `.github/instructions/*.md` based on accumulated lessons.
+  - Impact: prevents repeated mistakes and lets the project evolve its AI guidance over time.
+  - Depends on: file-specific instructions (Section 4.2).
+  - Files: `.github/prompts/review-ai-output.prompt.md`, `.github/skills/self-review/SKILL.md`, `.github/ai-lessons-learned.md`
 
 ---
 
@@ -215,10 +226,10 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 5.1 Pipeline
 
-- [ ] **[P0]** Add CI/CD pipeline via GitHub Actions — create `.github/workflows/ci.yml` that runs `npm test`, `npm run lint`, `npm run defence:check-md-links`, `npm run defence:license-check:fail`, and the pre-commit steps on every PR and push to main.
+- [x] **[P0]** Validate and finalize CI/CD pipeline via GitHub Actions — `.github/workflows/ci.yml` now includes npm cache, a dedicated `coverage` job, SBOM generation, adoption-manifest verification, and all existing gates. E2E remains opt-in via `tools/e2e/`.
   - Impact: guarantees local security gates cannot be bypassed.
-  - Depends on: none.
-  - Files: new `.github/workflows/ci.yml`, [CONTRIBUTING.md](CONTRIBUTING.md)
+  - Depends on: Fase 6 documentation and AI Core readiness.
+  - Files: `.github/workflows/ci.yml`, [CONTRIBUTING.md](CONTRIBUTING.md)
 
 - [x] **[P1]** Integrate secrets scanning into pre-commit — added a custom native secret scanner that runs in `.husky/pre-commit` and exits non-zero on likely secrets.
   - Impact: prevents accidental secret commits.
@@ -241,34 +252,62 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ## 6. Documentation & Knowledge
 
-### 6.1 Reference and Educational Content
+### 6.1 Project Overview and Reference
 
-- [ ] **[P2]** Document rebuild procedure for lifecycle-script packages — add `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild `esbuild`, `sharp`, `canvas`, etc., after overriding `ignore-scripts`.
-  - Impact: closes a documented exception path in the defense-in-depth story.
+- [x] **[P0]** Create project overview — added `docs/en/project-overview.md` and `docs/pt-BR/project-overview.md` explaining the project's purpose, target audience, what a supply-chain attack is, and how to use this repository for learning and adoption.
+  - Impact: gives newcomers a clear entry point.
   - Depends on: none.
-  - Files: `docs/en/security/rebuilding-lifecycle-packages.md`, `docs/pt-BR/security/rebuilding-lifecycle-packages.md`
+  - Files: `docs/en/project-overview.md`, `docs/pt-BR/project-overview.md`
 
-- [ ] **[P2]** Create project glossary — add `docs/en/glossary.md` and `docs/pt-BR/glossary.md` defining supply-chain terms (TOCTOU, SLSA, provenance, typosquatting, dependency confusion, etc.).
+- [x] **[P0]** Create project glossary — added `docs/en/glossary.md` and `docs/pt-BR/glossary.md` defining supply-chain terms (TOCTOU, SLSA, provenance, typosquatting, dependency confusion, lockfile integrity, SBOM, deterministic install, lifecycle scripts, Levenshtein distance).
   - Impact: improves accessibility for learners and contributors.
   - Depends on: none.
   - Files: `docs/en/glossary.md`, `docs/pt-BR/glossary.md`
 
-- [ ] **[P2]** Create troubleshooting guide — add `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, remediation steps, and how to run each defense manually.
-  - Impact: reduces support burden and onboarding friction.
-  - Depends on: centralized configuration loader (Section 3.1).
-  - Files: `docs/en/troubleshooting.md`, `docs/pt-BR/troubleshooting.md`
+### 6.2 Security Documentation Reorganization
 
-### 6.2 Pre-Release Review
+- [x] **[P0]** Reorganize defense layers into groups — presented the 12 layers as Core, Recommended, and Advanced in `docs/en/security/index.md`, `docs/pt-BR/security/index.md`, `README.md`, `SECURITY.md`, and the adoption guide.
+  - Impact: helps teams adopt defenses gradually.
+  - Depends on: none.
+  - Files: `docs/en/security/index.md`, `docs/pt-BR/security/index.md`, `README.md`, `docs/en/adopting-in-other-projects.md`, `docs/pt-BR/adopting-in-other-projects.md`
 
-- [ ] **[P0]** Complete comprehensive documentation review before official release — verify and synchronize:
+### 6.3 Testing Documentation
+
+- [x] **[P0]** Expand testing documentation — updated `docs/en/testing.md` and `docs/pt-BR/testing.md` to cover the native test runner, DI mocking, subprocess tests, integration tests, native coverage, the 95% target, and the intentional-hardcodes rule.
+  - Impact: keeps AI and human contributors aligned with project conventions.
+  - Depends on: none.
+  - Files: `docs/en/testing.md`, `docs/pt-BR/testing.md`
+
+### 6.4 AI Guidelines
+
+- [x] **[P0]** Create AI guidelines — added `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` describing how the project uses GitHub Copilot / Kimi 2.7 Code, the role of `.github/copilot-instructions.md` and `.github/instructions/*.md`, security rules for AI interactions, and the feedback loop for improving instructions. No separate `docs/ai/` directory was created.
+  - Impact: makes the AI collaboration strategy discoverable for humans and auditors.
+  - Depends on: `.github/copilot-instructions.md`.
+  - Files: `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
+
+### 6.5 Pre-Release Review
+
+- [x] **[P0]** Complete comprehensive documentation review before official release — verified and synchronized:
   1. `docs/en/` and `docs/pt-BR/` are structurally aligned.
   2. `docs/en/tools.md`, `docs/en/architecture.md`, and equivalents list every current script and tool.
-  3. `README.md` reflects all scripts, badges, and setup instructions.
+  3. `README.md` reflects all scripts, badges, setup instructions, and defense layer groups.
   4. All internal links pass `npm run defence:check-md-links`.
   5. `SECURITY.md`, `CONTRIBUTING.md`, and `CHANGELOG.md` are accurate and complete.
   - Impact: documentation must be release-ready before `v1.0.0` is tagged.
-  - Depends on: all other P0 and P1 items completed or stabilized.
+  - Depends on: all other P0 items completed or stabilized.
   - Files: `docs/en/`, `docs/pt-BR/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `CHANGELOG.md`
+
+### 6.6 Additional Reference Content (P1)
+
+- [ ] **[P1]** Document rebuild procedure for lifecycle-script packages — add `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild `esbuild`, `sharp`, `canvas`, etc., after overriding `ignore-scripts`.
+  - Impact: closes a documented exception path in the defense-in-depth story.
+  - Depends on: none.
+  - Files: `docs/en/security/rebuilding-lifecycle-packages.md`, `docs/pt-BR/security/rebuilding-lifecycle-packages.md`
+
+- [ ] **[P1]** Create troubleshooting guide — add `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, remediation steps, and how to run each defense manually.
+  - Impact: reduces support burden and onboarding friction.
+  - Depends on: centralized configuration loader (Section 3.1).
+  - Files: `docs/en/troubleshooting.md`, `docs/pt-BR/troubleshooting.md`
 
 ---
 
@@ -276,7 +315,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 
 ### 7.1 Release Readiness
 
-- [ ] **[P2]** Define versioning and release checklist — establish semantic versioning for the project, create a pre-release checklist in `docs/RELEASE_CHECKLIST.md`, and document supported Node.js/npm version matrix.
+- [x] **[P0]** Define versioning and release checklist — established semantic versioning, created `docs/en/release-checklist.md` and `docs/pt-BR/release-checklist.md`, and documented the supported Node.js/npm version matrix.
   - Impact: makes releases repeatable and predictable.
   - Depends on: CI/CD pipeline (Section 5.1).
   - Files: new `docs/RELEASE_CHECKLIST.md`

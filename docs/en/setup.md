@@ -15,7 +15,7 @@ The script starts with `npm run defence:check-engines` so it fails early with a 
 3. `npm audit signatures` — verify registry signatures of installed packages.
 4. `npm run prepare` — install Husky hooks.
 
-The script `defence:pre-commit` (used by the Git hook) also runs `npm audit --audit-level=high` to fail on high or critical CVEs.
+The `.husky/pre-commit` hook also runs `npm audit --audit-level=high`, `npm run defence:update-check`, and `npm run defence:license-check:fail` to block high or critical CVEs, stale dependencies, and incompatible licenses.
 
 ## First-Time Setup (No `package-lock.json`)
 

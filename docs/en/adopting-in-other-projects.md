@@ -29,17 +29,23 @@ node ./tools/install-defences.js /path/to/target-project --force
    - `.husky/pre-commit`
    - `biome.json`
    - `tools/check-package-age.js`
+   - `tools/check-package-age.test.js`
    - `tools/add-package.js`
    - `tools/check-md-links.js`
    - `tools/check-md-links.test.js`
    - `tools/lib/package-utils.js`
    - `tools/setup-bootstrap.js`
    - `tools/setup-bootstrap.test.js`
-   - `tools/check-package-age.test.js`
    - `tools/install-defences.js`
    - `tools/install-defences.test.js`
    - `tools/update-packages.js`
    - `tools/update-packages.test.js`
+   - `tools/update-badge.js`
+   - `tools/update-badge.test.js`
+   - `tools/verify-defences.js`
+   - `tools/verify-defences.test.js`
+
+   It also writes `.defence-manifest.json` in the target project with SHA-256 hashes of the copied files.
 2. Adds `defence:*` scripts to `package.json`:
    - `setup`
    - `defence:bootstrap`
@@ -47,8 +53,13 @@ node ./tools/install-defences.js /path/to/target-project --force
    - `defence:pkg-age-check`
    - `defence:reinstall`
    - `defence:update`
+   - `defence:update:interactive`
+   - `defence:update:interactive:dry-run`
+   - `defence:update-badge`
+   - `defence:update-badge:dry-run`
    - `defence:pre-commit`
    - `defence:add`
+   - `defence:verify-defences`
    - `test`
    - `lint`
    - `lint:fix`
@@ -64,7 +75,7 @@ Existing scripts that do not conflict are preserved. If a target script already 
    - Alternatively, if there is no `package-lock.json`, run `npm run defence:bootstrap` after the install.
 2. Verify the pre-commit hook: `bash .husky/pre-commit`
 3. Verify code quality: `npm run lint`
-4. Commit `.npmrc`, `.husky/`, `biome.json`, `tools/`, and the updated `package.json`.
+4. Commit `.npmrc`, `.husky/`, `biome.json`, `tools/`, `.defence-manifest.json`, and the updated `package.json`.
 
 ## Keeping Files in Sync
 

@@ -55,13 +55,24 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
 | `check-md-links.js` | Validates internal and external links in markdown documentation. |
 | `check-lockfile-integrity.js` | Verifies that every lockfile entry has a SHA-512 integrity field. |
+| `check-hooks.js` | Verifies that `.husky/pre-commit` matches the known hash in `package.json`. |
 | `check-secrets.js` | Scans files for likely secrets before they are committed. |
 | `lib/registry-cache.js` | Disk-backed registry cache with TTL used by registry-dependent tools. |
 | `lib/retry-fetch.js` | Shared registry fetch layer with retry, gzip, and size limits. |
 | `lib/config.js` | Centralized configuration loader used across the defence tools. |
+| `lib/provenance.js` | Helpers for verifying npm package provenance and SLSA attestations. |
 | `update-badge.js` | Refreshes the test-count badge in `README.md` from `tools/*.test.js`. |
-| `install-defences.js` | Copies the defences into another Node.js project. |
+| `generate-sbom.js` | Generates a CycloneDX 1.4 JSON SBOM from `package-lock.json`. |
+| `verify-defences.js` | Verifies files copied by `install-defences.js` against `.defence-manifest.json`. |
+| `install-defences.js` | Copies the defences into another Node.js project and writes the manifest. |
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
+
+## Tests
+
+| Script | Purpose |
+| --- | --- |
+| `integration.test.js` | Cross-tool integration tests with mocked registry and in-memory fixtures. |
+| `e2e/e2e.test.js` | Opt-in end-to-end tests against the real npm registry. |
 
 ## Why No Third-Party Test Framework?
 

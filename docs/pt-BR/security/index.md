@@ -2,6 +2,50 @@
 
 Este projeto protege a árvore de dependências usando doze camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
 
+## Grupos de Defesa
+
+As doze defesas estão organizadas em três grupos de adoção. Comece pelo grupo **Core** e adicione os demais conforme o projeto amadurece.
+
+### Core — Mínimo Necessário
+
+Essas defesas são essenciais para qualquer projeto Node.js/npm que adote este toolkit.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 1 | [Verificação de idade dos pacotes](defense-layer-1-package-age.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:reinstall`, `npm run defence:bootstrap` |
+| 2 | [Verificação de assinaturas](defense-layer-2-signatures.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:bootstrap`, hook de pré-commit |
+| 3 | [Auditoria de vulnerabilidades](defense-layer-3-vulnerabilities.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:bootstrap`, hook de pré-commit |
+| 4 | [Instalação determinística](defense-layer-4-deterministic-install.md) | `npm ci` no `setup` / `defence:reinstall` |
+| 5 | [Hook de pré-commit](defense-layer-5-precommit-hook.md) | Todo `git commit` |
+| 6 | [`.npmrc` endurecido](defense-layer-6-npmrc-config.md) | Todo comando npm |
+
+### Recomendado — Produção e Times
+
+Adicione essas defesas quando o projeto estiver em produção ou tiver múltiplos contribuidores.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 7 | [Gate de lint / formatação](defense-layer-7-lint-format.md) | `npm run lint`, hook de pré-commit |
+| 8 | [Verificação de atualizações disponíveis](defense-layer-8-update-check.md) | `npm run defence:update-check`, hook de pré-commit |
+| 9 | [Verificação de licenças](defense-layer-9-license-check.md) | `npm run defence:license-check`, `npm run defence:add`, hook de pré-commit |
+| 12 | [Integridade do hook de pré-commit](defense-layer-12-hook-integrity.md) | `npm run setup`, `npm run defence:check-hooks` |
+
+### Avançado / Desejável — Compliance e Segurança Madura
+
+Essas defesas oferecem garantia extra para times com requisitos de segurança mais rigorosos.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 10 | [Typosquatting e confusão de dependências](defense-layer-10-typosquatting.md) | `npm run defence:add` |
+| 11 | [Provenance e atestado SLSA](defense-layer-11-provenance.md) | `npm run defence:add` |
+
+Além disso, o toolkit fornece capacidades de suporte que não se encaixam em uma única camada:
+
+| Capacidade | Ferramenta | Propósito |
+| --- | --- | --- |
+| Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
+| Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
+
 ## Diagrama das Camadas de Defesa
 
 ```mermaid
@@ -80,6 +124,9 @@ flowchart TD
   AB --> P
   AD --> P
   AF --> P
+
+## Referência Completa das Camadas
+
 1. [Verificação de idade dos pacotes](defense-layer-1-package-age.md)
 2. [Verificação de assinaturas](defense-layer-2-signatures.md)
 3. [Auditoria de vulnerabilidades](defense-layer-3-vulnerabilities.md)
