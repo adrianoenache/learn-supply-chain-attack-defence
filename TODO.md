@@ -117,10 +117,10 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: centralized configuration loader (Section 3.1).
   - Files: `tools/*.test.js`
 
-- [ ] **[P2]** Add integration tests between tools — verify that `add-package.js` → `check-package-age.js` → `check-updates.js` produce consistent metadata and that the pre-commit gate composes correctly.
+- [x] **[P2]** Add integration tests between tools — `tools/integration.test.js` verifies that `add-package.js` → `check-package-age.js` → `check-updates.js` produce consistent metadata and that the transitive age gate composes correctly. Uses mocked registry/cache and DI hooks; every test has a timeout to prevent infinite hangs.
   - Impact: catches interface mismatches between scripts.
   - Depends on: registry-response cache (Section 2.1).
-  - Files: `tools/*.test.js`
+  - Files: [tools/integration.test.js](tools/integration.test.js), [tools/check-package-age.js](tools/check-package-age.js)
 
 - [ ] **[P2]** Expand test fixtures — add fixtures for deprecated packages, yanked versions, very old packages, and packages with missing integrity.
   - Impact: enables deterministic security testing.

@@ -51,6 +51,16 @@ const MAX_RESPONSE_BYTES = config.pkgAgeCheck.maxResponseMB * 1024 * 1024
 // Configurable via package.json: "pkgAgeCheck": { "concurrency": 5 }
 const CONCURRENCY = config.pkgAgeCheck.concurrency
 
+// Dependency injection hook for the current timestamp.
+// Allows integration tests to freeze time so age calculations are deterministic.
+let nowImpl = () => Date.now()
+function setNowImpl(fn) {
+  nowImpl = fn
+}
+function resetNowImpl() {
+  nowImpl = () => Date.now()
+}
+
 // Resolves the operation mode from command-line arguments.
 // Returns an object with { transitive, pkgArg } or exits on invalid input.
 function resolveMode(argv) {
@@ -168,7 +178,7 @@ async function fetchPackageAge(name, version) {
 
   // Converts the difference between now and the publication date from milliseconds to days.
   const MS_PER_DAY = config.pkgAgeCheck.msPerDay
-  const ageDays = (Date.now() - published.getTime()) / MS_PER_DAY
+  const ageDays = (nowImpl() - published.getTime()) / MS_PER_DAY
   return { name, version, ageDays, published }
 }
 
@@ -345,4 +355,6 @@ module.exports = {
   main,
   buildDeps,
   resolveMode,
+  setNowImpl,
+  resetNowImpl,
 }
