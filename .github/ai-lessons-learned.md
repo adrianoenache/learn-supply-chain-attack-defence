@@ -31,6 +31,23 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** `.github/copilot-instructions.md`,
   `.github/skills/context-recovery/SKILL.md`
 
+### 2026-09-04 — Plan persisted only to session memory
+
+- **Date:** 2026-09-04
+- **Rule violated:** Session Continuity and Plan Recovery
+- **Affected files:** `/memories/session/plan.md`, `.github/PLAN.md`,
+  `.github/copilot-instructions.md`
+- **What happened:** After planning the trust score dashboard, the detailed
+  plan was saved only to `/memories/session/plan.md`. The authoritative
+  `.github/PLAN.md` still contained the older, high-level plan, creating a
+  divergence risk if session memory were lost before implementation.
+- **Correction applied:** Synced the trust score dashboard plan into
+  `.github/PLAN.md`; updated `.github/copilot-instructions.md` to require
+  dual persistence (authoritative + session copy) and to state that
+  `.github/PLAN.md` always takes precedence when the two diverge.
+- **Instruction/agent updated:** `.github/PLAN.md`,
+  `.github/copilot-instructions.md`
+
 ---
 
 ## Review Cadence
