@@ -279,6 +279,18 @@ F.3 Release v1.0.0 (ação futura)
 - `defence:check-md-links` passa em todos os markdowns alterados.
 - Documentação EN/PT-BR sincronizada.
 
+## Status da implementação
+
+- ✅ **Fase C.2 — Trust score dashboard** implementada e commitada em `42209bd`.
+  - Motor `tools/lib/trust-engine.js` e testes `tools/lib/trust-engine.test.js`.
+  - CLI `tools/generate-trust-report.js` e testes `tools/generate-trust-report.test.js`.
+  - Integração opcional em `tools/add-package.js`.
+  - Configuração `trustReport` em `package.json` e `tools/lib/config.js`.
+  - Scripts npm: `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`.
+  - Installer atualizado; `.defence-manifest.json` regenerado com 63 arquivos.
+  - Documentação bilíngue e atualizações em README, índices e quick-reference.
+  - Gates: `npm test` (408/408), `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit` — todos passaram.
+
 ## Decisões pendentes a avaliar no final
 
 1. **Fase 9 Experimental Hardening**: sandbox foi descartado. Pre-install dry-run, trust score dashboard e process monitoring serão implementados; restricted VM permanece como ideia futura.
