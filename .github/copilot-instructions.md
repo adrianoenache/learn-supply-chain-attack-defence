@@ -58,12 +58,17 @@ Do not generate, embed, or suggest secrets, tokens, or credentials in source fil
 ## Session Continuity and Plan Recovery
 
 Session memory can be lost between chat sections. Therefore, the project's
-authoritative plan lives in `.github/PLAN.md`.
+authoritative plan lives in `.github/PLAN.md` and must always be kept in sync
+with the session working copy at `/memories/session/plan.md`.
 
 - At the start of every session, if `.github/PLAN.md` exists, read it before
   proposing actions or making assumptions about current priorities.
 - If the user asks to resume, review, or revise the plan, read `.github/PLAN.md`
   first and update it after changes.
+- When creating or updating a plan, persist it to **both** locations:
+  1. `.github/PLAN.md` — authoritative, repository-scoped, survives session loss.
+  2. `/memories/session/plan.md` — session working copy, useful for quick lookup.
+- If the two plans diverge, `.github/PLAN.md` always takes precedence.
 - Never rely solely on `/memories/session/plan.md`; it is session-scoped and
   may be cleared.
 - After updating `.github/PLAN.md`, run `npm run lint`, `npm test`, and

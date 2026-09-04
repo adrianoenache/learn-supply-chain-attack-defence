@@ -4,15 +4,15 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-04
+> Last updated: 2026-09-04 (trust score dashboard planning)
 
 ## Estado atual (2026-09-04)
 
-O projeto `learn-supply-chain-attack-defence` está na **fase final de conclusão**. Todas as 12 camadas de defesa estão implementadas e testadas (333/333 testes passando). O mecanismo de adoção cross-project (`install-defences.js`) foi atualizado, o bug de formatação Mermaid foi corrigido e a CI foi alinhada com o pre-commit (`npm run defence:audit`).
+O projeto `learn-supply-chain-attack-defence` está na **fase final de conclusão**. Todas as 12 camadas de defesa estão implementadas e testadas (360/360 testes passando). O mecanismo de adoção cross-project (`install-defences.js`) foi atualizado, o bug de formatação Mermaid foi corrigido, a CI foi alinhada com o pre-commit (`npm run defence:audit`) e o pre-install dry-run de lifecycle scripts foi implementado e integrado ao `defence:add`.
 
-**Sandbox mode foi descartado** por violar critérios de portabilidade, educação prática e ausência de dependências pesadas. A Fase 9 foi repriorizada para alternativas compatíveis: pre-install dry-run (P0), trust score dashboard (P1), process monitoring (P1) e hardening no `.npmrc` (P1/P2).
+**Sandbox mode foi descartado** por violar critérios de portabilidade, educação prática e ausência de dependências pesadas. A Fase 9 foi repriorizada para alternativas compatíveis: pre-install dry-run (P0) ✅ concluído, trust score dashboard (P1) em planejamento, process monitoring (P1) e hardening no `.npmrc` (P1/P2).
 
-**Os próximos passos imediatos** são: corrigir o badge de testes (325 → 333), commitar as correções da Fase 9 de conclusão e iniciar o pre-install dry-run.
+**O próximo passo imediato** é implementar o trust score dashboard (Fase C.2).
 
 **O release v1.0.0 foi removido do escopo imediato.** Ele será planejado e executado apenas quando o projeto estiver de fato concluído, como ação futura.
 
@@ -124,10 +124,73 @@ C.1 Pre-install dry-run — P0
 
 C.2 Trust score dashboard — P1
 
-- Criar `tools/generate-trust-report.js` agregando age, cadence, deprecation, maintainer count, downloads, provenance, typosquatting.
-- Criar script `defence:trust-report`.
-- Criar dashboard simples (HTML/JSON, sem dependências externas).
-- Documentar em `docs/en/trust-scoring.md` e `docs/pt-BR/trust-scoring.md`.
+**Decisões**
+
+- Escopo: dependências transitivas por padrão; `--direct` para análise rápida.
+- Concorrência: reaproveitar `runWithConcurrencyLimit` (I/O de rede, não worker threads).
+- `--fail` retorna exit code 1 quando algum pacote fica abaixo do score mínimo configurado.
+- Integração em `defence:add` opcional/configurável (`trustReport.enabled` / `failOnMinScore`), executada após lifecycle script analysis.
+- Formato do dashboard: Markdown apenas; HTML excluído do escopo inicial.
+- Sinais: idade, cadência, depreciação, mantenedores, downloads semanais, provenance/attestations, typosquatting, risco de lifecycle scripts, licença.
+
+**Fase C.2.1 — Motor de scoring**
+
+- Criar `tools/lib/trust-engine.js` e `tools/lib/trust-engine.test.js`.
+- Coletores de sinais (reaproveitar helpers existentes):
+  - Idade: `fetchRegistryJson` + `time[version]` (`check-package-age.js`).
+  - Downloads: `api.npmjs.org/downloads/point/last-week/{name}` (`check-updates.js`).
+  - Metadados: `versions[version].deprecated` e `maintainers[]` (`check-updates.js`).
+  - Cadência: histórico `.defence-update-check-state.json` (`check-updates.js`).
+  - Provenance: `lib/provenance.js` `checkProvenance()`.
+  - Typosquatting: `lib/typosquatting.js` `findTyposquattingConflicts()`.
+  - Lifecycle risk: `lib/script-analyzer.js` `analyzeManifest()`.
+  - Licença: `package-lock.json` (`check-licenses.js`).
+- Modelo de score: 0–100 por pacote, labels `trusted` / `review required` / `high risk`, agregado do projeto.
+- Pesos configuráveis em `trustReport.scoringWeights`.
+- Exportar `setImpls()` / `resetImpls()` para testes.
+
+**Fase C.2.2 — CLI**
+
+- Criar `tools/generate-trust-report.js` e `tools/generate-trust-report.test.js`.
+- CLI args: `--pkg=name@version`, `--transitive` (padrão), `--direct`, `--format=table|json|markdown`, `--output=path` (padrão `trust-report.md`), `--fail`, `--silent`.
+- Formatos: tabela ASCII, JSON estruturado, Markdown com tabela por pacote e recomendações.
+- Fluxo: carregar config, resolver dependências, coletar sinais com concorrência, computar scores, formatar e escrever saída, sair com exit code adequado.
+
+**Fase C.2.3 — Integração em `defence:add`**
+
+- Adicionar hooks de DI (`setTrustReportImpl` / `resetTrustReportImpl`) em `tools/add-package.js`.
+- Após lifecycle script analysis, executar trust check quando `trustReport.enabled === true`.
+- Abortar se `trustReport.failOnMinScore === true` e score < `trustReport.minScore`.
+- Estender `tools/add-package.test.js`.
+
+**Fase C.2.4 — Configuração e scripts npm**
+
+- Adicionar bloco `trustReport` em `package.json` (`enabled`, `failOnMinScore`, `minScore`, `concurrency`, `registryTimeoutMs`, `cacheTtlHours`, `outputFile`, `scoringWeights`).
+- Mesclar defaults em `tools/lib/config.js`.
+- Adicionar scripts: `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`.
+
+**Fase C.2.5 — Installer e manifest**
+
+- Atualizar `tools/install-defences.js`: adicionar `tools/lib/trust-engine.js` e `tools/generate-trust-report.js` em `FILES_TO_COPY`; adicionar scripts em `SCRIPTS_TO_ADD`.
+- Atualizar `tools/install-defences.test.js`.
+- Regenerar `.defence-manifest.json`.
+
+**Fase C.2.6 — Documentação**
+
+- Criar `docs/en/trust-scoring.md` e `docs/pt-BR/trust-scoring.md`.
+- Atualizar `docs/en/tools.md`, `docs/pt-BR/tools.md`, `docs/en/quick-reference.md`, `docs/pt-BR/quick-reference.md`, `docs/en/security/index.md`, `docs/pt-BR/security/index.md`, `docs/en/index.md`, `docs/pt-BR/index.md`, `README.md`.
+- Atualizar `TODO.md` e `CHANGELOG.md`.
+
+**Verificação**
+
+- `npm test` passa (360+ testes).
+- `npm run lint` limpo.
+- `npm run defence:check-md-links` válido.
+- `bash .husky/pre-commit` passa.
+- `npm run defence:trust-report` gera `trust-report.md`.
+- `npm run defence:trust-report -- --pkg=lodash@4.17.21` funciona.
+- `npm run defence:trust-report -- --fail` retorna exit code correto.
+- `npm run defence:add -- --pkg=...` respeita `trustReport.enabled`.
 
 C.3 Process monitoring — P1
 
