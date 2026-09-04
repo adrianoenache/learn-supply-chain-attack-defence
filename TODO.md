@@ -29,9 +29,9 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Align CI audit step with pre-commit (`npm run defence:audit`).
 - [x] Re-run all validation gates once the npm audit endpoint is stable and
   commit the changes.
-- [ ] Fix test badge count (`README.md` 325/325 → 333/333) by updating
+- [x] Fix test badge count (`README.md` 325/325 → 360/360) by updating
   `tools/update-badge.js` to include `tools/perf/*.test.js`.
-- [ ] Implement pre-install dry-run: static analysis of lifecycle scripts before
+- [x] Implement pre-install dry-run: static analysis of lifecycle scripts before
   `npm install` in `defence:add`.
 
 ### P1

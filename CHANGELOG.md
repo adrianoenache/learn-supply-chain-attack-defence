@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Lifecycle script analysis (pre-install dry-run):
+  - New `tools/lib/script-analyzer.js` engine that scans npm lifecycle scripts
+    for risky patterns (child process execution, dynamic evaluation, outbound
+    network calls, filesystem writes, environment access, permission changes,
+    native addon builds, and potentially obfuscated payloads).
+  - New `tools/analyze-lifecycle-scripts.js` CLI and
+    `defence:analyze-lifecycle-scripts` npm script with table, JSON, and
+    Markdown output and a `--fail` flag.
+  - Integration into `tools/add-package.js` after the provenance check and
+    before `npm install`, controlled by `lifecycleScriptAnalysis` in
+    `package.json` (`enabled` and `failOn` settings).
+  - Full test coverage in `tools/lib/script-analyzer.test.js`,
+    `tools/analyze-lifecycle-scripts.test.js`, and extended
+    `tools/add-package.test.js` scenarios.
+  - Documentation in `docs/en/security/lifecycle-script-analysis.md` and
+    `docs/pt-BR/security/lifecycle-script-analysis.md`, plus updates to README,
+    tools pages, quick-reference, and security index.
 - Authoritative project plan in `.github/PLAN.md` to survive session-memory loss,
   plus a context-recovery skill (`.github/skills/context-recovery/SKILL.md`)
   and an updated `.github/copilot-instructions.md` rule requiring the plan to be
@@ -24,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the target `package.json`, including `defence:check-engines`,
   `defence:update-check`, `defence:license-check`, `defence:sync-check`,
   `defence:audit`, `defence:generate-sbom`, and `defence:perf`.
-- Regenerated `.defence-manifest.json` with 55 file hashes to match the updated
+- Regenerated `.defence-manifest.json` with 59 file hashes to match the updated
   installer.
 - Fixed Mermaid block closing in `docs/en/security/index.md` and
   `docs/pt-BR/security/index.md`.
