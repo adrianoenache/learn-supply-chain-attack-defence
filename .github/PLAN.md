@@ -291,32 +291,54 @@ C.2 Trust score dashboard — P1
 
 ### Fase D — Otimização da CI/CD
 
+**Decisões atualizadas (actions @v7/@v8)**
+
+- Atualizar todas as actions do workflow para as versões mais recentes conforme documentação oficial: `actions/checkout@v7`, `actions/setup-node@v7`, `actions/upload-artifact@v7`, `actions/download-artifact@v8`.
+- Nenhuma breaking change afeta o uso deste repositório (sem `registry-url`, sem `pull_request_target`, sem GHES).
+- Usar artifact de `node_modules` em vez de `actions/cache` para garantir determinismo entre jobs.
+
 D.1 Implementar cache de `node_modules`
 
-- Usar `actions/upload-artifact` após `npm ci` e `actions/download-artifact` nos jobs dependentes.
-- Garantir que o job de setup produza o artifact e os demais restaurem.
+- Transformar o job `setup` em `build`.
+- No job `build`: `actions/checkout@v7`, `actions/setup-node@v7` com `cache: 'npm'`, `npm ci`, e upload do diretório `node_modules` com `actions/upload-artifact@v7`:
+  - Nome: `node_modules-${{ github.run_id }}`.
+  - `retention-days: 1` (suficiente para execução do workflow; reduz storage).
+  - `if-no-files-found: error`.
+- Nos jobs dependentes (`test`, `coverage`, `lint`, `format`, `docs`, `license`, `lockfile-integrity`, `secrets`, `defence-gates`):
+  - `needs: build`.
+  - `actions/checkout@v7`.
+  - `actions/setup-node@v7` sem `cache` (Node/npm no PATH, sem reinstalar).
+  - `actions/download-artifact@v8` para restaurar `node_modules`.
+  - Remover `npm ci` redundante.
 
 D.2 Ajustar triggers para proteger `main`
 
-- `push` disparar CI apenas em `dev`.
-- `pull_request` disparar CI para `main` e `dev`.
+- `on.push.branches`: `[dev]` (remover `main`).
+- `on.pull_request.branches`: `[main, dev]`.
 - Documentar branch protection em `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`.
 
 D.3 Separar lint e format
 
 - Job `lint`: `npm run lint`.
 - Job `format`: `npx biome format tools/ --check`.
+- Ambos fazem download do artifact de `node_modules`.
 
 D.4 Upload de SBOM como artifact
 
-- No job `defence-gates`, após `npm run defence:generate-sbom`, fazer upload do `/tmp/sbom.json`.
-- Configurar retention-days apropriado.
+- No job `defence-gates`, após `npm run defence:generate-sbom -- --output=/tmp/sbom.json`, fazer upload com `actions/upload-artifact@v7`:
+  - Nome: `sbom-${{ github.run_id }}`.
+  - Path: `/tmp/sbom.json`.
+  - `retention-days: 30`.
+  - `archive: false` (mantém o JSON acessível sem unzip).
+  - `if-no-files-found: error`.
 
 ### Fase E — Expansão da documentação
 
 E.1 Criar `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md`
 
 - Visão geral do workflow, jobs, como debugar falhas, troubleshooting comum.
+- Explicar o cache de `node_modules` via `actions/upload-artifact@v7` / `actions/download-artifact@v8` e por que artifact em vez de `actions/cache`.
+- Explicar como baixar e inspecionar o artifact do SBOM.
 
 E.2 Criar `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`
 
@@ -385,7 +407,8 @@ F.3 Release v1.0.0 (ação futura)
   - Documentação bilíngue em `docs/en/lifecycle-monitoring.md` e `docs/pt-BR/lifecycle-monitoring.md`.
   - Gates: `npm test` (432/432), `npm run lint`, `npm run defence:check-md-links`, `npm run defence:verify-defences` — todos passaram.
 
-- ⏳ **Fase C.4 — `.npmrc` hardening** em andamento.
+- ✅ **Fase C.4 — `.npmrc` hardening** implementada e documentação de lookahead ajustada.
+- ⏳ **Fase D — Otimização de CI/CD** em andamento.
 
 ## Decisões pendentes a avaliar no final
 
