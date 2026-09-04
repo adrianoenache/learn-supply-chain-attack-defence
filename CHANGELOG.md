@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Trust score dashboard (`defence:trust-report`):
+  - New `tools/lib/trust-engine.js` engine that aggregates age, cadence,
+    deprecation, maintainer count, weekly downloads, provenance, typosquatting,
+    lifecycle script risk, and license signals into a single 0–100 score per
+    package.
+  - New `tools/generate-trust-report.js` CLI and `defence:trust-report`,
+    `defence:trust-report:json`, and `defence:trust-report:fail` npm scripts
+    with table, JSON, and Markdown output.
+  - Integration into `tools/add-package.js` after lifecycle script analysis,
+    controlled by `trustReport` in `package.json` (`enabled`, `failOnMinScore`,
+    `minScore`, `concurrency`, `registryTimeoutMs`, `cacheTtlHours`,
+    `outputFile`, and `scoringWeights`).
+  - Full test coverage in `tools/lib/trust-engine.test.js`,
+    `tools/generate-trust-report.test.js`, and extended
+    `tools/add-package.test.js` scenarios.
+  - Documentation in `docs/en/trust-scoring.md` and
+    `docs/pt-BR/trust-scoring.md`, plus updates to README, tools pages,
+    quick-reference, and security index.
+
 - Lifecycle script analysis (pre-install dry-run):
   - New `tools/lib/script-analyzer.js` engine that scans npm lifecycle scripts
     for risky patterns (child process execution, dynamic evaluation, outbound

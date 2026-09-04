@@ -67,6 +67,7 @@ const provenance = require(path.resolve(__dirname, './lib/provenance.js'))
 const scriptAnalyzer = require(
   path.resolve(__dirname, './lib/script-analyzer.js'),
 )
+const trustEngine = require(path.resolve(__dirname, './lib/trust-engine.js'))
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
@@ -121,6 +122,14 @@ function setScriptAnalyzerImpl(fn) {
 }
 function resetScriptAnalyzerImpl() {
   scriptAnalyzerImpl = scriptAnalyzer
+}
+
+let trustEngineImpl = trustEngine
+function setTrustEngineImpl(fn) {
+  trustEngineImpl = fn
+}
+function resetTrustEngineImpl() {
+  trustEngineImpl = trustEngine
 }
 
 let loadConfigImpl = loadConfig
@@ -507,6 +516,93 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
         }
       }
 
+      // Step 2.75 — Trust score check.
+      // Aggregates age, cadence, deprecation, maintainers, downloads, provenance,
+      // typosquatting, lifecycle script risk, and license status into a single score.
+      // Non-blocking by default; blocks when trustReport.failOnMinScore is enabled
+      // and the package falls below the configured minimum.
+      const trustReportConfig = config.trustReport ?? {
+        enabled: true,
+        failOnMinScore: false,
+        minScore: 60,
+      }
+      if (trustReportConfig.enabled !== false) {
+        console.log(`\nChecking trust score for ${name}@${exactVersion}...`)
+        try {
+          const existingNames = typosquattingImpl.loadExistingNames(
+            process.cwd(),
+          )
+          const lockPath = path.resolve(process.cwd(), 'package-lock.json')
+          const lock = JSON.parse(fsImpl.readFileSync(lockPath, 'utf8'))
+          const lockPackages = Object.entries(lock.packages ?? {})
+            .filter(([key]) => key.startsWith('node_modules/'))
+            .map(([key, val]) => ({
+              name: key.slice(
+                key.lastIndexOf('node_modules/') + 'node_modules/'.length,
+              ),
+              version: val.version ?? null,
+              license: val.license ?? null,
+            }))
+          const updateCheckStatePath = path.resolve(
+            process.cwd(),
+            '.defence-update-check-state.json',
+          )
+          let updateCheckState = null
+          try {
+            updateCheckState = JSON.parse(
+              fsImpl.readFileSync(updateCheckStatePath, 'utf8'),
+            )
+          } catch {
+            // State file is optional; cadence will be unavailable.
+          }
+
+          const trustResult = await trustEngineImpl.analyzePackage(
+            name,
+            exactVersion,
+            {
+              options: {
+                concurrency: config.pkgAgeCheck.concurrency,
+                registryTimeoutMs: config.pkgAgeCheck.registryTimeoutMs,
+                cacheTtlHours: config.updateCheck.cacheTtlHours,
+                maxResponseMB: config.pkgAgeCheck.maxResponseMB,
+                typosquattingThreshold:
+                  config.defences?.typosquattingThreshold ?? 2,
+                scoringWeights: trustReportConfig.scoringWeights,
+                thresholds: trustReportConfig.thresholds,
+              },
+              existingNames,
+              lockPackages,
+              updateCheckState,
+            },
+          )
+
+          console.log(
+            `  Trust score: ${trustResult.score}/100 (${trustResult.label})`,
+          )
+
+          if (
+            trustReportConfig.failOnMinScore === true &&
+            trustResult.score < trustReportConfig.minScore
+          ) {
+            console.error(
+              `\nTrust score check FAILED for ${name}@${exactVersion}: ${trustResult.score} is below ${trustReportConfig.minScore}.`,
+            )
+            console.error(
+              'Installation aborted — review the package signals or adjust trustReport.minScore.',
+            )
+            exitFn(1)
+            return
+          }
+        } catch (err) {
+          console.error(
+            `\nTrust score check could not be completed: ${err.message}`,
+          )
+          console.error('Installation aborted.')
+          exitFn(1)
+          return
+        }
+      }
+
       // Step 2.8 — Fetch registry manifest and pin tarball integrity before install.
       // This closes the TOCTOU window: we record the expected integrity at check time
       // and re-verify it after npm install against the actual lockfile entry.
@@ -744,6 +840,8 @@ module.exports = {
   resetProvenanceImpl,
   setScriptAnalyzerImpl,
   resetScriptAnalyzerImpl,
+  setTrustEngineImpl,
+  resetTrustEngineImpl,
   setLoadConfigImpl,
   resetLoadConfigImpl,
   fetchVersionManifest,

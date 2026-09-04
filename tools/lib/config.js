@@ -49,6 +49,20 @@ const DEFAULT_PROHIBITED_LICENSES = [
   'UNLICENSED',
 ]
 
+// Default scoring weights for the trust score dashboard.
+// These match the values in package.json and are duplicated here so the
+// library can produce deterministic defaults when package.json omits them.
+const DEFAULT_TRUST_SCORE_WEIGHTS = {
+  age: 20,
+  cadence: 10,
+  downloads: 15,
+  maintainers: 10,
+  provenance: 15,
+  typosquatting: 10,
+  lifecycleRisk: 15,
+  license: 5,
+}
+
 // Default scoring weights for update confidence calculation.
 const DEFAULT_SCORING_RULES = {
   agePointsMax: 40,
@@ -210,6 +224,25 @@ function buildDefaults(pkg) {
     lifecycleScriptAnalysis: {
       enabled: pkg.lifecycleScriptAnalysis?.enabled ?? true,
       failOn: pkg.lifecycleScriptAnalysis?.failOn ?? 'high',
+    },
+    trustReport: {
+      enabled: pkg.trustReport?.enabled ?? true,
+      failOnMinScore: pkg.trustReport?.failOnMinScore ?? false,
+      minScore: pkg.trustReport?.minScore ?? 60,
+      concurrency: pkg.trustReport?.concurrency ?? 10,
+      registryTimeoutMs: pkg.trustReport?.registryTimeoutMs ?? 10000,
+      cacheTtlHours: pkg.trustReport?.cacheTtlHours ?? 24,
+      outputFile:
+        pkg.trustReport?.outputFile ??
+        path.resolve(REPO_ROOT, 'trust-report.md'),
+      scoringWeights: {
+        ...DEFAULT_TRUST_SCORE_WEIGHTS,
+        ...(pkg.trustReport?.scoringWeights ?? {}),
+      },
+      thresholds: {
+        trustedMin: pkg.trustReport?.thresholds?.trustedMin ?? 70,
+        reviewRequiredMin: pkg.trustReport?.thresholds?.reviewRequiredMin ?? 40,
+      },
     },
     e2e: {
       cacheTtlHours: Number.parseInt(process.env.E2E_CACHE_TTL_HOURS, 10) || 24,

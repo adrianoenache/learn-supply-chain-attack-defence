@@ -45,9 +45,9 @@ Priority order: **P0 → P1 → P2 → P3**.
   9,1/10, 154 tests, 2026-08-20). Regenerate only during the future pre-release
   status analysis.
 - [x] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
-- [ ] Implement trust score dashboard (`defence:trust-report`) aggregating age,
-  cadence, deprecation, maintainer count, weekly downloads, provenance and
-  typosquatting signals.
+- [x] Implement trust score dashboard (`defence:trust-report`) aggregating age,
+  cadence, deprecation, maintainer count, weekly downloads, provenance,
+  typosquatting, lifecycle script risk, and license signals.
 - [ ] Implement process monitoring for lifecycle scripts spawned during
   `npm install`.
 - [ ] Review and document `.npmrc` hardening options.

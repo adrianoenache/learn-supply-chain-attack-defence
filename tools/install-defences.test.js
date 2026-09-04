@@ -107,6 +107,8 @@ describe('install-defences', () => {
         'tools/check-updates.test.js',
         'tools/generate-sbom.js',
         'tools/generate-sbom.test.js',
+        'tools/generate-trust-report.js',
+        'tools/generate-trust-report.test.js',
         'tools/install-defences.js',
         'tools/install-defences.test.js',
         'tools/integration.test.js',
@@ -130,6 +132,8 @@ describe('install-defences', () => {
         'tools/lib/registry-cache.js',
         'tools/lib/script-analyzer.js',
         'tools/lib/script-analyzer.test.js',
+        'tools/lib/trust-engine.js',
+        'tools/lib/trust-engine.test.js',
         'tools/lib/registry-cache.test.js',
         'tools/lib/retry-fetch.js',
         'tools/lib/retry-fetch.test.js',
@@ -156,6 +160,11 @@ describe('install-defences', () => {
         'defence:add': 'node ./tools/add-package.js',
         'defence:analyze-lifecycle-scripts':
           'node ./tools/analyze-lifecycle-scripts.js',
+        'defence:trust-report': 'node ./tools/generate-trust-report.js',
+        'defence:trust-report:json':
+          'node ./tools/generate-trust-report.js --format=json',
+        'defence:trust-report:fail':
+          'node ./tools/generate-trust-report.js --fail',
         'defence:audit': 'node ./tools/run-audit-with-retry.js',
         'defence:bootstrap': 'node ./tools/setup-bootstrap.js',
         'defence:check-engines': 'node ./tools/check-engines.js',

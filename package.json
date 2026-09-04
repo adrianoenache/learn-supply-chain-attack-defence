@@ -82,6 +82,25 @@
     "enabled": true,
     "failOn": "high"
   },
+  "trustReport": {
+    "enabled": true,
+    "failOnMinScore": false,
+    "minScore": 60,
+    "concurrency": 10,
+    "registryTimeoutMs": 10000,
+    "cacheTtlHours": 24,
+    "outputFile": "trust-report.md",
+    "scoringWeights": {
+      "age": 20,
+      "cadence": 10,
+      "downloads": 15,
+      "maintainers": 10,
+      "provenance": 15,
+      "typosquatting": 10,
+      "lifecycleRisk": 15,
+      "license": 5
+    }
+  },
   "defences": {
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
@@ -91,6 +110,9 @@
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:analyze-lifecycle-scripts": "node ./tools/analyze-lifecycle-scripts.js",
+    "defence:trust-report": "node ./tools/generate-trust-report.js",
+    "defence:trust-report:json": "node ./tools/generate-trust-report.js --format=json",
+    "defence:trust-report:fail": "node ./tools/generate-trust-report.js --fail",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-engines": "node ./tools/check-engines.js",
     "defence:check-lockfile-integrity": "node ./tools/check-lockfile-integrity.js",

@@ -91,6 +91,11 @@ function makeMockConfig(overrides = {}) {
       enabled: true,
       failOn: 'high',
     },
+    trustReport: {
+      enabled: true,
+      failOnMinScore: false,
+      minScore: 60,
+    },
     ...overrides,
   }
 }
@@ -108,6 +113,7 @@ describe('add-package', () => {
     mod.resetTyposquattingImpl()
     mod.resetProvenanceImpl()
     mod.resetScriptAnalyzerImpl()
+    mod.resetTrustEngineImpl()
     mod.resetLoadConfigImpl()
   })
 
@@ -1160,6 +1166,294 @@ describe('add-package', () => {
         !captured.logs.some((line) =>
           line.includes('Analyzing lifecycle scripts'),
         ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main continues when trust score is above minimum', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => ({
+        package: 'safe-pkg@1.0.0',
+        scripts: {},
+        findings: [],
+        hasLifecycleScripts: false,
+        riskLevel: 'none',
+      }),
+    })
+    mod.setTrustEngineImpl({
+      analyzePackage: async () => ({
+        name: 'safe-pkg',
+        version: '1.0.0',
+        score: 85,
+        label: 'trusted',
+        signals: {},
+        metadata: { isDeprecated: false },
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit') return { status: 0 }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:pkg-age-check'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:0/,
+      )
+      assert.equal(exitCode, 0)
+      assert.ok(
+        captured.logs.some((line) => line.includes('Trust score: 85/100')),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main aborts when trust score is below minimum and failOnMinScore is enabled', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() =>
+      makeMockConfig({
+        trustReport: { enabled: true, failOnMinScore: true, minScore: 60 },
+      }),
+    )
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'risky-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => ({
+        package: 'risky-pkg@1.0.0',
+        scripts: {},
+        findings: [],
+        hasLifecycleScripts: false,
+        riskLevel: 'none',
+      }),
+    })
+    mod.setTrustEngineImpl({
+      analyzePackage: async () => ({
+        name: 'risky-pkg',
+        version: '1.0.0',
+        score: 35,
+        label: 'high risk',
+        signals: {},
+        metadata: { isDeprecated: false },
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/risky-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['risky-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:1/,
+      )
+      assert.equal(exitCode, 1)
+      assert.ok(
+        captured.errors.some((line) =>
+          line.includes('Trust score check FAILED'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main skips trust score check when disabled', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() =>
+      makeMockConfig({ trustReport: { enabled: false } }),
+    )
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => ({
+        package: 'safe-pkg@1.0.0',
+        scripts: {},
+        findings: [],
+        hasLifecycleScripts: false,
+        riskLevel: 'none',
+      }),
+    })
+    mod.setTrustEngineImpl({
+      analyzePackage: () => {
+        throw new Error('trust engine should not be called')
+      },
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit') return { status: 0 }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:pkg-age-check'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:0/,
+      )
+      assert.equal(exitCode, 0)
+      assert.ok(
+        !captured.logs.some((line) => line.includes('Checking trust score')),
       )
     } finally {
       checkPackageAge.fetchPackageAge = originalFetchPackageAge

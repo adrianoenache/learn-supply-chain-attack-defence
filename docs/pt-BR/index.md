@@ -36,7 +36,10 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 
 ### Guias de Suporte
 
-- [Troubleshooting](troubleshooting.md) — falhas comuns, correções e como executar cada defesa manualmente.- [Análise de scripts de lifecycle](security/lifecycle-script-analysis.md) — varredura estática e somente leitura dos scripts de lifecycle antes da instalação.- [Reconstrução de pacotes com lifecycle scripts](security/rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
+- [Troubleshooting](troubleshooting.md) — falhas comuns, correções e como executar cada defesa manualmente.
+- [Análise de scripts de lifecycle](security/lifecycle-script-analysis.md) — varredura estática e somente leitura dos scripts de lifecycle antes da instalação.
+- [Reconstrução de pacotes com lifecycle scripts](security/rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
+- [Trust scoring](trust-scoring.md) — agregue sinais de supply chain em uma pontuação de confiança por pacote.
 
 ### Projeto
 

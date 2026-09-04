@@ -68,6 +68,8 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 | `verify-defences.js` | Verifica arquivos copiados pelo `install-defences.js` contra `.defence-manifest.json`. |
 | `install-defences.js` | Copia as defesas para outro projeto Node.js e escreve o manifesto. |
 | `lib/package-utils.js` | Utilitários compartilhados para parse e validação de especificadores de pacotes. |
+| `lib/trust-engine.js` | Agrega sinais existentes de supply chain em uma pontuação de confiança de 0 a 100 por pacote. |
+| `generate-trust-report.js` | CLI do dashboard de trust score; emite relatórios em tabela, JSON ou Markdown. |
 | `perf/benchmark.js` | Suite de benchmarks de performance medindo tempo de execução e chamadas de rede das ferramentas que consomem o registry. Compara os resultados com `tools/perf/baselines.json` para detectar regressões. |
 
 ## Benchmarks de Performance
@@ -82,6 +84,16 @@ A suite `tools/perf/benchmark.js` mede o comportamento das ferramentas dependent
 | `npm run defence:perf:check-updates` | Executa apenas o benchmark de `check-updates`. |
 
 Uma regressão é sinalizada quando uma métrica fica pior que a baseline em mais de 20%. Mantenha a baseline commitada para que o CI possa detectar lentidões ou chamadas de rede extras não intencionais.
+
+## Dashboard de Trust Score
+
+| Script npm | Propósito |
+| --- | --- |
+| `npm run defence:trust-report` | Gera um relatório Markdown de trust score para todas as dependências. |
+| `npm run defence:trust-report:json` | Gera saída JSON para consumo programático. |
+| `npm run defence:trust-report:fail` | Falha (exit code 1) se algum pacote estiver abaixo do mínimo configurado. |
+
+Veja [Trust scoring](trust-scoring.md) para detalhes dos sinais, configuração e integração com `defence:add`.
 
 ## Manifesto de Adoção
 

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T15:36:40.478Z",
+  "installedAt": "2026-09-04T15:59:21.153Z",
   "files": [
     {
       "path": ".npmrc",
@@ -20,11 +20,11 @@
     },
     {
       "path": "tools/add-package.js",
-      "hash": "54d886fd6fabbe5d40198faa82d0541823b51b06a1997aa9fc463ce2ddde0a2e"
+      "hash": "87692a3d040c0bc478860f3b8cfc7f989da6f4caff99814cefbfaf579de2d9cc"
     },
     {
       "path": "tools/add-package.test.js",
-      "hash": "0d2480c0a1e5a35c9eb57597fab33e295418ba55c03f472cb9f6007cba769c98"
+      "hash": "3ac3b62b5e52575fb76f41d0a35d6250699a80140ba33eac633e16484107b606"
     },
     {
       "path": "tools/analyze-lifecycle-scripts.js",
@@ -115,12 +115,20 @@
       "hash": "c60f39cab20937246130d9bc29645b35f7785006da5f0c32719c9b563c9753bc"
     },
     {
+      "path": "tools/generate-trust-report.js",
+      "hash": "04344a114e8842eee4dc2c4a9a9bdbd9019a5a3cc810fe0b9d6e2bddcae105f8"
+    },
+    {
+      "path": "tools/generate-trust-report.test.js",
+      "hash": "623efaf57a934edad32e3021544cac580abcec16d5cdee4b278b1dfcddb8e100"
+    },
+    {
       "path": "tools/install-defences.js",
-      "hash": "855e678e60bb074184b618bf3384394428f428ff19053a5cd6ec74096eb966a4"
+      "hash": "8f85ba9ae19556a37671a3f3bc4581eece6888be36b9e8bc95d5ed9dbca7ae61"
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "72e056a990c909d300cd3e4ab07158465a42b839223c18d409e826c60b5bd389"
+      "hash": "b8bd972fb86969b94b2d75d6da4fa9d092512184870c93d4b8effb3de91927a6"
     },
     {
       "path": "tools/integration.test.js",
@@ -168,7 +176,7 @@
     },
     {
       "path": "tools/lib/config.js",
-      "hash": "6f5eb859632e87d6443a5d77ab77cef0216dabd06793e85983d502d1676bff58"
+      "hash": "343d85bf7c0f6937ae479a43099f400c62092fa6a22dfa1821f627fac86327e4"
     },
     {
       "path": "tools/lib/config.test.js",
@@ -205,6 +213,14 @@
     {
       "path": "tools/lib/script-analyzer.test.js",
       "hash": "ee05e1d3ef2aadf37ea7008cd6b825293b41182de6a882895a7525b9caec5271"
+    },
+    {
+      "path": "tools/lib/trust-engine.js",
+      "hash": "b1d86c4994d004a4a604efc1ae7aeebec242d03d121bc926489bd57199a0ef56"
+    },
+    {
+      "path": "tools/lib/trust-engine.test.js",
+      "hash": "85015f6018464b9f5b1b5153d0eafacea8483be344edf5e3918f38aca8ab6329"
     },
     {
       "path": "tools/lib/registry-cache.test.js",

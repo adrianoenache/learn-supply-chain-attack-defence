@@ -65,6 +65,11 @@ npm run setup
 | `npm run defence:verify-defences` | Verifies files copied by `install-defences.js` against the manifest. |
 | `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version` | Static analysis of a package's lifecycle scripts before install. |
 | `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version --fail` | Exits non-zero when high-risk patterns are found. |
+| `npm run defence:trust-report` | Generates a Markdown trust score report for all transitive dependencies. |
+| `npm run defence:trust-report -- --direct` | Generates a trust score report for direct dependencies only. |
+| `npm run defence:trust-report -- --pkg=name@version` | Generates a trust score report for a single package. |
+| `npm run defence:trust-report:json` | Generates JSON output of the trust score report. |
+| `npm run defence:trust-report:fail` | Exits 1 if any package is below the configured minimum. |
 
 ## Cross-Project Adoption
 
