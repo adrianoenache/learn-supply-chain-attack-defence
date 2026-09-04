@@ -120,6 +120,44 @@ describe('config loader', () => {
     assert.equal(config.huskyPreCommitHash, 'abc123')
   })
 
+  test('parses critical .npmrc security settings', () => {
+    const npmrcContent = [
+      'ignore-scripts=true',
+      'min-release-age=7',
+      'save-exact=true',
+      'engine-strict=true',
+      'fetch-retries=3',
+      'fetch-retry-mintimeout=10000',
+      'fetch-retry-maxtimeout=60000',
+      'fetch-timeout=300000',
+      'maxsockets=10',
+      'strict-ssl=true',
+    ].join('\n')
+    const fsWithNpmrc = {
+      readFileSync: (filePath, _encoding) => {
+        if (filePath.endsWith('package.json')) {
+          return JSON.stringify({})
+        }
+        if (filePath.endsWith('.npmrc')) {
+          return npmrcContent
+        }
+        throw new Error(`ENOENT: ${filePath}`)
+      },
+    }
+    setImpls({ fs: fsWithNpmrc })
+    const config = loadConfig()
+    assert.equal(config.npmrc.ignoreScripts, true)
+    assert.equal(config.npmrc.minReleaseAgeDays, 7)
+    assert.equal(config.npmrc.saveExact, true)
+    assert.equal(config.npmrc.engineStrict, true)
+    assert.equal(config.npmrc.fetchRetries, 3)
+    assert.equal(config.npmrc.fetchRetryMintimeout, 10000)
+    assert.equal(config.npmrc.fetchRetryMaxtimeout, 60000)
+    assert.equal(config.npmrc.fetchTimeout, 300000)
+    assert.equal(config.npmrc.maxsockets, 10)
+    assert.equal(config.npmrc.strictSsl, true)
+  })
+
   test('reads min-release-age from .npmrc', () => {
     const pkgPath = path.resolve(__dirname, '../../package.json')
     const npmrcPath = path.resolve(__dirname, '../../.npmrc')

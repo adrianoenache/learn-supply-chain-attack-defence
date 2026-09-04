@@ -24,6 +24,7 @@ const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 // Reads the declared dependencies from the project's package.json.
 // Only native modules are used here — this script must not depend on installable
@@ -261,78 +262,94 @@ async function main(options = {}) {
     `Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${minAgeDays} days)...\n`,
   )
 
-  // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
-  // runWithConcurrencyLimit ensures all queries finish before evaluating results,
-  // even if some fail — enabling a complete report.
-  // Versions with range operators (^, ~, >=, etc.) are normalized to an exact version
-  // before querying; unresolvable ranges (*, latest) are rejected.
-  const results = await runWithConcurrencyLimit(
-    entries.map(([name, rawVersion]) => () => {
-      const version = resolveExactVersion(rawVersion)
-      if (!version) {
-        return Promise.reject(
-          new Error(
-            `Cannot determine exact version for ${name}@${rawVersion} — pin to an exact version to allow age check`,
-          ),
+  const profileName = mode.transitive
+    ? 'check-package-age-transitive'
+    : 'check-package-age'
+
+  await withProfile(
+    profileName,
+    async (metrics) => {
+      // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
+      // runWithConcurrencyLimit ensures all queries finish before evaluating results,
+      // even if some fail — enabling a complete report.
+      // Versions with range operators (^, ~, >=, etc.) are normalized to an exact version
+      // before querying; unresolvable ranges (*, latest) are rejected.
+      const results = await runWithConcurrencyLimit(
+        entries.map(([name, rawVersion]) => () => {
+          const version = resolveExactVersion(rawVersion)
+          if (!version) {
+            return Promise.reject(
+              new Error(
+                `Cannot determine exact version for ${name}@${rawVersion} — pin to an exact version to allow age check`,
+              ),
+            )
+          }
+          return fetchPackageAge(name, version)
+        }),
+        CONCURRENCY,
+      )
+
+      const stats = require(
+        path.resolve(__dirname, './lib/registry-cache.js'),
+      ).getStats()
+      metrics.networkCalls = stats.cacheMisses
+      metrics.cacheHits = stats.cacheHits
+
+      // Splits packages into two lists: blocked (too new) and lookup errors.
+      // Both result in failure — a package whose age cannot be confirmed must not be installed.
+      const blocked = []
+      const errors = []
+
+      results.forEach((result) => {
+        if (result.status === 'rejected') {
+          errors.push(result.reason.message)
+          return
+        }
+
+        const { name, version, ageDays, published } = result.value
+        const age = ageDays.toFixed(1)
+        const publishedStr = published.toISOString().slice(0, 10)
+
+        if (ageDays < minAgeDays) {
+          blocked.push(
+            `  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`,
+          )
+        } else {
+          console.log(
+            `  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`,
+          )
+        }
+      })
+
+      if (errors.length > 0) {
+        console.error(
+          '\nErrors during registry lookup (cannot confirm package age):',
         )
+        errors.forEach((msg) => {
+          console.error(`  ${msg}`)
+        })
       }
-      return fetchPackageAge(name, version)
-    }),
-    CONCURRENCY,
+
+      if (blocked.length > 0) {
+        console.error(
+          `\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${minAgeDays} days:`,
+        )
+        blocked.forEach((msg) => {
+          console.error(msg)
+        })
+      }
+
+      // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
+      // Either case prevents installation.
+      if (blocked.length > 0 || errors.length > 0) {
+        exitFn(1)
+        return
+      }
+
+      console.log(`\nAll packages passed the minimum age check.`)
+    },
+    { profilePath: path.resolve(__dirname, '..', '.defence-profile.json') },
   )
-
-  // Splits packages into two lists: blocked (too new) and lookup errors.
-  // Both result in failure — a package whose age cannot be confirmed must not be installed.
-  const blocked = []
-  const errors = []
-
-  results.forEach((result) => {
-    if (result.status === 'rejected') {
-      errors.push(result.reason.message)
-      return
-    }
-
-    const { name, version, ageDays, published } = result.value
-    const age = ageDays.toFixed(1)
-    const publishedStr = published.toISOString().slice(0, 10)
-
-    if (ageDays < minAgeDays) {
-      blocked.push(
-        `  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`,
-      )
-    } else {
-      console.log(
-        `  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`,
-      )
-    }
-  })
-
-  if (errors.length > 0) {
-    console.error(
-      '\nErrors during registry lookup (cannot confirm package age):',
-    )
-    errors.forEach((msg) => {
-      console.error(`  ${msg}`)
-    })
-  }
-
-  if (blocked.length > 0) {
-    console.error(
-      `\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${minAgeDays} days:`,
-    )
-    blocked.forEach((msg) => {
-      console.error(msg)
-    })
-  }
-
-  // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
-  // Either case prevents installation.
-  if (blocked.length > 0 || errors.length > 0) {
-    exitFn(1)
-    return
-  }
-
-  console.log(`\nAll packages passed the minimum age check.`)
 }
 
 // Benchmark entry point: checks the age of an arbitrary dependency map.

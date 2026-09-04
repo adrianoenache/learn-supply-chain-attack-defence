@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "installedAt": "2026-09-03T22:39:35.393Z",
+  "installedAt": "2026-09-04T00:47:27.702Z",
   "files": [
     {
       "path": ".npmrc",
-      "hash": "843c76d03aa6be0713ff3bf378864c58282635cb7d2b234af0c7e570979a9071"
+      "hash": "35d41f0b7528e51839688da8aaa51c80a9ddd323792f20ceb8c6bfbcac84d648"
     },
     {
       "path": ".husky/pre-commit",
@@ -16,19 +16,19 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "3f39aff5998340d81fa74f9dc1d541e7f01b4517483521250f9f230fcd386aea"
+      "hash": "b368683be9c2ce545c84cf4f408b8044f28924c69acd4dde034e8dd966479c2d"
     },
     {
       "path": "tools/add-package.js",
-      "hash": "6ff095abfc598d27880eca44d713d40ca0ff94fabe8b22146d48bb2e50a14fc7"
+      "hash": "ff99630ce13a646602f6e343e90b6323c1595a020ff5e544f3962f9d118ee680"
     },
     {
       "path": "tools/check-md-links.js",
-      "hash": "ac2d4bd9347a585eeb38b610c425773fc32623b6188a948091510aeb490cdc08"
+      "hash": "b5fc56475a5c14602dac7a86fdb30a7af9e0e8e774ed2e55410a8e2b4d3ac02a"
     },
     {
       "path": "tools/check-md-links.test.js",
-      "hash": "b02bd250320369cd486aa2cec7b9d589d05c945e6b9c220ff668e232084c66f2"
+      "hash": "d7606786c31cb155aed68af0b2926fd881a70f96725c2edf305c65fd65131bf0"
     },
     {
       "path": "tools/lib/package-utils.js",

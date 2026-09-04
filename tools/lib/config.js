@@ -116,15 +116,34 @@ function deepMerge(target, source) {
   return result
 }
 
-function resolveNpmrcMinReleaseAge(pkgRoot) {
+function readNpmrc(pkgRoot) {
   try {
     const npmrcPath = path.resolve(pkgRoot, '.npmrc')
-    const content = fsImpl.readFileSync(npmrcPath, 'utf8')
-    const match = content.match(/^min-release-age\s*=\s*(\d+)/m)
-    return match ? Number.parseInt(match[1], 10) : null
+    return fsImpl.readFileSync(npmrcPath, 'utf8')
   } catch {
-    return null
+    return ''
   }
+}
+
+function parseNpmrcInt(content, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`^${escapedKey}\\s*=\\s*(\\d+)`, 'm')
+  const match = content.match(regex)
+  return match ? Number.parseInt(match[1], 10) : null
+}
+
+function parseNpmrcBoolean(content, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const regex = new RegExp(`^${escapedKey}\\s*=\\s*(\\S+)`, 'm')
+  const match = content.match(regex)
+  if (!match) return null
+  const value = match[1].toLowerCase()
+  return value === 'true' || value === '1'
+}
+
+function resolveNpmrcMinReleaseAge(pkgRoot) {
+  const content = readNpmrc(pkgRoot)
+  return parseNpmrcInt(content, 'min-release-age')
 }
 
 function buildDefaults(pkg) {
@@ -202,6 +221,7 @@ function buildDefaults(pkg) {
     // Kept for backwards compatibility; prefer defences.huskyPreCommitHash.
     huskyPreCommitHash:
       pkg.defences?.huskyPreCommitHash ?? pkg.huskyPreCommitHash ?? null,
+    npmrc: parseNpmrcSettings(REPO_ROOT),
     paths: {
       repoRoot: REPO_ROOT,
       packageJson: PKG_PATH,
@@ -217,6 +237,22 @@ function buildDefaults(pkg) {
         '.defence-update-decisions.json',
       ),
     },
+  }
+}
+
+function parseNpmrcSettings(pkgRoot) {
+  const content = readNpmrc(pkgRoot)
+  return {
+    ignoreScripts: parseNpmrcBoolean(content, 'ignore-scripts'),
+    minReleaseAgeDays: parseNpmrcInt(content, 'min-release-age'),
+    saveExact: parseNpmrcBoolean(content, 'save-exact'),
+    engineStrict: parseNpmrcBoolean(content, 'engine-strict'),
+    fetchRetries: parseNpmrcInt(content, 'fetch-retries'),
+    fetchRetryMintimeout: parseNpmrcInt(content, 'fetch-retry-mintimeout'),
+    fetchRetryMaxtimeout: parseNpmrcInt(content, 'fetch-retry-maxtimeout'),
+    fetchTimeout: parseNpmrcInt(content, 'fetch-timeout'),
+    maxsockets: parseNpmrcInt(content, 'maxsockets'),
+    strictSsl: parseNpmrcBoolean(content, 'strict-ssl'),
   }
 }
 

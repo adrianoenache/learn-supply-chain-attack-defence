@@ -93,13 +93,13 @@ describe('check-md-links', () => {
     }
   })
 
-  test('main returns 0 when no broken links exist', () => {
+  test('main returns 0 when no broken links exist', async () => {
     const tmpDir = makeTempDir()
     const origCwd = process.cwd()
     try {
       fs.writeFileSync(path.join(tmpDir, 'readme.md'), '# readme\n')
       process.chdir(tmpDir)
-      const code = main()
+      const code = await main()
       assert.equal(code, 0)
     } finally {
       process.chdir(origCwd)
@@ -107,13 +107,13 @@ describe('check-md-links', () => {
     }
   })
 
-  test('main returns 1 when broken links exist', () => {
+  test('main returns 1 when broken links exist', async () => {
     const tmpDir = makeTempDir()
     const origCwd = process.cwd()
     try {
       fs.writeFileSync(path.join(tmpDir, 'readme.md'), '[broken](missing.md)\n')
       process.chdir(tmpDir)
-      const code = main()
+      const code = await main()
       assert.equal(code, 1)
     } finally {
       process.chdir(origCwd)
@@ -290,7 +290,7 @@ describe('check-md-links', () => {
     }
   })
 
-  test('main writes cache file and reports cache hits', () => {
+  test('main writes cache file and reports cache hits', async () => {
     const tmpDir = makeTempDir()
     const now = Date.now()
     const cacheFile = path.join(tmpDir, '.md-links-cache.json')
@@ -300,11 +300,11 @@ describe('check-md-links', () => {
       process.chdir(tmpDir)
       setImpls({ now: () => now })
 
-      const code = main()
+      const code = await main()
       assert.equal(code, 0)
       assert.ok(fs.existsSync(cacheFile))
 
-      const second = main()
+      const second = await main()
       assert.equal(second, 0)
     } finally {
       resetImpls()

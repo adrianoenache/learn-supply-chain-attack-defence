@@ -37,6 +37,7 @@ const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
 const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 const config = loadConfig()
 const updateConfig = config.updateCheck
@@ -727,103 +728,121 @@ async function main(argv = process.argv.slice(2)) {
   const { isForce, isSilent, isOffline, format } = parseCliArgs(argv)
   const currentLockfileHash = readLockfileHash()
 
-  // Step 1: local sync check.
-  const sync = isNodeModulesInSync()
-  if (!sync.inSync) {
-    if (!isSilent) printSyncWarning(sync.reason)
-    const state = loadState() ?? {}
-    state.lastScan = new Date(nowImpl()).toISOString()
-    state.installedLockfileHash = currentLockfileHash
-    state.eligible = []
-    state.quarantine = []
-    saveState(state)
-    return 0
-  }
-
-  // Step 2: load cache or rescan.
-  let state = loadState()
-
-  if (isForce || !state || !isCacheValid(state)) {
-    if (isOffline) {
-      if (!state) {
-        if (!isSilent) {
-          console.log(
-            '\nℹ️  Update check is offline and no cached scan was found.',
-          )
-          console.log('   Connect to the network or run without --offline.')
-          console.log()
-        }
+  return withProfile(
+    'check-updates',
+    async (profileMetrics) => {
+      // Step 1: local sync check.
+      const sync = isNodeModulesInSync()
+      if (!sync.inSync) {
+        if (!isSilent) printSyncWarning(sync.reason)
+        const state = loadState() ?? {}
+        state.lastScan = new Date(nowImpl()).toISOString()
+        state.installedLockfileHash = currentLockfileHash
+        state.eligible = []
+        state.quarantine = []
+        saveState(state)
         return 0
       }
-      // In offline mode, use the existing cache even if TTL expired.
-      if (!isSilent) {
-        console.log('\nℹ️  Update check is offline; using the last cached scan.')
-        console.log()
+
+      // Step 2: load cache or rescan.
+      let state = loadState()
+
+      if (isForce || !state || !isCacheValid(state)) {
+        if (isOffline) {
+          if (!state) {
+            if (!isSilent) {
+              console.log(
+                '\nℹ️  Update check is offline and no cached scan was found.',
+              )
+              console.log('   Connect to the network or run without --offline.')
+              console.log()
+            }
+            return 0
+          }
+          // In offline mode, use the existing cache even if TTL expired.
+          if (!isSilent) {
+            console.log(
+              '\nℹ️  Update check is offline; using the last cached scan.',
+            )
+            console.log()
+          }
+        } else {
+          const outdated = runNpmOutdated()
+          const entries = Object.entries(outdated)
+
+          // In-memory packument cache shared across all dependency lookups in this
+          // run. This prevents duplicate registry fetches when the same package is
+          // referenced multiple times (e.g. direct + transitive) and complements the
+          // disk-backed cache in registry-cache.js.
+          const inMemoryCache = new Map()
+          const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
+
+          const results = await runWithConcurrencyLimit(
+            entries.map(
+              ([name, data]) =>
+                () =>
+                  classifyUpdate(name, data, inMemoryCache, metrics),
+            ),
+            CONCURRENCY,
+          )
+
+          const eligible = []
+          const quarantine = []
+
+          for (const result of results) {
+            if (result.status === 'rejected') continue
+            if (result.value.eligible) eligible.push(result.value.eligible)
+            if (result.value.quarantine)
+              quarantine.push(result.value.quarantine)
+          }
+
+          const stats = require(
+            path.resolve(__dirname, './lib/registry-cache.js'),
+          ).getStats()
+          profileMetrics.networkCalls = stats.cacheMisses
+          profileMetrics.cacheHits = stats.cacheHits
+
+          state = {
+            lastScan: new Date(nowImpl()).toISOString(),
+            lastReminder: null,
+            installedLockfileHash: currentLockfileHash,
+            eligible: enrichEligibleWithConfidence(eligible, state?.history),
+            quarantine,
+            history: state?.history ?? [],
+            metrics,
+          }
+          appendHistory(state)
+          saveState(state)
+        }
       }
-    } else {
-      const outdated = runNpmOutdated()
-      const entries = Object.entries(outdated)
 
-      // In-memory packument cache shared across all dependency lookups in this
-      // run. This prevents duplicate registry fetches when the same package is
-      // referenced multiple times (e.g. direct + transitive) and complements the
-      // disk-backed cache in registry-cache.js.
-      const inMemoryCache = new Map()
-      const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
-
-      const results = await runWithConcurrencyLimit(
-        entries.map(
-          ([name, data]) =>
-            () =>
-              classifyUpdate(name, data, inMemoryCache, metrics),
-        ),
-        CONCURRENCY,
+      // Ensure cached state carries the new fields even if it predates them.
+      state.history = state.history ?? []
+      state.eligible = enrichEligibleWithConfidence(
+        state.eligible,
+        state.history,
       )
 
-      const eligible = []
-      const quarantine = []
-
-      for (const result of results) {
-        if (result.status === 'rejected') continue
-        if (result.value.eligible) eligible.push(result.value.eligible)
-        if (result.value.quarantine) quarantine.push(result.value.quarantine)
+      // Step 3: show reminder if needed.
+      const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
+      if (hasItems || format !== 'table') {
+        // JSON/Markdown formatters always produce output (unless silent).
+        // Table output respects the reminder interval.
+        const shouldShow =
+          format !== 'table' ||
+          shouldRemind(state) ||
+          state.eligible.length + state.quarantine.length === 0
+        if (!isSilent && shouldShow) {
+          printReport(state, format)
+          state.lastReminder = new Date(nowImpl()).toISOString()
+          saveState(state)
+        }
       }
 
-      state = {
-        lastScan: new Date(nowImpl()).toISOString(),
-        lastReminder: null,
-        installedLockfileHash: currentLockfileHash,
-        eligible: enrichEligibleWithConfidence(eligible, state?.history),
-        quarantine,
-        history: state?.history ?? [],
-        metrics,
-      }
-      appendHistory(state)
-      saveState(state)
-    }
-  }
-
-  // Ensure cached state carries the new fields even if it predates them.
-  state.history = state.history ?? []
-  state.eligible = enrichEligibleWithConfidence(state.eligible, state.history)
-
-  // Step 3: show reminder if needed.
-  const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
-  if (hasItems || format !== 'table') {
-    // JSON/Markdown formatters always produce output (unless silent).
-    // Table output respects the reminder interval.
-    const shouldShow =
-      format !== 'table' ||
-      shouldRemind(state) ||
-      state.eligible.length + state.quarantine.length === 0
-    if (!isSilent && shouldShow) {
-      printReport(state, format)
-      state.lastReminder = new Date(nowImpl()).toISOString()
-      saveState(state)
-    }
-  }
-
-  return 0
+      return 0
+    },
+    { profilePath: path.resolve(__dirname, '..', '.defence-profile.json') },
+  )
 }
 
 if (require.main === module) {

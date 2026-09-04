@@ -115,11 +115,13 @@ async function fetchRegistryJson(name, version, options = {}) {
   if (!force) {
     const cached = readCacheEntry(key, ttlMs)
     if (cached) {
+      cacheHits++
       if (options.onCacheHit) options.onCacheHit(name, version)
       return cached.data
     }
   }
 
+  cacheMisses++
   if (options.onCacheMiss) options.onCacheMiss(name, version)
 
   const fetchOptions = {
@@ -149,6 +151,20 @@ function clearCache() {
   }
 }
 
+// Returns cache statistics since the last reset. Used by the profiler to
+// report network vs cache efficiency.
+let cacheHits = 0
+let cacheMisses = 0
+
+function resetStats() {
+  cacheHits = 0
+  cacheMisses = 0
+}
+
+function getStats() {
+  return { cacheHits, cacheMisses }
+}
+
 module.exports = {
   fetchRegistryJson,
   buildCacheKey,
@@ -156,4 +172,6 @@ module.exports = {
   isCacheDisabled,
   setImpls,
   resetImpls,
+  resetStats,
+  getStats,
 }

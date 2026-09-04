@@ -20,6 +20,7 @@ const path = require('node:path')
 const crypto = require('node:crypto')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 const config = loadConfig()
 
@@ -152,42 +153,57 @@ function parseCliArgs(argv = process.argv.slice(2)) {
 }
 
 function main(argv = process.argv.slice(2)) {
-  const { isForce } = parseCliArgs(argv)
-  const rootDir = process.cwd()
-  const files = findMarkdownFiles(rootDir)
-  let totalBroken = 0
-  let checkedFromCache = 0
+  return withProfile(
+    'check-md-links',
+    (profileMetrics) => {
+      const { isForce } = parseCliArgs(argv)
+      const rootDir = process.cwd()
+      const files = findMarkdownFiles(rootDir)
+      let totalBroken = 0
+      let checkedFromCache = 0
 
-  const cache = loadCache()
+      const cache = loadCache()
 
-  for (const file of files) {
-    const { broken, fromCache } = checkFileWithCache(file, cache, isForce)
-    if (fromCache) checkedFromCache++
-    if (broken.length > 0) {
-      totalBroken += broken.length
-      console.error(`Broken links in ${path.relative(rootDir, file)}:`)
-      for (const link of broken) {
-        console.error(`  -> ${link}`)
+      for (const file of files) {
+        const { broken, fromCache } = checkFileWithCache(file, cache, isForce)
+        if (fromCache) checkedFromCache++
+        if (broken.length > 0) {
+          totalBroken += broken.length
+          console.error(`Broken links in ${path.relative(rootDir, file)}:`)
+          for (const link of broken) {
+            console.error(`  -> ${link}`)
+          }
+        }
       }
-    }
-  }
 
-  saveCache(cache)
+      saveCache(cache)
 
-  if (totalBroken === 0) {
-    console.log(
-      `Checked ${files.length} markdown file(s). All local links are valid.` +
-        (checkedFromCache > 0 ? ` (${checkedFromCache} from cache)` : ''),
-    )
-    return 0
-  }
+      profileMetrics.cacheHits = checkedFromCache
+      profileMetrics.cacheMisses = files.length - checkedFromCache
 
-  console.error(`Found ${totalBroken} broken local link(s).`)
-  return 1
+      if (totalBroken === 0) {
+        console.log(
+          `Checked ${files.length} markdown file(s). All local links are valid.` +
+            (checkedFromCache > 0 ? ` (${checkedFromCache} from cache)` : ''),
+        )
+        return 0
+      }
+
+      console.error(`Found ${totalBroken} broken local link(s).`)
+      return 1
+    },
+    { profilePath: path.resolve(process.cwd(), '.defence-profile.json') },
+  )
 }
 
 if (require.main === module) {
-  process.exit(main())
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(`Unexpected error: ${err.message}`)
+      process.exit(1)
+    },
+  )
 }
 
 module.exports = {

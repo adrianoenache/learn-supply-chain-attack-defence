@@ -13,8 +13,11 @@ The `.npmrc` file configures npm with safer defaults. It applies to every npm co
 - `package-lock=true` — generate a lock file.
 - `save-exact=true` — save exact versions instead of loose ranges.
 - `engine-strict=true` — enforce the Node/npm engine requirements.
-- `min-release-age=7` — require packages to be at least 7 days old when supported.
+- `min-release-age=7` — Require packages to be at least 7 days old when supported.
 - `ignore-scripts=true` — do not run lifecycle scripts during install, reducing the risk of install-time malware.
+- `fetch-retries=3`, `fetch-retry-mintimeout=10000`, `fetch-retry-maxtimeout=60000`, `fetch-timeout=300000` — retry failed registry requests with bounded exponential backoff, reducing CI flakiness from transient `npm audit` timeouts.
+- `maxsockets=10` — limit concurrent registry connections to make network behaviour more predictable on shared CI runners.
+- `strict-ssl=true` — always verify TLS certificates, preventing downgrade / MitM attacks.
 - Optional dependencies are no longer globally omitted so that Biome's platform-specific CLI packages can be installed. They remain subject to `min-release-age` and audit checks.
 
 ## Impact

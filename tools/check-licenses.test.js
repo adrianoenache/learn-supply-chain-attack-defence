@@ -50,7 +50,7 @@ function mockExit() {
 }
 
 describe('parseCliArgs', () => {
-  test('defaults to table format and non-failing', () => {
+  test('defaults to table format and non-failing', async () => {
     const args = parseCliArgs([])
     assert.equal(args.isFail, false)
     assert.equal(args.isSilent, false)
@@ -59,7 +59,7 @@ describe('parseCliArgs', () => {
     assert.equal(args.singlePackage, null)
   })
 
-  test('parses all flags', () => {
+  test('parses all flags', async () => {
     const args = parseCliArgs([
       '--fail',
       '--silent',
@@ -74,53 +74,53 @@ describe('parseCliArgs', () => {
     assert.equal(args.singlePackage, 'foo@1.0.0')
   })
 
-  test('rejects invalid format', () => {
+  test('rejects invalid format', async () => {
     assert.throws(() => parseCliArgs(['--format=xml']), /Invalid format/)
   })
 })
 
 describe('normalizeLicense', () => {
-  test('lowercases and trims', () => {
+  test('lowercases and trims', async () => {
     assert.equal(normalizeLicense('  MIT  '), 'mit')
   })
 })
 
 describe('classifySingleLicense', () => {
-  test('allows MIT', () => {
+  test('allows MIT', async () => {
     assert.equal(classifySingleLicense('MIT').status, 'allowed')
   })
 
-  test('prohibits GPL-3.0', () => {
+  test('prohibits GPL-3.0', async () => {
     assert.equal(classifySingleLicense('GPL-3.0').status, 'prohibited')
   })
 
-  test('flags unknown license', () => {
+  test('flags unknown license', async () => {
     assert.equal(classifySingleLicense('Custom-License').status, 'flagged')
   })
 })
 
 describe('classifyLicense with SPDX expressions', () => {
-  test('allows MIT OR Apache-2.0', () => {
+  test('allows MIT OR Apache-2.0', async () => {
     assert.equal(classifyLicense('MIT OR Apache-2.0').status, 'allowed')
   })
 
-  test('flags unknown OR unknown', () => {
+  test('flags unknown OR unknown', async () => {
     assert.equal(classifyLicense('Custom-A OR Custom-B').status, 'flagged')
   })
 
-  test('prohibits if any OR branch is prohibited', () => {
+  test('prohibits if any OR branch is prohibited', async () => {
     assert.equal(classifyLicense('MIT OR GPL-3.0').status, 'prohibited')
   })
 
-  test('allows MIT AND ISC', () => {
+  test('allows MIT AND ISC', async () => {
     assert.equal(classifyLicense('MIT AND ISC').status, 'allowed')
   })
 
-  test('prohibits MIT AND GPL-3.0', () => {
+  test('prohibits MIT AND GPL-3.0', async () => {
     assert.equal(classifyLicense('MIT AND GPL-3.0').status, 'prohibited')
   })
 
-  test('flags missing license', () => {
+  test('flags missing license', async () => {
     const result = classifyLicense(null)
     assert.equal(result.status, 'flagged')
     assert.equal(result.reason, 'missing license')
@@ -145,7 +145,7 @@ describe('buildReport', () => {
 })
 
 describe('readLockfilePackages', () => {
-  test('reads packages from the configured lockfile path', () => {
+  test('reads packages from the configured lockfile path', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: { 'node_modules/foo': { version: '1.0.0', license: 'MIT' } },
@@ -160,7 +160,7 @@ describe('readLockfilePackages', () => {
     }
   })
 
-  test('extracts real package name from nested node_modules paths', () => {
+  test('extracts real package name from nested node_modules paths', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -194,7 +194,7 @@ describe('readLockfilePackages', () => {
 })
 
 describe('main with mock lockfile', () => {
-  test('returns 0 when all licenses are allowed', () => {
+  test('returns 0 when all licenses are allowed', async () => {
     const exit = mockExit()
     setImpls({
       fs: mockFsForLockfile({
@@ -206,13 +206,13 @@ describe('main with mock lockfile', () => {
       exit,
     })
     try {
-      assert.equal(main(['--silent']), 0)
+      assert.equal(await main(['--silent']), 0)
     } finally {
       resetImpls()
     }
   })
 
-  test('returns 0 by default when prohibited license exists', () => {
+  test('returns 0 by default when prohibited license exists', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -221,13 +221,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--silent']), 0)
+      assert.equal(await main(['--silent']), 0)
     } finally {
       resetImpls()
     }
   })
 
-  test('returns 1 with --fail when prohibited license exists', () => {
+  test('returns 1 with --fail when prohibited license exists', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -236,13 +236,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--fail', '--silent']), 1)
+      assert.equal(await main(['--fail', '--silent']), 1)
     } finally {
       resetImpls()
     }
   })
 
-  test('returns 1 with --fail when unknown license exists', () => {
+  test('returns 1 with --fail when unknown license exists', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -251,13 +251,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--fail', '--silent']), 1)
+      assert.equal(await main(['--fail', '--silent']), 1)
     } finally {
       resetImpls()
     }
   })
 
-  test('json format returns 0 with valid JSON', () => {
+  test('json format returns 0 with valid JSON', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -269,7 +269,7 @@ describe('main with mock lockfile', () => {
     const originalLog = console.log
     console.log = (...args) => logs.push(args.join(' '))
     try {
-      assert.equal(main(['--format=json']), 0)
+      assert.equal(await main(['--format=json']), 0)
       const parsed = JSON.parse(logs.join('\n'))
       assert.deepEqual(
         parsed.allowed.map((i) => i.name),
@@ -281,7 +281,7 @@ describe('main with mock lockfile', () => {
     }
   })
 
-  test('single package mode finds and checks one package', () => {
+  test('single package mode finds and checks one package', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -291,14 +291,14 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--pkg=foo@1.0.0', '--silent']), 0)
-      assert.equal(main(['--pkg=bar@2.0.0', '--fail', '--silent']), 1)
+      assert.equal(await main(['--pkg=foo@1.0.0', '--silent']), 0)
+      assert.equal(await main(['--pkg=bar@2.0.0', '--fail', '--silent']), 1)
     } finally {
       resetImpls()
     }
   })
 
-  test('single package mode supports scoped packages', () => {
+  test('single package mode supports scoped packages', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -307,13 +307,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--pkg=@scope/pkg@1.0.0', '--silent']), 0)
+      assert.equal(await main(['--pkg=@scope/pkg@1.0.0', '--silent']), 0)
     } finally {
       resetImpls()
     }
   })
 
-  test('single package mode supports scoped package without version', () => {
+  test('single package mode supports scoped package without version', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -322,13 +322,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--pkg=@scope/pkg', '--silent']), 0)
+      assert.equal(await main(['--pkg=@scope/pkg', '--silent']), 0)
     } finally {
       resetImpls()
     }
   })
 
-  test('single package mode returns 1 when package is not found', () => {
+  test('single package mode returns 1 when package is not found', async () => {
     const exit = mockExit()
     setImpls({
       fs: mockFsForLockfile({
@@ -339,23 +339,23 @@ describe('main with mock lockfile', () => {
       exit,
     })
     try {
-      assert.equal(main(['--pkg=missing@1.0.0', '--silent']), 1)
+      assert.equal(await main(['--pkg=missing@1.0.0', '--silent']), 1)
       assert.equal(exit.code(), 1)
     } finally {
       resetImpls()
     }
   })
 
-  test('returns 0 when lockfile has no packages', () => {
+  test('returns 0 when lockfile has no packages', async () => {
     setImpls({ fs: mockFsForLockfile({}) })
     try {
-      assert.equal(main(['--silent']), 0)
+      assert.equal(await main(['--silent']), 0)
     } finally {
       resetImpls()
     }
   })
 
-  test('returns 1 with --fail when missing license exists', () => {
+  test('returns 1 with --fail when missing license exists', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -364,13 +364,13 @@ describe('main with mock lockfile', () => {
       }),
     })
     try {
-      assert.equal(main(['--fail', '--silent']), 1)
+      assert.equal(await main(['--fail', '--silent']), 1)
     } finally {
       resetImpls()
     }
   })
 
-  test('markdown format prints report', () => {
+  test('markdown format prints report', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -384,7 +384,7 @@ describe('main with mock lockfile', () => {
     const originalLog = console.log
     console.log = (...args) => logs.push(args.join(' '))
     try {
-      assert.equal(main(['--format=markdown']), 0)
+      assert.equal(await main(['--format=markdown']), 0)
       const output = logs.join('\n')
       assert.ok(output.includes('Dependency License Report'))
       assert.ok(output.includes('Prohibited'))
@@ -396,7 +396,7 @@ describe('main with mock lockfile', () => {
     }
   })
 
-  test('table format prints report', () => {
+  test('table format prints report', async () => {
     setImpls({
       fs: mockFsForLockfile({
         packages: {
@@ -410,7 +410,7 @@ describe('main with mock lockfile', () => {
     const originalLog = console.log
     console.log = (...args) => logs.push(args.join(' '))
     try {
-      assert.equal(main([]), 0)
+      assert.equal(await main([]), 0)
       assert.ok(logs.some((line) => line.includes('Dependency license check')))
       assert.ok(logs.some((line) => line.includes('Prohibited')))
       assert.ok(logs.some((line) => line.includes('Flagged for review')))
@@ -421,7 +421,7 @@ describe('main with mock lockfile', () => {
     }
   })
 
-  test('CLI exits 0 when checking real lockfile', () => {
+  test('CLI exits 0 when checking real lockfile', async () => {
     const result = spawnSync(process.execPath, [SCRIPT_PATH, '--silent'], {
       encoding: 'utf8',
     })

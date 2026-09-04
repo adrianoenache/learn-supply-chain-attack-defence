@@ -1,0 +1,50 @@
+{
+  "add-package": {
+    "timestamp": "2026-09-04T00:44:17Z",
+    "durationMs": 31.99,
+    "heapDeltaBytes": 172176,
+    "networkCalls": 0,
+    "cacheHits": 0,
+    "cacheMisses": 0
+  },
+  "check-licenses": {
+    "timestamp": "2026-09-04T00:44:21Z",
+    "durationMs": 9.67,
+    "heapDeltaBytes": 1453720,
+    "networkCalls": 0,
+    "cacheHits": 10,
+    "cacheMisses": 0
+  },
+  "check-md-links": {
+    "timestamp": "2026-09-04T00:44:50Z",
+    "durationMs": 9.77,
+    "heapDeltaBytes": 495152,
+    "networkCalls": 0,
+    "cacheHits": 92,
+    "cacheMisses": 1
+  },
+  "check-package-age": {
+    "timestamp": "2026-09-04T00:44:17Z",
+    "durationMs": 0.95,
+    "heapDeltaBytes": 78160,
+    "networkCalls": 0,
+    "cacheHits": 2,
+    "cacheMisses": 0
+  },
+  "check-package-age-transitive": {
+    "timestamp": "2026-09-04T00:44:21Z",
+    "durationMs": 1381.65,
+    "heapDeltaBytes": 3347048,
+    "networkCalls": 8,
+    "cacheHits": 2,
+    "cacheMisses": 0
+  },
+  "check-updates": {
+    "timestamp": "2026-09-04T00:44:20Z",
+    "durationMs": 136.07,
+    "heapDeltaBytes": -167520,
+    "networkCalls": 0,
+    "cacheHits": 0,
+    "cacheMisses": 0
+  }
+}

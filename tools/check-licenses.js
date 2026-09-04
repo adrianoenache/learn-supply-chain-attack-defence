@@ -17,6 +17,7 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 const config = loadConfig()
 const licenseConfig = config.licensesCheck
@@ -301,86 +302,98 @@ function printReport(report, format) {
 // ---------------------------------------------------------------------------
 
 function main(argv = process.argv.slice(2)) {
-  const {
-    isFail,
-    isSilent,
-    isTransitive: _isTransitive,
-    format,
-    singlePackage,
-  } = parseCliArgs(argv)
+  return withProfile(
+    'check-licenses',
+    (profileMetrics) => {
+      const {
+        isFail,
+        isSilent,
+        isTransitive: _isTransitive,
+        format,
+        singlePackage,
+      } = parseCliArgs(argv)
 
-  let packages
-  if (singlePackage) {
-    const atIndex = singlePackage.indexOf('@')
-    const hasScope = singlePackage.startsWith('@')
-    let name
-    let version = null
-    if (hasScope) {
-      const withoutAt = singlePackage.slice(1)
-      const innerAt = withoutAt.indexOf('@')
-      if (innerAt === -1) {
-        name = singlePackage
+      let packages
+      if (singlePackage) {
+        const atIndex = singlePackage.indexOf('@')
+        const hasScope = singlePackage.startsWith('@')
+        let name
+        let version = null
+        if (hasScope) {
+          const withoutAt = singlePackage.slice(1)
+          const innerAt = withoutAt.indexOf('@')
+          if (innerAt === -1) {
+            name = singlePackage
+          } else {
+            name = `@${withoutAt.slice(0, innerAt)}`
+            version = withoutAt.slice(innerAt + 1)
+          }
+        } else {
+          name =
+            atIndex === -1 ? singlePackage : singlePackage.slice(0, atIndex)
+          version = atIndex === -1 ? null : singlePackage.slice(atIndex + 1)
+        }
+        const match = findPackageInLockfile(name, version)
+        if (!match) {
+          if (!isSilent)
+            console.error(`Package not found in lockfile: ${singlePackage}`)
+          return exitImpl ? (exitImpl(1) ?? 1) : 1
+        }
+        packages = [match]
       } else {
-        name = `@${withoutAt.slice(0, innerAt)}`
-        version = withoutAt.slice(innerAt + 1)
+        packages = readLockfilePackages()
       }
-    } else {
-      name = atIndex === -1 ? singlePackage : singlePackage.slice(0, atIndex)
-      version = atIndex === -1 ? null : singlePackage.slice(atIndex + 1)
-    }
-    const match = findPackageInLockfile(name, version)
-    if (!match) {
-      if (!isSilent)
-        console.error(`Package not found in lockfile: ${singlePackage}`)
-      return exitImpl ? (exitImpl(1) ?? 1) : 1
-    }
-    packages = [match]
-  } else {
-    packages = readLockfilePackages()
-  }
 
-  if (packages.length === 0) {
-    if (!isSilent) console.log('No packages found to scan.')
-    return 0
-  }
+      if (packages.length === 0) {
+        if (!isSilent) console.log('No packages found to scan.')
+        return 0
+      }
 
-  const report = buildReport(packages)
+      const report = buildReport(packages)
 
-  if (!isSilent) {
-    printReport(report, format)
-  }
+      if (!isSilent) {
+        printReport(report, format)
+      }
 
-  const hasProhibited = report.prohibited.length > 0
-  const hasUnknown = report.flagged.some((item) =>
-    item.reason?.startsWith('unknown'),
+      profileMetrics.networkCalls = 0
+      profileMetrics.cacheHits = packages.length
+
+      const hasProhibited = report.prohibited.length > 0
+      const hasUnknown = report.flagged.some((item) =>
+        item.reason?.startsWith('unknown'),
+      )
+      const hasMissing = report.flagged.some((item) =>
+        item.reason?.startsWith('missing'),
+      )
+
+      if (isFail && (hasProhibited || hasUnknown || hasMissing)) {
+        return 1
+      }
+
+      return 0
+    },
+    { profilePath: path.resolve(process.cwd(), '.defence-profile.json') },
   )
-  const hasMissing = report.flagged.some((item) =>
-    item.reason?.startsWith('missing'),
-  )
-
-  if (isFail && (hasProhibited || hasUnknown || hasMissing)) {
-    return 1
-  }
-
-  return 0
 }
 
 if (require.main === module) {
-  try {
-    const code = main()
-    if (exitImpl) {
-      exitImpl(code)
-    } else {
-      process.exit(code)
-    }
-  } catch (err) {
-    console.error(`\nLicense check failed: ${err.message}`)
-    if (exitImpl) {
-      exitImpl(1)
-    } else {
-      process.exit(1)
-    }
-  }
+  main().then(
+    (code) => {
+      if (exitImpl) {
+        exitImpl(code)
+      } else {
+        process.exit(code)
+      }
+    },
+    (err) => {
+      console.error(`\nLicense check failed: ${err.message}`)
+      if (exitImpl) {
+        exitImpl(1)
+      } else {
+        process.exit(1)
+      }
+    },
+  )
 }
 
 module.exports = {
