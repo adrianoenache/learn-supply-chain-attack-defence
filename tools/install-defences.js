@@ -9,23 +9,13 @@
 //   node ./tools/install-defences.js <path-to-target-project> [--dry-run]
 //
 // What it copies:
-//   - .npmrc
-//   - .husky/pre-commit
-//   - biome.json
-//   - tools/add-package.js
-//   - tools/check-md-links.js
-//   - tools/check-md-links.test.js
-//   - tools/check-package-age.js
-//   - tools/check-package-age.test.js
-//   - tools/install-defences.js
-//   - tools/install-defences.test.js
-//   - tools/lib/package-utils.js
-//   - tools/setup-bootstrap.js
-//   - tools/setup-bootstrap.test.js
-//   - tools/update-badge.js
-//   - tools/update-badge.test.js
-//   - tools/update-packages.js
-//   - tools/update-packages.test.js
+//   - Hardened npm configuration (.npmrc, .husky/pre-commit, .husky/post-merge,
+//     biome.json).
+//   - Defence scripts under tools/ and their tests.
+//   - Shared libraries under tools/lib/ and their tests.
+//   - Performance benchmarks under tools/perf/.
+//   - The installer itself and its integrity manifest machinery.
+//   See FILES_TO_COPY below for the complete, authoritative list.
 //
 // What it updates in the target package.json:
 //   - Adds defence-prefixed scripts that point to the copied tools.
@@ -47,49 +37,110 @@ const SOURCE_DIR = path.resolve(__dirname, '..')
 const FILES_TO_COPY = [
   '.npmrc',
   '.husky/pre-commit',
+  '.husky/post-merge',
   'biome.json',
-  'tools/check-package-age.js',
   'tools/add-package.js',
+  'tools/add-package.test.js',
+  'tools/check-engines.js',
+  'tools/check-engines.test.js',
+  'tools/check-hooks.js',
+  'tools/check-hooks.test.js',
+  'tools/check-licenses.js',
+  'tools/check-licenses.test.js',
+  'tools/check-lockfile-integrity.js',
+  'tools/check-lockfile-integrity.test.js',
   'tools/check-md-links.js',
   'tools/check-md-links.test.js',
-  'tools/lib/package-utils.js',
-  'tools/setup-bootstrap.js',
-  'tools/setup-bootstrap.test.js',
+  'tools/check-package-age.js',
   'tools/check-package-age.test.js',
+  'tools/check-secrets.js',
+  'tools/check-secrets.test.js',
+  'tools/check-sync.js',
+  'tools/check-sync.test.js',
+  'tools/check-updates.js',
+  'tools/check-updates.test.js',
+  'tools/generate-sbom.js',
+  'tools/generate-sbom.test.js',
   'tools/install-defences.js',
   'tools/install-defences.test.js',
+  'tools/integration.test.js',
+  'tools/run-audit-with-retry.js',
+  'tools/run-audit-with-retry.test.js',
+  'tools/setup-bootstrap.js',
+  'tools/setup-bootstrap.test.js',
   'tools/update-badge.js',
   'tools/update-badge.test.js',
   'tools/update-packages.js',
   'tools/update-packages.test.js',
   'tools/verify-defences.js',
   'tools/verify-defences.test.js',
+  'tools/lib/config.js',
+  'tools/lib/config.test.js',
+  'tools/lib/package-utils.js',
+  'tools/lib/profiler.js',
+  'tools/lib/profiler.test.js',
+  'tools/lib/provenance.js',
+  'tools/lib/provenance.test.js',
+  'tools/lib/registry-cache.js',
+  'tools/lib/registry-cache.test.js',
+  'tools/lib/retry-fetch.js',
+  'tools/lib/retry-fetch.test.js',
+  'tools/lib/sync-check.js',
+  'tools/lib/typosquatting.test.js',
+  'tools/perf/benchmark.js',
+  'tools/perf/benchmark.test.js',
+  'tools/perf/baselines.json',
 ]
 
 const MANIFEST_NAME = '.defence-manifest.json'
 
 const SCRIPTS_TO_ADD = {
   setup:
-    'node --version && npm --version && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare',
-  'defence:pkg-age-check': 'node ./tools/check-package-age.js',
-  'defence:check-md-links': 'node ./tools/check-md-links.js',
-  'defence:reinstall':
-    'node --version && npm --version && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated',
-  'defence:pre-commit': 'npm audit signatures && npm audit --audit-level=high',
-  'defence:update-badge': 'node ./tools/update-badge.js',
-  'defence:update-badge:dry-run': 'node ./tools/update-badge.js --dry-run',
+    'npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare',
   'defence:add': 'node ./tools/add-package.js',
+  'defence:audit': 'node ./tools/run-audit-with-retry.js',
   'defence:bootstrap': 'node ./tools/setup-bootstrap.js',
+  'defence:check-engines': 'node ./tools/check-engines.js',
+  'defence:check-hooks': 'node ./tools/check-hooks.js',
+  'defence:check-md-links': 'node ./tools/check-md-links.js',
+  'defence:check-secrets': 'node ./tools/check-secrets.js',
+  'defence:check-lockfile-integrity':
+    'node ./tools/check-lockfile-integrity.js',
+  'defence:generate-sbom': 'node ./tools/generate-sbom.js',
+  'defence:license-check': 'node ./tools/check-licenses.js',
+  'defence:license-check:fail': 'node ./tools/check-licenses.js --fail',
+  'defence:license-check:json': 'node ./tools/check-licenses.js --format=json',
+  'defence:perf': 'node ./tools/perf/benchmark.js',
+  'defence:perf:baseline': 'node ./tools/perf/benchmark.js --save-baseline',
+  'defence:perf:check-package-age':
+    'node ./tools/perf/benchmark.js --tool=check-package-age',
+  'defence:perf:check-updates':
+    'node ./tools/perf/benchmark.js --tool=check-updates',
+  'defence:pkg-age-check': 'node ./tools/check-package-age.js',
+  'defence:pre-commit':
+    'npm audit signatures && npm run defence:audit && npm run defence:update-check',
+  'defence:reinstall':
+    'npm run defence:check-engines && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated',
+  'defence:sync-check': 'node ./tools/check-sync.js',
+  'defence:sync-check:fix': 'node ./tools/check-sync.js --fix',
   'defence:update': 'node ./tools/update-packages.js',
   'defence:update:interactive': 'node ./tools/update-packages.js --interactive',
   'defence:update:interactive:dry-run':
     'node ./tools/update-packages.js --interactive --dry-run',
+  'defence:update-badge': 'node ./tools/update-badge.js',
+  'defence:update-badge:dry-run': 'node ./tools/update-badge.js --dry-run',
+  'defence:update-check': 'node ./tools/check-updates.js',
+  'defence:update-check:force': 'node ./tools/check-updates.js --force',
+  'defence:update-check:json': 'node ./tools/check-updates.js --format=json',
+  'defence:update-check:offline': 'node ./tools/check-updates.js --offline',
   'defence:verify-defences': 'node ./tools/verify-defences.js',
-  test: 'node --test tools/*.test.js',
+  'defence:verify-defences:fix':
+    'node ./tools/install-defences.js --update-local-manifest',
+  format: 'biome format --write tools/',
   lint: 'biome check tools/',
   'lint:fix': 'biome check --write tools/',
-  format: 'biome format --write tools/',
   prepare: 'husky',
+  test: 'node --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js',
 }
 
 const DEV_DEPENDENCIES_TO_ADD = {

@@ -20,13 +20,36 @@ As respostas do registry são cacheadas em `tools/e2e/.cache/` por 24 horas para
 
 ## O Que Está Coberto
 
-- Parse de especificadores de pacotes válidos e inválidos.
-- Cálculo de idade dos pacotes e limitador de concorrência.
+- Parse de especificadores de pacotes válidos e inválidos (`tools/lib/package-utils.js`).
+- Cálculo de idade dos pacotes e limitador de concorrência (`tools/check-package-age.js`).
 - Resolução de modo de dependência (`--dev`, `--peer`, padrão).
-- Cenários de integração para `check-package-age` e `add-package` usando dependências injetadas, para que mocks e alterações no sistema de arquivos funcionem sem precisar iniciar processos filhos.
-- Comportamento do bootstrap de primeiro setup quando `package-lock.json` está ausente.
-- Comportamento do instalador cross-project, incluindo `--dry-run`, `--force`, detecção de conflitos e criação de backups.
+- Validação de engines contra `package.json` `engines` (`tools/check-engines.js`).
+- Verificação de atualizações disponíveis, score de confiança e modo offline
+  (`tools/check-updates.js`).
+- Verificação de licenças com tratamento de expressões SPDX
+  (`tools/check-licenses.js`).
+- Verificação de sincronização entre `node_modules` e `package-lock.json`
+  (`tools/check-sync.js` e `tools/lib/sync-check.js`).
+- Verificação de integridade do hook de pré-commit (`tools/check-hooks.js`).
+- Scan de secrets (`tools/check-secrets.js`).
+- Verificação de integridade do lockfile (`tools/check-lockfile-integrity.js`).
+- Wrapper de retry para auditoria de vulnerabilidades
+  (`tools/run-audit-with-retry.js`).
+- Geração de SBOM (`tools/generate-sbom.js`).
+- Atualizador do badge de testes no README (`tools/update-badge.js`).
+- Cenários de integração para `add-package`, `check-package-age` e
+  `check-updates` usando dependências injetadas, para que mocks e alterações no
+  sistema de arquivos funcionem sem precisar iniciar processos filhos
+  (`tools/integration.test.js`).
+- Comportamento do bootstrap de primeiro setup quando `package-lock.json` está
+  ausente (`tools/setup-bootstrap.js`).
+- Comportamento do instalador cross-project, incluindo `--dry-run`, `--force`,
+  detecção de conflitos, criação de backups e regeneração do manifesto
+  (`tools/install-defences.js`).
 - Fluxo controlado de atualização de dependências em `update-packages.js`.
+- Bibliotecas compartilhadas de cache de registry, retry-fetch, provenance,
+  typosquatting e profiler em `tools/lib/`.
+- Testes de regressão de performance em `tools/perf/`.
 
 ## Verificações de Lint, Formatação e Links
 

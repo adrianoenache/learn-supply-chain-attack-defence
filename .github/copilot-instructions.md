@@ -54,3 +54,17 @@ When user-facing behavior changes, update both `docs/en/` and `docs/pt-BR/`. Kee
 ## No Secrets
 
 Do not generate, embed, or suggest secrets, tokens, or credentials in source files. If the project needs a placeholder, use an obviously fake value and document it.
+
+## Session Continuity and Plan Recovery
+
+Session memory can be lost between chat sections. Therefore, the project's
+authoritative plan lives in `.github/PLAN.md`.
+
+- At the start of every session, if `.github/PLAN.md` exists, read it before
+  proposing actions or making assumptions about current priorities.
+- If the user asks to resume, review, or revise the plan, read `.github/PLAN.md`
+  first and update it after changes.
+- Never rely solely on `/memories/session/plan.md`; it is session-scoped and
+  may be cleared.
+- After updating `.github/PLAN.md`, run `npm run lint`, `npm test`, and
+  `npm run defence:check-md-links` if markdown changed.

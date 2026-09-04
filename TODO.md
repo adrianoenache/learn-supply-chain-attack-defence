@@ -1,36 +1,73 @@
 # TODO
 
-This file tracks the remaining work required for the project to reach a **10/10 quality score across security, code quality, performance, documentation, and AI-assisted development**, and to produce a **regenerated `PROJECT_STATUS_REPORT.md` with the maximum score in every category**.
+This file tracks the remaining work required for the project to be considered
+**concluded**: a 10/10 quality score across security, code quality, performance,
+documentation, and AI-assisted development, plus a regenerated
+`PROJECT_STATUS_REPORT.md` with the maximum score in every category.
 
-The **release v1.0.0 is the final action** and will only happen when:
+The **release v1.0.0 is a future action** that will only be planned and executed
+after the project itself is fully concluded. It is not a current gate.
 
-1. Every TODO item is marked complete.
-2. All validation gates pass: `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run test:coverage` (≥ 95%).
-3. Documentation is fully synchronized between `docs/en/` and `docs/pt-BR/`.
-4. `PROJECT_STATUS_REPORT.md` is regenerated and shows the maximum score in every category.
-
-Items are prioritized with `P0` (critical/blocking for `v1.0.0`), `P1` (important for `v1.0.0`), `P2` (improvement for `v1.0.0`), and `P3` (experimental, included in `v1.0.0` only if feasible before the release gates).
+Items are prioritized with `P0` (critical/blocking for conclusion), `P1`
+(important for conclusion), `P2` (improvement for conclusion), and `P3`
+(experimental or post-conclusion).
 
 Priority order: **P0 → P1 → P2 → P3**.
+
+---
+
+## Open Items — Conclusion Phase
+
+### P0
+
+- [x] Synchronize `tools/install-defences.js` with the current source tree
+  (files, scripts, target `setup`).
+- [x] Synchronize `tools/install-defences.test.js` with the updated installer.
+- [x] Regenerate `.defence-manifest.json` after installer changes.
+- [x] Fix Mermaid block closing in `docs/en/security/index.md` and
+  `docs/pt-BR/security/index.md`.
+- [x] Align CI audit step with pre-commit (`npm run defence:audit`).
+- [ ] Re-run all validation gates once the npm audit endpoint is stable and
+  commit the changes.
+
+### P1
+
+- [x] Update `docs/en/adopting-in-other-projects.md` and
+  `docs/pt-BR/adopting-in-other-projects.md` to reflect the installer output.
+- [x] Update `docs/en/testing.md` and `docs/pt-BR/testing.md` to list the new
+  test suites.
+- [x] Reorganise this TODO file and move the release to a future action.
+- [ ] Regenerate `PROJECT_STATUS_REPORT.md` with a 10/10 score after all
+  corrections are committed.
+- [ ] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
+
+### P3 / Future
+
+- [ ] Decide whether to implement sandbox mode, profiling dashboard, or
+  alternative `.npmrc` hardening.
+- [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
+- [ ] Automate changelog generation from conventional commits or tags.
+- [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
 
 ---
 
 ## Phase Summary
 
 | Phase | Status | Scope |
-|-------|--------|-------|
+| --- | --- | --- |
 | 0 — Foundation | ✅ Done | config, CI, CONTRIBUTING |
 | 1 — Critical Security | ✅ Done | TOCTOU, lockfile, install-defences checksums, hook integrity |
 | 2 — Resilience / Performance | ✅ Done | registry-cache, retry-fetch, gzip, Buffer |
 | 3 — CI/CD + Quality Gates | ✅ Done | secret scanner, CI `dev`, docs, expanded tests |
 | 4 — Attack Surface Reduction | ✅ Done | typosquatting, provenance/SLSA, hook integrity enforcement |
-| 5 — Code Quality + Tests | ✅ Done | 299 tests, native coverage, license check integrated |
+| 5 — Code Quality + Tests | ✅ Done | 333 tests, native coverage, license check integrated |
 | 6 — Docs + AI Core + Release Readiness | ✅ Done | reorganized docs, AI instructions, CI adjusted, release checklist |
 | 7 — AI Agents / Skills / Prompts / Hooks | ✅ Done | agents, skills, prompts, hooks, self-improvement loop |
 | 7.5 — P1 Technical Debt | ✅ Done | troubleshooting.md, rebuilding-lifecycle-packages.md |
 | 8 — Benchmarks + Risk Scoring | ✅ Done | perf benchmarks, package metadata risk scoring, N+1 reduction |
-| 9 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard |
-| 10 — Release v1.0.0 | ⏳ Final | TODO.md 100%, tests green, PROJECT_STATUS_REPORT.md 10/10 |
+| 9 — Conclusion cleanup | ⏳ In progress | install-defences sync, docs sync, TODO reorganisation, PROJECT_STATUS_REPORT |
+| 10 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard, `.npmrc` hardening review |
+| 11 — Release v1.0.0 | 🔮 Future | planned only after project is fully concluded |
 
 ---
 
@@ -188,7 +225,9 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Impact: increases confidence in refactors and releases.
   - Depends on: none.
   - Files: `tools/*.test.js`
+
 > **Coverage report format decision:** The project uses Node.js native `--experimental-test-coverage`. This keeps the dependency tree clean and satisfies the ≥ 95% line-coverage target. Services like Codecov/Coveralls require `lcov.info` or JSON reports, which native coverage does not produce. The chosen approach is to stay with native coverage only (Option A). A lightweight custom converter (Option B) may be implemented in the future if Codecov/Coveralls integration becomes a concrete requirement.
+
 - [x] **[P2]** Add error-path tests — cover corrupted `package-lock.json`, registry timeouts, invalid SLSA attestations, missing `integrity` fields, and malformed config files.
   - Impact: prevents silent failures in production.
   - Depends on: centralized configuration loader (Section 3.1).
@@ -199,7 +238,7 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: registry-response cache (Section 2.1).
   - Files: [tools/integration.test.js](tools/integration.test.js), [tools/check-package-age.js](tools/check-package-age.js)
 
-- [ ] **[P2]** Expand test fixtures — add fixtures for deprecated packages, yanked versions, very old packages, and packages with missing integrity.
+- [ ] **[P3]** Expand test fixtures — add fixtures for deprecated packages, yanked versions, very old packages, and packages with missing integrity.
   - Impact: enables deterministic security testing.
   - Depends on: none.
   - Files: `tools/e2e/fixtures/`
@@ -388,17 +427,18 @@ Priority order: **P0 → P1 → P2 → P3**.
   - Depends on: CI/CD pipeline (Section 5.1).
   - Files: new `docs/RELEASE_CHECKLIST.md`
 
-- [ ] **[P2]** Add changelog generation automation — script or CI step that updates `CHANGELOG.md` from conventional commits or release tags.
+- [ ] **[P3]** Add changelog generation automation — script or CI step that updates `CHANGELOG.md` from conventional commits or release tags.
   - Impact: reduces manual release overhead.
   - Depends on: versioning and release checklist (Section 10.1).
   - Files: [CHANGELOG.md](CHANGELOG.md)
 
-### 10.2 Release v1.0.0 Gates
+### 10.2 Release v1.0.0 Gates (future action)
 
-The release v1.0.0 is the final action and is only allowed when every gate below is satisfied.
+The release v1.0.0 will be planned and executed only after the project is fully
+concluded. When that time comes, the following gates must be satisfied:
 
-- [ ] All TODO items in this file are marked complete.
-- [ ] `npm test` passes — 299/299 (or current count).
+- [ ] All open TODO items are marked complete.
+- [ ] `npm test` passes (current count).
 - [ ] `npm run test:coverage` reports ≥ 95% line coverage.
 - [ ] `npm run lint` passes.
 - [ ] `npm run defence:check-md-links` passes.

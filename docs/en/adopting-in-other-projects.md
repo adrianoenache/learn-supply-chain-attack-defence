@@ -24,47 +24,36 @@ node ./tools/install-defences.js /path/to/target-project --force
 
 ## What the Installer Does
 
-1. Copies the following files into the target project:
-   - `.npmrc`
-   - `.husky/pre-commit`
-   - `biome.json`
-   - `tools/check-package-age.js`
-   - `tools/check-package-age.test.js`
-   - `tools/add-package.js`
-   - `tools/check-md-links.js`
-   - `tools/check-md-links.test.js`
-   - `tools/lib/package-utils.js`
-   - `tools/setup-bootstrap.js`
-   - `tools/setup-bootstrap.test.js`
-   - `tools/install-defences.js`
-   - `tools/install-defences.test.js`
-   - `tools/update-packages.js`
-   - `tools/update-packages.test.js`
-   - `tools/update-badge.js`
-   - `tools/update-badge.test.js`
-   - `tools/verify-defences.js`
-   - `tools/verify-defences.test.js`
+1. Copies the defence files into the target project:
+   - Hardened configuration: `.npmrc`, `.husky/pre-commit`, `.husky/post-merge`,
+     `biome.json`.
+   - Defence scripts under `tools/`, including their tests (for example
+     `add-package.js`, `check-package-age.js`, `check-licenses.js`,
+     `check-updates.js`, `check-secrets.js`, `generate-sbom.js`,
+     `run-audit-with-retry.js`, `update-packages.js`, `verify-defences.js`).
+   - Shared libraries under `tools/lib/` (for example `config.js`,
+     `registry-cache.js`, `retry-fetch.js`, `sync-check.js`).
+   - Performance benchmarks under `tools/perf/`.
+   - The installer itself and its test suite.
 
-   It also writes `.defence-manifest.json` in the target project with SHA-256 hashes of the copied files.
-2. Adds `defence:*` scripts to `package.json`:
+   The authoritative list is `FILES_TO_COPY` in
+   [`tools/install-defences.js`](../../tools/install-defences.js).
+
+   It also writes `.defence-manifest.json` in the target project with SHA-256
+   hashes of the copied files.
+2. Adds `defence:*` scripts to `package.json`. The authoritative list is
+   `SCRIPTS_TO_ADD` in
+   [`tools/install-defences.js`](../../tools/install-defences.js). Notable
+   scripts include:
    - `setup`
-   - `defence:bootstrap`
-   - `defence:check-md-links`
-   - `defence:pkg-age-check`
-   - `defence:reinstall`
-   - `defence:update`
-   - `defence:update:interactive`
-   - `defence:update:interactive:dry-run`
-   - `defence:update-badge`
-   - `defence:update-badge:dry-run`
-   - `defence:pre-commit`
-   - `defence:add`
-   - `defence:verify-defences`
-   - `test`
-   - `lint`
-   - `lint:fix`
-   - `format`
-   - `prepare`
+   - `defence:add`, `defence:bootstrap`, `defence:update`
+   - `defence:audit`, `defence:pre-commit`
+   - `defence:check-engines`, `defence:check-hooks`, `defence:check-md-links`,
+     `defence:check-secrets`, `defence:check-lockfile-integrity`
+   - `defence:pkg-age-check`, `defence:sync-check`, `defence:update-check`
+   - `defence:license-check`, `defence:generate-sbom`, `defence:verify-defences`
+   - `defence:perf`
+   - `test`, `lint`, `lint:fix`, `format`, `prepare`
 3. Adds `husky` and `@biomejs/biome` to `devDependencies` if they are not already present.
 
 Existing scripts that do not conflict are preserved. If a target script already exists with a different value, the installer aborts so nothing is overwritten silently.

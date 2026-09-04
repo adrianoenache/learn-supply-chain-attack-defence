@@ -212,7 +212,7 @@ jobs:
       - name: Pre-commit gate
         run: |
           npm audit signatures
-          npm audit --audit-level=high
+          npm run defence:audit
           npm run defence:update-check
 
       - name: Generate SBOM

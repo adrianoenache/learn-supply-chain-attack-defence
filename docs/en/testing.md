@@ -20,13 +20,33 @@ Registry responses are cached in `tools/e2e/.cache/` for 24 hours to speed up re
 
 ## What Is Covered
 
-- Parsing of valid and invalid package specifiers.
-- Package-age calculation and concurrency limiter.
+- Parsing of valid and invalid package specifiers (`tools/lib/package-utils.js`).
+- Package-age calculation and concurrency limiter (`tools/check-package-age.js`).
 - Dependency mode resolution (`--dev`, `--peer`, default).
-- Integration scenarios for `check-package-age` and `add-package` using injected dependencies, so mocks and file-system changes work without spawning child processes.
-- First-setup bootstrap behavior when `package-lock.json` is missing.
-- Cross-project installer behavior, including `--dry-run`, `--force`, conflict detection, and backup creation.
+- Engine validation against `package.json` `engines` (`tools/check-engines.js`).
+- Update availability check, confidence scoring, and offline mode
+  (`tools/check-updates.js`).
+- License scanning with SPDX expression handling (`tools/check-licenses.js`).
+- `node_modules` vs `package-lock.json` sync check (`tools/check-sync.js` and
+  `tools/lib/sync-check.js`).
+- Pre-commit hook integrity verification (`tools/check-hooks.js`).
+- Secret scanning (`tools/check-secrets.js`).
+- Lockfile integrity verification (`tools/check-lockfile-integrity.js`).
+- Vulnerability audit retry wrapper (`tools/run-audit-with-retry.js`).
+- SBOM generation (`tools/generate-sbom.js`).
+- README test-badge updater (`tools/update-badge.js`).
+- Integration scenarios for `add-package`, `check-package-age`, and
+  `check-updates` using injected dependencies, so mocks and file-system changes
+  work without spawning child processes (`tools/integration.test.js`).
+- First-setup bootstrap behavior when `package-lock.json` is missing
+  (`tools/setup-bootstrap.js`).
+- Cross-project installer behavior, including `--dry-run`, `--force`, conflict
+  detection, backup creation, and manifest regeneration
+  (`tools/install-defences.js`).
 - Controlled dependency update flow in `update-packages.js`.
+- Shared registry cache, retry-fetch, provenance, typosquatting, and profiler
+  libraries under `tools/lib/`.
+- Performance benchmark regression tests under `tools/perf/`.
 
 ## Lint, Format and Link Checks
 

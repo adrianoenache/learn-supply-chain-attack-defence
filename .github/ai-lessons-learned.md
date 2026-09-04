@@ -17,7 +17,19 @@ Each entry must be concise and actionable:
 
 ## Entries
 
-_No entries yet. Add the first one when an AI output violates a project rule and the root cause should be recorded._
+### 2026-09-03 — Session memory loss
+
+- **Date:** 2026-09-03
+- **Rule violated:** Context Before Action / continuity
+- **Affected files:** `/memories/session/plan.md`, `.github/PLAN.md`
+- **What happened:** A VS Code chat section failure cleared session memory,
+  making the current plan inaccessible and forcing reconstruction from scratch.
+- **Correction applied:** Created `.github/PLAN.md` as authoritative,
+  versioned plan; added `/memories/` to `.gitignore`; updated
+  `.github/copilot-instructions.md`; and created the
+  `.github/skills/context-recovery/SKILL.md` skill.
+- **Instruction/agent updated:** `.github/copilot-instructions.md`,
+  `.github/skills/context-recovery/SKILL.md`
 
 ---
 

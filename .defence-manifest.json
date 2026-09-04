@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T00:50:57.082Z",
+  "installedAt": "2026-09-04T13:08:47.018Z",
   "files": [
     {
       "path": ".npmrc",
@@ -11,16 +11,52 @@
       "hash": "2b594b324a64c3d3f8ea22a878e89ff7565f824e806d080d60ad2a9f6f6ce6e6"
     },
     {
+      "path": ".husky/post-merge",
+      "hash": "97b6317e9094a1dcb8938fadd34e89261468182e860e59f0e2a0635d85e50a2d"
+    },
+    {
       "path": "biome.json",
       "hash": "34fb7c62be39a2940ecf221172f02041de618dbc2175f6d03ee323f5e17ce73b"
     },
     {
-      "path": "tools/check-package-age.js",
-      "hash": "b368683be9c2ce545c84cf4f408b8044f28924c69acd4dde034e8dd966479c2d"
-    },
-    {
       "path": "tools/add-package.js",
       "hash": "ff99630ce13a646602f6e343e90b6323c1595a020ff5e544f3962f9d118ee680"
+    },
+    {
+      "path": "tools/add-package.test.js",
+      "hash": "c3683c4a40e64d3c2e11a232e8b631cc3b9321cc094ceb6ebefea8be6ddfd419"
+    },
+    {
+      "path": "tools/check-engines.js",
+      "hash": "68c91ac2d246b67235beaa01adc4b34e67ddd3356b8f3408e1ae636ca213d54f"
+    },
+    {
+      "path": "tools/check-engines.test.js",
+      "hash": "7a302eb1c3489d547bab3592a94374b6c18a0d1de39d44e0f002ee8b35ceb94a"
+    },
+    {
+      "path": "tools/check-hooks.js",
+      "hash": "1bdde4580aee73272fbd9d7e93374a2f44f3749ed8bdca6c2652958c65f5e019"
+    },
+    {
+      "path": "tools/check-hooks.test.js",
+      "hash": "384f22c77f1632cdc61c05baad7e4d85350ebf042731b28d7e44214c77b29827"
+    },
+    {
+      "path": "tools/check-licenses.js",
+      "hash": "e99560e344ce567eda4df12e57ed5caaa58118110733b40b465e3644bb888ae0"
+    },
+    {
+      "path": "tools/check-licenses.test.js",
+      "hash": "38fc73332cd017216ceb5e0ad9f3c926f5599cc22d79c5006b7324cede387867"
+    },
+    {
+      "path": "tools/check-lockfile-integrity.js",
+      "hash": "d1dd35c61d2f80c5cc8be90ebee2dc3dca5b327b9114cb2088ba392d3763981c"
+    },
+    {
+      "path": "tools/check-lockfile-integrity.test.js",
+      "hash": "1de47daeca3508307a2432d5be95fe000f1b789c4937a0d5c1c0450f81aa7ae8"
     },
     {
       "path": "tools/check-md-links.js",
@@ -31,8 +67,64 @@
       "hash": "d7606786c31cb155aed68af0b2926fd881a70f96725c2edf305c65fd65131bf0"
     },
     {
-      "path": "tools/lib/package-utils.js",
-      "hash": "7115579da57129b60ed6b4174626d323a0b68dce4cc189291f8f0f962a601a52"
+      "path": "tools/check-package-age.js",
+      "hash": "b368683be9c2ce545c84cf4f408b8044f28924c69acd4dde034e8dd966479c2d"
+    },
+    {
+      "path": "tools/check-package-age.test.js",
+      "hash": "a40e165c7cc1dea13b4a6b5b214ff68509e81e2891bddc52d220863d948c0c10"
+    },
+    {
+      "path": "tools/check-secrets.js",
+      "hash": "e1d350a0f137953fbaa5a1a13dbec46a005222a5b3634a647b63c9124d76c4b3"
+    },
+    {
+      "path": "tools/check-secrets.test.js",
+      "hash": "13cfb5c5685e7f4ff52e8b4377e27f484d3c1c1ad9ba3492a63ab43d35bb1a3f"
+    },
+    {
+      "path": "tools/check-sync.js",
+      "hash": "727f05d1221fd7fc14c5fd06d8b3e2b61fb283da1ac8986d16d187008ba88078"
+    },
+    {
+      "path": "tools/check-sync.test.js",
+      "hash": "0c7e81cc3ca36b22d0a839aebeda92b2041241c24ad0a2eff7577b636e983f13"
+    },
+    {
+      "path": "tools/check-updates.js",
+      "hash": "719b9a779d69bbc85941e41df5e2bbcac6a5a7109c723e5c7746094192d8336a"
+    },
+    {
+      "path": "tools/check-updates.test.js",
+      "hash": "27778d7f8bf25bad1e4959b2d8de3e04d248809da907bfbf18290372c48df2f6"
+    },
+    {
+      "path": "tools/generate-sbom.js",
+      "hash": "b191e25839633803756af82490b86f91509131e11c4bdc7b51a7013db22afa1f"
+    },
+    {
+      "path": "tools/generate-sbom.test.js",
+      "hash": "c60f39cab20937246130d9bc29645b35f7785006da5f0c32719c9b563c9753bc"
+    },
+    {
+      "path": "tools/install-defences.js",
+      "hash": "7886dee995dcde395c1d8f29b75628e36d2eb3d14b13694b2817d420388f8666"
+    },
+    {
+      "path": "tools/install-defences.test.js",
+      "hash": "dc627a2942b4126ddec2a64539a7d61b1660206f48f7c49cec99ffe01ef99fe5"
+    },
+    {
+      "path": "tools/integration.test.js",
+      "hash": "31054e600a2a6042aa3a454e9aa311dce06041af4b1b1197c590f9ca8f937765"
+    },
+    {
+      "path": "tools/run-audit-with-retry.js",
+      "hash": "dfa09e5ea34faf173ca7baca04d641a2d9d9e353977aab312e6d0d208f42930d"
+    },
+    {
+      "path": "tools/run-audit-with-retry.test.js",
+      "hash": "6cdf28fa5c35f98a31a008e905fc677ca24449da37b443cdb5c27e997f8fbc3a"
     },
     {
       "path": "tools/setup-bootstrap.js",
@@ -41,18 +133,6 @@
     {
       "path": "tools/setup-bootstrap.test.js",
       "hash": "cae9faea930f07b90a20cf618888a1c1be5de8e3855e56bff7de847dfadcc9f9"
-    },
-    {
-      "path": "tools/check-package-age.test.js",
-      "hash": "a40e165c7cc1dea13b4a6b5b214ff68509e81e2891bddc52d220863d948c0c10"
-    },
-    {
-      "path": "tools/install-defences.js",
-      "hash": "ac993df4749ae71fe4004d79d57e0039fc57ea77c4803c1077074a88323d826a"
-    },
-    {
-      "path": "tools/install-defences.test.js",
-      "hash": "824bcd3585472de3a641db00910aa47e8ed7d7a11b3af4c9325b6a17da7f78dc"
     },
     {
       "path": "tools/update-badge.js",
@@ -77,6 +157,70 @@
     {
       "path": "tools/verify-defences.test.js",
       "hash": "2655b1d06831a36d8fba27182ec0772ae82184ce20d0dc0284ca34e473de2abd"
+    },
+    {
+      "path": "tools/lib/config.js",
+      "hash": "907ed878ebe37bd07f23e8006babeda4882f957362def509a1879a8823c41fbe"
+    },
+    {
+      "path": "tools/lib/config.test.js",
+      "hash": "7466de01e4f0c0ea99363443a5e0759b0169dc26a4e743a6f4832230682848fc"
+    },
+    {
+      "path": "tools/lib/package-utils.js",
+      "hash": "7115579da57129b60ed6b4174626d323a0b68dce4cc189291f8f0f962a601a52"
+    },
+    {
+      "path": "tools/lib/profiler.js",
+      "hash": "bb29f4f3a3b3eee9e5d20c923e23baf46d697b19644503feeb051c0183de5692"
+    },
+    {
+      "path": "tools/lib/profiler.test.js",
+      "hash": "effa119b7c88efd2eadb3b1fbc63a354b5bd4cee148b29b67e089cd864e9eba3"
+    },
+    {
+      "path": "tools/lib/provenance.js",
+      "hash": "7a4020a94cd9fbeba78b788e1f63501dfd2b4be8f0325e3c261a2a73868595e9"
+    },
+    {
+      "path": "tools/lib/provenance.test.js",
+      "hash": "8453a6d3ea4e14c55845fa5db1d81a11326d7eeb8f984f79c33fc0bc3553b247"
+    },
+    {
+      "path": "tools/lib/registry-cache.js",
+      "hash": "0f37bbea37f1a1f1a0b6859e1a58cded593345e8ba180d5a66a96cfada51dfd6"
+    },
+    {
+      "path": "tools/lib/registry-cache.test.js",
+      "hash": "0b38d729ce42e25452c60bf06323b569d086e12b4e00071ef33e767e7407058b"
+    },
+    {
+      "path": "tools/lib/retry-fetch.js",
+      "hash": "32227b1a3dff3ed7ded505d6872dd33bfa1a49bb230aa3e2bdfbb1480cba6933"
+    },
+    {
+      "path": "tools/lib/retry-fetch.test.js",
+      "hash": "7cacbc72d40c6df411064135d42ea6f77c84cb25af16dac59d01bc73247bd019"
+    },
+    {
+      "path": "tools/lib/sync-check.js",
+      "hash": "1335b22bf646c3148b70935ef1f134aa59f32bf30f67122df7e22b8860dc38fb"
+    },
+    {
+      "path": "tools/lib/typosquatting.test.js",
+      "hash": "5937e3375f2e79aaace5b62d7b1b03e4a0ea1172849be997f40f2f1db2226d43"
+    },
+    {
+      "path": "tools/perf/benchmark.js",
+      "hash": "96d1f828ab411992c180fb6ec2f00fe25aef105363a8cc80025457c8877c1fff"
+    },
+    {
+      "path": "tools/perf/benchmark.test.js",
+      "hash": "44445ecde24a2ac682cda4a460961ff3e659945af2b11e23127e3c513e351d13"
+    },
+    {
+      "path": "tools/perf/baselines.json",
+      "hash": "f3c8d3975685d17595418d7fe675a4df7b30f9e83ca9607c5707124985be1f10"
     }
   ]
 }

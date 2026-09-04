@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Authoritative project plan in `.github/PLAN.md` to survive session-memory loss,
+  plus a context-recovery skill (`.github/skills/context-recovery/SKILL.md`)
+  and an updated `.github/copilot-instructions.md` rule requiring the plan to be
+  read at the start of every session.
+- `/memories/` and `.defence-profile.json` added to `.gitignore` to prevent
+  per-session or per-run state from being committed.
+
+### Fixed
+
+- Synchronized the cross-project installer (`tools/install-defences.js`) and its
+  tests with the current source tree: it now copies all defence scripts,
+  libraries, benchmarks, and hooks, and registers every `defence:*` script in
+  the target `package.json`, including `defence:check-engines`,
+  `defence:update-check`, `defence:license-check`, `defence:sync-check`,
+  `defence:audit`, `defence:generate-sbom`, and `defence:perf`.
+- Regenerated `.defence-manifest.json` with 55 file hashes to match the updated
+  installer.
+- Fixed Mermaid block closing in `docs/en/security/index.md` and
+  `docs/pt-BR/security/index.md`.
+- Updated `docs/en/adopting-in-other-projects.md`,
+  `docs/pt-BR/adopting-in-other-projects.md`, `docs/en/testing.md`, and
+  `docs/pt-BR/testing.md` to reflect the current tool set and test suites.
+- Reorganized `TODO.md` into Open Items, Phase Summary, and completed sections,
+  and moved the v1.0.0 release to a future action.
+- Aligned CI with the local pre-commit by using `npm run defence:audit` in the
+  `defence-gates` job, so the retry wrapper also protects CI runs.
+
+### Added
+
 - Fase 7.5 — P1 technical debt documentation:
   - New `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, manual remediation steps, and how to run each defense manually.
   - New `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild native packages such as `esbuild`, `sharp`, and `canvas` after `ignore-scripts`.

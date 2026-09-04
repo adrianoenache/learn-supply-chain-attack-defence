@@ -98,6 +98,12 @@ out
 dist
 .output
 
+# AI session memory (per-conversation, not versioned)
+/memories/
+
+# Per-run performance profile (per-developer state)
+.defence-profile.json
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
