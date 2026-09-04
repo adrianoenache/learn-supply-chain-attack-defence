@@ -63,6 +63,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `tools/lib/install-monitor-report.test.js`,
     `tools/monitor-install.test.js`, and extended
     `tools/add-package.test.js` and `tools/setup-bootstrap.test.js` scenarios.
+
+- `.npmrc` hardening (Fase C.4):
+  - Added `npm-audit-fix-level=high` so `npm audit fix` only applies
+    high/critical CVE fixes.
+  - Added `send-metrics=false` to opt out of npm telemetry/metrics collection.
+  - New `docs/en/npmrc-hardening.md` and `docs/pt-BR/npmrc-hardening.md`
+    explaining every setting, rationale, rejected alternatives, and special
+    scenarios such as private registries and emergency patches.
+  - Updated `docs/en/security/defense-layer-6-npmrc-config.md` and
+    `docs/pt-BR/security/defense-layer-6-npmrc-config.md` with cross-references.
+  - Updated README, indexes, and tools pages to link the new guide.
+
 - Authoritative project plan in `.github/PLAN.md` to survive session-memory loss,
   plus a context-recovery skill (`.github/skills/context-recovery/SKILL.md`)
   and an updated `.github/copilot-instructions.md` rule requiring the plan to be

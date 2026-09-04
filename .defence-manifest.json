@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T17:53:38.336Z",
+  "installedAt": "2026-09-04T18:24:04.520Z",
   "files": [
     {
       "path": ".npmrc",
-      "hash": "35d41f0b7528e51839688da8aaa51c80a9ddd323792f20ceb8c6bfbcac84d648"
+      "hash": "11fb2c99c9b08f99c557f0098de3eed6f82be6284f46ec099b373a344b512942"
     },
     {
       "path": ".husky/pre-commit",

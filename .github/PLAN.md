@@ -1,34 +1,31 @@
-# Plano de Ação — Conclusão do projeto (release adiado para o futuro)
+# Plano de Ação — Fase C.4: `.npmrc` Hardening
 
 > **Authoritative plan.** This file is the source of truth for the current
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-04 (trust score dashboard planning)
+> Last updated: 2026-09-04 (Fase C.4 `.npmrc` hardening)
 
-## Estado atual (2026-09-04)
+## Contexto
 
-O projeto `learn-supply-chain-attack-defence` está na **fase final de conclusão**. Todas as 12 camadas de defesa estão implementadas e testadas (408/408 testes passando). O mecanismo de adoção cross-project (`install-defences.js`) foi atualizado, o bug de formatação Mermaid foi corrigido, a CI foi alinhada com o pre-commit (`npm run defence:audit`), o pre-install dry-run de lifecycle scripts foi implementado e integrado ao `defence:add`, e o trust score dashboard foi implementado e commitado.
+A Fase C.3 (process monitoring) foi concluída, validada com 432/432 testes passando e pushada para `origin/dev`. As próximas fases pendentes no roadmap de conclusão do projeto são:
 
-**Sandbox mode foi descartado** por violar critérios de portabilidade, educação prática e ausência de dependências pesadas. A Fase 9 foi repriorizada para alternativas compatíveis: pre-install dry-run (P0) ✅ concluído, trust score dashboard (P1) ✅ concluído, process monitoring (P1) em planejamento, e hardening no `.npmrc` (P1/P2).
+- **C.4** — `.npmrc` hardening (P1)
+- **D** — Otimização de CI/CD (P1)
+- **E** — Expansão da documentação (P1)
 
-**O próximo passo imediato** é implementar o process monitoring de lifecycle scripts durante `npm install` (Fase C.3).
+Esta fase foca em revisar, fortalecer e documentar as configurações do `.npmrc` — a base da Camada 6 de defesa (`Hardened .npmrc`).
 
 **O release v1.0.0 foi removido do escopo imediato.** Ele será planejado e executado apenas quando o projeto estiver de fato concluído, como ação futura.
 
-## Decisões do usuário
+## Decisões confirmadas para a Fase C.4
 
-- O projeto só será considerado concluído quando **todas as pendências** estiverem resolvidas.
-- **O release v1.0.0 não faz mais parte do escopo imediato**; será planejado e executado como ação futura, após a conclusão do projeto.
-- `run-audit-with-retry.js` precisa ser **revisado e verificado** quanto à correta integração.
-- **Sandbox mode foi descartado** como opção para conclusão do projeto (viola critérios de portabilidade, educação prática e ausência de dependências pesadas).
-- Fase 9 será **repriorizada** para alternativas compatíveis:
-  - **P0**: Pre-install dry-run (análise estática de lifecycle scripts).
-  - **P1**: Trust score dashboard; process monitoring de lifecycle scripts; revisão e documentação de hardening no `.npmrc`.
-- **CI/CD será otimizada**: cache de `node_modules` via artifact, proteção de `main` (push apenas em `dev`), separação de lint/format, upload de SBOM como artifact.
-- **Documentação será expandida**: CI/CD overview, git workflow/branch protection, SBOM/compliance, performance tuning.
-- **`PROJECT_STATUS_REPORT.md` atual (9,1/10, 154 testes, 2026-08-20) será mantido como referência**; a nona análise de status será etapa pré-release no futuro.
-- Validação ao vivo dos gates deve ser executada.
+- Manter todas as 16 configurações existentes do `.npmrc`; elas já cobrem pinning, registry fixo, SSL, ignore-scripts, engine-strict, idade mínima, resiliência de rede e audit.
+- Adicionar `npm-audit-fix-level=high` para que `npm audit fix` só aplique correções de alta/crítica, alinhado ao `audit-level=high` já configurado.
+- Adicionar `send-metrics=false` para opt-out explícito de telemetria do npm.
+- **Não** adicionar `prefer-online=true` nesta fase; documentar a opção e o trade-off de performance.
+- Não alterar scripts de CI/CD nesta fase (ficam para Fase D).
+- Criar documentação bilíngue dedicada explicando cada configuração, impacto de segurança e cenários especiais.
 
 ## Pendências confirmadas
 
@@ -259,17 +256,38 @@ C.2 Trust score dashboard — P1
 - `npm run defence:install-monitored -- npm install --dry-run` registra eventos.
 - `npm run defence:add -- lodash@4.17.21 --dry-run` continua funcionando.
 
-C.4 Hardening no `.npmrc` — P1/P2
+### Fase C.4 — `.npmrc` Hardening (em andamento)
 
-- Revisar configurações atuais e avaliar adições.
-- Criar `docs/en/npmrc-hardening.md` e `docs/pt-BR/npmrc-hardening.md`.
-- Atualizar `install-defences.js` se novas opções forem adotadas.
+**Decisões**
 
-C.4 Hardening no `.npmrc` — P1/P2
+- Manter as 16 configurações existentes do `.npmrc` como base do hardening.
+- Adicionar `npm-audit-fix-level=high` para alinhar `npm audit fix` ao `audit-level=high`.
+- Adicionar `send-metrics=false` como opt-out explícito de telemetria.
+- **Não** adicionar `prefer-online=true` nesta fase; documentar o trade-off.
+- Não alterar CI/CD nesta fase (Fase D).
 
-- Revisar configurações atuais e avaliar adições.
-- Criar `docs/en/npmrc-hardening.md` e `docs/pt-BR/npmrc-hardening.md`.
-- Atualizar `install-defences.js` se novas opções forem adotadas.
+**Passos**
+
+1. Atualizar `.npmrc` com as novas configurações e comentários explicativos.
+2. Criar `docs/en/npmrc-hardening.md` — guia completo EN.
+3. Criar `docs/pt-BR/npmrc-hardening.md` — guia completo PT-BR.
+4. Atualizar `docs/en/security/defense-layer-6-npmrc-config.md` e `docs/pt-BR/security/defense-layer-6-npmrc-config.md` com links cruzados.
+5. Atualizar `docs/en/index.md`, `docs/pt-BR/index.md`, `docs/en/tools.md` e `docs/pt-BR/tools.md`.
+6. Garantir que `tools/install-defences.js` copie o `.npmrc` atualizado.
+7. Regenerar `.defence-manifest.json`.
+8. Atualizar `CHANGELOG.md` e marcar o item em `TODO.md`.
+9. Documentar o status prospectivo das novas configurações e os warnings esperados do npm 11.17.0.
+
+**Verificação**
+
+- `npm test` (432 pass).
+- `npm run lint` limpo.
+- `npm run defence:check-md-links` válido.
+- `npm run defence:verify-defences` passa.
+- `bash .husky/pre-commit` passa.
+- `npm run defence:install-monitored -- npm install --dry-run` continua funcionando (mensagens de warning do npm sobre `npm-audit-fix-level` e `send-metrics` são esperadas e não devem quebrar o fluxo).
+
+> **Status:** implementação concluída; documentação de lookahead ajustada para esclarecer que `npm-audit-fix-level` e `send-metrics` são configurações futuras ainda não reconhecidas pelo npm 11.17.0.
 
 ### Fase D — Otimização da CI/CD
 
@@ -347,20 +365,36 @@ F.3 Release v1.0.0 (ação futura)
 
 ## Status da implementação
 
-- ✅ **Fase C.2 — Trust score dashboard** implementada e commitada em `42209bd`.
+- ✅ **Fase C.2 — Trust score dashboard** implementada e commitada.
   - Motor `tools/lib/trust-engine.js` e testes `tools/lib/trust-engine.test.js`.
   - CLI `tools/generate-trust-report.js` e testes `tools/generate-trust-report.test.js`.
   - Integração opcional em `tools/add-package.js`.
   - Configuração `trustReport` em `package.json` e `tools/lib/config.js`.
   - Scripts npm: `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`.
-  - Installer atualizado; `.defence-manifest.json` regenerado com 63 arquivos.
+  - Installer atualizado; `.defence-manifest.json` regenerado.
   - Documentação bilíngue e atualizações em README, índices e quick-reference.
-  - Gates: `npm test` (408/408), `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit` — todos passaram.
+  - Gates passaram.
+
+- ✅ **Fase C.3 — Process monitoring** implementada e commitada.
+  - Biblioteca `tools/lib/process-monitor.js` e testes.
+  - Formatador `tools/lib/install-monitor-report.js` e testes.
+  - CLI `tools/monitor-install.js` e testes.
+  - Integração em `tools/add-package.js` e `tools/setup-bootstrap.js`.
+  - Configuração `lifecycleMonitoring` em `package.json` e `tools/lib/config.js`.
+  - Script `defence:install-monitored`.
+  - Documentação bilíngue em `docs/en/lifecycle-monitoring.md` e `docs/pt-BR/lifecycle-monitoring.md`.
+  - Gates: `npm test` (432/432), `npm run lint`, `npm run defence:check-md-links`, `npm run defence:verify-defences` — todos passaram.
+
+- ⏳ **Fase C.4 — `.npmrc` hardening** em andamento.
 
 ## Decisões pendentes a avaliar no final
 
-1. **Fase 9 Experimental Hardening**: sandbox foi descartado. Pre-install dry-run, trust score dashboard e process monitoring serão implementados; restricted VM permanece como ideia futura.
-2. **Hardening no `.npmrc`**: revisar configurações adicionais e documentar cada uma.
+1. **Fase 9 Experimental Hardening**: sandbox foi descartado. Pre-install dry-run, trust score dashboard e process monitoring foram implementados; restricted VM permanece como ideia futura.
+2. **Hardening no `.npmrc`**: em andamento — adicionar `npm-audit-fix-level=high` e `send-metrics=false`, documentar cada configuração.
+3. **CI/CD**: implementar cache via artifact, proteção de `main`, separação lint/format e upload de SBOM.
+4. **Documentação**: criar páginas de CI/CD overview, git workflow, SBOM/compliance, performance tuning.
+5. **Status report**: manter relatório atual como referência; nova análise pré-release será feita no futuro.
+6. **Release futuro**: quando o projeto estiver concluído, planejar ações de release em um plano separado.
 3. **CI/CD**: implementar cache via artifact, proteção de `main`, separação lint/format e upload de SBOM.
 4. **Documentação**: criar páginas de CI/CD overview, git workflow, SBOM/compliance, performance tuning e npmrc hardening.
 5. **Timeout do audit**: manter 60s em `run-audit-with-retry.js` ou ajustar com base na instabilidade observada do npm?

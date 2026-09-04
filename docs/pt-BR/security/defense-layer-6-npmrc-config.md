@@ -20,6 +20,15 @@ O arquivo `.npmrc` configura o npm com defaults mais seguros. Ele se aplica a to
 - `strict-ssl=true` — sempre verificar certificados TLS, prevenindo ataques de downgrade / MitM.
 - Dependências opcionais não são mais omitidas globalmente, permitindo que os pacotes de CLI nativa do Biome sejam instalados. Elas continuam sujeitas às verificações de `min-release-age` e audit.
 
+## Configurações adicionais de hardening
+
+- `npm-audit-fix-level=high` — restringe o `npm audit fix` a CVEs de alta/crítica, impedindo que avisos de baixa/moderada mudem silenciosamente o lock file.
+- `send-metrics=false` — desabilita a coleta de telemetria/métricas do npm para uma postura de privacidade determinística, especialmente útil em ambientes de CI ou air-gapped.
+
+> **Prospectivas / future-facing:** `npm-audit-fix-level` e `send-metrics` ainda não são reconhecidas pelo npm 11.17.0, que emitirá avisos de "Unknown project config". Elas são mantidas em `.npmrc` para que versões futuras do npm as apliquem automaticamente; até lá, os avisos são esperados e inofensivos.
+
+Veja o [guia de hardening do `.npmrc`](../npmrc-hardening.md) para uma explicação detalhada de cada configuração, a razão por trás de cada escolha, opções consideradas mas não adotadas, e orientações para registries privados e patches de emergência.
+
 ## Impacto
 
-Mesmo que um desenvolvedor execute um comando npm simples por engano, o `.npmrc` reduz a superfície de dano ao desabilitar scripts, exigir versões exatas e requerer compatibilidade de engines.
+Mesmo que um desenvolvedor execute um comando npm simples por engano, o `.npmrc` reduz a superfície de dano ao desabilitar scripts, exigir versões exatas e requerer compatibilidade de engines. As configurações adicionais de audit e telemetria tornam a remediação automatizada e o comportamento de privacidade previsíveis.

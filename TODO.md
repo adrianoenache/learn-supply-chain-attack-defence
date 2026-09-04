@@ -50,7 +50,7 @@ Priority order: **P0 → P1 → P2 → P3**.
   typosquatting, lifecycle script risk, and license signals.
 - [x] Implement process monitoring for lifecycle scripts spawned during
   `npm install`.
-- [ ] Review and document `.npmrc` hardening options.
+- [x] Review and document `.npmrc` hardening options.
 - [ ] Optimise CI/CD: cache `node_modules` via artifacts, protect `main` (push
   only on `dev`), split lint/format jobs, upload SBOM artifact.
 - [ ] Expand documentation: CI/CD overview, git workflow & branch protection,

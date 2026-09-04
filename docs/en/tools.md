@@ -75,6 +75,10 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `monitor-install.js` | CLI wrapper to run any `npm install`/`ci` command under process monitoring. |
 | `perf/benchmark.js` | Performance benchmark suite measuring execution time and network calls for registry-dependent tools. Compares results against `tools/perf/baselines.json` to detect regressions. |
 
+## `.npmrc` Hardening
+
+The project keeps a hardened [.npmrc](../../.npmrc) at the root. It is copied to adopted projects by `install-defences.js`. See the [`.npmrc` hardening guide](npmrc-hardening.md) for the rationale behind each setting, options that were considered but not adopted, and guidance for private registries and emergency patches.
+
 ## Performance Benchmarks
 
 The `tools/perf/benchmark.js` suite measures how the registry-dependent tools behave under controlled conditions:

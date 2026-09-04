@@ -39,6 +39,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - [Troubleshooting](troubleshooting.md) — falhas comuns, correções e como executar cada defesa manualmente.
 - [Análise de scripts de lifecycle](security/lifecycle-script-analysis.md) — varredura estática e somente leitura dos scripts de lifecycle antes da instalação.
 - [Monitoramento de processos de lifecycle](lifecycle-monitoring.md) — observação em tempo de execução de todo subprocesso gerado durante `npm install`.
+- [Hardening do `.npmrc`](npmrc-hardening.md) — guia detalhado de cada configuração do npm que endurece as instalações.
 - [Reconstrução de pacotes com lifecycle scripts](security/rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
 - [Trust scoring](trust-scoring.md) — agregue sinais de supply chain em uma pontuação de confiança por pacote.
 
