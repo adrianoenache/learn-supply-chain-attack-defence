@@ -26,6 +26,9 @@
 // Flow executed:
 //   1. Validate the argument (name and exact version required)
 //   2. Check package age via check-package-age.js --pkg (aborts if too recent)
+//   2.6 Verify npm provenance / SLSA attestation when configured
+//   2.7 Static analysis of lifecycle scripts (pre-install dry-run)
+//   2.8 Pin tarball integrity from registry manifest (TOCTOU protection)
 //   3. Install with `npm install --save-exact` (skip if --dry-run)
 //      The command is built as an argument array and executed with spawnSync,
 //      so shell interpolation is impossible even though the input is already
@@ -34,6 +37,7 @@
 //   5. Audit known vulnerabilities with `npm audit --audit-level=high`
 //   6. Run a transitive package-age check to catch newly pulled transitive
 //      packages that are younger than the minimum age.
+//   7. Dependency license check
 //
 // Packages with lifecycle scripts (postinstall, preinstall):
 //   The project uses ignore-scripts=true in .npmrc, blocking lifecycle scripts for all
@@ -60,6 +64,9 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const typosquatting = require(path.resolve(__dirname, './lib/typosquatting.js'))
 const provenance = require(path.resolve(__dirname, './lib/provenance.js'))
+const scriptAnalyzer = require(
+  path.resolve(__dirname, './lib/script-analyzer.js'),
+)
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
@@ -106,6 +113,14 @@ function setProvenanceImpl(fn) {
 }
 function resetProvenanceImpl() {
   provenanceImpl = provenance
+}
+
+let scriptAnalyzerImpl = scriptAnalyzer
+function setScriptAnalyzerImpl(fn) {
+  scriptAnalyzerImpl = fn
+}
+function resetScriptAnalyzerImpl() {
+  scriptAnalyzerImpl = scriptAnalyzer
 }
 
 let loadConfigImpl = loadConfig
@@ -428,7 +443,71 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
         }
       }
 
-      // Step 2.5 — Fetch registry manifest and pin tarball integrity before install.
+      // Step 2.7 — Static analysis of lifecycle scripts (pre-install dry-run).
+      // Fetches the registry manifest and scans lifecycle hooks for common risky
+      // patterns (network calls, shell execution, dynamic evaluation, etc.).
+      // This is defense-in-depth: .npmrc blocks lifecycle scripts, but the scan
+      // informs the contributor what would run if scripts were enabled.
+      const analysisConfig = config.lifecycleScriptAnalysis ?? {
+        enabled: true,
+        failOn: 'high',
+      }
+      if (analysisConfig.enabled !== false) {
+        console.log(
+          `\nAnalyzing lifecycle scripts for ${name}@${exactVersion}...`,
+        )
+        try {
+          const analysisManifest = await fetchVersionManifest(
+            name,
+            exactVersion,
+          )
+          const analysis = scriptAnalyzerImpl.analyzeManifest(
+            name,
+            exactVersion,
+            analysisManifest,
+          )
+
+          if (analysis.hasLifecycleScripts) {
+            console.log(
+              `  Found ${Object.keys(analysis.scripts).length} lifecycle script(s)`,
+            )
+            if (analysis.findings.length > 0) {
+              console.log(
+                `  ${analysis.findings.length} risky pattern(s) detected (risk level: ${analysis.riskLevel})`,
+              )
+              for (const finding of analysis.findings) {
+                console.log(
+                  `    [${finding.level.toUpperCase()}] ${finding.script}: ${finding.message}`,
+                )
+              }
+            } else {
+              console.log('  No risky patterns detected')
+            }
+          } else {
+            console.log('  No lifecycle scripts found')
+          }
+
+          if (analysis.riskLevel === analysisConfig.failOn) {
+            console.error(
+              `\nLifecycle script analysis FAILED for ${name}@${exactVersion}: risk level is ${analysis.riskLevel}.`,
+            )
+            console.error(
+              'Installation aborted — review the package scripts or adjust lifecycleScriptAnalysis.failOn.',
+            )
+            exitFn(1)
+            return
+          }
+        } catch (err) {
+          console.error(
+            `\nLifecycle script analysis could not be completed: ${err.message}`,
+          )
+          console.error('Installation aborted.')
+          exitFn(1)
+          return
+        }
+      }
+
+      // Step 2.8 — Fetch registry manifest and pin tarball integrity before install.
       // This closes the TOCTOU window: we record the expected integrity at check time
       // and re-verify it after npm install against the actual lockfile entry.
       console.log(`\nPinning tarball integrity for ${name}@${exactVersion}...`)
@@ -663,6 +742,8 @@ module.exports = {
   resetTyposquattingImpl,
   setProvenanceImpl,
   resetProvenanceImpl,
+  setScriptAnalyzerImpl,
+  resetScriptAnalyzerImpl,
   setLoadConfigImpl,
   resetLoadConfigImpl,
   fetchVersionManifest,

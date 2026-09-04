@@ -207,6 +207,10 @@ function buildDefaults(pkg) {
         pkg.checkMdLinks?.cacheFile ??
         path.resolve(REPO_ROOT, '.md-links-cache.json'),
     },
+    lifecycleScriptAnalysis: {
+      enabled: pkg.lifecycleScriptAnalysis?.enabled ?? true,
+      failOn: pkg.lifecycleScriptAnalysis?.failOn ?? 'high',
+    },
     e2e: {
       cacheTtlHours: Number.parseInt(process.env.E2E_CACHE_TTL_HOURS, 10) || 24,
       defaultTimeoutMs: pkg.e2e?.defaultTimeoutMs ?? 30000,

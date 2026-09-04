@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T14:26:24.494Z",
+  "installedAt": "2026-09-04T15:01:24.399Z",
   "files": [
     {
       "path": ".npmrc",
@@ -20,11 +20,19 @@
     },
     {
       "path": "tools/add-package.js",
-      "hash": "ff99630ce13a646602f6e343e90b6323c1595a020ff5e544f3962f9d118ee680"
+      "hash": "54d886fd6fabbe5d40198faa82d0541823b51b06a1997aa9fc463ce2ddde0a2e"
     },
     {
       "path": "tools/add-package.test.js",
-      "hash": "c3683c4a40e64d3c2e11a232e8b631cc3b9321cc094ceb6ebefea8be6ddfd419"
+      "hash": "0d2480c0a1e5a35c9eb57597fab33e295418ba55c03f472cb9f6007cba769c98"
+    },
+    {
+      "path": "tools/analyze-lifecycle-scripts.js",
+      "hash": "70e96563374633de43c9bdeb2066ac515586428509cd165992a1c403e823139c"
+    },
+    {
+      "path": "tools/analyze-lifecycle-scripts.test.js",
+      "hash": "368c605cd678a77b475b9f682cc0c743dfde0ca1c695513bb91efd711b260e46"
     },
     {
       "path": "tools/check-engines.js",
@@ -108,11 +116,11 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "7886dee995dcde395c1d8f29b75628e36d2eb3d14b13694b2817d420388f8666"
+      "hash": "855e678e60bb074184b618bf3384394428f428ff19053a5cd6ec74096eb966a4"
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "dc627a2942b4126ddec2a64539a7d61b1660206f48f7c49cec99ffe01ef99fe5"
+      "hash": "72e056a990c909d300cd3e4ab07158465a42b839223c18d409e826c60b5bd389"
     },
     {
       "path": "tools/integration.test.js",
@@ -160,7 +168,7 @@
     },
     {
       "path": "tools/lib/config.js",
-      "hash": "907ed878ebe37bd07f23e8006babeda4882f957362def509a1879a8823c41fbe"
+      "hash": "6f5eb859632e87d6443a5d77ab77cef0216dabd06793e85983d502d1676bff58"
     },
     {
       "path": "tools/lib/config.test.js",
@@ -189,6 +197,14 @@
     {
       "path": "tools/lib/registry-cache.js",
       "hash": "0f37bbea37f1a1f1a0b6859e1a58cded593345e8ba180d5a66a96cfada51dfd6"
+    },
+    {
+      "path": "tools/lib/script-analyzer.js",
+      "hash": "d1d3b17c8a6784ae105b888235e21ea1324b9c6ca972d318085e5ea05d0aeb9e"
+    },
+    {
+      "path": "tools/lib/script-analyzer.test.js",
+      "hash": "ee05e1d3ef2aadf37ea7008cd6b825293b41182de6a882895a7525b9caec5271"
     },
     {
       "path": "tools/lib/registry-cache.test.js",

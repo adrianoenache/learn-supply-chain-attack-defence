@@ -43,6 +43,7 @@ In addition, the toolkit provides supporting capabilities that do not fit a sing
 
 | Capability | Tool | Purpose |
 | --- | --- | --- |
+| Lifecycle script analysis | `defence:analyze-lifecycle-scripts` | Static, read-only scan of package lifecycle scripts before install |
 | SBOM generation | `defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
 | Adoption integrity | `defence:verify-defences` | Verify files copied by `install-defences.js` |
 

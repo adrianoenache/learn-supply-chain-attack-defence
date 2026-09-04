@@ -43,6 +43,7 @@ Além disso, o toolkit fornece capacidades de suporte que não se encaixam em um
 
 | Capacidade | Ferramenta | Propósito |
 | --- | --- | --- |
+| Análise de scripts de lifecycle | `defence:analyze-lifecycle-scripts` | Varredura estática e somente leitura dos scripts de lifecycle antes da instalação |
 | Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
 | Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
 

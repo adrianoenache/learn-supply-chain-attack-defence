@@ -78,6 +78,10 @@
     "cacheTtlHours": 24,
     "cacheFile": ".md-links-cache.json"
   },
+  "lifecycleScriptAnalysis": {
+    "enabled": true,
+    "failOn": "high"
+  },
   "defences": {
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
@@ -86,6 +90,7 @@
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
+    "defence:analyze-lifecycle-scripts": "node ./tools/analyze-lifecycle-scripts.js",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-engines": "node ./tools/check-engines.js",
     "defence:check-lockfile-integrity": "node ./tools/check-lockfile-integrity.js",

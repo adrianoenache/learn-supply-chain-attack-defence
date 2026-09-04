@@ -46,7 +46,9 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 | --- | --- |
 | `check-engines.js` | Valida se o Node.js e o npm ativos satisfazem o campo `engines` do package.json. |
 | `check-package-age.js` | Impõe a idade mínima dos pacotes para dependências diretas ou transitivas. |
-| `add-package.js` | Adiciona uma dependência com segurança, com verificações de idade, assinatura, audit e idade transitiva. |
+| `add-package.js` | Adiciona uma dependência com segurança, com verificações de idade, assinatura, audit, análise de scripts de lifecycle e idade transitiva. |
+| `analyze-lifecycle-scripts.js` | Análise estática e somente leitura dos scripts de lifecycle de um pacote npm antes da instalação. |
+| `lib/script-analyzer.js` | Motor compartilhado de análise de scripts de lifecycle usado por `analyze-lifecycle-scripts.js` e `add-package.js`. |
 | `setup-bootstrap.js` | Realiza a primeira instalação controlada quando `package-lock.json` está ausente. |
 | `update-packages.js` | Wrapper controlado para `npm update` com verificações pós-atualização e aprovação interativa opcional. |
 | `check-updates.js` | Auxiliar somente leitura para pré-commit que avisa sobre atualizações elegíveis e em quarentena. Deduplica requisições ao registry por execução com cache em memória de packuments e reporta métricas de hit/miss. |

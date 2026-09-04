@@ -41,6 +41,8 @@ const FILES_TO_COPY = [
   'biome.json',
   'tools/add-package.js',
   'tools/add-package.test.js',
+  'tools/analyze-lifecycle-scripts.js',
+  'tools/analyze-lifecycle-scripts.test.js',
   'tools/check-engines.js',
   'tools/check-engines.test.js',
   'tools/check-hooks.js',
@@ -82,6 +84,8 @@ const FILES_TO_COPY = [
   'tools/lib/provenance.js',
   'tools/lib/provenance.test.js',
   'tools/lib/registry-cache.js',
+  'tools/lib/script-analyzer.js',
+  'tools/lib/script-analyzer.test.js',
   'tools/lib/registry-cache.test.js',
   'tools/lib/retry-fetch.js',
   'tools/lib/retry-fetch.test.js',
@@ -98,6 +102,8 @@ const SCRIPTS_TO_ADD = {
   setup:
     'npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare',
   'defence:add': 'node ./tools/add-package.js',
+  'defence:analyze-lifecycle-scripts':
+    'node ./tools/analyze-lifecycle-scripts.js',
   'defence:audit': 'node ./tools/run-audit-with-retry.js',
   'defence:bootstrap': 'node ./tools/setup-bootstrap.js',
   'defence:check-engines': 'node ./tools/check-engines.js',

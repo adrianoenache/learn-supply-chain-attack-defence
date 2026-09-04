@@ -63,6 +63,8 @@ npm run setup
 | `npm run defence:check-secrets` | Verifica arquivos rastreados em busca de possíveis secrets. |
 | `npm run defence:generate-sbom -- --output=sbom.json` | Gera um SBOM CycloneDX 1.4 JSON. |
 | `npm run defence:verify-defences` | Verifica arquivos copiados pelo `install-defences.js` contra o manifesto. |
+| `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version` | Análise estática dos scripts de lifecycle de um pacote antes da instalação. |
+| `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version --fail` | Sai com código não-zero quando padrões de alto risco são encontrados. |
 
 ## Adoção em Outros Projetos
 

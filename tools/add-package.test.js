@@ -87,6 +87,10 @@ function makeMockConfig(overrides = {}) {
       internalPackageNames: [],
       provenanceMode: 'warn',
     },
+    lifecycleScriptAnalysis: {
+      enabled: true,
+      failOn: 'high',
+    },
     ...overrides,
   }
 }
@@ -103,6 +107,7 @@ describe('add-package', () => {
     mod.resetFsImpl()
     mod.resetTyposquattingImpl()
     mod.resetProvenanceImpl()
+    mod.resetScriptAnalyzerImpl()
     mod.resetLoadConfigImpl()
   })
 
@@ -895,6 +900,265 @@ describe('add-package', () => {
       assert.ok(
         captured.errors.some((line) =>
           line.includes('Dependency license check FAILED'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main aborts when high-risk lifecycle scripts are detected', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'risky-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => ({
+        package: 'risky-pkg@1.0.0',
+        scripts: { postinstall: "fetch('https://evil.example.com')" },
+        findings: [
+          {
+            package: 'risky-pkg@1.0.0',
+            script: 'postinstall',
+            level: 'high',
+            pattern: 'network-outbound',
+            message: 'makes an outbound network request',
+          },
+        ],
+        hasLifecycleScripts: true,
+        riskLevel: 'high',
+      }),
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['risky-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:1/,
+      )
+      assert.equal(exitCode, 1)
+      assert.ok(
+        captured.errors.some((line) =>
+          line.includes('Lifecycle script analysis FAILED'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main continues when lifecycle scripts are safe', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() => makeMockConfig())
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => ({
+        package: 'safe-pkg@1.0.0',
+        scripts: {},
+        findings: [],
+        hasLifecycleScripts: false,
+        riskLevel: 'none',
+      }),
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit') return { status: 0 }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:pkg-age-check'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:0/,
+      )
+      assert.equal(exitCode, 0)
+      assert.ok(
+        captured.logs.some((line) =>
+          line.includes('No lifecycle scripts found'),
+        ),
+      )
+    } finally {
+      checkPackageAge.fetchPackageAge = originalFetchPackageAge
+      restoreConsole()
+    }
+  })
+
+  test('main skips lifecycle analysis when disabled', async () => {
+    const mod = readScriptExports()
+    const restoreConsole = captureConsole()
+    const integrity =
+      'sha512-goodintegrity00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'
+
+    mod.setLoadConfigImpl(() =>
+      makeMockConfig({ lifecycleScriptAnalysis: { enabled: false } }),
+    )
+
+    mod.setFetchRegistryJsonImpl(
+      makeMockFetchRegistryJson({
+        'safe-pkg@1.0.0': {
+          statusCode: 200,
+          body: { dist: { integrity } },
+        },
+      }),
+    )
+
+    mod.setTyposquattingImpl({
+      loadExistingNames: () => [],
+      findConflicts: () => [],
+    })
+    mod.setProvenanceImpl({
+      checkProvenance: async () => ({
+        hasProvenance: false,
+        valid: false,
+        reason: 'not checked',
+      }),
+    })
+
+    // If analysis is skipped, the analyzer should not be invoked.
+    mod.setScriptAnalyzerImpl({
+      analyzeManifest: () => {
+        throw new Error('analyzer should not be called')
+      },
+    })
+
+    mod.setFsImpl(
+      makeMockFs({
+        [path.resolve(process.cwd(), 'package-lock.json')]: JSON.stringify({
+          packages: {
+            'node_modules/safe-pkg': { integrity },
+          },
+        }),
+      }),
+    )
+    mod.setSpawnSyncImpl((cmd, args) => {
+      if (cmd === 'npm' && args[0] === 'install') return { status: 0 }
+      if (cmd === 'npm' && args[0] === 'audit') return { status: 0 }
+      if (
+        cmd === 'npm' &&
+        args[0] === 'run' &&
+        args[1] === 'defence:pkg-age-check'
+      ) {
+        return { status: 0 }
+      }
+      return { status: 0 }
+    })
+
+    const checkPackageAge = require(
+      path.resolve(__dirname, './check-package-age.js'),
+    )
+    const originalFetchPackageAge = checkPackageAge.fetchPackageAge
+    checkPackageAge.fetchPackageAge = () =>
+      Promise.resolve({
+        ageDays: 30,
+        published: new Date('2026-08-01T00:00:00.000Z'),
+      })
+
+    try {
+      await assert.rejects(
+        async () =>
+          mod.main(['safe-pkg@1.0.0'], (code) => {
+            exitCode = code
+            throw new Error(`exit:${code}`)
+          }),
+        /exit:0/,
+      )
+      assert.equal(exitCode, 0)
+      assert.ok(
+        !captured.logs.some((line) =>
+          line.includes('Analyzing lifecycle scripts'),
         ),
       )
     } finally {

@@ -37,6 +37,7 @@ This repository is a practical learning environment for understanding and applyi
 ### Support Guides
 
 - [Troubleshooting](troubleshooting.md) — common failures, fixes, and how to run each defense manually.
+- [Lifecycle script analysis](security/lifecycle-script-analysis.md) — static, read-only scan of package lifecycle scripts before install.
 - [Rebuilding lifecycle-script packages](security/rebuilding-lifecycle-packages.md) — safely rebuild native packages after `ignore-scripts`.
 
 ### Project
