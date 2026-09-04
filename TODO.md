@@ -27,8 +27,12 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Fix Mermaid block closing in `docs/en/security/index.md` and
   `docs/pt-BR/security/index.md`.
 - [x] Align CI audit step with pre-commit (`npm run defence:audit`).
-- [ ] Re-run all validation gates once the npm audit endpoint is stable and
+- [x] Re-run all validation gates once the npm audit endpoint is stable and
   commit the changes.
+- [ ] Fix test badge count (`README.md` 325/325 → 333/333) by updating
+  `tools/update-badge.js` to include `tools/perf/*.test.js`.
+- [ ] Implement pre-install dry-run: static analysis of lifecycle scripts before
+  `npm install` in `defence:add`.
 
 ### P1
 
@@ -37,17 +41,32 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Update `docs/en/testing.md` and `docs/pt-BR/testing.md` to list the new
   test suites.
 - [x] Reorganise this TODO file and move the release to a future action.
-- [ ] Regenerate `PROJECT_STATUS_REPORT.md` with a 10/10 score after all
-  corrections are committed.
+- [x] Keep `PROJECT_STATUS_REPORT.md` as the reference status report (current
+  9,1/10, 154 tests, 2026-08-20). Regenerate only during the future pre-release
+  status analysis.
 - [ ] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
+- [ ] Implement trust score dashboard (`defence:trust-report`) aggregating age,
+  cadence, deprecation, maintainer count, weekly downloads, provenance and
+  typosquatting signals.
+- [ ] Implement process monitoring for lifecycle scripts spawned during
+  `npm install`.
+- [ ] Review and document `.npmrc` hardening options.
+- [ ] Optimise CI/CD: cache `node_modules` via artifacts, protect `main` (push
+  only on `dev`), split lint/format jobs, upload SBOM artifact.
+- [ ] Expand documentation: CI/CD overview, git workflow & branch protection,
+  SBOM & compliance, performance tuning, `.npmrc` hardening.
 
 ### P3 / Future
 
-- [ ] Decide whether to implement sandbox mode, profiling dashboard, or
-  alternative `.npmrc` hardening.
+- [x] Decide whether to implement sandbox mode, profiling dashboard, or
+  alternative `.npmrc` hardening. Sandbox mode was rejected; the project will
+  pursue pre-install dry-run, trust scoring, process monitoring and `.npmrc`
+  hardening instead.
 - [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
 - [ ] Automate changelog generation from conventional commits or tags.
 - [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
+- [ ] Run the ninth project status analysis as a pre-release step and decide
+  whether further improvements are needed before releasing.
 
 ---
 
