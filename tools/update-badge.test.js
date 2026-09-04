@@ -39,10 +39,17 @@ function makeMockGlob(filePaths) {
   return (pattern) => {
     const isLib =
       pattern.includes(`${path.sep}lib${path.sep}`) || pattern.includes('/lib/')
+    const isPerf =
+      pattern.includes(`${path.sep}perf${path.sep}`) ||
+      pattern.includes('/perf/')
     return filePaths.filter((p) => {
       const hasLib =
         p.includes(`${path.sep}lib${path.sep}`) || p.includes('/lib/')
-      return isLib ? hasLib : !hasLib
+      const hasPerf =
+        p.includes(`${path.sep}perf${path.sep}`) || p.includes('/perf/')
+      if (isLib) return hasLib
+      if (isPerf) return hasPerf
+      return !hasLib && !hasPerf
     })
   }
 }
@@ -142,6 +149,8 @@ describe('update-badge', () => {
         'Body',
       ].join('\n'),
       '/tools/a.test.js': "test('a1', () => {})\ntest('a2', () => {})",
+      '/tools/lib/b.test.js': "test('b1', () => {})",
+      '/tools/perf/c.test.js': "test('c1', () => {})\ntest('c2', () => {})",
     }
     const fs = makeMockFs(files)
     const logs = []
@@ -150,7 +159,11 @@ describe('update-badge', () => {
 
     mod.setImpls({
       fs,
-      globSync: makeMockGlob(['/tools/a.test.js']),
+      globSync: makeMockGlob([
+        '/tools/a.test.js',
+        '/tools/lib/b.test.js',
+        '/tools/perf/c.test.js',
+      ]),
       exit: () => {},
       readmePath: README_PATH,
     })
@@ -158,8 +171,8 @@ describe('update-badge', () => {
     try {
       const code = mod.main([])
       assert.equal(code, 0)
-      assert.ok(files[README_PATH].includes(mod.buildBadgeLine(2)))
-      assert.ok(logs.some((line) => line.includes('2/2')))
+      assert.ok(files[README_PATH].includes(mod.buildBadgeLine(5)))
+      assert.ok(logs.some((line) => line.includes('5/5')))
     } finally {
       console.log = originalLog
       mod.resetImpls()

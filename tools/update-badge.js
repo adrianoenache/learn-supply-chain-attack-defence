@@ -2,9 +2,9 @@
 'use strict'
 
 // Updates the test-count badge in README.md to match the number of test()
-// calls found in tools/*.test.js and tools/lib/*.test.js. Intended to run
-// before each commit so the badge stays in sync with the test suite without
-// relying on CI/CD.
+// calls found in tools/*.test.js, tools/lib/*.test.js and tools/perf/*.test.js.
+// Intended to run before each commit so the badge stays in sync with the test
+// suite without relying on CI/CD.
 //
 // Usage:
 //   npm run defence:update-badge              — update README.md badge
@@ -18,6 +18,7 @@ const README_PATH = path.resolve(__dirname, '../README.md')
 const TEST_GLOBS = [
   path.resolve(__dirname, '*.test.js'),
   path.resolve(__dirname, 'lib', '*.test.js'),
+  path.resolve(__dirname, 'perf', '*.test.js'),
 ]
 const BADGE_RE =
   /!\[Tests\]\(https:\/\/img\.shields\.io\/badge\/Tests-\d+%2F\d+%20passing-[a-zA-Z]+\)/
