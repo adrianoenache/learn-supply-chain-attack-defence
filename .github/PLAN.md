@@ -8,11 +8,11 @@
 
 ## Estado atual (2026-09-04)
 
-O projeto `learn-supply-chain-attack-defence` está na **fase final de conclusão**. Todas as 12 camadas de defesa estão implementadas e testadas (360/360 testes passando). O mecanismo de adoção cross-project (`install-defences.js`) foi atualizado, o bug de formatação Mermaid foi corrigido, a CI foi alinhada com o pre-commit (`npm run defence:audit`) e o pre-install dry-run de lifecycle scripts foi implementado e integrado ao `defence:add`.
+O projeto `learn-supply-chain-attack-defence` está na **fase final de conclusão**. Todas as 12 camadas de defesa estão implementadas e testadas (408/408 testes passando). O mecanismo de adoção cross-project (`install-defences.js`) foi atualizado, o bug de formatação Mermaid foi corrigido, a CI foi alinhada com o pre-commit (`npm run defence:audit`), o pre-install dry-run de lifecycle scripts foi implementado e integrado ao `defence:add`, e o trust score dashboard foi implementado e commitado.
 
-**Sandbox mode foi descartado** por violar critérios de portabilidade, educação prática e ausência de dependências pesadas. A Fase 9 foi repriorizada para alternativas compatíveis: pre-install dry-run (P0) ✅ concluído, trust score dashboard (P1) em planejamento, process monitoring (P1) e hardening no `.npmrc` (P1/P2).
+**Sandbox mode foi descartado** por violar critérios de portabilidade, educação prática e ausência de dependências pesadas. A Fase 9 foi repriorizada para alternativas compatíveis: pre-install dry-run (P0) ✅ concluído, trust score dashboard (P1) ✅ concluído, process monitoring (P1) em planejamento, e hardening no `.npmrc` (P1/P2).
 
-**O próximo passo imediato** é implementar o trust score dashboard (Fase C.2).
+**O próximo passo imediato** é implementar o process monitoring de lifecycle scripts durante `npm install` (Fase C.3).
 
 **O release v1.0.0 foi removido do escopo imediato.** Ele será planejado e executado apenas quando o projeto estiver de fato concluído, como ação futura.
 
@@ -192,12 +192,78 @@ C.2 Trust score dashboard — P1
 - `npm run defence:trust-report -- --fail` retorna exit code correto.
 - `npm run defence:add -- --pkg=...` respeita `trustReport.enabled`.
 
-C.3 Process monitoring — P1
+### C.3 Process monitoring — P1
 
-- Criar `tools/monitor-lifecycle-scripts.js` para logar comandos spawnados durante `npm install`.
-- Criar parser/relatório em `tools/lib/parse-lifecycle-log.js`.
-- Opcionalmente expor como `defence:install-monitored`.
-- Documentar.
+**Decisões**
+
+- Escopo: monitorar todos os lugares que executam `npm install` / `npm ci` nas ferramentas do projeto (`tools/add-package.js`, `tools/setup-bootstrap.js`) e oferecer um CLI standalone (`defence:install-monitored`).
+- Implementação: Node.js puro, sem dependências externas. Hook em `child_process.spawn` / `spawnSync` / `exec` / `execSync` no processo que inicia o npm.
+- Saída: relatório Markdown (`lifecycle-monitor-report.md`) + resumo no stdout; `--format=json` suportado.
+- Flags de risco: lifecycle scripts (`preinstall`, `install`, `postinstall`, `prepare`), execução de shell, chamadas de rede, escrita em disco, mudanças de permissão, compilação nativa.
+
+**Fase C.3.1 — Biblioteca de monitoramento compartilhada**
+
+- Criar `tools/lib/process-monitor.js` e `tools/lib/process-monitor.test.js`.
+- Implementar hook de `child_process` para capturar: timestamp, comando, argumentos (truncados), cwd, pid, ppid, exit code/sinal, duração, `npm_lifecycle_event`, `npm_package_name`.
+- Usar `process.on('spawn')` quando disponível (Node >= 22) com monkey-patch fallback.
+- Exportar `startMonitoring()`, `stopMonitoring()`, `getEvents()`, `clearEvents()` e hooks de DI (`setImpls` / `resetImpls`).
+- Classificar eventos em labels: `lifecycle`, `shell`, `network`, `filesystem-write`, `permission`, `native-build`, `unknown`.
+
+**Fase C.3.2 — Formatador de relatório**
+
+- Criar `tools/lib/install-monitor-report.js` e testes.
+- Gerar Markdown com: comando monitorado, timestamp, duração, total de eventos, exit code, tabela de eventos, resumo de risco e recomendações.
+- Gerar JSON estruturado com `summary` e `events`.
+
+**Fase C.3.3 — CLI standalone**
+
+- Criar `tools/monitor-install.js` e `tools/monitor-install.test.js`.
+- CLI: `npm run defence:install-monitored -- npm install <args...>`.
+- Args: `--output=path`, `--format=markdown|json`, `--silent`, `--fail-on-lifecycle`.
+- Validar que o comando é `npm install` ou `npm ci`; rejeitar outros.
+- Sair com o exit code do comando monitorado (ou 1 se `--fail-on-lifecycle` e houver eventos de lifecycle).
+
+**Fase C.3.4 — Integração em `add-package.js`**
+
+- Substituir a chamada `spawnSyncImpl('npm', ['install', ...])` por wrapper monitorado.
+- Gerar e salvar relatório após a instalação.
+- Adicionar hooks de DI para testes.
+- Atualizar `tools/add-package.test.js`.
+
+**Fase C.3.5 — Integração em `setup-bootstrap.js`**
+
+- Reusar o wrapper monitorado para `npm install --ignore-scripts --save-exact`.
+- Salvar relatório em `lifecycle-monitor-report.md`.
+- Atualizar `tools/setup-bootstrap.test.js`.
+
+**Fase C.3.6 — Configuração e scripts npm**
+
+- Adicionar bloco `lifecycleMonitoring` em `package.json` (`enabled`, `reportFile`, `failOnLifecycle`, `maxArgsLength`).
+- Mesclar defaults em `tools/lib/config.js`.
+- Adicionar script: `defence:install-monitored`.
+- Atualizar `tools/install-defences.js` e `tools/install-defences.test.js`.
+- Regenerar `.defence-manifest.json`.
+
+**Fase C.3.7 — Documentação**
+
+- Criar `docs/en/lifecycle-monitoring.md` e `docs/pt-BR/lifecycle-monitoring.md`.
+- Atualizar `docs/en/tools.md`, `docs/pt-BR/tools.md`, `docs/en/quick-reference.md`, `docs/pt-BR/quick-reference.md`, `docs/en/security/index.md`, `docs/pt-BR/security/index.md`, `docs/en/index.md`, `docs/pt-BR/index.md`, `README.md`.
+- Atualizar `TODO.md` e `CHANGELOG.md`.
+
+**Verificação**
+
+- `npm test` passa (420+ testes).
+- `npm run lint` limpo.
+- `npm run defence:check-md-links` válido.
+- `bash .husky/pre-commit` passa.
+- `npm run defence:install-monitored -- npm install --dry-run` registra eventos.
+- `npm run defence:add -- lodash@4.17.21 --dry-run` continua funcionando.
+
+C.4 Hardening no `.npmrc` — P1/P2
+
+- Revisar configurações atuais e avaliar adições.
+- Criar `docs/en/npmrc-hardening.md` e `docs/pt-BR/npmrc-hardening.md`.
+- Atualizar `install-defences.js` se novas opções forem adotadas.
 
 C.4 Hardening no `.npmrc` — P1/P2
 
