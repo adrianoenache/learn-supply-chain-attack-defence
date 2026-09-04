@@ -44,7 +44,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Keep `PROJECT_STATUS_REPORT.md` as the reference status report (current
   9,1/10, 154 tests, 2026-08-20). Regenerate only during the future pre-release
   status analysis.
-- [ ] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
+- [x] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
 - [ ] Implement trust score dashboard (`defence:trust-report`) aggregating age,
   cadence, deprecation, maintainer count, weekly downloads, provenance and
   typosquatting signals.
