@@ -44,6 +44,7 @@ In addition, the toolkit provides supporting capabilities that do not fit a sing
 | Capability | Tool | Purpose |
 | --- | --- | --- |
 | Lifecycle script analysis | `defence:analyze-lifecycle-scripts` | Static, read-only scan of package lifecycle scripts before install |
+| Lifecycle process monitoring | `defence:install-monitored` | Runtime observation of every subprocess spawned during `npm install` |
 | Trust score dashboard | `defence:trust-report` | Aggregate supply-chain signals into a per-package 0–100 score |
 | SBOM generation | `defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
 | Adoption integrity | `defence:verify-defences` | Verify files copied by `install-defences.js` |
@@ -53,6 +54,7 @@ In addition, the toolkit provides supporting capabilities that do not fit a sing
 Some defensive choices require documented exception paths:
 
 - [Troubleshooting](../troubleshooting.md) — common failures and how to run each defense manually.
+- [Lifecycle process monitoring](../lifecycle-monitoring.md) — runtime observation of every subprocess spawned during `npm install`.
 - [Rebuilding lifecycle-script packages](rebuilding-lifecycle-packages.md) — safely rebuild native packages after `ignore-scripts`.
 
 ## Defense Layers Diagram

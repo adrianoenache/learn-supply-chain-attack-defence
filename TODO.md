@@ -48,7 +48,7 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Implement trust score dashboard (`defence:trust-report`) aggregating age,
   cadence, deprecation, maintainer count, weekly downloads, provenance,
   typosquatting, lifecycle script risk, and license signals.
-- [ ] Implement process monitoring for lifecycle scripts spawned during
+- [x] Implement process monitoring for lifecycle scripts spawned during
   `npm install`.
 - [ ] Review and document `.npmrc` hardening options.
 - [ ] Optimise CI/CD: cache `node_modules` via artifacts, protect `main` (push

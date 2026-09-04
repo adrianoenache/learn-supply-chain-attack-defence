@@ -45,6 +45,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Documentation in `docs/en/security/lifecycle-script-analysis.md` and
     `docs/pt-BR/security/lifecycle-script-analysis.md`, plus updates to README,
     tools pages, quick-reference, and security index.
+- Process monitoring for lifecycle scripts during `npm install`:
+  - New `tools/lib/process-monitor.js` native Node.js hook for `spawn`,
+    `spawnSync`, `exec`, and `execSync` with risk classification labels
+    (`lifecycle`, `shell`, `network`, `permission`, `filesystem-write`,
+    `native-build`, `unknown`).
+  - New `tools/lib/install-monitor-report.js` formatter for Markdown and JSON
+    reports summarising monitored events.
+  - New `tools/monitor-install.js` CLI and `defence:install-monitored` npm script
+    with `--output`, `--format`, `--silent`, and `--fail-on-lifecycle` options.
+  - Integration into `tools/add-package.js` and `tools/setup-bootstrap.js` so
+    every install is monitored and a report is written to
+    `lifecycleMonitoring.reportFile` (default `lifecycle-monitor-report.md`).
+  - New `lifecycleMonitoring` configuration block in `package.json` with
+    `enabled`, `reportFile`, `failOnLifecycle`, and `maxArgsLength` settings.
+  - Full test coverage in `tools/lib/process-monitor.test.js`,
+    `tools/lib/install-monitor-report.test.js`,
+    `tools/monitor-install.test.js`, and extended
+    `tools/add-package.test.js` and `tools/setup-bootstrap.test.js` scenarios.
 - Authoritative project plan in `.github/PLAN.md` to survive session-memory loss,
   plus a context-recovery skill (`.github/skills/context-recovery/SKILL.md`)
   and an updated `.github/copilot-instructions.md` rule requiring the plan to be

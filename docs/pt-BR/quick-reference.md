@@ -70,6 +70,10 @@ npm run setup
 | `npm run defence:trust-report -- --pkg=nome@versao` | Gera um relatório de trust score para um único pacote. |
 | `npm run defence:trust-report:json` | Gera saída JSON do relatório de trust score. |
 | `npm run defence:trust-report:fail` | Sai com código 1 se algum pacote estiver abaixo do mínimo configurado. |
+| `npm run defence:install-monitored -- npm install` | Executa `npm install` registrando todo subprocesso gerado. |
+| `npm run defence:install-monitored -- --output=report.md npm ci` | Grava o relatório do install monitorado em arquivo personalizado. |
+| `npm run defence:install-monitored -- --format=json npm install` | Grava o relatório do install monitorado em JSON. |
+| `npm run defence:install-monitored -- --fail-on-lifecycle npm install` | Falha se algum script de lifecycle for executado durante o install. |
 
 ## Adoção em Outros Projetos
 

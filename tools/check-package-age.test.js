@@ -38,6 +38,8 @@ const {
   resetFetchRegistryJsonImpl,
   setFsImpl,
   resetFsImpl,
+  setProcessMonitorImpl,
+  resetProcessMonitorImpl,
 } = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
@@ -731,7 +733,15 @@ describe('Integration — add-package flow', () => {
         }
         throw new Error(`ENOENT: ${filePath}`)
       },
+      writeFileSync: (_filePath, _data, _encoding) => {},
     }
+  }
+
+  const nullProcessMonitor = {
+    startMonitoring: () => {},
+    stopMonitoring: () => {},
+    getEvents: () => [],
+    clearEvents: () => {},
   }
 
   test('dry-run approves an old enough package without installing', async () => {
@@ -791,6 +801,7 @@ describe('Integration — add-package flow', () => {
     const originalFetch = mockFetchPackageAge(10)
     setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity('sha512-good'))
     setFsImpl(mockFsForIntegrity('sha512-good'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -817,6 +828,7 @@ describe('Integration — add-package flow', () => {
       resetSpawnSyncImpl()
       resetFetchRegistryJsonImpl()
       resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -842,6 +854,7 @@ describe('Integration — add-package flow', () => {
     const originalFetch = mockFetchPackageAge(10)
     setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity(null, '@biomejs/biome'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -868,6 +881,7 @@ describe('Integration — add-package flow', () => {
       resetSpawnSyncImpl()
       resetFetchRegistryJsonImpl()
       resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -883,6 +897,7 @@ describe('Integration — add-package flow', () => {
     const originalFetch = mockFetchPackageAge(10)
     setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
     setFsImpl(mockFsForIntegrity(null, 'react-native-svg'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -909,6 +924,7 @@ describe('Integration — add-package flow', () => {
       resetSpawnSyncImpl()
       resetFetchRegistryJsonImpl()
       resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)

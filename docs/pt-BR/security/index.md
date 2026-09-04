@@ -44,6 +44,7 @@ Além disso, o toolkit fornece capacidades de suporte que não se encaixam em um
 | Capacidade | Ferramenta | Propósito |
 | --- | --- | --- |
 | Análise de scripts de lifecycle | `defence:analyze-lifecycle-scripts` | Varredura estática e somente leitura dos scripts de lifecycle antes da instalação |
+| Monitoramento de processos de lifecycle | `defence:install-monitored` | Observação em tempo de execução de todo subprocesso gerado durante `npm install` |
 | Dashboard de trust score | `defence:trust-report` | Agrega sinais de supply chain em uma pontuação de 0 a 100 por pacote |
 | Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
 | Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
@@ -53,6 +54,7 @@ Além disso, o toolkit fornece capacidades de suporte que não se encaixam em um
 Algumas escolhas defensivas exigem caminhos de exceção documentados:
 
 - [Troubleshooting](../troubleshooting.md) — falhas comuns e como executar cada defesa manualmente.
+- [Monitoramento de processos de lifecycle](../lifecycle-monitoring.md) — observação em tempo de execução de todo subprocesso gerado durante `npm install`.
 - [Reconstrução de pacotes com lifecycle scripts](rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
 
 ## Diagrama das Camadas de Defesa

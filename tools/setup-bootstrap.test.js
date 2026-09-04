@@ -48,8 +48,26 @@ function makeMockConfig(overrides = {}) {
   return {
     huskyPreCommitHash: null,
     defences: { huskyPreCommitHash: null },
+    lifecycleMonitoring: {
+      enabled: true,
+      reportFile: 'lifecycle-monitor-report.md',
+      failOnLifecycle: false,
+      maxArgsLength: 200,
+    },
     ...overrides,
   }
+}
+
+const nullProcessMonitor = {
+  startMonitoring: () => {},
+  stopMonitoring: () => {},
+  getEvents: () => [],
+  clearEvents: () => {},
+}
+
+const nullInstallMonitorReport = {
+  buildMarkdownReport: () => '# report\n',
+  buildJsonReport: () => '{}',
 }
 
 describe('setup-bootstrap', () => {
@@ -75,6 +93,8 @@ describe('setup-bootstrap', () => {
       const mod = readScriptExports()
       mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         const code = mod.main()
         assert.equal(code, 0)
@@ -102,6 +122,8 @@ describe('setup-bootstrap', () => {
       } finally {
         mod.resetSpawnSyncImpl()
         mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })
@@ -111,12 +133,16 @@ describe('setup-bootstrap', () => {
       const mod = readScriptExports()
       mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn([]))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         const code = mod.main()
         assert.equal(code, 0)
       } finally {
         mod.resetSpawnSyncImpl()
         mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })
@@ -126,6 +152,8 @@ describe('setup-bootstrap', () => {
       const mod = readScriptExports()
       mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn([]))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         const code = mod.main()
         assert.equal(code, 0)
@@ -144,6 +172,8 @@ describe('setup-bootstrap', () => {
       } finally {
         mod.resetSpawnSyncImpl()
         mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })
@@ -154,6 +184,8 @@ describe('setup-bootstrap', () => {
       mod.setSpawnSyncImpl(function failingSpawn() {
         return { status: 1, signal: null }
       })
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         let threw = false
         try {
@@ -165,6 +197,8 @@ describe('setup-bootstrap', () => {
         assert.equal(threw, true)
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })
@@ -175,6 +209,8 @@ describe('setup-bootstrap', () => {
       mod.setSpawnSyncImpl(function killedSpawn() {
         return { status: null, signal: 'SIGTERM' }
       })
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         let threw = false
         try {
@@ -186,6 +222,8 @@ describe('setup-bootstrap', () => {
         assert.equal(threw, true)
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })

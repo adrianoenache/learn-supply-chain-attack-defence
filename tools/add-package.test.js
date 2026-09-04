@@ -65,6 +65,7 @@ function makeMockFs(files) {
       err.code = 'ENOENT'
       throw err
     },
+    writeFileSync: (_filePath, _data, _encoding) => {},
   }
 }
 
@@ -91,6 +92,12 @@ function makeMockConfig(overrides = {}) {
       enabled: true,
       failOn: 'high',
     },
+    lifecycleMonitoring: {
+      enabled: true,
+      reportFile: '/tmp/lifecycle-monitor-report.md',
+      failOnLifecycle: false,
+      maxArgsLength: 200,
+    },
     trustReport: {
       enabled: true,
       failOnMinScore: false,
@@ -114,6 +121,7 @@ describe('add-package', () => {
     mod.resetProvenanceImpl()
     mod.resetScriptAnalyzerImpl()
     mod.resetTrustEngineImpl()
+    mod.resetProcessMonitorImpl()
     mod.resetLoadConfigImpl()
   })
 
@@ -148,6 +156,13 @@ describe('add-package', () => {
         valid: false,
         reason: 'not checked',
       }),
+    })
+
+    mod.setProcessMonitorImpl({
+      startMonitoring: () => {},
+      stopMonitoring: () => {},
+      getEvents: () => [],
+      clearEvents: () => {},
     })
 
     mod.setFsImpl(

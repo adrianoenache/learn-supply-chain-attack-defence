@@ -68,6 +68,12 @@ const scriptAnalyzer = require(
   path.resolve(__dirname, './lib/script-analyzer.js'),
 )
 const trustEngine = require(path.resolve(__dirname, './lib/trust-engine.js'))
+const processMonitor = require(
+  path.resolve(__dirname, './lib/process-monitor.js'),
+)
+const installMonitorReport = require(
+  path.resolve(__dirname, './lib/install-monitor-report.js'),
+)
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
@@ -130,6 +136,14 @@ function setTrustEngineImpl(fn) {
 }
 function resetTrustEngineImpl() {
   trustEngineImpl = trustEngine
+}
+
+let processMonitorImpl = processMonitor
+function setProcessMonitorImpl(fn) {
+  processMonitorImpl = fn
+}
+function resetProcessMonitorImpl() {
+  processMonitorImpl = processMonitor
 }
 
 let loadConfigImpl = loadConfig
@@ -651,13 +665,48 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
       ]
 
       console.log(`\nInstalling: npm ${installArgs.join(' ')}`)
+      let installResult
       try {
         // stdio: 'inherit' forwards npm stdout/stderr directly to the terminal,
         // so the contributor can see progress and error messages in real time.
-        const installResult = spawnSyncImpl('npm', installArgs, {
+        processMonitorImpl.startMonitoring()
+        const installStartTime = performance.now()
+        installResult = spawnSyncImpl('npm', installArgs, {
           stdio: 'inherit',
           shell: false,
         })
+        const installDurationMs = performance.now() - installStartTime
+        processMonitorImpl.stopMonitoring()
+
+        const monitoringConfig = config.lifecycleMonitoring ?? {}
+        if (monitoringConfig.enabled !== false) {
+          const monitoredEvents = processMonitorImpl.getEvents()
+          const reportPath =
+            monitoringConfig.reportFile ??
+            path.resolve(process.cwd(), 'lifecycle-monitor-report.md')
+          const reportContent = installMonitorReport.buildMarkdownReport(
+            `npm ${installArgs.join(' ')}`,
+            monitoredEvents,
+            installResult.status ?? null,
+            installDurationMs,
+          )
+          fsImpl.writeFileSync(reportPath, reportContent, 'utf8')
+          const lifecycleCount = monitoredEvents.filter((e) =>
+            e.labels.includes('lifecycle'),
+          ).length
+          console.log(
+            `\nInstall monitor: ${monitoredEvents.length} event(s), ${lifecycleCount} lifecycle script(s). Report: ${reportPath}`,
+          )
+          if (monitoringConfig.failOnLifecycle === true && lifecycleCount > 0) {
+            console.error(
+              '\nInstallation aborted — lifecycle scripts were spawned and lifecycleMonitoring.failOnLifecycle is enabled.',
+            )
+            exitFn(1)
+            return
+          }
+        }
+        processMonitorImpl.clearEvents()
+
         if (installResult.status !== 0) {
           throw new Error(
             `npm install exited with code ${installResult.status ?? installResult.signal}`,
@@ -665,6 +714,8 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
         }
       } catch {
         // npm already printed the error via stdio: 'inherit'; just indicate the reason for exiting.
+        processMonitorImpl.stopMonitoring()
+        processMonitorImpl.clearEvents()
         console.error('\nInstallation failed. See npm output above.')
         exitFn(1)
         return
@@ -842,6 +893,8 @@ module.exports = {
   resetScriptAnalyzerImpl,
   setTrustEngineImpl,
   resetTrustEngineImpl,
+  setProcessMonitorImpl,
+  resetProcessMonitorImpl,
   setLoadConfigImpl,
   resetLoadConfigImpl,
   fetchVersionManifest,

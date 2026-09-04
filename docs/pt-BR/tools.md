@@ -70,6 +70,9 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 | `lib/package-utils.js` | Utilitários compartilhados para parse e validação de especificadores de pacotes. |
 | `lib/trust-engine.js` | Agrega sinais existentes de supply chain em uma pontuação de confiança de 0 a 100 por pacote. |
 | `generate-trust-report.js` | CLI do dashboard de trust score; emite relatórios em tabela, JSON ou Markdown. |
+| `lib/process-monitor.js` | Hook nativo do Node.js para `spawn`, `spawnSync`, `exec` e `execSync` com classificação de risco. |
+| `lib/install-monitor-report.js` | Formatador de relatórios Markdown/JSON a partir da saída do process-monitor. |
+| `monitor-install.js` | Wrapper de CLI para executar qualquer comando `npm install`/`ci` sob monitoramento de processos. |
 | `perf/benchmark.js` | Suite de benchmarks de performance medindo tempo de execução e chamadas de rede das ferramentas que consomem o registry. Compara os resultados com `tools/perf/baselines.json` para detectar regressões. |
 
 ## Benchmarks de Performance

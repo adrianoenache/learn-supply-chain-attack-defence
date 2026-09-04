@@ -69,6 +69,7 @@ Defenses are grouped by adoption stage. See the [security overview](docs/en/secu
 | Capability | Tool | Purpose |
 | --- | --- | --- |
 | Lifecycle script analysis | `npm run defence:analyze-lifecycle-scripts` | Static, read-only scan of package lifecycle scripts before install |
+| Lifecycle process monitoring | `npm run defence:install-monitored` | Runtime observation of every subprocess spawned during `npm install` |
 | Trust score dashboard | `npm run defence:trust-report` | Aggregate supply-chain signals into a per-package 0–100 score |
 | SBOM generation | `npm run defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
 | Adoption integrity | `npm run defence:verify-defences` | Verify files copied by `install-defences.js` |

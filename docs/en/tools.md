@@ -70,6 +70,9 @@ All custom scripts live in `tools/` and use only native Node.js modules.
 | `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
 | `lib/trust-engine.js` | Aggregates existing supply-chain signals into a 0–100 trust score per package. |
 | `generate-trust-report.js` | CLI for the trust score dashboard; emits table, JSON, or Markdown reports. |
+| `lib/process-monitor.js` | Native Node.js hook for `spawn`, `spawnSync`, `exec`, and `execSync` with risk classification. |
+| `lib/install-monitor-report.js` | Markdown/JSON report formatter for process-monitor output. |
+| `monitor-install.js` | CLI wrapper to run any `npm install`/`ci` command under process monitoring. |
 | `perf/benchmark.js` | Performance benchmark suite measuring execution time and network calls for registry-dependent tools. Compares results against `tools/perf/baselines.json` to detect regressions. |
 
 ## Performance Benchmarks

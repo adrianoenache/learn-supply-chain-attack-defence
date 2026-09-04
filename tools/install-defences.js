@@ -66,6 +66,8 @@ const FILES_TO_COPY = [
   'tools/generate-trust-report.js',
   'tools/generate-trust-report.test.js',
   'tools/install-defences.js',
+  'tools/monitor-install.js',
+  'tools/monitor-install.test.js',
   'tools/install-defences.test.js',
   'tools/integration.test.js',
   'tools/run-audit-with-retry.js',
@@ -90,6 +92,10 @@ const FILES_TO_COPY = [
   'tools/lib/script-analyzer.test.js',
   'tools/lib/trust-engine.js',
   'tools/lib/trust-engine.test.js',
+  'tools/lib/process-monitor.js',
+  'tools/lib/process-monitor.test.js',
+  'tools/lib/install-monitor-report.js',
+  'tools/lib/install-monitor-report.test.js',
   'tools/lib/registry-cache.test.js',
   'tools/lib/retry-fetch.js',
   'tools/lib/retry-fetch.test.js',
@@ -108,6 +114,7 @@ const SCRIPTS_TO_ADD = {
   'defence:add': 'node ./tools/add-package.js',
   'defence:analyze-lifecycle-scripts':
     'node ./tools/analyze-lifecycle-scripts.js',
+  'defence:install-monitored': 'node ./tools/monitor-install.js',
   'defence:trust-report': 'node ./tools/generate-trust-report.js',
   'defence:trust-report:json':
     'node ./tools/generate-trust-report.js --format=json',

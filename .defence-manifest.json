@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T16:24:07.370Z",
+  "installedAt": "2026-09-04T17:53:38.336Z",
   "files": [
     {
       "path": ".npmrc",
@@ -20,11 +20,11 @@
     },
     {
       "path": "tools/add-package.js",
-      "hash": "87692a3d040c0bc478860f3b8cfc7f989da6f4caff99814cefbfaf579de2d9cc"
+      "hash": "727af40e3ca031fda1b54c949136dc3cffbb8e1f87b3b0122ebb717aa03a00da"
     },
     {
       "path": "tools/add-package.test.js",
-      "hash": "3ac3b62b5e52575fb76f41d0a35d6250699a80140ba33eac633e16484107b606"
+      "hash": "f6be2146afedc16498d7ab48f80f9e23f709c5bfcf00000d09d5aa2ea14be33d"
     },
     {
       "path": "tools/analyze-lifecycle-scripts.js",
@@ -80,7 +80,7 @@
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "a40e165c7cc1dea13b4a6b5b214ff68509e81e2891bddc52d220863d948c0c10"
+      "hash": "e1b9113f919a6fcdbaac822b122e0da3f0e61762eb7dc47077f4bff7673c1f5c"
     },
     {
       "path": "tools/check-secrets.js",
@@ -124,11 +124,19 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "8f85ba9ae19556a37671a3f3bc4581eece6888be36b9e8bc95d5ed9dbca7ae61"
+      "hash": "8c2c16be625ff3c9bf50a9395fdc3529cfc44053389a848918f4eed28b26b40e"
+    },
+    {
+      "path": "tools/monitor-install.js",
+      "hash": "203962fa81891c4c3391f8513cf261a3d522dc247c9438bd1c1da5f83b610759"
+    },
+    {
+      "path": "tools/monitor-install.test.js",
+      "hash": "a299a8b11e1905692481c48f6b6bf3c348193ed2269c440f0797a272e3c278cc"
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "b8bd972fb86969b94b2d75d6da4fa9d092512184870c93d4b8effb3de91927a6"
+      "hash": "1d1f66685d86c28d8ccfc9a16b5f00497e6b27007d47878aa4dac75e8ac28ba5"
     },
     {
       "path": "tools/integration.test.js",
@@ -144,11 +152,11 @@
     },
     {
       "path": "tools/setup-bootstrap.js",
-      "hash": "d494fd2cf513c7ba832313476049b66349789ebb39624a563cdce371c504288e"
+      "hash": "5028afdf4726ccb857e138d18b8260f857d49eb6f54ee6ea84b15e8815a039c7"
     },
     {
       "path": "tools/setup-bootstrap.test.js",
-      "hash": "cae9faea930f07b90a20cf618888a1c1be5de8e3855e56bff7de847dfadcc9f9"
+      "hash": "2e15ce1e33ded49222933bded4374ce19b03d6f4a784dae885572ca0a07df275"
     },
     {
       "path": "tools/update-badge.js",
@@ -176,7 +184,7 @@
     },
     {
       "path": "tools/lib/config.js",
-      "hash": "343d85bf7c0f6937ae479a43099f400c62092fa6a22dfa1821f627fac86327e4"
+      "hash": "2006aa068d176a10d760c50ed576e2b93d388d0d2292f3d760565010346bfdef"
     },
     {
       "path": "tools/lib/config.test.js",
@@ -221,6 +229,22 @@
     {
       "path": "tools/lib/trust-engine.test.js",
       "hash": "85015f6018464b9f5b1b5153d0eafacea8483be344edf5e3918f38aca8ab6329"
+    },
+    {
+      "path": "tools/lib/process-monitor.js",
+      "hash": "967161c9a3671ea2eb40a23105458add0be26c5f9b5510485fad12e936d7f9b3"
+    },
+    {
+      "path": "tools/lib/process-monitor.test.js",
+      "hash": "9d028d838074325f005597779800841182b785f0d55dbae185a5089e7ff0e6ed"
+    },
+    {
+      "path": "tools/lib/install-monitor-report.js",
+      "hash": "d98e4899d3b4006b2e2a075c9289a9da8163df51fe737048fac9383902026238"
+    },
+    {
+      "path": "tools/lib/install-monitor-report.test.js",
+      "hash": "f1d920f48da1b0db9334def153132f426da021766d22780d6e3aad51b051e99f"
     },
     {
       "path": "tools/lib/registry-cache.test.js",

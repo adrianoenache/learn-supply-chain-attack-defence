@@ -225,6 +225,14 @@ function buildDefaults(pkg) {
       enabled: pkg.lifecycleScriptAnalysis?.enabled ?? true,
       failOn: pkg.lifecycleScriptAnalysis?.failOn ?? 'high',
     },
+    lifecycleMonitoring: {
+      enabled: pkg.lifecycleMonitoring?.enabled ?? true,
+      reportFile:
+        pkg.lifecycleMonitoring?.reportFile ??
+        path.resolve(REPO_ROOT, 'lifecycle-monitor-report.md'),
+      failOnLifecycle: pkg.lifecycleMonitoring?.failOnLifecycle ?? false,
+      maxArgsLength: pkg.lifecycleMonitoring?.maxArgsLength ?? 200,
+    },
     trustReport: {
       enabled: pkg.trustReport?.enabled ?? true,
       failOnMinScore: pkg.trustReport?.failOnMinScore ?? false,

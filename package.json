@@ -82,6 +82,12 @@
     "enabled": true,
     "failOn": "high"
   },
+  "lifecycleMonitoring": {
+    "enabled": true,
+    "reportFile": "lifecycle-monitor-report.md",
+    "failOnLifecycle": false,
+    "maxArgsLength": 200
+  },
   "trustReport": {
     "enabled": true,
     "failOnMinScore": false,
@@ -110,6 +116,7 @@
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
     "defence:analyze-lifecycle-scripts": "node ./tools/analyze-lifecycle-scripts.js",
+    "defence:install-monitored": "node ./tools/monitor-install.js",
     "defence:trust-report": "node ./tools/generate-trust-report.js",
     "defence:trust-report:json": "node ./tools/generate-trust-report.js --format=json",
     "defence:trust-report:fail": "node ./tools/generate-trust-report.js --fail",
