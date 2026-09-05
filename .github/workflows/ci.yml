@@ -58,11 +58,17 @@ jobs:
           tar -xzf actionlint.tar.gz actionlint
           ./actionlint -color .github/workflows/*.yml
 
-      - name: Upload node_modules artifact
+      - name: Create node_modules tarball preserving symlinks and permissions
+        # GitHub Actions artifacts are stored as ZIP, which does not preserve
+        # Unix symlinks or executable bits. A tar.gz created locally keeps the
+        # exact tree produced by npm ci, including node_modules/.bin entries.
+        run: tar --create --gzip --file node_modules.tar.gz node_modules/
+
+      - name: Upload node_modules tarball
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: node_modules-${{ github.run_id }}
-          path: node_modules
+          path: node_modules.tar.gz
           retention-days: 1
           if-no-files-found: error
 
@@ -81,10 +87,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Run tests
         run: npm test
@@ -104,10 +113,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Run coverage
         run: npm run test:coverage
@@ -127,10 +139,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Run linter
         run: npm run lint
@@ -150,13 +165,16 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
 
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
       - name: Check formatting
-        run: npx biome format tools/ --check
+        run: npm run format:check
 
   docs:
     name: Documentation Links
@@ -173,10 +191,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Check markdown links
         run: npm run defence:check-md-links
@@ -196,10 +217,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Run license check
         run: npm run defence:license-check:fail
@@ -219,10 +243,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Check lockfile integrity
         run: npm run defence:check-lockfile-integrity
@@ -242,10 +269,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Scan tracked files for secrets
         run: git ls-files -z | xargs -0 -r npm run defence:check-secrets --
@@ -265,10 +295,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Verify local manifest integrity
         run: npm run defence:verify-defences
@@ -296,10 +329,13 @@ jobs:
           node-version: ${{ needs.build.outputs.node-version }}
           npm-version: ${{ needs.build.outputs.npm-version }}
 
-      - name: Download node_modules
+      - name: Download node_modules tarball
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
 
       - name: Check engines
         run: npm run defence:check-engines

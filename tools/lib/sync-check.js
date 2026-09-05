@@ -84,6 +84,10 @@ function checkInstalledVersions() {
   })
 
   if (result.status !== 0 || !result.stdout) {
+    if (result.stderr) {
+      console.error('npm ls diagnostic output:')
+      console.error(result.stderr)
+    }
     return {
       inSync: false,
       reason: 'node_modules appears outdated or missing',

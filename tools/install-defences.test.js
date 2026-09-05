@@ -210,9 +210,10 @@ describe('install-defences', () => {
         'defence:verify-defences': 'node ./tools/verify-defences.js',
         'defence:verify-defences:fix':
           'node ./tools/install-defences.js --update-local-manifest',
-        format: 'biome format --write tools/',
-        lint: 'biome check tools/',
-        'lint:fix': 'biome check --write tools/',
+        format: './node_modules/.bin/biome format --write tools/',
+        'format:check': './node_modules/.bin/biome format tools/ --check',
+        lint: './node_modules/.bin/biome check tools/',
+        'lint:fix': './node_modules/.bin/biome check --write tools/',
         prepare: 'husky',
         test: 'node --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js',
       }

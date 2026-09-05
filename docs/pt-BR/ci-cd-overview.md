@@ -57,17 +57,19 @@ Fixação por SHA garante que o código exato e auditado seja executado, mesmo q
 
 ## Cache de `node_modules` como artefato
 
-O job `build` instala as dependências uma vez com `npm ci` e envia `node_modules` como um artefato chamado:
+O job `build` instala as dependências uma vez com `npm ci` e cria um tarball chamado `node_modules.tar.gz`. Esse tarball é então enviado como um artefato chamado:
 
 ```text
 node_modules-${{ github.run_id }}
 ```
 
-Os jobs dependentes baixam esse artefato em vez de executar `npm ci` novamente. Usamos um artefato em vez de `actions/cache` porque:
+Os jobs dependentes baixam esse artefato e extraem o tarball em vez de executar `npm ci` novamente. Usamos um artefato em vez de `actions/cache` porque:
 
 - **Determinismo:** cada job da execução recebe exatamente a mesma árvore `node_modules`.
 - **Sem envenenamento entre execuções:** o artefato é limitado à execução atual do workflow e expira após `retention-days: 1`.
 - **Auditabilidade:** o artefato pode ser baixado e inspecionado posteriormente.
+
+A árvore é arquivada como `tar.gz` porque os artefatos do GitHub Actions são armazenados como arquivos ZIP, que não preservam symlinks Unix nem permissões executáveis. Um tarball preserva as entradas de `node_modules/.bin` exatamente como `npm ci` as produziu, evitando falhas como `sh: 1: biome: not found`.
 
 ## Permissões mínimas do `GITHUB_TOKEN`
 
@@ -119,6 +121,15 @@ O hook local [`.husky/pre-commit`](../../.husky/pre-commit) também executa `act
 - Verifique se o job `build` foi concluído com sucesso.
 - Confirme que o artefato não expirou (`retention-days: 1` para `node_modules`).
 - Confirme que o job dependente depende de `build`.
+
+### `node_modules is out of sync` ou `biome: not found` no CI
+
+Esses erros geralmente significam que o artefato `node_modules` perdeu metadados Unix durante o ciclo de upload/download:
+
+- **Causa:** `actions/upload-artifact` armazena artefatos como arquivos ZIP, que descartam symlinks e bits executáveis dentro de `node_modules/.bin`.
+- **Correção neste workflow:** o job `build` cria `node_modules.tar.gz` com `tar`, e os jobs downstream o extraem com `tar --extract --gzip --file node_modules.tar.gz`.
+- **Verificação local:** execute `npm run defence:sync-check` e confirme que `./node_modules/.bin/biome --help` funciona após um `npm ci` limpo.
+- **Forçar atualização:** envie um novo commit ou reexecute o workflow; o artefato é regenerado a cada execução.
 
 ### Timeout de job
 

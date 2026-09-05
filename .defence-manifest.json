@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-05T22:22:11.104Z",
+  "installedAt": "2026-09-05T22:26:51.903Z",
   "files": [
     {
       "path": ".npmrc",
@@ -124,7 +124,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "8c2c16be625ff3c9bf50a9395fdc3529cfc44053389a848918f4eed28b26b40e"
+      "hash": "6212ac8f75102fa6268c6afd54e813f66dd380bad0b2c95ea4e172f8dda49d64"
     },
     {
       "path": "tools/monitor-install.js",
@@ -136,7 +136,7 @@
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "1d1f66685d86c28d8ccfc9a16b5f00497e6b27007d47878aa4dac75e8ac28ba5"
+      "hash": "f9b0cc75a676ffd4ef1a25ff98f50239bb8f33aae26b2e1b9327a71a080bc0c1"
     },
     {
       "path": "tools/integration.test.js",
@@ -260,7 +260,7 @@
     },
     {
       "path": "tools/lib/sync-check.js",
-      "hash": "1335b22bf646c3148b70935ef1f134aa59f32bf30f67122df7e22b8860dc38fb"
+      "hash": "5fc5594a42dad60d4a33e5ec7b30eaecd2bb5c739c15a0e2b37b181fd431959a"
     },
     {
       "path": "tools/lib/typosquatting.test.js",

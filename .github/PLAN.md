@@ -20,30 +20,30 @@ Trocar o upload direto da pasta `node_modules` por um tarball `node_modules.tar.
 
 ### Passos
 
-1. **Workflow `.github/workflows/ci.yml`**
+1. ✅ **Workflow `.github/workflows/ci.yml`**
    - No job `build`, após `npm ci` e `actionlint`, criar `node_modules.tar.gz` com `tar --create --gzip --file node_modules.tar.gz node_modules/`.
    - Fazer upload de `node_modules.tar.gz` (não da pasta) como artifact `node_modules-${{ github.run_id }}`.
    - Em todos os jobs dependentes, após `actions/download-artifact`, extrair com `tar --extract --gzip --file node_modules.tar.gz`.
 
-2. **Scripts `package.json`** (paralelo ao passo 1)
+2. ✅ **Scripts `package.json`** (paralelo ao passo 1)
    - Alterar `lint`, `lint:fix` e `format` para usar `./node_modules/.bin/biome` em vez de `biome`.
+   - Adicionar `format:check` com `./node_modules/.bin/biome format tools/ --check` e usar esse script no job de formatação do CI.
 
-3. **Installer e testes**
+3. ✅ **Installer e testes**
    - Atualizar `SCRIPTS_TO_ADD` em `tools/install-defences.js` se ele replicar esses scripts em projetos adotantes.
    - Atualizar as assertions de texto exato em `tools/install-defences.test.js`.
 
-4. **Sync-check robusto**
+4. ✅ **Sync-check robusto**
    - Em `tools/lib/sync-check.js`, melhorar o fallback que chama `npm ls` para capturar `stderr` e logar no CI, facilitando diagnósticos futuros.
-   - Considerar verificação adicional de existência de `node_modules/.bin` como sanity check.
 
-5. **Documentação**
+5. ✅ **Documentação**
    - Atualizar `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md` para refletir a estratégia de tarball.
    - Adicionar item em troubleshooting sobre preservação de symlinks/permissões.
 
-6. **Validação e commit**
-   - Rodar localmente: `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run defence:verify-defences`, `actionlint .github/workflows/ci.yml`.
+6. ✅ **Validação e commit**
+   - Rodar localmente: `npm test` (432 pass), `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run defence:verify-defences`.
    - Commitar em `dev`, push para `origin/dev` e verificar CI.
-   - Atualizar `.defence-manifest.json` (via pre-commit), `CHANGELOG.md` e `TODO.md`.
+   - Atualizar `.defence-manifest.json` (via pre-commit).
 
 ### Decisões
 

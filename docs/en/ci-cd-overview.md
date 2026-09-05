@@ -57,17 +57,19 @@ SHA pinning ensures that the exact, audited code runs even if a tag is moved or 
 
 ## `node_modules` artifact caching
 
-The `build` job installs dependencies once with `npm ci` and uploads `node_modules` as an artifact named:
+The `build` job installs dependencies once with `npm ci` and creates a tarball named `node_modules.tar.gz`. The tarball is then uploaded as an artifact named:
 
 ```text
 node_modules-${{ github.run_id }}
 ```
 
-Downstream jobs download this artifact instead of running `npm ci` again. We use an artifact rather than `actions/cache` because:
+Downstream jobs download this artifact and extract the tarball instead of running `npm ci` again. We use an artifact rather than `actions/cache` because:
 
 - **Determinism:** every job in the run receives the exact same `node_modules` tree.
 - **No cross-run poisoning:** an artifact is scoped to the current workflow run and expires after `retention-days: 1`.
 - **Auditability:** the artifact can be downloaded and inspected later.
+
+The tree is archived as a `tar.gz` because GitHub Actions artifacts are stored as ZIP files, which do not preserve Unix symlinks or executable permissions. A tarball preserves `node_modules/.bin` entries exactly as `npm ci` produced them, preventing failures such as `sh: 1: biome: not found`.
 
 ## Minimal `GITHUB_TOKEN` permissions
 
@@ -119,6 +121,15 @@ The local [`.husky/pre-commit`](../../.husky/pre-commit) hook also runs `actionl
 - Verify the `build` job completed successfully.
 - Check that the artifact has not expired (`retention-days: 1` for `node_modules`).
 - Confirm the download job depends on `build`.
+
+### `node_modules is out of sync` or `biome: not found` in CI
+
+These errors usually mean the `node_modules` artifact lost Unix metadata during the upload/download cycle:
+
+- **Cause:** `actions/upload-artifact` stores artifacts as ZIP archives, which drop symlinks and executable bits inside `node_modules/.bin`.
+- **Fix in this workflow:** the `build` job creates `node_modules.tar.gz` with `tar`, and downstream jobs extract it with `tar --extract --gzip --file node_modules.tar.gz`.
+- **Local check:** run `npm run defence:sync-check` and confirm `./node_modules/.bin/biome --help` works after a fresh `npm ci`.
+- **Force refresh:** push a new commit or re-run the workflow; the artifact is regenerated on every run.
 
 ### Job timeout
 
