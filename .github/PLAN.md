@@ -1,10 +1,64 @@
-# Plano de Ação — Fase C.4: `.npmrc` Hardening
+# Plano de Ação — Fase D: Otimização e Hardening da CI/CD
 
 > **Authoritative plan.** This file is the source of truth for the current
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-05 (revisão para próxima fase D — CI/CD)
+> Last updated: 2026-09-05 (correção de CI — artifact de node_modules)
+
+## Correção urgente — Falhas no CI do GitHub Actions
+
+### Diagnóstico
+
+O workflow implementado na Fase D falhou nas etapas **Test**, **Coverage**, **Lint** e **Defence Gates**.
+
+Causa raiz: `actions/upload-artifact` e `actions/download-artifact` compactam/descompactam o conteúdo em ZIP, mas o ZIP do GitHub Actions **não preserva symlinks nem permissões executáveis** do Unix. Como `node_modules/.bin/biome` é um symlink/script executável, após o download ele fica inacessível no PATH, causando `sh: 1: biome: not found`. A árvore restaurada também fica inconsistente para `npm ls`, fazendo `defence:sync-check` retornar `node_modules is out of sync` e o teste de integração `CLI exits 0 when node_modules is in sync` falhar.
+
+### Solução recomendada
+
+Trocar o upload direto da pasta `node_modules` por um tarball `node_modules.tar.gz` criado com `tar`, que preserva symlinks e permissões. Nos jobs dependentes, baixar e extrair o tarball antes de executar qualquer script. Como camada extra de defesa, alterar os scripts `lint`, `lint:fix` e `format` de `package.json` para invocarem `./node_modules/.bin/biome` explicitamente.
+
+### Passos
+
+1. **Workflow `.github/workflows/ci.yml`**
+   - No job `build`, após `npm ci` e `actionlint`, criar `node_modules.tar.gz` com `tar --create --gzip --file node_modules.tar.gz node_modules/`.
+   - Fazer upload de `node_modules.tar.gz` (não da pasta) como artifact `node_modules-${{ github.run_id }}`.
+   - Em todos os jobs dependentes, após `actions/download-artifact`, extrair com `tar --extract --gzip --file node_modules.tar.gz`.
+
+2. **Scripts `package.json`** (paralelo ao passo 1)
+   - Alterar `lint`, `lint:fix` e `format` para usar `./node_modules/.bin/biome` em vez de `biome`.
+
+3. **Installer e testes**
+   - Atualizar `SCRIPTS_TO_ADD` em `tools/install-defences.js` se ele replicar esses scripts em projetos adotantes.
+   - Atualizar as assertions de texto exato em `tools/install-defences.test.js`.
+
+4. **Sync-check robusto**
+   - Em `tools/lib/sync-check.js`, melhorar o fallback que chama `npm ls` para capturar `stderr` e logar no CI, facilitando diagnósticos futuros.
+   - Considerar verificação adicional de existência de `node_modules/.bin` como sanity check.
+
+5. **Documentação**
+   - Atualizar `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md` para refletir a estratégia de tarball.
+   - Adicionar item em troubleshooting sobre preservação de symlinks/permissões.
+
+6. **Validação e commit**
+   - Rodar localmente: `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run defence:verify-defences`, `actionlint .github/workflows/ci.yml`.
+   - Commitar em `dev`, push para `origin/dev` e verificar CI.
+   - Atualizar `.defence-manifest.json` (via pre-commit), `CHANGELOG.md` e `TODO.md`.
+
+### Decisões
+
+- Manter a estratégia de cache via artifact (determinismo, auditabilidade), mas empacotar como tarball.
+- Não voltar a `npm ci` em cada job para não perder a otimização da Fase D.
+- Não usar `actions/cache` porque perderia o determinismo run-scoped desejado.
+
+### Verificação
+
+- CI verde no GitHub para todos os jobs.
+- Artifact `node_modules-<run-id>` continua disponível para download.
+- `defence:sync-check` retorna 0 nos jobs dependentes.
+- `npm run lint` executa Biome sem `not found`.
+
+---
 
 ## Contexto
 
