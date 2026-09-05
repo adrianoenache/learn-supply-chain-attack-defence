@@ -50,6 +50,13 @@ This repository is a practical learning environment for understanding and applyi
 - [Quick reference](quick-reference.md)
 - [GitHub Copilot & Kimi K2.7 Code](copilot.md)
 
+### CI/CD and Operations
+
+- [CI/CD Overview](ci-cd-overview.md)
+- [Git Workflow](git-workflow.md)
+- [SBOM and Compliance](sbom-and-compliance.md)
+- [Performance Tuning](performance-tuning.md)
+
 ### Development
 
 - [Git hooks](git-hooks.md)

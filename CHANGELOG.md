@@ -9,6 +9,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- CI/CD optimization and hardening (Fase D):
+  - Rewrote `.github/workflows/ci.yml` with all actions pinned by SHA and
+    semantic-version comments (`actions/checkout`, `actions/setup-node`,
+    `actions/upload-artifact`, `actions/download-artifact`).
+  - Added `.github/dependabot.yml` for weekly GitHub Actions updates with
+    `chore(deps)` commit prefix.
+  - Applied minimal `GITHUB_TOKEN` permissions (`contents: read`,
+    `actions: write`) at workflow level.
+  - Added `timeout-minutes: 15` to every job to prevent runaway workers.
+  - Changed CI triggers to push only on `dev` and pull requests on `main`
+    and `dev`, protecting `main` from direct pushes.
+  - Replaced the `setup` job with `build`, which runs `npm ci` once and
+    uploads `node_modules` as a run-scoped artifact; all downstream jobs
+    download the artifact instead of reinstalling.
+  - Split the former `lint-format` job into separate `lint` and `format`
+    jobs for clearer failure diagnosis.
+  - Added SBOM artifact upload in `defence-gates` with `retention-days: 30`
+    and `archive: false`.
+  - Added `install-defences-dry-run` job that verifies
+    `.defence-manifest.json` and runs `install-defences.js --dry-run` to
+    detect installer drift.
+  - Added `actionlint` validation in CI using a pinned binary (v1.7.4) with
+    SHA-256 checksum verification, and optional local enforcement in
+    `.husky/pre-commit`.
+  - New documentation: `docs/en/ci-cd-overview.md`,
+    `docs/pt-BR/ci-cd-overview.md`, `docs/en/git-workflow.md`,
+    `docs/pt-BR/git-workflow.md`, `docs/en/sbom-and-compliance.md`,
+    `docs/pt-BR/sbom-and-compliance.md`, `docs/en/performance-tuning.md`,
+    `docs/pt-BR/performance-tuning.md`.
+  - Updated `README.md`, `CONTRIBUTING.md`, `docs/en/index.md`,
+    `docs/pt-BR/index.md`, `docs/en/tools.md`, and `docs/pt-BR/tools.md`
+    with CI/CD cross-references.
+
 - Trust score dashboard (`defence:trust-report`):
   - New `tools/lib/trust-engine.js` engine that aggregates age, cadence,
     deprecation, maintainer count, weekly downloads, provenance, typosquatting,

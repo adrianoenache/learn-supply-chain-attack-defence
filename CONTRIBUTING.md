@@ -10,26 +10,31 @@ Thank you for your interest in improving this project. This guide explains how t
 
 ## Workflow
 
-1. Fork the repository and create a feature branch.
+1. Fork the repository and create a feature branch from `dev`.
 2. Make your changes.
 3. Run `npm test`, `npm run lint`, and `npm run format -- --check`. All must pass.
 4. Run `bash .husky/pre-commit` to simulate the commit gate.
 5. Commit using clear messages in English.
-6. Open a pull request describing what changed and why.
+6. Open a pull request against `dev` describing what changed and why.
 7. Ensure the CI pipeline is green before merging. Pull requests with failing CI checks will not be merged.
+
+For the branch strategy, required checks, and pre-PR checklist, see [docs/en/git-workflow.md](docs/en/git-workflow.md).
 
 ## CI Pipeline
 
-The GitHub Actions workflow in `.github/workflows/ci.yml` runs the following jobs on pushes and pull requests to `main` and `dev`:
+The GitHub Actions workflow in `.github/workflows/ci.yml` is documented in [docs/en/ci-cd-overview.md](docs/en/ci-cd-overview.md). It runs on pushes to `dev` and pull requests to `main` and `dev` with the following jobs:
 
-- **Setup** — reads the required Node.js and npm versions from `package.json`.
-- **Test** — runs `npm test`.
-- **Lint & Format** — runs `npm run lint` and checks formatting with `npm run format -- --check`.
-- **Documentation Links** — runs `npm run defence:check-md-links`.
-- **License Check** — runs `npm run defence:license-check:fail`.
-- **Lockfile Integrity** — runs `npm run defence:check-lockfile-integrity`.
-- **Secret Scan** — scans all tracked files with `npm run defence:check-secrets`.
-- **Defence Gates** — runs engine, sync, package-age, signature, audit, and update checks.
+- **build** — installs dependencies once with `npm ci`, validates the workflow with `actionlint`, and uploads `node_modules` as a run-scoped artifact.
+- **test** — runs `npm test` against the downloaded artifact.
+- **coverage** — measures test coverage against the downloaded artifact.
+- **lint** — runs `npm run lint`.
+- **format** — checks formatting with `npx biome format tools/ --check`.
+- **docs** — runs `npm run defence:check-md-links`.
+- **license** — runs `npm run defence:license-check:fail`.
+- **lockfile-integrity** — runs `npm run defence:check-lockfile-integrity`.
+- **secrets** — scans all tracked files with `npm run defence:check-secrets`.
+- **install-defences-dry-run** — verifies `.defence-manifest.json` and dry-runs the installer.
+- **defence-gates** — runs engine, sync, package-age, hook, signature, audit, and update checks; generates and uploads an SBOM artifact.
 
 ## Adding Dependencies
 

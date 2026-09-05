@@ -75,6 +75,10 @@ Defenses are grouped by adoption stage. See the [security overview](docs/en/secu
 | SBOM generation | `npm run defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
 | Adoption integrity | `npm run defence:verify-defences` | Verify files copied by `install-defences.js` |
 
+## CI/CD
+
+This repository uses a hardened GitHub Actions workflow with pinned actions by SHA, minimal `GITHUB_TOKEN` permissions, artifact-based `node_modules` caching, separated lint/format jobs, `actionlint` validation, and SBOM generation. For details, see [docs/en/ci-cd-overview.md](docs/en/ci-cd-overview.md) and [docs/en/git-workflow.md](docs/en/git-workflow.md).
+
 ## Security
 
 If you discover a security issue, please follow the instructions in [SECURITY.md](SECURITY.md).

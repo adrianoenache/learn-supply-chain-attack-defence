@@ -115,6 +115,14 @@ Because legitimate edits to copied files naturally change their hashes, the pre-
 
 Run the fix script after any deliberate change to the files listed in `install-defences.js`, then commit the updated manifest.
 
+## CI/CD Integration
+
+The tools integrate with the GitHub Actions workflow described in [CI/CD Overview](ci-cd-overview.md). Key integrations include:
+
+- `generate-sbom.js` produces the SBOM artifact uploaded by the `defence-gates` job (see [SBOM and Compliance](sbom-and-compliance.md)).
+- `verify-defences.js` and `install-defences.js --dry-run` run in the `install-defences-dry-run` job to catch manifest drift.
+- `perf/benchmark.js` supports performance regression checks in CI (see [Performance Tuning](performance-tuning.md)).
+
 ## Tests
 
 | Script | Purpose |

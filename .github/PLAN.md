@@ -4,17 +4,16 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-04 (Fase C.4 `.npmrc` hardening)
+> Last updated: 2026-09-05 (revisão para próxima fase D — CI/CD)
 
 ## Contexto
 
-A Fase C.3 (process monitoring) foi concluída, validada com 432/432 testes passando e pushada para `origin/dev`. As próximas fases pendentes no roadmap de conclusão do projeto são:
+As fases C.2, C.3 e C.4 foram concluídas e validadas com 432/432 testes passando, pushadas para `origin/dev`. A próxima fase em execução no roadmap de conclusão do projeto é:
 
-- **C.4** — `.npmrc` hardening (P1)
-- **D** — Otimização de CI/CD (P1)
-- **E** — Expansão da documentação (P1)
+- **D** — Otimização e Hardening da CI/CD (P1)
+- **E** — Expansão e sincronização da documentação (P1)
 
-Esta fase foca em revisar, fortalecer e documentar as configurações do `.npmrc` — a base da Camada 6 de defesa (`Hardened .npmrc`).
+A fase D unifica otimização de performance e hardening de segurança do workflow de CI/CD: cache de `node_modules` via artifact, proteção de `main`, separação de lint/format, upload de SBOM, pin de actions por SHA, Dependabot, permissões mínimas do `GITHUB_TOKEN`, timeouts, actionlint no pre-commit e dry-run do installer no CI.
 
 **O release v1.0.0 foi removido do escopo imediato.** Ele será planejado e executado apenas quando o projeto estiver de fato concluído, como ação futura.
 
@@ -289,92 +288,180 @@ C.2 Trust score dashboard — P1
 
 > **Status:** implementação concluída; documentação de lookahead ajustada para esclarecer que `npm-audit-fix-level` e `send-metrics` são configurações futuras ainda não reconhecidas pelo npm 11.17.0.
 
-### Fase D — Otimização da CI/CD
+### Fase D — Otimização e Hardening da CI/CD
 
-**Decisões atualizadas (actions @v7/@v8)**
+Esta fase unifica otimização de performance e hardening de segurança do workflow de CI/CD. Não haverá Fase F separada; todos os itens de CI/CD serão implementados aqui.
+
+**Decisões confirmadas**
 
 - Atualizar todas as actions do workflow para as versões mais recentes conforme documentação oficial: `actions/checkout@v7`, `actions/setup-node@v7`, `actions/upload-artifact@v7`, `actions/download-artifact@v8`.
-- Nenhuma breaking change afeta o uso deste repositório (sem `registry-url`, sem `pull_request_target`, sem GHES).
-- Usar artifact de `node_modules` em vez de `actions/cache` para garantir determinismo entre jobs.
+- **Pin de actions por SHA** em vez de tags mutáveis `@v7`/`@v8`, com comentário indicando a versão semântica. Exemplo: `uses: actions/checkout@<sha> # v7`.
+- Adicionar **Dependabot para GitHub Actions** em `.github/dependabot.yml` para abrir PRs automáticos de atualização dos SHAs das actions.
+- Usar **artifact de `node_modules`** em vez de `actions/cache` para garantir determinismo entre jobs.
+- Aplicar **permissões mínimas do `GITHUB_TOKEN`** no nível do workflow (`permissions: contents: read`, `actions: read`), ampliando apenas se necessário por job.
+- Configurar **timeout explícito por job** (`timeout-minutes`) para prevenir runs presos.
+- Adicionar validação local do workflow com **actionlint** no pre-commit.
+- Executar **dry-run do installer** (`tools/install-defences.js --dry-run`) no CI para garantir que o manifest não divergiu da estrutura real.
+- Ajustar triggers para proteger `main`: push apenas em `dev`, PR em `main` e `dev`.
+- Separar jobs de `lint` e `format`.
+- Fazer upload do SBOM como artifact no job `defence-gates`.
 
-D.1 Implementar cache de `node_modules`
+**Passos**
 
+D.1 — Preparar pin por SHA e Dependabot
+
+- Buscar os SHAs estáveis das actions `actions/checkout@v7`, `actions/setup-node@v7`, `actions/upload-artifact@v7`, `actions/download-artifact@v8`.
+- Criar `.github/dependabot.yml` com atualização semanal de `github-actions`, prefixo de commit `chore(deps)`, revisores opcionais.
+- Documentar no `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md`:
+  - Por que SHA é mais seguro que tag mutável.
+  - Como o Dependabot mantém os SHAs atualizados.
+  - Como verificar o SHA de uma action no GitHub.
+
+D.2 — Reestruturar o workflow `.github/workflows/ci.yml`
+
+- Declarar `permissions` no topo do workflow:
+  ```yaml
+  permissions:
+    contents: read
+    actions: read
+  ```
+- Adicionar `timeout-minutes: 15` em todos os jobs (ajustar conforme observação de duração real).
 - Transformar o job `setup` em `build`.
-- No job `build`: `actions/checkout@v7`, `actions/setup-node@v7` com `cache: 'npm'`, `npm ci`, e upload do diretório `node_modules` com `actions/upload-artifact@v7`:
-  - Nome: `node_modules-${{ github.run_id }}`.
-  - `retention-days: 1` (suficiente para execução do workflow; reduz storage).
-  - `if-no-files-found: error`.
+- No job `build`:
+  - `actions/checkout@<sha> # v7`.
+  - `actions/setup-node@<sha> # v7` com `cache: 'npm'`.
+  - `npm ci`.
+  - Upload de `node_modules` com `actions/upload-artifact@<sha> # v7`:
+    - Nome: `node_modules-${{ github.run_id }}`.
+    - Path: `node_modules`.
+    - `retention-days: 1`.
+    - `if-no-files-found: error`.
 - Nos jobs dependentes (`test`, `coverage`, `lint`, `format`, `docs`, `license`, `lockfile-integrity`, `secrets`, `defence-gates`):
   - `needs: build`.
-  - `actions/checkout@v7`.
-  - `actions/setup-node@v7` sem `cache` (Node/npm no PATH, sem reinstalar).
-  - `actions/download-artifact@v8` para restaurar `node_modules`.
+  - `actions/checkout@<sha> # v7`.
+  - `actions/setup-node@<sha> # v7` sem `cache`.
+  - `actions/download-artifact@<sha> # v8` para restaurar `node_modules`.
   - Remover `npm ci` redundante.
+- No job `defence-gates`, após `npm run defence:generate-sbom -- --output=/tmp/sbom.json`:
+  - Upload com `actions/upload-artifact@<sha> # v7`:
+    - Nome: `sbom-${{ github.run_id }}`.
+    - Path: `/tmp/sbom.json`.
+    - `retention-days: 30`.
+    - `archive: false`.
+    - `if-no-files-found: error`.
 
-D.2 Ajustar triggers para proteger `main`
+D.3 — Ajustar triggers de evento
 
 - `on.push.branches`: `[dev]` (remover `main`).
 - `on.pull_request.branches`: `[main, dev]`.
-- Documentar branch protection em `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`.
+- Documentar em `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`:
+  - Branch protection de `main`.
+  - Fluxo de trabalho via PR.
+  - Checklist pré-PR (testes, lint, links, pre-commit).
 
-D.3 Separar lint e format
+D.4 — Separar lint e format
 
-- Job `lint`: `npm run lint`.
-- Job `format`: `npx biome format tools/ --check`.
-- Ambos fazem download do artifact de `node_modules`.
+- Job `lint`: executa `npm run lint`.
+- Job `format`: executa `npx biome format tools/ --check`.
+- Ambos fazem download do artifact de `node_modules` e dependem de `build`.
 
-D.4 Upload de SBOM como artifact
+D.5 — Adicionar actionlint ao pre-commit
 
-- No job `defence-gates`, após `npm run defence:generate-sbom -- --output=/tmp/sbom.json`, fazer upload com `actions/upload-artifact@v7`:
-  - Nome: `sbom-${{ github.run_id }}`.
-  - Path: `/tmp/sbom.json`.
-  - `retention-days: 30`.
-  - `archive: false` (mantém o JSON acessível sem unzip).
-  - `if-no-files-found: error`.
+- Verificar se `actionlint` está disponível no ambiente de desenvolvimento; se não, documentar como instalar.
+- Adicionar ao `.husky/pre-commit` (ou script auxiliar invocado por ele) a validação:
+  ```bash
+  actionlint .github/workflows/*.yml
+  ```
+- Garantir que o pre-commit ainda funcione se `actionlint` não estiver instalado (warning, não erro) no ambiente local, mas falhe no CI.
 
-### Fase E — Expansão da documentação
+D.6 — Adicionar job de dry-run do installer
 
-E.1 Criar `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md`
+- Criar job `install-defences-dry-run` dependente de `build`.
+- Executar `node ./tools/install-defences.js --dry-run` em diretório temporário preparado pelo CI.
+- Validar que a saída lista todos os arquivos e scripts esperados.
+- O job falha se houver divergência entre o installer e o estado real do repositório.
 
-- Visão geral do workflow, jobs, como debugar falhas, troubleshooting comum.
-- Explicar o cache de `node_modules` via `actions/upload-artifact@v7` / `actions/download-artifact@v8` e por que artifact em vez de `actions/cache`.
-- Explicar como baixar e inspecionar o artifact do SBOM.
+D.7 — Documentação completa da Fase D
 
-E.2 Criar `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`
-
-- Estratégia de branches, branch protection, como contribuir, checklist pré-PR.
-
-E.3 Criar `docs/en/sbom-and-compliance.md` e `docs/pt-BR/sbom-and-compliance.md`
-
-- O que é SBOM, formato CycloneDX 1.4, como consumir, exemplo de uso.
-
-E.4 Criar `docs/en/performance-tuning.md` e `docs/pt-BR/performance-tuning.md`
-
-- Cache de registry, timeout, retries, benchmarks, como interpretar regressões.
-
-E.5 Criar `docs/en/npmrc-hardening.md` e `docs/pt-BR/npmrc-hardening.md`
-
-- Explicar cada configuração do `.npmrc` e opções adicionais consideradas.
-
-E.6 Atualizar índices e referências
-
+- Criar `docs/en/ci-cd-overview.md` e `docs/pt-BR/ci-cd-overview.md`:
+  - Visão geral do workflow (diagrama Mermaid).
+  - Descrição de cada job e sua responsabilidade.
+  - Explicação do cache via artifact e por que não `actions/cache`.
+  - Explicação do pin por SHA + Dependabot.
+  - Explicação das permissões mínimas do `GITHUB_TOKEN`.
+  - Como baixar e inspecionar o artifact do SBOM.
+  - Troubleshooting comum (falha de download de artifact, timeout, divergência de manifest).
+- Criar `docs/en/git-workflow.md` e `docs/pt-BR/git-workflow.md`:
+  - Estratégia de branches (`main`, `dev`, feature branches).
+  - Branch protection e regras de merge.
+  - Como abrir um PR.
+  - Checklist pré-PR.
+  - O que acontece em caso de falha de CI.
+- Criar `docs/en/sbom-and-compliance.md` e `docs/pt-BR/sbom-and-compliance.md`:
+  - O que é SBOM.
+  - Formato CycloneDX 1.4 utilizado.
+  - Como consumir o `sbom.json`.
+  - Exemplo de integração com ferramentas de compliance.
+- Criar `docs/en/performance-tuning.md` e `docs/pt-BR/performance-tuning.md`:
+  - Cache de registry, timeout, retries.
+  - Como interpretar os benchmarks (`defence:perf`).
+  - Como detectar e investigar regressões de performance.
+- Criar/atualizar `docs/en/npmrc-hardening.md` e `docs/pt-BR/npmrc-hardening.md`:
+  - Explicar cada configuração do `.npmrc`.
+  - Opções adicionais consideradas (`prefer-online`, etc.).
+- Atualizar `docs/en/security/defense-layer-6-npmrc-config.md` e `docs/pt-BR/security/defense-layer-6-npmrc-config.md` com links cruzados.
 - Atualizar `README.md`, `docs/en/index.md`, `docs/pt-BR/index.md`, `docs/en/tools.md`, `docs/pt-BR/tools.md`, `CONTRIBUTING.md` com links para as novas páginas.
 
-### Fase F — Relatórios e registro de conclusão
+D.8 — Atualizar installer, manifest e registros
 
-F.1 Manter `CHANGELOG.md` atualizado
+- Se novos arquivos de documentação forem criados e devem ser copiados por projetos adotantes, atualizar `tools/install-defences.js` (`FILES_TO_COPY`) e `tools/install-defences.test.js`.
+- Regenerar `.defence-manifest.json` via `bash .husky/pre-commit`.
+- Atualizar `CHANGELOG.md` com todas as mudanças da Fase D.
+- Atualizar `TODO.md` marcando itens da Fase D como concluídos.
 
-- Seção `[Unreleased]` atualizada com as mudanças de cada fase.
+**Verificação**
 
-F.2 Análise pré-release (ação futura)
+- `npm test` passa (432+ testes).
+- `npm run lint` limpo.
+- `npm run defence:check-md-links` válido.
+- `bash .husky/pre-commit` passa (incluindo actionlint, se instalado).
+- `npm run defence:verify-defences` passa.
+- Workflow validado sintaticamente (`actionlint .github/workflows/ci.yml`).
+- Após push para `dev`, CI executa todos os jobs com sucesso.
+- Artifact de `node_modules` e artifact de SBOM são gerados e podem ser baixados.
+- Job `install-defences-dry-run` passa sem divergências.
+- Documentação EN/PT-BR sincronizada.
 
-- Executar quando as fases C, D e E estiverem concluídas.
-- Gerar novo status report (novo arquivo ou atualização controlada) refletindo estado 10/10 se aplicável.
-- Identificar novos pontos de melhoria que possam adiar o release.
+### Fase E — Expansão e sincronização da documentação
 
-F.3 Release v1.0.0 (ação futura)
+A Fase E foca exclusivamente na criação e atualização de documentação. Toda a documentação técnica da CI/CD será criada na Fase D; a Fase E complementa com páginas conceituais e ajustes finais.
 
-- Planejar e executar apenas após conclusão e aprovação do status report.
+E.1 Criar `docs/en/learning-path.md` e `docs/pt-BR/learning-path.md`
+
+- Roteiro sugerido para quem está aprendendo sobre defesa contra supply-chain attacks.
+- Ordem de leitura das camadas de defesa e ferramentas.
+
+E.2 Criar `docs/en/faq.md` e `docs/pt-BR/faq.md`
+
+- Perguntas frequentes sobre adoção, erros comuns, limitações.
+
+E.3 Atualizar todos os índices e referências
+
+- Garantir que `README.md`, `docs/en/index.md`, `docs/pt-BR/index.md`, `docs/en/tools.md`, `docs/pt-BR/tools.md`, `CONTRIBUTING.md` e `SECURITY.md` apontem para as novas páginas criadas nas fases D e E.
+- Sincronizar termos com o glossário (`docs/en/glossary.md` / `docs/pt-BR/glossary.md`).
+
+E.4 Revisão final de documentação
+
+- Verificar consistência bilíngue EN/PT-BR.
+- Verificar links internos e externos.
+- `npm run defence:check-md-links` deve passar em todo o repositório.
+
+### Fase Pós-E — Análise pré-release e release v1.0.0 (ação futura)
+
+Não faz parte do escopo atual. Será planejada em sessão futura quando as fases D e E estiverem concluídas.
+
+- Análise pré-release: gerar novo status report refletindo estado 10/10 se aplicável; identificar novos pontos de melhoria.
+- Release v1.0.0: planejar CHANGELOG final, tag, GitHub Release com SBOM anexado.
 
 ## Verificação
 
@@ -408,18 +495,16 @@ F.3 Release v1.0.0 (ação futura)
   - Gates: `npm test` (432/432), `npm run lint`, `npm run defence:check-md-links`, `npm run defence:verify-defences` — todos passaram.
 
 - ✅ **Fase C.4 — `.npmrc` hardening** implementada e documentação de lookahead ajustada.
-- ⏳ **Fase D — Otimização de CI/CD** em andamento.
+- ✅ **Fase D — Otimização e Hardening da CI/CD** implementada, validada com 432/432 testes passando, e pronta para commit.
+- ⏳ **Fase E — Expansão e sincronização da documentação** é a próxima fase em execução.
 
 ## Decisões pendentes a avaliar no final
 
 1. **Fase 9 Experimental Hardening**: sandbox foi descartado. Pre-install dry-run, trust score dashboard e process monitoring foram implementados; restricted VM permanece como ideia futura.
-2. **Hardening no `.npmrc`**: em andamento — adicionar `npm-audit-fix-level=high` e `send-metrics=false`, documentar cada configuração.
-3. **CI/CD**: implementar cache via artifact, proteção de `main`, separação lint/format e upload de SBOM.
-4. **Documentação**: criar páginas de CI/CD overview, git workflow, SBOM/compliance, performance tuning.
-5. **Status report**: manter relatório atual como referência; nova análise pré-release será feita no futuro.
-6. **Release futuro**: quando o projeto estiver concluído, planejar ações de release em um plano separado.
-3. **CI/CD**: implementar cache via artifact, proteção de `main`, separação lint/format e upload de SBOM.
-4. **Documentação**: criar páginas de CI/CD overview, git workflow, SBOM/compliance, performance tuning e npmrc hardening.
-5. **Timeout do audit**: manter 60s em `run-audit-with-retry.js` ou ajustar com base na instabilidade observada do npm?
-6. **Status report**: manter relatório atual como referência; nova análise pré-release será feita no futuro.
-7. **Release futuro**: quando o projeto estiver concluído, planejar ações de release (CHANGELOG, tag, GitHub Release com SBOM) em um plano separado.
+2. **Hardening no `.npmrc`**: concluído — `npm-audit-fix-level=high` e `send-metrics=false` adicionados e documentados como configurações prospectivas.
+3. **CI/CD**: concluído — cache via artifact, proteção de `main`, separação lint/format, upload de SBOM, pin por SHA + Dependabot, permissões mínimas do `GITHUB_TOKEN`, timeouts, actionlint e dry-run do installer implementados e documentados na Fase D.
+4. **Documentação técnica de CI/CD**: concluído — páginas de CI/CD overview, git workflow, SBOM/compliance, performance tuning e npmrc hardening criadas/atualizadas na Fase D.
+6. **Documentação conceitual**: criar learning path e FAQ na Fase E.
+7. **Timeout do audit**: manter 60s em `run-audit-with-retry.js` ou ajustar com base na instabilidade observada do npm?
+8. **Status report**: manter relatório atual como referência; nova análise pré-release será planejada em sessão futura, após as fases D e E.
+9. **Release futuro**: quando o projeto estiver concluído, planejar ações de release (CHANGELOG, tag, GitHub Release com SBOM) em plano separado.

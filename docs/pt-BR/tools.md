@@ -115,6 +115,14 @@ Como edições legítimas nos arquivos copiados naturalmente alteram seus hashes
 
 Execute o script de correção após qualquer mudança deliberada nos arquivos listados em `install-defences.js`, depois commit o manifesto atualizado.
 
+## Integração com CI/CD
+
+As ferramentas se integram ao workflow do GitHub Actions descrito em [Visão geral de CI/CD](ci-cd-overview.md). Integrações principais:
+
+- `generate-sbom.js` produz o artefato SBOM enviado pelo job `defence-gates` (veja [SBOM e Conformidade](sbom-and-compliance.md)).
+- `verify-defences.js` e `install-defences.js --dry-run` executam no job `install-defences-dry-run` para detectar drift do manifesto.
+- `perf/benchmark.js` suporta verificações de regressão de performance no CI (veja [Ajuste de Performance](performance-tuning.md)).
+
 ## Testes
 
 | Script | Propósito |

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-04T18:49:21.658Z",
+  "installedAt": "2026-09-05T21:59:08.876Z",
   "files": [
     {
       "path": ".npmrc",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".husky/pre-commit",
-      "hash": "2b594b324a64c3d3f8ea22a878e89ff7565f824e806d080d60ad2a9f6f6ce6e6"
+      "hash": "4e25affbdb73d1ad0b2227d6420680b2ce75e0cdef5076fedeee06e2e7ece5fd"
     },
     {
       "path": ".husky/post-merge",

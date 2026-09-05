@@ -51,9 +51,18 @@ Priority order: **P0 → P1 → P2 → P3**.
 - [x] Implement process monitoring for lifecycle scripts spawned during
   `npm install`.
 - [x] Review and document `.npmrc` hardening options.
-- [ ] Optimise CI/CD: cache `node_modules` via artifacts, protect `main` (push
-  only on `dev`), split lint/format jobs, upload SBOM artifact.
-- [ ] Expand documentation: CI/CD overview, git workflow & branch protection,
+- [x] Optimise and harden CI/CD:
+  - Pin all GitHub Actions by SHA with version comments.
+  - Add `.github/dependabot.yml` for weekly GitHub Actions updates.
+  - Apply minimal `GITHUB_TOKEN` permissions (`contents: read`, `actions: write`).
+  - Add `timeout-minutes: 15` to every job.
+  - Cache `node_modules` via artifacts instead of `actions/cache`.
+  - Protect `main` by triggering push only on `dev` and PR on `main`/`dev`.
+  - Split `lint-format` into separate `lint` and `format` jobs.
+  - Upload SBOM artifact from `defence-gates`.
+  - Add `install-defences-dry-run` job to catch manifest drift.
+  - Run `actionlint` in CI with a pinned binary and optionally in pre-commit.
+- [x] Expand documentation: CI/CD overview, git workflow & branch protection,
   SBOM & compliance, performance tuning, `.npmrc` hardening.
 
 ### P3 / Future

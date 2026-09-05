@@ -4,6 +4,16 @@
 # license check to catch manual edits to package.json/package-lock.json.
 git diff --cached --name-only -z | xargs -0 -r npm run defence:check-secrets --
 npm run defence:check-hooks
+
+# Validate workflow files when actionlint is available locally. The CI enforces
+# this check with a pinned binary, so a missing local installation is only a
+# warning to keep the hook usable in environments without actionlint.
+if command -v actionlint >/dev/null 2>&1; then
+  actionlint -color .github/workflows/*.yml
+else
+  echo "warning: actionlint not found; skipping workflow validation locally"
+fi
+
 npm run lint
 npm run defence:verify-defences:fix && git add .defence-manifest.json
 npm run defence:update-badge && git add README.md
