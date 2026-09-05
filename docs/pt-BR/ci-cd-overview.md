@@ -35,7 +35,7 @@ graph TD
 | `test` | Executar a suíte de testes | Baixar artefato, `npm test` |
 | `coverage` | Medir a cobertura de testes | Baixar artefato, comando de cobertura |
 | `lint` | Verificar a qualidade do código | `npm run lint` |
-| `format` | Verificar a formatação | `npx biome format tools/ --check` |
+| `format` | Verificar a formatação | `npm run format:check` |
 | `docs` | Validar a documentação | Verificações de docs |
 | `license` | Validar licenças das dependências | Auditoria de licenças |
 | `lockfile-integrity` | Verificar consistência do lockfile | Verificações do lockfile |

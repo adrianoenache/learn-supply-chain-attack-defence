@@ -152,7 +152,7 @@
     "defence:verify-defences:fix": "node ./tools/install-defences.js --update-local-manifest",
     "defence:generate-sbom": "node ./tools/generate-sbom.js",
     "format": "./node_modules/.bin/biome format --write tools/",
-    "format:check": "./node_modules/.bin/biome format tools/ --check",
+    "format:check": "./node_modules/.bin/biome format tools/",
     "lint:fix": "./node_modules/.bin/biome check --write tools/",
     "lint": "./node_modules/.bin/biome check tools/",
     "prepare": "husky",

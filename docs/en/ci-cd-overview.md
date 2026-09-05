@@ -35,7 +35,7 @@ graph TD
 | `test` | Run the test suite | Download artifact, `npm test` |
 | `coverage` | Measure test coverage | Download artifact, coverage command |
 | `lint` | Check code quality | `npm run lint` |
-| `format` | Check formatting | `npx biome format tools/ --check` |
+| `format` | Check formatting | `npm run format:check` |
 | `docs` | Validate documentation | Docs checks |
 | `license` | Validate dependency licenses | License audit |
 | `lockfile-integrity` | Verify lockfile consistency | Lockfile checks |
