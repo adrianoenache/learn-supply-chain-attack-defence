@@ -495,7 +495,7 @@ Não faz parte do escopo atual. Será planejada em sessão futura quando as fase
   - Gates: `npm test` (432/432), `npm run lint`, `npm run defence:check-md-links`, `npm run defence:verify-defences` — todos passaram.
 
 - ✅ **Fase C.4 — `.npmrc` hardening** implementada e documentação de lookahead ajustada.
-- ✅ **Fase D — Otimização e Hardening da CI/CD** implementada, validada com 432/432 testes passando, e pronta para commit.
+- ✅ **Fase D — Otimização e Hardening da CI/CD** implementada, validada com 432/432 testes passando, commitada e pushada para `origin/dev`.
 - ⏳ **Fase E — Expansão e sincronização da documentação** é a próxima fase em execução.
 
 ## Decisões pendentes a avaliar no final
