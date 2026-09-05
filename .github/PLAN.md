@@ -27,7 +27,7 @@ Trocar o upload direto da pasta `node_modules` por um tarball `node_modules.tar.
 
 2. ✅ **Scripts `package.json`** (paralelo ao passo 1)
    - Alterar `lint`, `lint:fix` e `format` para usar `./node_modules/.bin/biome` em vez de `biome`.
-   - Adicionar `format:check` com `./node_modules/.bin/biome format tools/ --check` e usar esse script no job de formatação do CI.
+   - Adicionar `format:check` com `./node_modules/.bin/biome format tools/` (Biome 2.x verifica por padrão; `--check` não é aceito) e usar esse script no job de formatação do CI.
 
 3. ✅ **Installer e testes**
    - Atualizar `SCRIPTS_TO_ADD` em `tools/install-defences.js` se ele replicar esses scripts em projetos adotantes.
