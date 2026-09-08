@@ -14,8 +14,10 @@ This repository is a practical learning environment for understanding and applyi
 
 ### Getting Started
 
+- [Learning Path](learning-path.md) — curated tracks and hands-on tutorials.
 - [Getting Started](getting-started.md) — prerequisites and first setup.
 - [Setup](setup.md) — how `npm run setup` works and what it protects.
+- [FAQ](faq.md) — frequently asked conceptual questions.
 
 ### Security Layers
 

@@ -14,8 +14,10 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 
 ### Primeiros Passos
 
+- [Roteiro de Aprendizado](learning-path.md) — trilhas sequenciais e tutoriais práticos.
 - [Primeiros Passos](getting-started.md) — pré-requisitos e configuração inicial.
 - [Setup](setup.md) — como funciona o `npm run setup` e o que ele protege.
+- [FAQ](faq.md) — perguntas conceituais frequentes.
 
 ### Camadas de Segurança
 

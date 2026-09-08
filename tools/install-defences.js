@@ -45,6 +45,8 @@ const FILES_TO_COPY = [
   'tools/analyze-lifecycle-scripts.test.js',
   'tools/check-engines.js',
   'tools/check-engines.test.js',
+  'tools/check-external-urls.js',
+  'tools/check-external-urls.test.js',
   'tools/check-hooks.js',
   'tools/check-hooks.test.js',
   'tools/check-licenses.js',
@@ -100,6 +102,7 @@ const FILES_TO_COPY = [
   'tools/lib/retry-fetch.js',
   'tools/lib/retry-fetch.test.js',
   'tools/lib/sync-check.js',
+  'tools/lib/typosquatting.js',
   'tools/lib/typosquatting.test.js',
   'tools/perf/benchmark.js',
   'tools/perf/benchmark.test.js',
@@ -124,6 +127,9 @@ const SCRIPTS_TO_ADD = {
   'defence:check-engines': 'node ./tools/check-engines.js',
   'defence:check-hooks': 'node ./tools/check-hooks.js',
   'defence:check-md-links': 'node ./tools/check-md-links.js',
+  'defence:check-external-urls': 'node ./tools/check-external-urls.js',
+  'defence:check-external-urls:force':
+    'node ./tools/check-external-urls.js --force',
   'defence:check-secrets': 'node ./tools/check-secrets.js',
   'defence:check-lockfile-integrity':
     'node ./tools/check-lockfile-integrity.js',

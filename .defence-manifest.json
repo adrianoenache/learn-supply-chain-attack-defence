@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-08T17:05:16.594Z",
+  "installedAt": "2026-09-08T18:45:32.036Z",
   "files": [
     {
       "path": ".npmrc",
@@ -41,6 +41,14 @@
     {
       "path": "tools/check-engines.test.js",
       "hash": "7a302eb1c3489d547bab3592a94374b6c18a0d1de39d44e0f002ee8b35ceb94a"
+    },
+    {
+      "path": "tools/check-external-urls.js",
+      "hash": "191b172a6e104aab0d7e64d214468e96c17ce8c1126c3b59373b448a1e60d6db"
+    },
+    {
+      "path": "tools/check-external-urls.test.js",
+      "hash": "31d8e4480e1887afbe2e3c7f6c61fd465264724c566056f983ef612224cd7424"
     },
     {
       "path": "tools/check-hooks.js",
@@ -124,7 +132,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "37261210a4dc94c96a1b7bd4f0a2061539f70bc47d57c7d33e46b02f77c94c37"
+      "hash": "8aa4f76b5eaffa995ecf91f7a5a7d9fbc0b055fc5879776420f018813cf88722"
     },
     {
       "path": "tools/monitor-install.js",
@@ -136,7 +144,7 @@
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "08c9ee85b910ca6d52b950c3ce9a8d0fd9433429f947424b1dba4aed485e4636"
+      "hash": "51784d396e05723a818ab470ebcb3e3265f38e33a58a3dd6fdbbf1310e756bd2"
     },
     {
       "path": "tools/integration.test.js",
@@ -261,6 +269,10 @@
     {
       "path": "tools/lib/sync-check.js",
       "hash": "5fc5594a42dad60d4a33e5ec7b30eaecd2bb5c739c15a0e2b37b181fd431959a"
+    },
+    {
+      "path": "tools/lib/typosquatting.js",
+      "hash": "87079413843d8f39fa90411420f5ca64654da74257bf74a1558a9208bdac67fa"
     },
     {
       "path": "tools/lib/typosquatting.test.js",

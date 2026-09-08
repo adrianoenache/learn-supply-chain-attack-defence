@@ -12,7 +12,7 @@ Thank you for your interest in improving this project. This guide explains how t
 
 1. Fork the repository and create a feature branch from `dev`.
 2. Make your changes.
-3. Run `npm test`, `npm run lint`, and `npm run format -- --check`. All must pass.
+3. Run `npm test`, `npm run lint`, and `npm run format:check`. All must pass.
 4. Run `bash .husky/pre-commit` to simulate the commit gate.
 5. Commit using clear messages in English.
 6. Open a pull request against `dev` describing what changed and why.
