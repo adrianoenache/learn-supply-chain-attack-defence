@@ -52,7 +52,10 @@ function fetchBufferOnce(url, options) {
   return new Promise((resolve, reject) => {
     const maxBytes = options.maxResponseBytes ?? Number.POSITIVE_INFINITY
     const accept = options.acceptGzip !== false ? 'gzip' : undefined
-    const headers = { Accept: 'application/json' }
+    const headers = {
+      Accept: options.accept ?? 'application/json',
+      ...(options.headers ?? {}),
+    }
     if (accept) headers['Accept-Encoding'] = accept
 
     // 10 s is a conservative default socket timeout for registry calls.
@@ -122,9 +125,11 @@ function fetchBufferOnce(url, options) {
 }
 
 async function sleep(ms) {
+  // The timer must keep the event loop alive so that retries run to
+  // completion. Callers that need early termination should cancel the
+  // surrounding promise instead of relying on an unref'd timer.
   return new Promise((resolve) => {
-    const timer = setTimeoutImpl(resolve, ms)
-    if (timer && typeof timer.unref === 'function') timer.unref()
+    setTimeoutImpl(resolve, ms)
   })
 }
 

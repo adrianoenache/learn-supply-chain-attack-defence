@@ -37,6 +37,12 @@ When asking the AI to change code or documentation, keep the following rules in 
 5. **Justify hardcoded values.** If the AI leaves a literal value in code, it must add a comment explaining why that value is not configurable.
 6. **Keep documentation bilingual.** When the AI changes user-facing behavior, update both `docs/en/` and `docs/pt-BR/`.
 
+## URL Validation
+
+Before adding external URLs to documentation, AI customizations, or configuration files, verify they are reachable. Fictional URLs inside CLI output examples must be marked as illustrative. Intentionally kept dead URLs must be registered in `.github/known-dead-urls.md`.
+
+Run `npm run defence:check-external-urls` after editing files that contain URLs.
+
 ## Human Review
 
 Every AI-generated suggestion must be reviewed by a human before it is committed. Pay special attention to:
@@ -89,6 +95,7 @@ Reusable skills include:
 | [`.github/skills/educational-code-review/SKILL.md`](../../.github/skills/educational-code-review/SKILL.md) | Reviewing code as a learning resource. |
 | [`.github/skills/docs-completeness/SKILL.md`](../../.github/skills/docs-completeness/SKILL.md) | Auditing bilingual documentation completeness. |
 | [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditing project structure and applyTo hygiene. |
+| [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Step-by-step procedure for verifying external URLs before committing them. |
 
 Prompts for one-shot tasks include:
 

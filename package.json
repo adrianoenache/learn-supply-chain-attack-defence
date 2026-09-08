@@ -78,6 +78,18 @@
     "cacheTtlHours": 24,
     "cacheFile": ".md-links-cache.json"
   },
+  "checkExternalUrls": {
+    "ignoredDirs": ["node_modules", ".git", "coverage", ".cache", "tmp"],
+    "ignoredFiles": [".external-urls-cache.json", ".defence-profile.json"],
+    "cacheTtlHours": 24,
+    "cacheFile": ".external-urls-cache.json",
+    "timeoutMs": 15000,
+    "retryMaxAttempts": 2,
+    "retryInitialDelayMs": 500,
+    "retryBackoffMultiplier": 2,
+    "retryMaxDelayMs": 5000,
+    "concurrency": 10
+  },
   "lifecycleScriptAnalysis": {
     "enabled": true,
     "failOn": "high"
@@ -111,7 +123,7 @@
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
     "provenanceMode": "warn",
-    "huskyPreCommitHash": "4e25affbdb73d1ad0b2227d6420680b2ce75e0cdef5076fedeee06e2e7ece5fd"
+    "huskyPreCommitHash": "98117eabff753f092b65eae413f72eaa0e34e280675f427c6d707debc8ca8134"
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
@@ -126,6 +138,8 @@
     "defence:check-hooks": "node ./tools/check-hooks.js",
     "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
+    "defence:check-external-urls": "node ./tools/check-external-urls.js",
+    "defence:check-external-urls:force": "node ./tools/check-external-urls.js --force",
     "defence:license-check": "node ./tools/check-licenses.js",
     "defence:license-check:fail": "node ./tools/check-licenses.js --fail",
     "defence:license-check:json": "node ./tools/check-licenses.js --format=json",

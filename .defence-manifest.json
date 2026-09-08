@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-08T16:05:01.443Z",
+  "installedAt": "2026-09-08T16:47:25.877Z",
   "files": [
     {
       "path": ".npmrc",
@@ -8,7 +8,7 @@
     },
     {
       "path": ".husky/pre-commit",
-      "hash": "4e25affbdb73d1ad0b2227d6420680b2ce75e0cdef5076fedeee06e2e7ece5fd"
+      "hash": "98117eabff753f092b65eae413f72eaa0e34e280675f427c6d707debc8ca8134"
     },
     {
       "path": ".husky/post-merge",
@@ -252,7 +252,7 @@
     },
     {
       "path": "tools/lib/retry-fetch.js",
-      "hash": "32227b1a3dff3ed7ded505d6872dd33bfa1a49bb230aa3e2bdfbb1480cba6933"
+      "hash": "57719939e13d6ec8d2fef8dd22367cca2b3c73b2737189b701055d4ba3f0be28"
     },
     {
       "path": "tools/lib/retry-fetch.test.js",

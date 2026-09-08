@@ -35,3 +35,13 @@ Every production dependency must pass:
 
 - Read security thresholds from `tools/lib/config.js`, which loads values from `package.json` and optional `.defence.config.json`.
 - Avoid introducing new hardcoded thresholds without a comment explaining why they are not configurable.
+
+## External URL Validation
+
+Every external URL added to documentation, AI customizations, issue templates,
+or configuration files must be verified before it is committed:
+
+- Use `fetch_webpage`, `curl -I --max-time 10`, or `npm run defence:check-external-urls`.
+- Do not invent schema URLs (for example, `https://code.visualstudio.com/schemas/hooks`).
+- If a URL is intentionally dead (kept as a historical record), add it to `.github/known-dead-urls.md`.
+- Mark fictional/example URLs with an explicit blockquote saying they are illustrative.

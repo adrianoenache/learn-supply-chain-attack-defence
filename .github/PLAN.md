@@ -4,7 +4,7 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-05
+> Last updated: 2026-09-08
 
 ## TL;DR
 
@@ -41,17 +41,41 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
   - ✅ `https://www.npmjs.com/package/husky/v/9.2.0` → exemplo marcado como ilustrativo
   - ✅ `https://github.com/typicode/husky/releases/tag/v9.2.0` → exemplo marcado como ilustrativo
   - ✅ `https://code.visualstudio.com/schemas/hooks` → nota de referência morta conhecida adicionada em `ai-lessons-learned.md`
-- **Arquivos alterados:**
+- **Nova camada de defesa contra URLs fictícias/404/inacessíveis:**
+  - Skill `.github/skills/validate-urls/SKILL.md` instrui agentes a verificarem URLs externas.
+  - Ferramenta `tools/check-external-urls.js` varre arquivos e valida alcançabilidade com cache, retry e allow-list.
+  - Testes `tools/check-external-urls.test.js` cobrem regex, descoberta, allow-list e saída.
+  - Registro `.github/known-dead-urls.md` documenta URLs intencionalmente inacessíveis.
+  - Hook `.github/hooks/validate-urls.json` + script `.github/hooks/scripts/validate-urls.sh` sugerem verificação pós-edição.
+  - `package.json` ganhou scripts `defence:check-external-urls` / `defence:check-external-urls:force` e config `checkExternalUrls`.
+  - `.husky/pre-commit` executa `npm run defence:check-external-urls`.
+  - `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` documentam a skill.
+  - `tools/lib/retry-fetch.js` aceita `headers` customizados e timers de retry mantêm o event loop ativo.
+  - `.gitignore` ignora `.external-urls-cache.json`.
+- **Arquivos alterados/criados:**
   - `.github/ISSUE_TEMPLATE/config.yml`
   - `.github/ai-lessons-learned.md`
+  - `.github/hooks/validate-urls.json`
+  - `.github/hooks/scripts/validate-urls.sh`
+  - `.github/instructions/security.instructions.md`
+  - `.github/known-dead-urls.md`
+  - `.github/skills/validate-urls/SKILL.md`
+  - `docs/en/ai-guidelines.md`
   - `docs/en/security/defense-layer-8-update-check.md`
+  - `docs/pt-BR/ai-guidelines.md`
   - `docs/pt-BR/security/defense-layer-8-update-check.md`
+  - `package.json`
+  - `tools/check-external-urls.js`
+  - `tools/check-external-urls.test.js`
+  - `tools/lib/retry-fetch.js`
+  - `.husky/pre-commit`
   - `.defence-manifest.json` (atualizado automaticamente pelo pre-commit)
 - **Validações executadas:**
-  - ✅ `npm run lint` — 69 arquivos, sem erros
-  - ✅ `npm test` — 432/432 passando
-  - ✅ `npm run defence:check-md-links` — 126 arquivos válidos
-  - ✅ `bash .husky/pre-commit` — passou (signatures, audit, update-check, license, verify-defences, badge)
+  - ✅ `npm run lint` — 71 arquivos, sem erros
+  - ✅ `npm test` — 440/440 passando
+  - ✅ `npm run defence:check-md-links` — 128 arquivos válidos
+  - ✅ `npm run defence:check-external-urls` — 95 URLs alcançáveis, 2 known-dead
+  - ✅ `bash .husky/pre-commit` — passou (lint, external URLs, signatures, audit, update-check, license, verify-defences, badge)
 
 ### Fase E — Documentação conceitual
 

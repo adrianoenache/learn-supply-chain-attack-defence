@@ -37,6 +37,12 @@ Ao pedir para a AI alterar código ou documentação, mantenha as seguintes regr
 5. **Justifique valores hardcoded.** Se a AI deixar um valor literal no código, ela deve adicionar um comentário explicando por que aquele valor não é configurável.
 6. **Mantenha a documentação bilíngue.** Quando a AI alterar comportamento voltado ao usuário, atualize tanto `docs/en/` quanto `docs/pt-BR/`.
 
+## Validação de URLs
+
+Antes de adicionar URLs externas em documentação, customizações de AI ou arquivos de configuração, verifique se elas são acessíveis. URLs fictícias dentro de exemplos de saída de CLI devem ser marcadas como ilustrativas. URLs mortas mantidas intencionalmente devem ser registradas em `.github/known-dead-urls.md`.
+
+Execute `npm run defence:check-external-urls` após editar arquivos que contenham URLs.
+
 ## Revisão Humana
 
 Toda sugestão gerada pela AI deve ser revisada por um humano antes de ser commitada. Preste atenção especial a:
@@ -89,6 +95,7 @@ Skills reutilizáveis incluem:
 | [`.github/skills/educational-code-review/SKILL.md`](../../.github/skills/educational-code-review/SKILL.md) | Revisar código como recurso de aprendizado. |
 | [`.github/skills/docs-completeness/SKILL.md`](../../.github/skills/docs-completeness/SKILL.md) | Auditar a completude da documentação bilíngue. |
 | [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditar a estrutura do projeto e a higiene dos padrões applyTo. |
+| [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Procedimento passo a passo para verificar URLs externas antes de commitá-las. |
 
 Prompts para tarefas one-shot incluem:
 

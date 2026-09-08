@@ -82,6 +82,9 @@ tools/e2e/.cache/
 # Incremental markdown link-check cache (never commit; per-developer state)
 .md-links-cache.json
 
+# Incremental external URL reachability cache (never commit; per-developer state)
+.external-urls-cache.json
+
 # Registry response cache for defence tools (never commit; per-developer state)
 .cache/
 

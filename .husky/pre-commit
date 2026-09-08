@@ -15,6 +15,7 @@ else
 fi
 
 npm run lint
+npm run defence:check-external-urls
 npm run defence:verify-defences:fix && git add .defence-manifest.json
 npm run defence:update-badge && git add README.md
 npm run defence:pre-commit
