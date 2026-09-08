@@ -160,6 +160,7 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Auditar estrutura, padrões applyTo e arquivos órfãos.
 - Extrair helpers duplicados para `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js`.
 - Criar `docs/{en,pt-BR}/repository-organization.md`.
+- Expandir o escopo de lint/format do Biome para cobrir `.github/**/*.js` (atualmente só valida `tools/`).
 
 ### Fase I — Revisão total da documentação
 
@@ -195,7 +196,7 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - E: páginas criadas e links validados.
 - F: `defence:update-check` informativo e com listagem de updates intermediários.
 - G: headers completos e listas de melhorias geradas.
-- H: helpers extraídos sem regressão.
+- H: helpers extraídos sem regressão; lint/format do Biome cobrindo `.github/**/*.js`.
 - I: arquitetura e glossário atualizados.
 - J: novo status report reflete estado real.
 - K: só após aprovação explícita.
