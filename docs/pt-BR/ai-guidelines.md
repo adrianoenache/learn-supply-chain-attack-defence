@@ -12,10 +12,13 @@ Os seguintes arquivos configuram como os assistentes de AI se comportam ao traba
 | [`.github/instructions/security.instructions.md`](../../.github/instructions/security.instructions.md) | Contexto para `tools/**`, `.npmrc` e `package.json`. |
 | [`.github/instructions/testing.instructions.md`](../../.github/instructions/testing.instructions.md) | Contexto para `tools/**/*.test.js`. |
 | [`.github/instructions/docs.instructions.md`](../../.github/instructions/docs.instructions.md) | Contexto para `docs/**/*.md` e `README.md`. |
-| [`.github/agents/`](../../.github/agents/) | Agents especializados para revisões de segurança, qualidade, performance, documentação e compliance. |
-| [`.github/skills/`](../../.github/skills/) | Procedimentos reutilizáveis para auditorias de segurança, revisão de dependências, atualização de docs, releases e self-review. |
-| [`.github/prompts/`](../../.github/prompts/) | Templates de prompt one-shot para testes, revisões de segurança, atualização de docs, auditoria de hardcodes e revisão de saídas da AI. |
-| [`.github/hooks/`](../../.github/hooks/) | Hooks de ciclo de vida que alertam ou bloqueiam solicitações de alto risco e sugerem comandos de validação. |
+| [`.github/instructions/educational-code-quality.instructions.md`](../../.github/instructions/educational-code-quality.instructions.md) | Regras para escrever código como recurso de aprendizado. |
+| [`.github/instructions/file-organization.instructions.md`](../../.github/instructions/file-organization.instructions.md) | Regras para localização de arquivos e estrutura do projeto. |
+| [`.github/instructions/project-evaluation.instructions.md`](../../.github/instructions/project-evaluation.instructions.md) | Critérios para relatórios de status e readiness de release. |
+| [`.github/agents/`](../../.github/agents/) | Agents especializados para revisões de segurança, qualidade, performance, documentação, compliance, execução de comandos, code review, organização do repositório e avaliação do projeto. |
+| [`.github/skills/`](../../.github/skills/) | Procedimentos reutilizáveis para auditorias de segurança, revisão de dependências, atualização de docs, releases, self-review, verificação de contratos de script, code review educacional, completude de docs e auditoria de organização do repositório. |
+| [`.github/prompts/`](../../.github/prompts/) | Templates de prompt one-shot para testes, revisões de segurança, atualização de docs, auditoria de hardcodes, revisão de saídas da AI, code review para aprendizado, verificação de contrato de comando, validação de arquitetura e avaliação de status do projeto. |
+| [`.github/hooks/`](../../.github/hooks/) | Hooks de ciclo de vida do GitHub Copilot que bloqueiam chamadas perigosas de ferramentas, sugerem comandos de validação após edições e injetam contexto do projeto no início da sessão. |
 | [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log de erros recorrentes da AI e correções usado para melhorar as instruções ao longo do tempo. |
 
 Esses arquivos são lidos pelo VS Code Copilot / Kimi 2.7 Code quando o workspace é aberto. Eles não alteram o modelo em si; fornecem guardrails específicos do projeto.
@@ -68,6 +71,10 @@ Os seguintes agents especializados podem ser invocados explicitamente ou corresp
 | [`.github/agents/performance.agent.md`](../../.github/agents/performance.agent.md) | Cache, retry, uso de rede, benchmarks. |
 | [`.github/agents/docs.agent.md`](../../.github/agents/docs.agent.md) | Documentação bilíngue, links, glossário, qualidade markdown. |
 | [`.github/agents/compliance.agent.md`](../../.github/agents/compliance.agent.md) | Licenças, SBOM, manifesto de adoção, readiness de release. |
+| [`.github/agents/command-execution.agent.md`](../../.github/agents/command-execution.agent.md) | Execução segura de subprocessos, parse de argumentos CLI, contratos de comando. |
+| [`.github/agents/code-review.agent.md`](../../.github/agents/code-review.agent.md) | Code review educacional: clareza, headers, mensagens de erro, valores hardcoded. |
+| [`.github/agents/repository-organization.agent.md`](../../.github/agents/repository-organization.agent.md) | Estrutura de arquivos, padrões applyTo, arquivos órfãos, integridade do manifesto. |
+| [`.github/agents/project-evaluation.agent.md`](../../.github/agents/project-evaluation.agent.md) | Readiness de release, relatórios de status, avaliação de nota 10/10. |
 
 Skills reutilizáveis incluem:
 
@@ -78,3 +85,31 @@ Skills reutilizáveis incluem:
 | [`.github/skills/docs-update/SKILL.md`](../../.github/skills/docs-update/SKILL.md) | Atualizar a documentação bilíngue. |
 | [`.github/skills/release-checklist/SKILL.md`](../../.github/skills/release-checklist/SKILL.md) | Criar uma tag de release. |
 | [`.github/skills/self-review/SKILL.md`](../../.github/skills/self-review/SKILL.md) | Revisar uma saída anterior da AI e melhorar as instruções. |
+| [`.github/skills/script-contract-verification/SKILL.md`](../../.github/skills/script-contract-verification/SKILL.md) | Verificar o contrato CLI de um script de defesa. |
+| [`.github/skills/educational-code-review/SKILL.md`](../../.github/skills/educational-code-review/SKILL.md) | Revisar código como recurso de aprendizado. |
+| [`.github/skills/docs-completeness/SKILL.md`](../../.github/skills/docs-completeness/SKILL.md) | Auditar a completude da documentação bilíngue. |
+| [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditar a estrutura do projeto e a higiene dos padrões applyTo. |
+
+Prompts para tarefas one-shot incluem:
+
+| Prompt | Use Quando |
+| --- | --- |
+| [`.github/prompts/generate-test.prompt.md`](../../.github/prompts/generate-test.prompt.md) | Gerar um teste para um script de defesa. |
+| [`.github/prompts/review-security.prompt.md`](../../.github/prompts/review-security.prompt.md) | Revisar uma mudança quanto a riscos de segurança. |
+| [`.github/prompts/update-docs.prompt.md`](../../.github/prompts/update-docs.prompt.md) | Atualizar documentação após uma mudança. |
+| [`.github/prompts/check-hardcoded-values.prompt.md`](../../.github/prompts/check-hardcoded-values.prompt.md) | Auditar valores hardcoded. |
+| [`.github/prompts/review-ai-output.prompt.md`](../../.github/prompts/review-ai-output.prompt.md) | Revisar uma saída anterior da AI. |
+| [`.github/prompts/code-review-for-learning.prompt.md`](../../.github/prompts/code-review-for-learning.prompt.md) | Revisar código como recurso de aprendizado. |
+| [`.github/prompts/verify-command-contract.prompt.md`](../../.github/prompts/verify-command-contract.prompt.md) | Verificar o contrato de comando de um script. |
+| [`.github/prompts/validate-architecture.prompt.md`](../../.github/prompts/validate-architecture.prompt.md) | Validar uma mudança contra a arquitetura do projeto. |
+| [`.github/prompts/project-status-evaluation.prompt.md`](../../.github/prompts/project-status-evaluation.prompt.md) | Avaliar o readiness do projeto para release. |
+
+Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https://docs.github.com/en/copilot/reference/hooks-reference) (`{ "version": 1, "hooks": { ... } }`) e incluem:
+
+| Hook | Propósito |
+| --- | --- |
+| [`.github/hooks/enforce-security.json`](../../.github/hooks/enforce-security.json) | Nega chamadas perigosas às ferramentas `bash`/`powershell`, como `npm install` direto ou remoção de `ignore-scripts`. |
+| [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Sugere executar lint, testes, verificação de links, verificação de divergência de docs e verificação de contrato de comando após edições. |
+| [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injeta contexto do projeto (engines, contagem de TODOs, manifesto de defesas) no início da sessão. |
+
+As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

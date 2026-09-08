@@ -30,19 +30,21 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## Fase AI-0 — AI Customizations Foundation (P0)
 
-- [ ] Criar agentes: `command-execution`, `code-review`,
+- [x] Criar agentes: `command-execution`, `code-review`,
   `repository-organization`, `project-evaluation`.
-- [ ] Criar skills: `script-contract-verification`,
+- [x] Criar skills: `script-contract-verification`,
   `educational-code-review`, `docs-completeness`,
   `repository-organization-audit`.
-- [ ] Criar instructions: `educational-code-quality`, `file-organization`,
+- [x] Criar instructions: `educational-code-quality`, `file-organization`,
   `project-evaluation`.
-- [ ] Criar prompts: `code-review-for-learning`, `verify-command-contract`,
+- [x] Criar prompts: `code-review-for-learning`, `verify-command-contract`,
   `validate-architecture`, `project-status-evaluation`.
-- [ ] Criar hooks: `detect-docs-drift`, `validate-command-contract`.
-- [ ] Revisar agentes/skills/prompts/hooks/instructions existentes para refletir
+- [x] Criar hooks: `enforce-security`, `auto-lint-test`, `inject-context`
+  seguindo o schema da [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference)
+  (funcionalidades de docs-drift e command-contract foram incorporadas ao `auto-lint-test`).
+- [x] Revisar agentes/skills/prompts/hooks/instructions existentes para refletir
   as novas fases.
-- [ ] Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
+- [x] Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
 
 ## Fase E — Documentação conceitual
 

@@ -48,6 +48,28 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** `.github/PLAN.md`,
   `.github/copilot-instructions.md`
 
+### 2026-09-09 — Invented VS Code hooks schema
+
+- **Date:** 2026-09-09
+- **Rule violated:** Context Before Action / do not invent APIs
+- **Affected files:** `.github/hooks/*.json`, `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
+- **What happened:** Hooks were created using a non-existent `$schema` URL
+  (`https://code.visualstudio.com/schemas/hooks`) and an invented structure
+  with `id`, `enabled`, `rules`, `trigger`, `afterEdit`, `userRequest`, and
+  `action` fields. The real schema is defined by the GitHub Copilot hooks
+  reference.
+- **Correction applied:** Rewrote all hooks to use `{ "version": 1, "hooks": { ... } }`,
+  valid events (`preToolUse`, `postToolUse`, `sessionStart`), `command` entries
+  with `bash` scripts, and `matcher` filters. Moved implementation logic to
+  `.github/hooks/scripts/*.sh`. Consolidated `detect-docs-drift` and
+  `validate-command-contract` into `auto-lint-test.json`. Replaced fragile
+  `sed` JSON parsing with a shared Node.js helper (`parse-hook-input.js`) to
+  avoid malformed payloads bypassing security checks. Updated docs and plans.
+- **Instruction/agent updated:** `.github/hooks/*.json`,
+  `.github/hooks/scripts/*.sh`, `.github/hooks/scripts/parse-hook-input.js`,
+  `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`, `.github/PLAN.md`,
+  `TODO.md`
+
 ---
 
 ## Review Cadence
