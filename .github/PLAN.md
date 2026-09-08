@@ -91,18 +91,48 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
   - ✅ `npm run defence:check-external-urls` — 95 URLs alcançáveis, 2 known-dead
   - ✅ `bash .husky/pre-commit` — passou (lint, external URLs, signatures, audit, update-check, license, verify-defences, badge)
 
-### Fase E — Documentação conceitual
+### Fase E — Documentação conceitual ✅
 
 - Criar `docs/{en,pt-BR}/learning-path.md`, `docs/{en,pt-BR}/faq.md`.
 - Criar `docs/{en,pt-BR}/tools/<tool>.md` para todas as ferramentas.
 - Atualizar `README.md`, `docs/{en,pt-BR}/index.md`, `docs/{en,pt-BR}/tools.md`.
 - Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de `npm run format -- --check`.
+- **Status:** concluída em 2026-09-08. Validações: `npm test` 441/441, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `bash .husky/pre-commit`, `npm run defence:verify-defences` passando.
 
 ### Fase F — Verificação de execução de comandos
 
-- Criar `docs/{en,pt-BR}/command-verification-checklist.md`.
-- Corrigir `defence:update-check`: mensagem informativa quando silencioso; buscar versões intermediárias elegíveis.
-- Verificar contratos dos scripts críticos e documentar no checklist.
+> **Decisões confirmadas em 2026-09-08:**
+> - Mensagens informativas (sync warning e offline fallback) devem ser sempre exibidas em `defence:update-check`, mesmo com `--silent`.
+> - `defence:update-check` deve descobrir e relatar versões intermediárias elegíveis (campo `intermediateEligible`) entre `current`/`wanted` e `latest`.
+> - `defence:update` deve preferir a maior versão intermediária elegível em vez de `latest`.
+> - O checklist `command-verification-checklist.md` deve documentar todos os scripts `defence:*` em `package.json`.
+
+#### F.0 — Correção de contrato em `tools/check-updates.js`
+
+- F.0.1 Ajustar `main()` para chamar `printSyncWarning()` independentemente de `isSilent` quando `node_modules` estiver fora de sincronia.
+- F.0.2 Exibir mensagem ℹ️ de fallback offline mesmo quando `--silent` estiver ativo.
+- F.0.3 Em `classifyUpdate()`, buscar no packument do registry todas as versões entre `current`/`wanted` e `latest` que tenham idade `>= MIN_AGE_DAYS`, ordenar por semver e retornar em `intermediateEligible`.
+- F.0.4 Atualizar formatadores table/json/markdown para incluir `intermediateEligible`.
+- F.0.5 Adicionar testes em `tools/check-updates.test.js` para: silent mantém sync/offline warnings; descoberta de intermediárias; presença nos 3 formatos; persistência no state.
+
+#### F.1 — Integração com `tools/update-packages.js`
+
+- F.1.1 Carregar `.defence-update-check.json` e, para cada pacote elegível, preferir a maior versão em `intermediateEligible`.
+- F.1.2 Quando houver intermediárias elegíveis, aplicar `npm install <pkg>@<versão-intermediária>` em vez de `npm update` genérico, preservando `--save-exact` e `ignore-scripts`.
+- F.1.3 Re-executar portões de defesa (idade, assinatura, auditoria, licença) após a instalação das versões intermediárias.
+- F.1.4 Adicionar testes em `tools/update-packages.test.js` para aplicação de intermediárias, fallback para latest, modo interativo e dry-run.
+
+#### F.2 — Command Verification Checklist
+
+- F.2.1 Definir template: propósito, contrato, flags, modos silencioso/formato, códigos de saída, arquivo de teste, observações.
+- F.2.2 Criar `docs/en/command-verification-checklist.md` cobrindo todos os scripts `defence:*` em categorias: Setup & Bootstrap, Dependency Management, Auditing & Verification, State & Synchronization, Documentation & Compliance, Performance & Monitoring, Miscellaneous.
+- F.2.3 Criar `docs/pt-BR/command-verification-checklist.md` como tradução/adaptação cultural, mantendo comandos e flags inalterados.
+- F.2.4 Atualizar `docs/{en,pt-BR}/index.md` e `docs/{en,pt-BR}/tools.md` com links para o checklist.
+
+#### F.3 — Validação final
+
+- F.3.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `bash .husky/pre-commit`, `npm run defence:verify-defences`.
+- F.3.2 Verificações manuais: `--silent` mantém avisos; `update-check` lista intermediárias; `update` aplica intermediária; links do checklist resolvem; `.defence-manifest.json` sincronizado.
 
 ### Fase G — Code review educacional
 
