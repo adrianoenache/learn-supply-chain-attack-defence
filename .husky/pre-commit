@@ -1,7 +1,10 @@
+#!/usr/bin/env bash
 # Husky pre-commit hook: scans staged files for secrets, verifies hook integrity,
 # runs lint, refreshes the test badge, runs the project pre-commit script
 # (signatures + CVE audit), a transitive package-age check, and a transitive
 # license check to catch manual edits to package.json/package-lock.json.
+set -euo pipefail
+
 git diff --cached --name-only -z | xargs -0 -r npm run defence:check-secrets --
 npm run defence:check-hooks
 

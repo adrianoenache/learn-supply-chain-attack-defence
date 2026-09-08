@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# sync-pre-commit-hash.sh — Reminds AI agents to keep pre-commit integrity hashes
-# in sync after editing .husky/pre-commit.
+# enforce-shell-script-standards.sh — Reminds AI agents to review shell scripts
+# against project standards after edits or creation. Reads the Copilot
+# postToolUse input JSON from stdin and writes additionalContext.
 
 set -euo pipefail
 
@@ -22,8 +23,8 @@ if [ -z "$FILE_PATH" ]; then
   FILE_PATH=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" path)
 fi
 
-if printf '%s' "$FILE_PATH" | grep -qE '^\.husky/pre-commit$'; then
-  MESSAGE="You edited .husky/pre-commit. Run the following before committing: 1) node -e \"const fs=require('fs'),c=require('crypto'); console.log(c.createHash('sha256').update(fs.readFileSync('.husky/pre-commit')).digest('hex'));\" to get the new hash; 2) update defences.huskyPreCommitHash in package.json; 3) run npm run defence:verify-defences:fix; 4) include .husky/pre-commit, package.json, and .defence-manifest.json in the same commit."
+if printf '%s' "$FILE_PATH" | grep -qE '(\.sh|^\.husky/pre-commit|^\.husky/post-merge)$'; then
+  MESSAGE="You edited or created a shell script. Review it with .github/skills/shell-script-review/SKILL.md: ensure #!/usr/bin/env bash, set -euo pipefail, quoted variables, JSON handling via Node.js helpers, and run bash -n on the file. If the file is .husky/pre-commit, also sync hashes via .github/skills/pre-commit-hash-sync/SKILL.md."
   node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
 else
   echo '{}'

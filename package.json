@@ -123,7 +123,7 @@
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
     "provenanceMode": "warn",
-    "huskyPreCommitHash": "98117eabff753f092b65eae413f72eaa0e34e280675f427c6d707debc8ca8134"
+    "huskyPreCommitHash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",

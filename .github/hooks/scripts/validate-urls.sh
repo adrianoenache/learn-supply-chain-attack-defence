@@ -30,8 +30,7 @@ if printf '%s' "$FILE_PATH" | grep -qE '^(docs/.*|README\.md|SECURITY\.md|CONTRI
 fi
 
 if [ -n "$MESSAGE" ]; then
-  ESCAPED=$(printf '%s' "$MESSAGE" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n' ' ')
-  echo "{\"additionalContext\":\"$ESCAPED\"}"
+  node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
 else
   echo '{}'
 fi

@@ -52,9 +52,7 @@ if printf '%s' "$FILE_PATH" | grep -qE '^package\.json$'; then
 fi
 
 if [ -n "$MESSAGE" ]; then
-  # JSON-escape newlines and quotes.
-  ESCAPED=$(printf '%s' "$MESSAGE" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr '\n' ' ')
-  echo "{\"additionalContext\":\"$ESCAPED\"}"
+  node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
 else
   echo '{}'
 fi

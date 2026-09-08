@@ -11,6 +11,7 @@ The following files configure how AI assistants behave when working with this co
 | [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Always-on instructions loaded on every chat request. |
 | [`.github/instructions/security.instructions.md`](../../.github/instructions/security.instructions.md) | Context for `tools/**`, `.npmrc`, and `package.json`. |
 | [`.github/instructions/testing.instructions.md`](../../.github/instructions/testing.instructions.md) | Context for `tools/**/*.test.js`. |
+| [`.github/instructions/shell-scripts.instructions.md`](../../.github/instructions/shell-scripts.instructions.md) | Standards for `.sh` files, Husky hooks, and hook scripts. |
 | [`.github/instructions/docs.instructions.md`](../../.github/instructions/docs.instructions.md) | Context for `docs/**/*.md` and `README.md`. |
 | [`.github/instructions/educational-code-quality.instructions.md`](../../.github/instructions/educational-code-quality.instructions.md) | Rules for writing code as a learning resource. |
 | [`.github/instructions/file-organization.instructions.md`](../../.github/instructions/file-organization.instructions.md) | Rules for file placement and project structure. |
@@ -101,6 +102,7 @@ Reusable skills include:
 | [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditing project structure and applyTo hygiene. |
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Step-by-step procedure for verifying external URLs before committing them. |
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Keeps `.husky/pre-commit` integrity hashes in sync after hook edits. |
+| [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Reviews shell scripts for shebang, safety options, quoting, and JSON handling. |
 
 Prompts for one-shot tasks include:
 
@@ -124,5 +126,6 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Suggests running lint, tests, link checks, doc-drift checks, and command-contract verification after file edits. |
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injects project context (engines, TODO count, defence manifest) at session start. |
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Reminds agents to update integrity hashes after `.husky/pre-commit` edits. |
+| [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Reminds agents to review shell scripts against project standards after edits. |
 
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

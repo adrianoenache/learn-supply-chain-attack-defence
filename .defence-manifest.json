@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-08T16:53:15.555Z",
+  "installedAt": "2026-09-08T17:05:16.594Z",
   "files": [
     {
       "path": ".npmrc",
@@ -8,11 +8,11 @@
     },
     {
       "path": ".husky/pre-commit",
-      "hash": "98117eabff753f092b65eae413f72eaa0e34e280675f427c6d707debc8ca8134"
+      "hash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
     },
     {
       "path": ".husky/post-merge",
-      "hash": "97b6317e9094a1dcb8938fadd34e89261468182e860e59f0e2a0635d85e50a2d"
+      "hash": "dcc85575e11a85246f995e0327641a9e978243966e66ff0eeaca8aa56a589e06"
     },
     {
       "path": "biome.json",

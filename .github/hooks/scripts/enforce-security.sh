@@ -24,19 +24,22 @@ fi
 # Decode basic JSON escaping so grep sees the real command.
 DECODED=$(printf '%s' "$COMBINED" | sed 's/\\"/"/g; s/\\\\/\\/g')
 
-if printf '%s' "$DECODED" | grep -qiE 'npm install[[:space:]]+(--save|-S|--save-dev|-D)?[[:space:]]*[^[:space:]]+'; then
-  echo '{"permissionDecision":"deny","permissionDecisionReason":"Use `npm run defence:add -- pkg@version` instead of `npm install`. Direct installs bypass age, signature, vulnerability, and license checks."}'
+deny() {
+  local reason="$1"
+  node -e "console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: process.argv[1] }))" "$reason"
   exit 0
+}
+
+if printf '%s' "$DECODED" | grep -qiE 'npm install[[:space:]]+(--save|-S|--save-dev|-D)?[[:space:]]*[^[:space:]]+'; then
+  deny "Use \`npm run defence:add -- pkg@version\` instead of \`npm install\`. Direct installs bypass age, signature, vulnerability, and license checks."
 fi
 
 if printf '%s' "$DECODED" | grep -qiE '(remove|delete|disable)[[:space:]]+ignore-scripts'; then
-  echo '{"permissionDecision":"deny","permissionDecisionReason":"Removing `ignore-scripts=true` weakens Layer 6 protection. If you need lifecycle scripts for a specific package, follow the safe rebuild procedure documented in the security layers."}'
-  exit 0
+  deny "Removing \`ignore-scripts=true\` weakens Layer 6 protection. If you need lifecycle scripts for a specific package, follow the safe rebuild procedure documented in the security layers."
 fi
 
 if printf '%s' "$DECODED" | grep -qiE '(bypass|skip|disable|remove)[[:space:]]+(age check|signature|audit|license check|hook integrity|pre-commit)'; then
-  echo '{"permissionDecision":"deny","permissionDecisionReason":"Bypassing security gates requires documented maintainer approval. Explain why the gate cannot be satisfied."}'
-  exit 0
+  deny "Bypassing security gates requires documented maintainer approval. Explain why the gate cannot be satisfied."
 fi
 
 echo '{}'

@@ -76,6 +76,14 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
   - Regra adicionada a `.github/instructions/security.instructions.md`.
   - Guias `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` atualizados.
   - Regressão coberta em `tools/check-hooks.test.js`.
+- **Padronização e prevenção para scripts shell:**
+  - Instruction `.github/instructions/shell-scripts.instructions.md` com regras de shebang, `set -euo pipefail`, headers, quoting, JSON via Node.js e integridade de hook.
+  - Skill `.github/skills/shell-script-review/SKILL.md` para revisão de scripts shell.
+  - Hook `.github/hooks/enforce-shell-script-standards.json` + script `.github/hooks/scripts/enforce-shell-script-standards.sh`.
+  - `.husky/pre-commit` e `.husky/post-merge` agora usam `#!/usr/bin/env bash` e `set -euo pipefail`.
+  - Scripts de hook migraram escaping JSON de `sed` para Node.js `JSON.stringify()`.
+  - Testes `.github/hooks/scripts/enforce-shell-script-standards.test.js` e `.github/hooks/scripts/validate-urls.test.js`.
+  - Guias `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` atualizados.
 - **Validações executadas:**
   - ✅ `npm run lint` — 71 arquivos, sem erros
   - ✅ `npm test` — 440/440 passando
