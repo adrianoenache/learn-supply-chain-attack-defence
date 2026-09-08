@@ -14,88 +14,98 @@ Items are prioritized with `P0` (critical/blocking for conclusion), `P1`
 
 Priority order: **P0 → P1 → P2 → P3**.
 
+This file follows the nomenclature defined in `.github/PLAN.md`:
+Fase prévia → AI-0 → E → F → G → H → I → J → K.
+
 ---
 
-## Open Items — Conclusion Phase
+## Fase prévia — Alinhamento de nomenclatura e baseline
 
-### P0
+- [x] Unificar `TODO.md` (fases 0–11) e `PLAN.md` para Fase AI-0, E, F, G, H, I,
+  J, K.
+- [x] Rodar `npm test`, `npm run lint`, `npm run defence:check-md-links`,
+  `bash .husky/pre-commit`, `npm run defence:verify-defences`.
+- [x] Sincronizar badge de testes em `README.md` com a contagem real
+  (`npm test` reporta 432/432; badge atualizado via `tools/update-badge.js`).
 
-- [x] Synchronize `tools/install-defences.js` with the current source tree
-  (files, scripts, target `setup`).
-- [x] Synchronize `tools/install-defences.test.js` with the updated installer.
-- [x] Regenerate `.defence-manifest.json` after installer changes.
-- [x] Fix Mermaid block closing in `docs/en/security/index.md` and
-  `docs/pt-BR/security/index.md`.
-- [x] Align CI audit step with pre-commit (`npm run defence:audit`).
-- [x] Re-run all validation gates once the npm audit endpoint is stable and
-  commit the changes.
-- [x] Fix test badge count (`README.md` 325/325 → 360/360) by updating
-  `tools/update-badge.js` to include `tools/perf/*.test.js`.
-- [x] Implement pre-install dry-run: static analysis of lifecycle scripts before
-  `npm install` in `defence:add`.
+## Fase AI-0 — AI Customizations Foundation (P0)
 
-### P1
+- [ ] Criar agentes: `command-execution`, `code-review`,
+  `repository-organization`, `project-evaluation`.
+- [ ] Criar skills: `script-contract-verification`,
+  `educational-code-review`, `docs-completeness`,
+  `repository-organization-audit`.
+- [ ] Criar instructions: `educational-code-quality`, `file-organization`,
+  `project-evaluation`.
+- [ ] Criar prompts: `code-review-for-learning`, `verify-command-contract`,
+  `validate-architecture`, `project-status-evaluation`.
+- [ ] Criar hooks: `detect-docs-drift`, `validate-command-contract`.
+- [ ] Revisar agentes/skills/prompts/hooks/instructions existentes para refletir
+  as novas fases.
+- [ ] Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
 
-- [x] Update `docs/en/adopting-in-other-projects.md` and
-  `docs/pt-BR/adopting-in-other-projects.md` to reflect the installer output.
-- [x] Update `docs/en/testing.md` and `docs/pt-BR/testing.md` to list the new
-  test suites.
-- [x] Reorganise this TODO file and move the release to a future action.
-- [x] Keep `PROJECT_STATUS_REPORT.md` as the reference status report (current
-  9,1/10, 154 tests, 2026-08-20). Regenerate only during the future pre-release
-  status analysis.
-- [x] Keep `CHANGELOG.md` `[Unreleased]` section up to date.
-- [x] Implement trust score dashboard (`defence:trust-report`) aggregating age,
-  cadence, deprecation, maintainer count, weekly downloads, provenance,
-  typosquatting, lifecycle script risk, and license signals.
-- [x] Implement process monitoring for lifecycle scripts spawned during
-  `npm install`.
-- [x] Review and document `.npmrc` hardening options.
-- [x] Optimise and harden CI/CD:
-  - Pin all GitHub Actions by SHA with version comments.
-  - Add `.github/dependabot.yml` for weekly GitHub Actions updates.
-  - Apply minimal `GITHUB_TOKEN` permissions (`contents: read`, `actions: write`).
-  - Add `timeout-minutes: 15` to every job.
-  - Cache `node_modules` via artifacts instead of `actions/cache`.
-  - Protect `main` by triggering push only on `dev` and PR on `main`/`dev`.
-  - Split `lint-format` into separate `lint` and `format` jobs.
-  - Upload SBOM artifact from `defence-gates`.
-  - Add `install-defences-dry-run` job to catch manifest drift.
-  - Run `actionlint` in CI with a pinned binary and optionally in pre-commit.
-- [x] Expand documentation: CI/CD overview, git workflow & branch protection,
-  SBOM & compliance, performance tuning, `.npmrc` hardening.
+## Fase E — Documentação conceitual
 
-### P3 / Future
+- [ ] Criar `docs/{en,pt-BR}/learning-path.md`.
+- [ ] Criar `docs/{en,pt-BR}/faq.md`.
+- [ ] Criar `docs/{en,pt-BR}/tools/<tool>.md` para todas as ferramentas.
+- [ ] Atualizar `README.md`, `docs/{en,pt-BR}/index.md`,
+  `docs/{en,pt-BR}/tools.md`.
+- [ ] Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de
+  `npm run format -- --check`.
 
-- [x] Decide whether to implement sandbox mode, profiling dashboard, or
-  alternative `.npmrc` hardening. Sandbox mode was rejected; the project will
-  pursue pre-install dry-run, trust scoring, process monitoring and `.npmrc`
-  hardening instead.
+## Fase F — Verificação de execução de comandos
+
+- [ ] Criar `docs/{en,pt-BR}/command-verification-checklist.md`.
+- [ ] Corrigir `defence:update-check`: mensagem informativa quando silencioso;
+  buscar versões intermediárias elegíveis.
+- [ ] Verificar contratos dos scripts críticos e documentar no checklist.
+
+## Fase G — Code review educacional
+
+- [ ] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
+- [ ] Auditar headers, mensagens de erro, hardcoded values e links a camadas de
+  defesa.
+- [ ] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
+  P0/P1.
+
+## Fase H — Organização e governança
+
+- [ ] Auditar estrutura, padrões applyTo e arquivos órfãos.
+- [ ] Extrair helpers duplicados para `tools/lib/concurrency.js`,
+  `tools/lib/formatters.js`, `tools/lib/cli.js`.
+- [ ] Criar `docs/{en,pt-BR}/repository-organization.md`.
+
+## Fase I — Revisão total da documentação
+
+- [ ] Atualizar `docs/{en,pt-BR}/architecture.md` com todas as ferramentas e
+  bibliotecas.
+- [ ] Revisar camadas de segurança, `README.md`, `CONTRIBUTING.md`,
+  `SECURITY.md`, glossário e consistência bilíngue.
+
+## Fase J — Avaliação do projeto
+
+- [ ] Coletar métricas atuais e verificar problemas do
+  `PROJECT_STATUS_REPORT.md` de 2026-08-20.
+- [ ] Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
+- [ ] Atualizar `TODO.md` com ações derivadas.
+
+## Fase K — Planejamento do release v1.0.0
+
+- [ ] Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
+- [ ] Planejar tag, GitHub Release com SBOM e comunicação.
+
+---
+
+## P3 / Future (retidos da reorganização anterior)
+
 - [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
 - [ ] Automate changelog generation from conventional commits or tags.
+- [ ] Add optional sandbox mode for npm commands.
+- [ ] Add deep performance profiling dashboard.
 - [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
 - [ ] Run the ninth project status analysis as a pre-release step and decide
   whether further improvements are needed before releasing.
-
----
-
-## Phase Summary
-
-| Phase | Status | Scope |
-| --- | --- | --- |
-| 0 — Foundation | ✅ Done | config, CI, CONTRIBUTING |
-| 1 — Critical Security | ✅ Done | TOCTOU, lockfile, install-defences checksums, hook integrity |
-| 2 — Resilience / Performance | ✅ Done | registry-cache, retry-fetch, gzip, Buffer |
-| 3 — CI/CD + Quality Gates | ✅ Done | secret scanner, CI `dev`, docs, expanded tests |
-| 4 — Attack Surface Reduction | ✅ Done | typosquatting, provenance/SLSA, hook integrity enforcement |
-| 5 — Code Quality + Tests | ✅ Done | 333 tests, native coverage, license check integrated |
-| 6 — Docs + AI Core + Release Readiness | ✅ Done | reorganized docs, AI instructions, CI adjusted, release checklist |
-| 7 — AI Agents / Skills / Prompts / Hooks | ✅ Done | agents, skills, prompts, hooks, self-improvement loop |
-| 7.5 — P1 Technical Debt | ✅ Done | troubleshooting.md, rebuilding-lifecycle-packages.md |
-| 8 — Benchmarks + Risk Scoring | ✅ Done | perf benchmarks, package metadata risk scoring, N+1 reduction |
-| 9 — Conclusion cleanup | ⏳ In progress | install-defences sync, docs sync, TODO reorganisation, PROJECT_STATUS_REPORT |
-| 10 — Experimental Hardening | ⏳ Pending | sandbox mode, profiling dashboard, `.npmrc` hardening review |
-| 11 — Release v1.0.0 | 🔮 Future | planned only after project is fully concluded |
 
 ---
 

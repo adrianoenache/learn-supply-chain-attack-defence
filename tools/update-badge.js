@@ -12,6 +12,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
 const { globSync } = require('node:fs')
 
 const README_PATH = path.resolve(__dirname, '../README.md')
@@ -29,12 +30,14 @@ const BADGE_RE =
 
 let fsImpl = fs
 let globSyncImpl = globSync
+let spawnSyncImpl = spawnSync
 let exitImpl = process.exit
 let readmePathImpl = README_PATH
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
   if (impls.globSync) globSyncImpl = impls.globSync
+  if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.exit) exitImpl = impls.exit
   if (impls.readmePath) readmePathImpl = impls.readmePath
 }
@@ -42,6 +45,7 @@ function setImpls(impls) {
 function resetImpls() {
   fsImpl = fs
   globSyncImpl = globSync
+  spawnSyncImpl = spawnSync
   exitImpl = process.exit
   readmePathImpl = README_PATH
 }
@@ -98,6 +102,38 @@ function countAllTests(testFiles) {
   return testFiles.reduce((sum, file) => sum + countTestsInFile(file), 0)
 }
 
+function countTestsDynamically(testFiles) {
+  if (testFiles.length === 0) {
+    return 0
+  }
+
+  const result = spawnSyncImpl(
+    process.execPath,
+    ['--test', '--test-reporter=tap', ...testFiles],
+    {
+      encoding: 'utf8',
+      shell: false,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    },
+  )
+
+  const output = `${result.stdout ?? ''}\n${result.stderr ?? ''}`
+  const match = output.match(/# tests (\d+)/)
+
+  if (!match) {
+    throw new Error(
+      'Could not determine test count from node:test output. ' +
+        `node --test exited with code ${result.status ?? 'null'} and output:\n${output.slice(0, 800)}`,
+    )
+  }
+
+  return Number.parseInt(match[1], 10)
+}
+
+function isRunningInsideTestRunner() {
+  return Boolean(process.env.NODE_TEST_CONTEXT)
+}
+
 // ---------------------------------------------------------------------------
 // Badge generation and update.
 // ---------------------------------------------------------------------------
@@ -133,7 +169,9 @@ function main(argv = process.argv.slice(2)) {
       )
     }
 
-    const count = countAllTests(testFiles)
+    const count = isRunningInsideTestRunner()
+      ? countAllTests(testFiles)
+      : countTestsDynamically(testFiles)
     const badgeLine = buildBadgeLine(count)
 
     if (isDryRun) {
@@ -173,6 +211,7 @@ module.exports = {
   buildBadgeLine,
   updateBadgeLine,
   parseCliArgs,
+  countTestsDynamically,
   setImpls,
   resetImpls,
 }

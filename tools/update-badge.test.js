@@ -54,6 +54,15 @@ function makeMockGlob(filePaths) {
   }
 }
 
+function makeMockSpawnSync(expectedCount) {
+  return () => ({
+    status: 0,
+    stdout: '',
+    stderr: `# tests ${expectedCount}\n# pass ${expectedCount}\n`,
+    signal: null,
+  })
+}
+
 describe('update-badge', () => {
   test('counts test() calls in a single file', () => {
     const mod = readScriptExports()
@@ -164,6 +173,7 @@ describe('update-badge', () => {
         '/tools/lib/b.test.js',
         '/tools/perf/c.test.js',
       ]),
+      spawnSync: makeMockSpawnSync(5),
       exit: () => {},
       readmePath: README_PATH,
     })
@@ -199,6 +209,7 @@ describe('update-badge', () => {
     mod.setImpls({
       fs,
       globSync: makeMockGlob(['/tools/a.test.js']),
+      spawnSync: makeMockSpawnSync(1),
       exit: () => {},
       readmePath: README_PATH,
     })
@@ -240,7 +251,9 @@ describe('update-badge', () => {
   test('CLI exits 0 and updates badge', () => {
     const result = spawnSync(process.execPath, [SCRIPT_PATH, '--dry-run'], {
       encoding: 'utf8',
+      cwd: path.resolve(__dirname, '..'),
     })
     assert.equal(result.status, 0)
+    assert.ok(result.stdout.includes('Test badge would be'))
   })
 })
