@@ -13,9 +13,13 @@ applyTo:
   - ".defence-manifest.json"
 tools:
   - read_file
+  - create_file
+  - create_directory
   - replace_string_in_file
   - multi_replace_string_in_file
   - grep_search
+  - file_search
+  - list_dir
   - run_in_terminal
 ---
 

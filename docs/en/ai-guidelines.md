@@ -103,6 +103,7 @@ Reusable skills include:
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Step-by-step procedure for verifying external URLs before committing them. |
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Keeps `.husky/pre-commit` integrity hashes in sync after hook edits. |
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Reviews shell scripts for shebang, safety options, quoting, and JSON handling. |
+| [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifies an agent's declared tool set before delegating work via `runSubagent`. |
 
 Prompts for one-shot tasks include:
 

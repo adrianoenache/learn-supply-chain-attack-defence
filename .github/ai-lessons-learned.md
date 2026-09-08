@@ -73,6 +73,27 @@ Each entry must be concise and actionable:
 
 ---
 
+### 2026-09-08 — Subagent lacked file-creation tools
+
+- **Date:** 2026-09-08
+- **Rule violated:** Agent customization / tool declarations
+- **Affected files:** `.github/agents/*.agent.md`, `.github/skills/subagent-invocation/SKILL.md`, `.github/ai-lessons-learned.md`
+- **What happened:** During Phase E, the `docs` agent was invoked via `runSubagent`
+  to create 23 new documentation files. The agent declined because its YAML
+  frontmatter only declared `read_file`, `replace_string_in_file`,
+  `multi_replace_string_in_file`, `grep_search`, and `run_in_terminal`, but not
+  `create_file`, `create_directory`, `file_search`, or `list_dir`.
+- **Correction applied:** Added `create_file`, `create_directory`, `file_search`,
+  and `list_dir` to all agents in `.github/agents/`. Added `fetch_webpage` to
+  `security` and `compliance` agents for external reference verification.
+  Created `.github/skills/subagent-invocation/SKILL.md` to enforce a pre-flight
+  tool check before delegation.
+- **Instruction/agent updated:** `.github/agents/*.agent.md`,
+  `.github/skills/subagent-invocation/SKILL.md`,
+  `.github/ai-lessons-learned.md`
+
+---
+
 ## Review Cadence
 
 Review this log at the end of each phase or before tagging a release. If the same mistake appears more than once, update the top-level `.github/copilot-instructions.md` or the relevant domain-specific instruction/agent file.
