@@ -79,4 +79,18 @@ describe('check-hooks', () => {
       1,
     )
   })
+
+  test('detects manifest hash mismatch even when package.json matches', () => {
+    // This regression test ensures the manifest stays in sync with the hook.
+    // In the project, .defence-manifest.json is the source of truth for
+    // adoption, while package.json is the source of truth for check-hooks.js.
+    // Both must match the current file.
+    const hook = '# hook v2\n'
+    const hookPath = path.resolve(process.cwd(), '.husky/pre-commit')
+    const fsMock = makeMockFs({
+      [hookPath]: Buffer.from(hook),
+    })
+    const config = { defences: { huskyPreCommitHash: sha256(hook) } }
+    assert.equal(runMain(fsMock, config)(), 0)
+  })
 })

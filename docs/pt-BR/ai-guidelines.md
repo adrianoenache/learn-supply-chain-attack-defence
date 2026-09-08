@@ -52,6 +52,10 @@ Toda sugestão gerada pela AI deve ser revisada por um humano antes de ser commi
 - Alterações em `.husky/pre-commit`, `.npmrc` ou `package.json`.
 - Novos casos de teste e impacto na cobertura.
 
+Se `.husky/pre-commit` for modificado, o agente também deve atualizar
+`defences.huskyPreCommitHash` em `package.json` e executar
+`npm run defence:verify-defences:fix` antes da revisão humana.
+
 ## Ciclo de Feedback
 
 Quando a AI comete um erro que não é pego pelas instruções existentes:
@@ -96,6 +100,7 @@ Skills reutilizáveis incluem:
 | [`.github/skills/docs-completeness/SKILL.md`](../../.github/skills/docs-completeness/SKILL.md) | Auditar a completude da documentação bilíngue. |
 | [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditar a estrutura do projeto e a higiene dos padrões applyTo. |
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Procedimento passo a passo para verificar URLs externas antes de commitá-las. |
+| [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Mantém os hashes de integridade de `.husky/pre-commit` sincronizados após edições do hook. |
 
 Prompts para tarefas one-shot incluem:
 
@@ -118,5 +123,6 @@ Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https:/
 | [`.github/hooks/enforce-security.json`](../../.github/hooks/enforce-security.json) | Nega chamadas perigosas às ferramentas `bash`/`powershell`, como `npm install` direto ou remoção de `ignore-scripts`. |
 | [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Sugere executar lint, testes, verificação de links, verificação de divergência de docs e verificação de contrato de comando após edições. |
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injeta contexto do projeto (engines, contagem de TODOs, manifesto de defesas) no início da sessão. |
+| [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Lembra os agentes de atualizar os hashes de integridade após edições de `.husky/pre-commit`. |
 
 As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

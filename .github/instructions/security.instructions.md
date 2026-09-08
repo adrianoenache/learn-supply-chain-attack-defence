@@ -45,3 +45,18 @@ or configuration files must be verified before it is committed:
 - Do not invent schema URLs (for example, `https://code.visualstudio.com/schemas/hooks`).
 - If a URL is intentionally dead (kept as a historical record), add it to `.github/known-dead-urls.md`.
 - Mark fictional/example URLs with an explicit blockquote saying they are illustrative.
+
+## Pre-Commit Hook Integrity
+
+The `.husky/pre-commit` hook is protected by a SHA-256 hash stored in
+`package.json` under `defences.huskyPreCommitHash` and by the adoption manifest
+in `.defence-manifest.json`.
+
+If you edit `.husky/pre-commit`:
+
+1. Recompute the SHA-256 hash of the updated hook.
+2. Update `defences.huskyPreCommitHash` in `package.json` to that value.
+3. Run `npm run defence:verify-defences:fix` to update `.defence-manifest.json`.
+4. Commit `.husky/pre-commit`, `package.json`, and `.defence-manifest.json`
+   together in the same change.
+5. Run `node ./tools/check-hooks.js` to confirm integrity before committing.

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-09-08T16:47:25.877Z",
+  "installedAt": "2026-09-08T16:53:15.555Z",
   "files": [
     {
       "path": ".npmrc",
@@ -48,7 +48,7 @@
     },
     {
       "path": "tools/check-hooks.test.js",
-      "hash": "384f22c77f1632cdc61c05baad7e4d85350ebf042731b28d7e44214c77b29827"
+      "hash": "1bfedb1649f9132124d9b0fc641762069929fefb1378acbf3dc73f53d12f0845"
     },
     {
       "path": "tools/check-licenses.js",

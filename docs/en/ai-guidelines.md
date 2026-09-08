@@ -52,6 +52,10 @@ Every AI-generated suggestion must be reviewed by a human before it is committed
 - Changes to `.husky/pre-commit`, `.npmrc`, or `package.json`.
 - New test cases and coverage impact.
 
+If `.husky/pre-commit` is modified, the agent must also update
+`defences.huskyPreCommitHash` in `package.json` and run
+`npm run defence:verify-defences:fix` before the human review.
+
 ## Feedback Loop
 
 When the AI makes a mistake that is not caught by existing instructions:
@@ -96,6 +100,7 @@ Reusable skills include:
 | [`.github/skills/docs-completeness/SKILL.md`](../../.github/skills/docs-completeness/SKILL.md) | Auditing bilingual documentation completeness. |
 | [`.github/skills/repository-organization-audit/SKILL.md`](../../.github/skills/repository-organization-audit/SKILL.md) | Auditing project structure and applyTo hygiene. |
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Step-by-step procedure for verifying external URLs before committing them. |
+| [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Keeps `.husky/pre-commit` integrity hashes in sync after hook edits. |
 
 Prompts for one-shot tasks include:
 
@@ -118,5 +123,6 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/enforce-security.json`](../../.github/hooks/enforce-security.json) | Denies dangerous `bash`/`powershell` tool calls such as direct `npm install` or removing `ignore-scripts`. |
 | [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Suggests running lint, tests, link checks, doc-drift checks, and command-contract verification after file edits. |
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injects project context (engines, TODO count, defence manifest) at session start. |
+| [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Reminds agents to update integrity hashes after `.husky/pre-commit` edits. |
 
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

@@ -70,6 +70,12 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
   - `tools/lib/retry-fetch.js`
   - `.husky/pre-commit`
   - `.defence-manifest.json` (atualizado automaticamente pelo pre-commit)
+- **Prevenção de falhas de commit após edição de `.husky/pre-commit`:**
+  - Skill `.github/skills/pre-commit-hash-sync/SKILL.md` para sincronizar hashes.
+  - Hook `.github/hooks/sync-pre-commit-hash.json` + script `.github/hooks/scripts/sync-pre-commit-hash.sh`.
+  - Regra adicionada a `.github/instructions/security.instructions.md`.
+  - Guias `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` atualizados.
+  - Regressão coberta em `tools/check-hooks.test.js`.
 - **Validações executadas:**
   - ✅ `npm run lint` — 71 arquivos, sem erros
   - ✅ `npm test` — 440/440 passando
