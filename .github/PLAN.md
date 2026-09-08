@@ -99,16 +99,20 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de `npm run format -- --check`.
 - **Status:** concluída em 2026-09-08. Validações: `npm test` 441/441, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `bash .husky/pre-commit`, `npm run defence:verify-defences` passando.
 
-### Melhoria de IA — Subagent tool access
+### Melhoria de IA — Subagent Governance
 
 > Executada como preparação para a Fase F, em 2026-09-08.
 
 - Adicionar `create_file`, `create_directory`, `file_search`, e `list_dir` a todos os agents em `.github/agents/*.agent.md`.
 - Adicionar `fetch_webpage` aos agents `security` e `compliance`.
-- Criar skill `.github/skills/subagent-invocation/SKILL.md` para verificação prévia do conjunto de ferramentas declarado antes de invocar um subagent.
-- Registrar o incidente e a correção em `.github/ai-lessons-learned.md`.
-- Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` para listar o novo skill.
-- **Status:** concluída. Validações: `npm run lint`, `npm run defence:check-md-links`, `npm run defence:verify-defences`, `bash .husky/pre-commit` passando.
+- Expandir `.github/skills/subagent-invocation/SKILL.md` com árvore de decisão, checklists pré/pós-delegação, prompts modelo, diagrama Mermaid, protocolo de gap de tool e anti-patterns.
+- Criar `.github/agents/README.md` com matriz agente-ferramenta e tarefa-tool-agente, gerada por `.github/agents/scripts/generate-capability-matrix.js`.
+- Criar `.github/agents/agents.sanity.test.js` para validar frontmatter YAML e regras mínimas de tools por domínio.
+- Criar `.github/ISSUE_TEMPLATE/ai-tool-gap.yml` para registrar gaps de tool como melhoria contínua.
+- Criar `.github/hooks/subagent-invocation.json` + `.github/hooks/scripts/subagent-invocation.sh` para validar chamadas `runSubagent` com níveis educativo, advertência e bloqueio.
+- Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md` com a matriz, o novo hook e a descrição expandida da skill.
+- Registrar o incidente original e a expansão da governança em `.github/ai-lessons-learned.md`.
+- **Status:** concluída. Validações: `npm run lint`, `npm run format:check`, `npm test` 547/547, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit` passando.
 
 ### Fase F — Verificação de execução de comandos
 

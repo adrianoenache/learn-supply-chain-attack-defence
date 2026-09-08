@@ -6,3 +6,6 @@ contact_links:
   - name: Question
     url: https://github.com/adrianoenache/learn-supply-chain-attack-defence/issues/new?labels=question
     about: Ask questions or share ideas by opening an issue with the question label.
+  - name: AI tool gap
+    url: https://github.com/adrianoenache/learn-supply-chain-attack-defence/issues/new?template=ai-tool-gap.yml
+    about: Report a missing tool in an AI agent that blocked a subagent delegation.

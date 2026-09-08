@@ -87,6 +87,8 @@ The following specialized agents can be invoked explicitly or matched automatica
 | [`.github/agents/repository-organization.agent.md`](../../.github/agents/repository-organization.agent.md) | File structure, applyTo patterns, orphaned files, manifest integrity. |
 | [`.github/agents/project-evaluation.agent.md`](../../.github/agents/project-evaluation.agent.md) | Release readiness, status reports, 10/10 quality score assessment. |
 
+The [Agent Capability Matrix](../../.github/agents/README.md) lists every agent, its declared tools, and the tasks each agent can perform. Regenerate it with `node .github/agents/scripts/generate-capability-matrix.js` after editing any agent.
+
 Reusable skills include:
 
 | Skill | Use When |
@@ -103,7 +105,7 @@ Reusable skills include:
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Step-by-step procedure for verifying external URLs before committing them. |
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Keeps `.husky/pre-commit` integrity hashes in sync after hook edits. |
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Reviews shell scripts for shebang, safety options, quoting, and JSON handling. |
-| [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifies an agent's declared tool set before delegating work via `runSubagent`. |
+| [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifies an agent's declared tool set before delegating work via `runSubagent`. Includes a decision tree, pre/post-delegation checklists, prompt templates, anti-patterns, and recovery steps. |
 
 Prompts for one-shot tasks include:
 
@@ -128,5 +130,6 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injects project context (engines, TODO count, defence manifest) at session start. |
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Reminds agents to update integrity hashes after `.husky/pre-commit` edits. |
 | [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Reminds agents to review shell scripts against project standards after edits. |
+| [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Validates `runSubagent` calls, emitting educational, warning, or blocking context based on the target agent's declared tools. |
 
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

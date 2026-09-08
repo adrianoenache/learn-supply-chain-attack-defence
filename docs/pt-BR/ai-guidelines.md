@@ -87,6 +87,8 @@ Os seguintes agents especializados podem ser invocados explicitamente ou corresp
 | [`.github/agents/repository-organization.agent.md`](../../.github/agents/repository-organization.agent.md) | Estrutura de arquivos, padrões applyTo, arquivos órfãos, integridade do manifesto. |
 | [`.github/agents/project-evaluation.agent.md`](../../.github/agents/project-evaluation.agent.md) | Readiness de release, relatórios de status, avaliação de nota 10/10. |
 
+A [Matriz de Capacidades dos Agents](../../.github/agents/README.md) lista cada agente, suas ferramentas declaradas e as tarefas que cada um pode executar. Regenere-a com `node .github/agents/scripts/generate-capability-matrix.js` após editar qualquer agente.
+
 Skills reutilizáveis incluem:
 
 | Skill | Use Quando |
@@ -103,7 +105,7 @@ Skills reutilizáveis incluem:
 | [`.github/skills/validate-urls/SKILL.md`](../../.github/skills/validate-urls/SKILL.md) | Procedimento passo a passo para verificar URLs externas antes de commitá-las. |
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Mantém os hashes de integridade de `.husky/pre-commit` sincronizados após edições do hook. |
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Revisa scripts shell quanto a shebang, opções de segurança, quoting e tratamento de JSON. |
-| [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifica o conjunto de ferramentas declarado por um agente antes de delegar trabalho via `runSubagent`. |
+| [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifica o conjunto de ferramentas declarado de um agente antes de delegar trabalho via `runSubagent`. Inclui árvore de decisão, checklists pré/pós-delegação, templates de prompt, anti-patterns e passos de recuperação. |
 
 Prompts para tarefas one-shot incluem:
 
@@ -127,6 +129,7 @@ Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https:/
 | [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Sugere executar lint, testes, verificação de links, verificação de divergência de docs e verificação de contrato de comando após edições. |
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injeta contexto do projeto (engines, contagem de TODOs, manifesto de defesas) no início da sessão. |
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Lembra os agentes de atualizar os hashes de integridade após edições de `.husky/pre-commit`. |
-| [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Lembra os agentes de revisar scripts shell contra os padrões do projeto após edições. |
+| [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Lembra os agents de revisar scripts shell contra os padrões do projeto após edições. |
+| [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Valida chamadas `runSubagent`, emitindo contexto educativo, advertência ou bloqueio com base nas ferramentas declaradas do agente alvo. |
 
 As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).

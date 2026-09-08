@@ -92,6 +92,31 @@ Each entry must be concise and actionable:
   `.github/skills/subagent-invocation/SKILL.md`,
   `.github/ai-lessons-learned.md`
 
+### 2026-09-08 — Subagent governance expanded
+
+- **Date:** 2026-09-08
+- **Rule violated:** Subagent Invocation / continuous improvement
+- **Affected files:** `.github/skills/subagent-invocation/SKILL.md`,
+  `.github/agents/README.md`, `.github/agents/scripts/generate-capability-matrix.js`,
+  `.github/agents/agents.sanity.test.js`, `.github/ISSUE_TEMPLATE/ai-tool-gap.yml`,
+  `.github/hooks/subagent-invocation.json`,
+  `.github/hooks/scripts/subagent-invocation.sh`,
+  `.github/hooks/scripts/subagent-invocation.test.js`,
+  `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
+- **What happened:** After fixing the immediate tool-access problem, the same
+  class of failure could recur because there was no automated way to detect
+  when an agent lacked the tools required for a delegated task.
+- **Correction applied:** Expanded `subagent-invocation` into a governance layer:
+  added a decision tree, pre/post-delegation checklists, prompt templates,
+  anti-patterns, and recovery steps in the skill; created an auto-generated
+  agent capability matrix in `.github/agents/README.md` with a generator script;
+  added `agents.sanity.test.js` to enforce minimum tool rules per agent domain;
+  created an issue template for AI tool gaps; added a lifecycle hook that
+  validates `runSubagent` calls and emits educational, warning, or blocking
+  context; updated bilingual docs.
+- **Instruction/agent updated:** All files listed above plus
+  `.github/ai-lessons-learned.md`.
+
 ---
 
 ## Review Cadence
