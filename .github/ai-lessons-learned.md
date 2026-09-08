@@ -57,7 +57,8 @@ Each entry must be concise and actionable:
   (`https://code.visualstudio.com/schemas/hooks`) and an invented structure
   with `id`, `enabled`, `rules`, `trigger`, `afterEdit`, `userRequest`, and
   `action` fields. The real schema is defined by the GitHub Copilot hooks
-  reference.
+  reference. The invented URL is a known-dead reference and remains in this
+  log only as a record of the mistake.
 - **Correction applied:** Rewrote all hooks to use `{ "version": 1, "hooks": { ... } }`,
   valid events (`preToolUse`, `postToolUse`, `sessionStart`), `command` entries
   with `bash` scripts, and `matcher` filters. Moved implementation logic to

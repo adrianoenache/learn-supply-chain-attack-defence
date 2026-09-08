@@ -108,6 +108,9 @@ npm run defence:update-check:offline
 
 ## Output example
 
+> The versions and URLs below are illustrative examples of the CLI output format.
+> They may not point to real releases.
+
 ```text
 ⚠️  Dependency updates available:
    (This script never modifies dependencies automatically.)

@@ -28,6 +28,31 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Revisar agentes/skills/prompts/hooks/instructions existentes para refletir as novas fases.
 - Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
 
+### Pre-Fase E — Revisão de customizações AI e URLs quebradas ✅
+
+- **Status:** AI implementation audit concluído sem problemas críticos.
+- **URLs verificadas:**
+  - ✅ `https://docs.github.com/en/copilot`
+  - ✅ `https://code.visualstudio.com/docs`
+  - ✅ `https://docs.github.com/en/copilot/reference/hooks-reference`
+  - ✅ `https://github.com/adrianoenache/learn-supply-chain-attack-defence/discussions` → corrigido para issues com label `question`
+  - ✅ `https://www.npmjs.com/package/@biomejs/biome/v/2.7.1` → exemplo marcado como ilustrativo
+  - ✅ `https://github.com/biomejs/biome/releases/tag/cli%40v2.7.1` → exemplo marcado como ilustrativo
+  - ✅ `https://www.npmjs.com/package/husky/v/9.2.0` → exemplo marcado como ilustrativo
+  - ✅ `https://github.com/typicode/husky/releases/tag/v9.2.0` → exemplo marcado como ilustrativo
+  - ✅ `https://code.visualstudio.com/schemas/hooks` → nota de referência morta conhecida adicionada em `ai-lessons-learned.md`
+- **Arquivos alterados:**
+  - `.github/ISSUE_TEMPLATE/config.yml`
+  - `.github/ai-lessons-learned.md`
+  - `docs/en/security/defense-layer-8-update-check.md`
+  - `docs/pt-BR/security/defense-layer-8-update-check.md`
+  - `.defence-manifest.json` (atualizado automaticamente pelo pre-commit)
+- **Validações executadas:**
+  - ✅ `npm run lint` — 69 arquivos, sem erros
+  - ✅ `npm test` — 432/432 passando
+  - ✅ `npm run defence:check-md-links` — 126 arquivos válidos
+  - ✅ `bash .husky/pre-commit` — passou (signatures, audit, update-check, license, verify-defences, badge)
+
 ### Fase E — Documentação conceitual
 
 - Criar `docs/{en,pt-BR}/learning-path.md`, `docs/{en,pt-BR}/faq.md`.
