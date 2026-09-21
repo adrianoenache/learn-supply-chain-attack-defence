@@ -31,7 +31,7 @@ npm run setup
 - [Quick reference](docs/en/quick-reference.md)
 - [Glossary](docs/en/glossary.md)
 - [AI guidelines](docs/en/ai-guidelines.md)
-- [Built with GitHub Copilot & Kimi K2.7 Code](docs/en/copilot.md)
+- [Built with GitHub Copilot & Kimi Code](docs/en/copilot.md)
 
 ## Security Layers at a Glance
 

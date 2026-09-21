@@ -1,6 +1,6 @@
 # AI Guidelines
 
-This project uses GitHub Copilot with the **Kimi 2.7 Code** model as a pair-programming assistant. These guidelines explain how AI is used, how humans should supervise it, and how the project keeps AI-generated output aligned with its security goals.
+This project uses GitHub Copilot with the **Kimi Code** model as a pair-programming assistant. These guidelines explain how AI is used, how humans should supervise it, and how the project keeps AI-generated output aligned with its security goals.
 
 ## AI Files in This Repository
 
@@ -22,7 +22,7 @@ The following files configure how AI assistants behave when working with this co
 | [`.github/hooks/`](../../.github/hooks/) | GitHub Copilot lifecycle hooks that block dangerous tool calls, suggest validation commands after edits, and inject project context at session start. |
 | [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log of recurring AI mistakes and corrections used to improve instructions over time. |
 
-These files are read by VS Code Copilot / Kimi 2.7 Code when the workspace is opened. They do not change the model itself; they provide project-specific guardrails.
+These files are read by VS Code Copilot / Kimi Code when the workspace is opened. They do not change the model itself; they provide project-specific guardrails.
 
 ## Security Rules for AI Interactions
 
@@ -69,7 +69,7 @@ When the AI makes a mistake that is not caught by existing instructions:
 
 ## Why Not `docs/ai/`?
 
-A separate `docs/ai/` directory could be mistaken for files that the AI reads during execution. The actual AI instructions live under `.github/`, where VS Code Copilot / Kimi 2.7 Code can discover them automatically. The human-readable explanation lives here, in the main documentation tree, alongside the other contributor guides.
+A separate `docs/ai/` directory could be mistaken for files that the AI reads during execution. The actual AI instructions live under `.github/`, where VS Code Copilot / Kimi Code can discover them automatically. The human-readable explanation lives here, in the main documentation tree, alongside the other contributor guides.
 
 ## Available Agents and Skills
 

@@ -59,4 +59,4 @@ Você pode usar este repositório como referência, material didático ou ponto 
 
 ## Desenvolvimento Assistido por AI
 
-Este projeto foi construído com a assistência do GitHub Copilot e do Kimi 2.7 Code. A colaboração é regida por instruções explícitas em `.github/copilot-instructions.md` e documentada para contribuidores humanos nas [diretrizes de AI](ai-guidelines.md).
+Este projeto foi construído com a assistência do GitHub Copilot e do Kimi Code. A colaboração é regida por instruções explícitas em `.github/copilot-instructions.md` e documentada para contribuidores humanos nas [diretrizes de AI](ai-guidelines.md).

@@ -1,6 +1,6 @@
 # Diretrizes de AI
 
-Este projeto usa o GitHub Copilot com o modelo **Kimi 2.7 Code** como assistente de pair programming. Estas diretrizes explicam como a AI é usada, como os humanos devem supervisioná-la e como o projeto mantém a saída gerada pela AI alinhada com seus objetivos de segurança.
+Este projeto usa o GitHub Copilot com o modelo **Kimi Code** como assistente de pair programming. Estas diretrizes explicam como a AI é usada, como os humanos devem supervisioná-la e como o projeto mantém a saída gerada pela AI alinhada com seus objetivos de segurança.
 
 ## Arquivos de AI Neste Repositório
 
@@ -22,7 +22,7 @@ Os seguintes arquivos configuram como os assistentes de AI se comportam ao traba
 | [`.github/hooks/`](../../.github/hooks/) | Hooks de ciclo de vida do GitHub Copilot que bloqueiam chamadas perigosas de ferramentas, sugerem comandos de validação após edições e injetam contexto do projeto no início da sessão. |
 | [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log de erros recorrentes da AI e correções usado para melhorar as instruções ao longo do tempo. |
 
-Esses arquivos são lidos pelo VS Code Copilot / Kimi 2.7 Code quando o workspace é aberto. Eles não alteram o modelo em si; fornecem guardrails específicos do projeto.
+Esses arquivos são lidos pelo VS Code Copilot / Kimi Code quando o workspace é aberto. Eles não alteram o modelo em si; fornecem guardrails específicos do projeto.
 
 ## Regras de Segurança para Interações com AI
 
@@ -69,7 +69,7 @@ Quando a AI comete um erro que não é pego pelas instruções existentes:
 
 ## Por Que Não `docs/ai/`?
 
-Um diretório `docs/ai/` separado poderia ser confundido com arquivos que a AI lê durante a execução. As instruções reais da AI vivem em `.github/`, onde o VS Code Copilot / Kimi 2.7 Code pode descobri-las automaticamente. A explicação legível por humanos vive aqui, na árvore principal de documentação, junto com os outros guias de contribuição.
+Um diretório `docs/ai/` separado poderia ser confundido com arquivos que a AI lê durante a execução. As instruções reais da AI vivem em `.github/`, onde o VS Code Copilot / Kimi Code pode descobri-las automaticamente. A explicação legível por humanos vive aqui, na árvore principal de documentação, junto com os outros guias de contribuição.
 
 ## Agents e Skills Disponíveis
 

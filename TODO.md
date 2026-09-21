@@ -304,7 +304,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## 4. AI Customization & Developer Experience
 
-> The AI-specific customization files must live under `.github/` to be automatically discovered by VS Code Copilot / Kimi K2.7 Code. Human-readable documentation about AI collaboration lives in `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md`, not in a separate `docs/ai/` directory.
+> The AI-specific customization files must live under `.github/` to be automatically discovered by VS Code Copilot / Kimi Code. Human-readable documentation about AI collaboration lives in `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md`, not in a separate `docs/ai/` directory.
 
 ### 4.1 Always-On Instructions (AI Core)
 
@@ -332,7 +332,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ### 4.3 Human-Readable AI Guidelines
 
-- [x] **[P0]** Create `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` — explain how this project uses GitHub Copilot / Kimi 2.7 Code, which `.github/` files exist and how they work, security rules for AI interactions, and the feedback loop for improving instructions.
+- [x] **[P0]** Create `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` — explain how this project uses GitHub Copilot / Kimi Code, which `.github/` files exist and how they work, security rules for AI interactions, and the feedback loop for improving instructions.
   - Impact: makes the AI collaboration strategy discoverable for human contributors and auditors.
   - Depends on: `.github/copilot-instructions.md` (Section 4.1).
   - Files: `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`
@@ -427,7 +427,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ### 6.4 AI Guidelines
 
-- [x] **[P0]** Create AI guidelines — added `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` describing how the project uses GitHub Copilot / Kimi 2.7 Code, the role of `.github/copilot-instructions.md` and `.github/instructions/*.md`, security rules for AI interactions, and the feedback loop for improving instructions. No separate `docs/ai/` directory was created.
+- [x] **[P0]** Create AI guidelines — added `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` describing how the project uses GitHub Copilot / Kimi Code, the role of `.github/copilot-instructions.md` and `.github/instructions/*.md`, security rules for AI interactions, and the feedback loop for improving instructions. No separate `docs/ai/` directory was created.
   - Impact: makes the AI collaboration strategy discoverable for humans and auditors.
   - Depends on: `.github/copilot-instructions.md`.
   - Files: `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`

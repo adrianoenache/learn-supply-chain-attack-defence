@@ -1,6 +1,6 @@
 # Project-Wide Instructions
 
-These instructions apply to every chat request in this workspace. They are designed for GitHub Copilot / Kimi 2.7 Code.
+These instructions apply to every chat request in this workspace. They are designed for GitHub Copilot / Kimi Code.
 
 ## Security-First Mindset
 

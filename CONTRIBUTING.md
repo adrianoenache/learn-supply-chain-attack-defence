@@ -76,7 +76,7 @@ This rule keeps the codebase maintainable and helps both human reviewers and AI 
 
 ## AI-Assisted Contributions
 
-This project uses GitHub Copilot / Kimi 2.7 Code with explicit instructions in `.github/copilot-instructions.md`. When contributing with AI assistance:
+This project uses GitHub Copilot / Kimi Code with explicit instructions in `.github/copilot-instructions.md`. When contributing with AI assistance:
 
 - Follow the security-first mindset and do not bypass any defense gate.
 - Run `npm test`, `npm run lint`, and `npm run defence:check-md-links` after AI-generated changes.

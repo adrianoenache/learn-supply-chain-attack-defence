@@ -59,7 +59,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
 | `.husky/pre-commit` | Dispara lint, audit de assinaturas, audit de vulnerabilidades, verificação transitiva de idade, verificação de atualizações e verificação de licenças antes de cada commit. |
 | `.husky/post-merge` | Avisa quando `node_modules` está desatualizado após `git pull` ou `git merge`. |
 | `.github/workflows/ci.yml` | Executa testes, lint, verificação de links, scan de licenças, integridade do lockfile, scan de secrets e gates de defesa em cada PR e push. |
-| `.github/copilot-instructions.md` | Instruções sempre ativas para GitHub Copilot / Kimi 2.7 Code. |
+| `.github/copilot-instructions.md` | Instruções sempre ativas para GitHub Copilot / Kimi Code. |
 | `tools/check-engines.js` | Valida as versões ativas do Node.js e npm contra `engines`. |
 | `tools/check-package-age.js` | Consulta o registry do npm para aplicar a idade mínima dos pacotes. |
 | `tools/check-updates.js` | Alerta sobre atualizações disponíveis e as classifica como elegíveis ou em quarentena. |

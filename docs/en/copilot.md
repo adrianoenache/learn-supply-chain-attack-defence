@@ -1,6 +1,6 @@
-# Built with GitHub Copilot and Kimi K2.7 Code
+# Built with GitHub Copilot and Kimi Code
 
-This project was developed with the assistance of **GitHub Copilot**, powered by the **Kimi K2.7 Code** model.
+This project was developed with the assistance of **GitHub Copilot**, powered by the **Kimi Code** model.
 
 ## What the AI Helped With
 

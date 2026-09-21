@@ -59,7 +59,7 @@ This document describes the high-level architecture of the project: how the file
 | `.husky/pre-commit` | Triggers lint, signature audit, vulnerability audit, transitive age check, update check, and license check before each commit. |
 | `.husky/post-merge` | Warns when `node_modules` is out of sync after `git pull` or `git merge`. |
 | `.github/workflows/ci.yml` | Runs tests, lint, link checks, license scan, lockfile integrity, secret scan, and defence gates on every PR and push. |
-| `.github/copilot-instructions.md` | Always-on instructions for GitHub Copilot / Kimi 2.7 Code. |
+| `.github/copilot-instructions.md` | Always-on instructions for GitHub Copilot / Kimi Code. |
 | `tools/check-engines.js` | Validates active Node.js and npm versions against `engines`. |
 | `tools/check-package-age.js` | Queries the npm registry to enforce the minimum package age. |
 | `tools/check-updates.js` | Warns about available updates and classifies them as eligible or quarantined. |

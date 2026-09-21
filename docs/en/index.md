@@ -10,7 +10,7 @@ This repository is a practical learning environment for understanding and applyi
 
 - [Project overview](project-overview.md) — purpose, audience, and how to use this repository.
 - [Glossary](glossary.md) — definitions of supply-chain security terms.
-- [AI guidelines](ai-guidelines.md) — how this project uses GitHub Copilot / Kimi 2.7 Code.
+- [AI guidelines](ai-guidelines.md) — how this project uses GitHub Copilot / Kimi Code.
 
 ### Getting Started
 
@@ -50,7 +50,7 @@ This repository is a practical learning environment for understanding and applyi
 - [Architecture](architecture.md)
 - [Tools](tools.md)
 - [Quick reference](quick-reference.md)
-- [GitHub Copilot & Kimi K2.7 Code](copilot.md)
+- [GitHub Copilot & Kimi Code](copilot.md)
 
 ### CI/CD and Operations
 
