@@ -63,10 +63,12 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > Detalhamento completo e decisões em `.github/PLAN.md` (F.0–F.3). Verificado em
 > 2026-10-05: nenhum subitem implementado — esta é a próxima fase a executar.
 
-- [ ] **F.0** Corrigir contrato em `tools/check-updates.js`: warnings de
+- [x] **F.0** Corrigir contrato em `tools/check-updates.js`: warnings de
   sync/offline sempre visíveis mesmo com `--silent`; descobrir versões
   intermediárias elegíveis (`intermediateEligible`) entre current/wanted e
   latest; incluir o campo nos formatos table/json/markdown; cobrir com testes.
+  - Concluído em 2026-10-05: warnings roteados para stderr (stdout fica limpo
+    para `--format=json`); 13 novos testes; config `maxIntermediateEligible`.
 - [ ] **F.1** Integrar `tools/update-packages.js`: preferir a maior versão
   intermediária elegível em vez de `latest`, re-executar os portões de defesa
   após instalar; testes para intermediárias, fallback, interativo e dry-run.

@@ -37,7 +37,8 @@
     "cacheTtlHours": 24,
     "historyMaxEntries": 30,
     "stuckInQuarantineThreshold": 3,
-    "highReleaseCadenceDays": 7
+    "highReleaseCadenceDays": 7,
+    "maxIntermediateEligible": 10
   },
   "typosquattingCheck": {
     "cacheTtlHours": 24,

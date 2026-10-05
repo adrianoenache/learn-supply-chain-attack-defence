@@ -149,6 +149,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   match, description presence and limits, no legacy fields), registered in the
   `test` and `test:coverage` scripts.
 
+### Changed (Fase F.0 — update-check contract)
+
+- `tools/check-updates.js` now always prints safety messages even with
+  `--silent`: the out-of-sync warning (recommending `npm ci`) and the offline
+  fallback notices can no longer be hidden, since suppressing them would look
+  like a false negative.
+- `tools/check-updates.js` now discovers `intermediateEligible` for every
+  outdated package: versions strictly newer than `wanted` and at most `latest`
+  that already satisfy the `minAgeDays` gate, sorted by semver (pre-releases
+  and packument metadata keys excluded). The list appears in table, JSON, and
+  Markdown reports and is persisted in `.defence-update-check.json`, preparing
+  the ground for `defence:update` to prefer the highest eligible intermediate
+  (Fase F.1).
+- New `updateCheck.maxIntermediateEligible` setting (default 10) caps the
+  per-package intermediate list so long release histories stay readable.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

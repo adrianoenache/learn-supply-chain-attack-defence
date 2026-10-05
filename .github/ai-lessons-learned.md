@@ -117,6 +117,22 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** All files listed above plus
   `.github/ai-lessons-learned.md`.
 
+### 2026-10-05 — Diagnostics on stdout corrupt the node:test runner
+
+- **Date:** 2026-10-05
+- **Rule violated:** Command contracts — stdout must stay machine-parseable.
+- **Affected files:** `tools/check-updates.js`, `tools/check-updates.test.js`
+- **What happened:** Making the offline/sync warnings unconditional (Fase F.0)
+  printed ℹ️/⚠️ messages to stdout mid-TAP-stream; the parent `node --test`
+  runner failed with "Unable to deserialize cloned data due to invalid or
+  unsupported version" and the whole `tools/integration.test.js` file died.
+- **Correction applied:** Routed all safety diagnostics to stderr
+  (`console.error`) — semantically correct, keeps stdout clean for
+  `--format=json`, and keeps warnings visible under `--silent`.
+- **Instruction/agent updated:** None; the rule is now encoded in the
+  `check-updates.js` header comment and covered by tests asserting the
+  stderr channel.
+
 ### 2026-10-05 — Prompt files removed in VS Code 1.140
 
 - **Date:** 2026-10-05

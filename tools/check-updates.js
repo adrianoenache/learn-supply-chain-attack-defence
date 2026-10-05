@@ -9,8 +9,15 @@
 // Usage:
 //   npm run defence:update-check            — run the check
 //   npm run defence:update-check -- --force — ignore cache and rescan
-//   npm run defence:update-check -- --silent — suppress non-error output
+//   npm run defence:update-check -- --silent — suppress reports (safety
+//     warnings about unsynced node_modules and offline fallback are still
+//     shown, because silently skipping them would hide real risk)
 //   npm run defence:update-check -- --offline — rely only on local cache, no network calls
+//
+// Each package entry lists `intermediateEligible`: versions newer than
+// `wanted` and at most `latest` that already satisfy the minimum-age gate,
+// sorted ascending. defence:update (Fase F.1) uses the last element as the
+// preferred target instead of blindly jumping to `latest`.
 //
 // Before scanning the registry, the script verifies that node_modules is in
 // sync with package-lock.json. If it is not, it recommends `npm ci` first.
@@ -74,6 +81,11 @@ const CONCURRENCY = updateConfig.concurrency
 const HISTORY_MAX_ENTRIES = updateConfig.historyMaxEntries
 const STUCK_IN_QUARANTINE_THRESHOLD = updateConfig.stuckInQuarantineThreshold
 const HIGH_RELEASE_CADENCE_DAYS = updateConfig.highReleaseCadenceDays
+
+// Maximum number of intermediate eligible versions reported per package.
+// Configurable via updateCheck.maxIntermediateEligible; the default keeps
+// reports readable for packages with very long release histories.
+const MAX_INTERMEDIATE_ELIGIBLE = updateConfig.maxIntermediateEligible
 
 // Local state file; never committed (see .gitignore).
 const STATE_FILE = config.paths.updateCheckState
@@ -195,6 +207,60 @@ function determineSeverity(current, latest) {
 }
 
 // ---------------------------------------------------------------------------
+// Semver helpers (native only — the project forbids new runtime dependencies).
+// ---------------------------------------------------------------------------
+
+function parseVersionParts(version) {
+  // Pre-release and build metadata (e.g. "1.0.0-rc.1", "1.0.0+build") are
+  // rejected on purpose: a security gate should never steer users toward a
+  // pre-release, and build metadata has no semver ordering semantics.
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return null
+  return version.split('.').map(Number)
+}
+
+function compareVersions(a, b) {
+  const partsA = parseVersionParts(a)
+  const partsB = parseVersionParts(b)
+  // Unparseable versions sort last; this path is defensive because npm
+  // registry data is external input that cannot be trusted to be well-formed.
+  if (!partsA && !partsB) return 0
+  if (!partsA) return 1
+  if (!partsB) return -1
+  for (let i = 0; i < 3; i++) {
+    if (partsA[i] !== partsB[i]) return partsA[i] - partsB[i]
+  }
+  return 0
+}
+
+// Versions strictly newer than `wanted` and at most `latest` whose publish
+// age already satisfies the minimum-age gate. `latest` itself is included when
+// eligible so callers (and defence:update in Fase F.1) can treat the last
+// element as the recommended target version.
+function findIntermediateEligibleVersions(info, wanted, latest, referenceMs) {
+  const times = info?.time ?? {}
+  const candidates = []
+
+  for (const [version, published] of Object.entries(times)) {
+    // The packument time map mixes release metadata with version timestamps.
+    if (version === 'created' || version === 'modified') continue
+    if (parseVersionParts(version) === null) continue
+    if (compareVersions(version, wanted) <= 0) continue
+    if (compareVersions(version, latest) > 0) continue
+
+    const publishedMs = new Date(published).getTime()
+    if (Number.isNaN(publishedMs)) continue
+    if (daysBetween(publishedMs, referenceMs) < MIN_AGE_DAYS) continue
+
+    candidates.push(version)
+  }
+
+  candidates.sort(compareVersions)
+  // Keep only the newest few: the cap bounds report size for packages with
+  // long release histories and prevents unbounded output from external data.
+  return candidates.slice(-MAX_INTERMEDIATE_ELIGIBLE)
+}
+
+// ---------------------------------------------------------------------------
 // Registry interaction.
 // ---------------------------------------------------------------------------
 
@@ -302,6 +368,12 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
     const daysOld = daysBetween(publishedDate.getTime(), nowImpl())
     const metadata = extractVersionMetadata(info, latest)
     const weeklyDownloads = await fetchWeeklyDownloads(name)
+    const intermediateEligible = findIntermediateEligibleVersions(
+      info,
+      wanted,
+      latest,
+      nowImpl(),
+    )
 
     const entry = {
       name,
@@ -310,6 +382,7 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
       latest,
       daysOld,
       severity: determineSeverity(current, latest),
+      intermediateEligible,
       links: buildReleaseLinks(name, latest, info.repository?.url),
       metadata: {
         isDeprecated: metadata.isDeprecated,
@@ -336,6 +409,8 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
         latest,
         daysOld: null,
         severity: determineSeverity(current, latest),
+        // Without packument data there is no way to discover intermediates.
+        intermediateEligible: [],
         reason: `registry lookup failed: ${err.message}`,
         links: buildReleaseLinks(name, latest, null),
       },
@@ -589,14 +664,25 @@ function formatDays(daysOld) {
   return `(released ${Math.floor(daysOld)} days ago)`
 }
 
+// Renders the eligible intermediate versions of an entry, or null when the
+// entry predates the field or no intermediate passed the age gate.
+function formatIntermediateEligible(item) {
+  const versions = item.intermediateEligible ?? []
+  if (versions.length === 0) return null
+  return versions.join(', ')
+}
+
+// Safety diagnostics go to stderr on purpose: stdout carries the report
+// (which may be machine-parsed with --format=json), so warnings must never
+// pollute it. This also keeps them visible when --silent suppresses reports.
 function printSyncWarning(reason) {
-  console.log(
+  console.error(
     '\n⚠️  Installed dependencies are out of sync with package-lock.json.',
   )
-  if (reason) console.log(`   Reason: ${reason}`)
-  console.log('   Run the following command before checking for new updates:')
-  console.log('     npm ci')
-  console.log()
+  if (reason) console.error(`   Reason: ${reason}`)
+  console.error('   Run the following command before checking for new updates:')
+  console.error('     npm ci')
+  console.error()
 }
 
 function formatJsonReport(state) {
@@ -609,14 +695,17 @@ function formatMarkdownReport(state) {
 
   if (state.eligible.length > 0) {
     lines.push('## Eligible for update\n')
-    lines.push('| Package | Current | Latest | Severity | Age | Confidence |')
-    lines.push('|---|---|---|---|---|---|')
+    lines.push(
+      '| Package | Current | Latest | Severity | Age | Confidence | Eligible versions |',
+    )
+    lines.push('|---|---|---|---|---|---|---|')
     for (const item of state.eligible) {
       const age =
         item.daysOld !== null ? `${Math.floor(item.daysOld)} days` : '—'
       const confidence = `${item.confidenceLabel} (${item.confidence})`
+      const intermediates = formatIntermediateEligible(item) ?? '—'
       lines.push(
-        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} | ${confidence} |`,
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} | ${confidence} | ${intermediates} |`,
       )
     }
     lines.push('')
@@ -624,12 +713,15 @@ function formatMarkdownReport(state) {
 
   if (state.quarantine.length > 0) {
     lines.push('## Quarantine\n')
-    lines.push('| Package | Current | Latest | Severity | Reason |')
-    lines.push('|---|---|---|---|---|')
+    lines.push(
+      '| Package | Current | Latest | Severity | Reason | Eligible versions |',
+    )
+    lines.push('|---|---|---|---|---|---|')
     for (const item of state.quarantine) {
       const reason = item.reason ?? formatDays(item.daysOld) ?? '—'
+      const intermediates = formatIntermediateEligible(item) ?? '—'
       lines.push(
-        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} |`,
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} | ${intermediates} |`,
       )
     }
     lines.push('')
@@ -685,6 +777,10 @@ function printReport(state, format) {
       console.log(
         `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${formatDays(item.daysOld)} — ${item.confidenceLabel} (${item.confidence})`,
       )
+      const intermediates = formatIntermediateEligible(item)
+      if (intermediates) {
+        console.log(`       eligible versions: ${intermediates}`)
+      }
       if (item.links?.npm) console.log(`       npm:     ${item.links.npm}`)
       if (item.links?.release) {
         console.log(`       release: ${item.links.release}`)
@@ -700,6 +796,12 @@ function printReport(state, format) {
       console.log(
         `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${suffix}`,
       )
+      // Intermediates matter most in quarantine: they are the safe stepping
+      // stones while latest is still too recent.
+      const intermediates = formatIntermediateEligible(item)
+      if (intermediates) {
+        console.log(`       eligible versions: ${intermediates}`)
+      }
       if (item.links?.npm) console.log(`       npm:     ${item.links.npm}`)
       if (item.links?.release) {
         console.log(`       release: ${item.links.release}`)
@@ -734,7 +836,10 @@ async function main(argv = process.argv.slice(2)) {
       // Step 1: local sync check.
       const sync = isNodeModulesInSync()
       if (!sync.inSync) {
-        if (!isSilent) printSyncWarning(sync.reason)
+        // Maintainer decision (Fase F.0): sync warnings are safety-critical
+        // information, not progress noise, so they are shown even when
+        // --silent is active. --silent suppresses reports, never warnings.
+        printSyncWarning(sync.reason)
         const state = loadState() ?? {}
         state.lastScan = new Date(nowImpl()).toISOString()
         state.installedLockfileHash = currentLockfileHash
@@ -750,22 +855,22 @@ async function main(argv = process.argv.slice(2)) {
       if (isForce || !state || !isCacheValid(state)) {
         if (isOffline) {
           if (!state) {
-            if (!isSilent) {
-              console.log(
-                '\nℹ️  Update check is offline and no cached scan was found.',
-              )
-              console.log('   Connect to the network or run without --offline.')
-              console.log()
-            }
+            // Maintainer decision (Fase F.0): offline fallback messages are
+            // always shown, even with --silent, because silently producing no
+            // output would look like "no updates found" — a false negative.
+            // They go to stderr so machine-readable stdout stays clean.
+            console.error(
+              '\nℹ️  Update check is offline and no cached scan was found.',
+            )
+            console.error('   Connect to the network or run without --offline.')
+            console.error()
             return 0
           }
           // In offline mode, use the existing cache even if TTL expired.
-          if (!isSilent) {
-            console.log(
-              '\nℹ️  Update check is offline; using the last cached scan.',
-            )
-            console.log()
-          }
+          console.error(
+            '\nℹ️  Update check is offline; using the last cached scan.',
+          )
+          console.error()
         } else {
           const outdated = runNpmOutdated()
           const entries = Object.entries(outdated)
@@ -866,4 +971,6 @@ module.exports = {
   findStuckInQuarantine,
   fetchRegistryInfo,
   classifyUpdate,
+  findIntermediateEligibleVersions,
+  compareVersions,
 }

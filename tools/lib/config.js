@@ -188,6 +188,9 @@ function buildDefaults(pkg) {
       historyMaxEntries: update.historyMaxEntries ?? 30,
       stuckInQuarantineThreshold: update.stuckInQuarantineThreshold ?? 3,
       highReleaseCadenceDays: update.highReleaseCadenceDays ?? 7,
+      // 10 keeps per-package intermediate lists readable even for packages
+      // with very long release histories; override per project as needed.
+      maxIntermediateEligible: update.maxIntermediateEligible ?? 10,
       maxResponseMB: update.maxResponseMB ?? pkgAge.maxResponseMB ?? 20,
       concurrency: update.concurrency ?? pkgAge.concurrency ?? 10,
       retryMaxAttempts: update.retryMaxAttempts ?? 3,

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-05T21:59:31.894Z",
+  "installedAt": "2026-10-05T22:23:56.944Z",
   "files": [
     {
       "path": ".npmrc",
@@ -108,11 +108,11 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "719b9a779d69bbc85941e41df5e2bbcac6a5a7109c723e5c7746094192d8336a"
+      "hash": "c944f16066e3597297f1abcaba58c715114d47197d7946297253e3945732b376"
     },
     {
       "path": "tools/check-updates.test.js",
-      "hash": "27778d7f8bf25bad1e4959b2d8de3e04d248809da907bfbf18290372c48df2f6"
+      "hash": "4b6586a171481609c6190266b4906edeea5b447a577e62bf59c18399143dedb1"
     },
     {
       "path": "tools/generate-sbom.js",
@@ -192,7 +192,7 @@
     },
     {
       "path": "tools/lib/config.js",
-      "hash": "2006aa068d176a10d760c50ed576e2b93d388d0d2292f3d760565010346bfdef"
+      "hash": "bcf815f7375c288cac9a20446d125aea22d166c320371afe608176fd47cdc57f"
     },
     {
       "path": "tools/lib/config.test.js",

@@ -120,8 +120,8 @@ describe('check-updates', () => {
       },
     })
 
-    const originalLog = console.log
-    console.log = (...args) => logs.push(args.join(' '))
+    const originalError = console.error
+    console.error = (...args) => logs.push(args.join(' '))
 
     try {
       const code = await mod.main(['--force'])
@@ -132,7 +132,7 @@ describe('check-updates', () => {
       assert.ok(logs.some((line) => line.includes('out of sync')))
       assert.ok(logs.some((line) => line.includes('npm ci')))
     } finally {
-      console.log = originalLog
+      console.error = originalError
       mod.resetImpls()
     }
   })
@@ -671,8 +671,8 @@ describe('check-updates', () => {
       now: () => baseTime,
     })
 
-    const originalLog = console.log
-    console.log = (...args) => logs.push(args.join(' '))
+    const originalError = console.error
+    console.error = (...args) => logs.push(args.join(' '))
 
     try {
       const code = await mod.main(['--offline'])
@@ -681,7 +681,7 @@ describe('check-updates', () => {
       assert.ok(logs.some((line) => line.includes('offline')))
       assert.ok(logs.some((line) => line.includes('no cached scan')))
     } finally {
-      console.log = originalLog
+      console.error = originalError
       mod.resetImpls()
     }
   })
@@ -727,7 +727,9 @@ describe('check-updates', () => {
       now: () => baseTime,
     })
 
+    const originalError = console.error
     const originalLog = console.log
+    console.error = (...args) => logs.push(args.join(' '))
     console.log = (...args) => logs.push(args.join(' '))
 
     try {
@@ -737,6 +739,7 @@ describe('check-updates', () => {
       assert.ok(logs.some((line) => line.includes('offline')))
       assert.ok(logs.some((line) => line.includes('stale')))
     } finally {
+      console.error = originalError
       console.log = originalLog
       mod.resetImpls()
     }
@@ -1192,5 +1195,447 @@ describe('check-updates', () => {
     } finally {
       mod.resetImpls()
     }
+  })
+
+  // -------------------------------------------------------------------------
+  // Fase F.0 — contract fixes: silent-mode warnings and intermediate versions.
+  // -------------------------------------------------------------------------
+
+  describe('Fase F.0 — silent mode keeps safety warnings', () => {
+    const inSyncLock = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const inSyncHash = require('node:crypto')
+      .createHash('sha256')
+      .update(inSyncLock)
+      .digest('hex')
+
+    test('prints sync warning even when --silent is active', async () => {
+      const calls = []
+      const logs = []
+      const mod = readScriptExports()
+
+      mod.setImpls({
+        fs: makeMockFs({
+          state: null,
+          lock: inSyncLock,
+          nodeModulesLock: { packageLockHash: 'different-hash' },
+        }),
+        spawnSync: makeMockSpawn(calls, {
+          'npm ls --json --depth=0': { status: 1, stdout: '', stderr: 'ERR!' },
+        }),
+        now: () => baseTime,
+      })
+
+      const originalError = console.error
+      console.error = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--silent'])
+        assert.equal(code, 0)
+        assert.ok(logs.some((line) => line.includes('out of sync')))
+        assert.ok(logs.some((line) => line.includes('npm ci')))
+      } finally {
+        console.error = originalError
+        mod.resetImpls()
+      }
+    })
+
+    test('prints offline notice without cache even when --silent is active', async () => {
+      const calls = []
+      const logs = []
+      const mod = readScriptExports()
+
+      mod.setImpls({
+        fs: makeMockFs({
+          state: null,
+          lock: inSyncLock,
+          nodeModulesLock: { packageLockHash: inSyncHash },
+        }),
+        spawnSync: makeMockSpawn(calls, {}),
+        now: () => baseTime,
+      })
+
+      const originalError = console.error
+      console.error = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--offline', '--silent'])
+        assert.equal(code, 0)
+        assert.ok(
+          logs.some((line) =>
+            line.includes('offline and no cached scan was found'),
+          ),
+        )
+      } finally {
+        console.error = originalError
+        mod.resetImpls()
+      }
+    })
+
+    test('prints cached-scan notice when offline with cache even with --silent', async () => {
+      const calls = []
+      const logs = []
+      const mod = readScriptExports()
+      const cachedState = {
+        lastScan: new Date(baseTime - 1000).toISOString(),
+        lastReminder: null,
+        installedLockfileHash: inSyncHash,
+        eligible: [],
+        quarantine: [],
+      }
+
+      mod.setImpls({
+        fs: makeMockFs({
+          state: cachedState,
+          lock: inSyncLock,
+          nodeModulesLock: { packageLockHash: inSyncHash },
+        }),
+        spawnSync: makeMockSpawn(calls, {}),
+        now: () => baseTime,
+      })
+
+      const originalError = console.error
+      console.error = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--offline', '--silent'])
+        assert.equal(code, 0)
+        assert.ok(
+          logs.some((line) => line.includes('using the last cached scan')),
+        )
+      } finally {
+        console.error = originalError
+        mod.resetImpls()
+      }
+    })
+  })
+
+  describe('Fase F.0 — intermediate eligible versions', () => {
+    // Fixture timestamps relative to baseTime (2026-08-19T12:00:00Z):
+    // "old" = 18+ days (> 7-day age gate), "recent" = 1 day (inside the gate).
+    const OLD_RELEASE = '2026-08-01T00:00:00.000Z'
+    const RECENT_RELEASE = '2026-08-18T12:00:00.000Z'
+
+    function makePackument(times) {
+      return {
+        statusCode: 200,
+        body: {
+          time: {
+            created: '2020-01-01T00:00:00.000Z',
+            modified: '2026-08-18T00:00:00.000Z',
+            ...times,
+          },
+          repository: { url: 'git+https://github.com/example/pkg.git' },
+        },
+      }
+    }
+
+    test('discovers intermediates that pass the age gate while latest is quarantined', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: makePackument({
+            '1.0.0': '2026-07-01T00:00:00.000Z',
+            '1.1.0': OLD_RELEASE,
+            '1.2.0': RECENT_RELEASE,
+            '2.0.0': RECENT_RELEASE,
+          }),
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.ok(result.quarantine, 'latest should be in quarantine')
+        assert.deepEqual(result.quarantine.intermediateEligible, ['1.1.0'])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('includes latest in intermediateEligible when latest passes the age gate', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: makePackument({
+            '1.0.0': '2026-07-01T00:00:00.000Z',
+            '1.1.0': OLD_RELEASE,
+            '2.0.0': OLD_RELEASE,
+          }),
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.ok(result.eligible, 'latest should be eligible')
+        // Sorted ascending; the last element is the recommended target.
+        assert.deepEqual(result.eligible.intermediateEligible, [
+          '1.1.0',
+          '2.0.0',
+        ])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('excludes prereleases, metadata keys, and versions not above wanted', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: makePackument({
+            '0.9.0': OLD_RELEASE, // below wanted — excluded
+            '1.0.0': OLD_RELEASE, // equal to wanted — excluded
+            '1.1.0-rc.1': OLD_RELEASE, // prerelease — excluded
+            '1.1.0': OLD_RELEASE,
+            '2.0.0': RECENT_RELEASE,
+          }),
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '0.9.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.deepEqual(result.quarantine.intermediateEligible, ['1.1.0'])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('returns an empty list when no intermediate passes the age gate', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: makePackument({
+            '1.0.0': OLD_RELEASE,
+            '2.0.0': RECENT_RELEASE,
+          }),
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.deepEqual(result.quarantine.intermediateEligible, [])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('returns an empty list when the registry lookup fails', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: { statusCode: 404, body: {} },
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.ok(result.quarantine)
+        assert.deepEqual(result.quarantine.intermediateEligible, [])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('orders versions by semver, not by string or insertion order', () => {
+      const mod = readScriptExports()
+      const info = {
+        time: {
+          '1.10.0': OLD_RELEASE,
+          '1.9.0': OLD_RELEASE,
+          '1.1.0': OLD_RELEASE,
+          '2.0.0': OLD_RELEASE,
+        },
+      }
+      const versions = mod.findIntermediateEligibleVersions(
+        info,
+        '1.0.0',
+        '2.0.0',
+        baseTime,
+      )
+      assert.deepEqual(versions, ['1.1.0', '1.9.0', '1.10.0', '2.0.0'])
+    })
+  })
+
+  describe('Fase F.0 — intermediateEligible in report formats and state', () => {
+    const OLD_RELEASE = '2026-08-01T00:00:00.000Z'
+    const inSyncLock = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const inSyncHash = require('node:crypto')
+      .createHash('sha256')
+      .update(inSyncLock)
+      .digest('hex')
+
+    function setupScan(mod, calls, capturedWrites) {
+      const baseFs = makeMockFs({
+        state: null,
+        lock: inSyncLock,
+        nodeModulesLock: { packageLockHash: inSyncHash },
+      })
+      mod.setImpls({
+        fs: {
+          ...baseFs,
+          writeFileSync: (filePath, data) => {
+            if (filePath.includes('.defence-update-check.json')) {
+              capturedWrites.push(data)
+            }
+          },
+        },
+        spawnSync: makeMockSpawn(calls, {
+          'npm outdated --json --min-release-age=0': {
+            status: 0,
+            stdout: JSON.stringify({
+              pkg: { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+            }),
+          },
+        }),
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: {
+            statusCode: 200,
+            body: {
+              time: {
+                '1.0.0': '2026-07-01T00:00:00.000Z',
+                '1.1.0': OLD_RELEASE,
+                '2.0.0': OLD_RELEASE,
+              },
+              repository: { url: 'git+https://github.com/example/pkg.git' },
+            },
+          },
+        }),
+        now: () => baseTime,
+      })
+    }
+
+    test('table format lists eligible versions', async () => {
+      const calls = []
+      const logs = []
+      const capturedWrites = []
+      const mod = readScriptExports()
+      setupScan(mod, calls, capturedWrites)
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force'])
+        assert.equal(code, 0)
+        assert.ok(
+          logs.some(
+            (line) =>
+              line.includes('eligible versions:') &&
+              line.includes('1.1.0') &&
+              line.includes('2.0.0'),
+          ),
+        )
+      } finally {
+        console.log = originalLog
+        mod.resetImpls()
+      }
+    })
+
+    test('json format includes intermediateEligible', async () => {
+      const calls = []
+      const logs = []
+      const capturedWrites = []
+      const mod = readScriptExports()
+      setupScan(mod, calls, capturedWrites)
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--format=json'])
+        assert.equal(code, 0)
+        const report = JSON.parse(logs.join('\n'))
+        assert.deepEqual(report.eligible[0].intermediateEligible, [
+          '1.1.0',
+          '2.0.0',
+        ])
+      } finally {
+        console.log = originalLog
+        mod.resetImpls()
+      }
+    })
+
+    test('markdown format includes the eligible versions column', async () => {
+      const calls = []
+      const logs = []
+      const capturedWrites = []
+      const mod = readScriptExports()
+      setupScan(mod, calls, capturedWrites)
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--format=markdown'])
+        assert.equal(code, 0)
+        const output = logs.join('\n')
+        assert.ok(output.includes('Eligible versions'))
+        assert.ok(output.includes('1.1.0, 2.0.0'))
+      } finally {
+        console.log = originalLog
+        mod.resetImpls()
+      }
+    })
+
+    test('persists intermediateEligible in the saved state', async () => {
+      const calls = []
+      const logs = []
+      const capturedWrites = []
+      const mod = readScriptExports()
+      setupScan(mod, calls, capturedWrites)
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--force', '--silent'])
+        assert.equal(code, 0)
+        assert.ok(capturedWrites.length > 0, 'state should have been saved')
+        const saved = JSON.parse(capturedWrites[0])
+        assert.deepEqual(saved.eligible[0].intermediateEligible, [
+          '1.1.0',
+          '2.0.0',
+        ])
+      } finally {
+        console.log = originalLog
+        mod.resetImpls()
+      }
+    })
   })
 })

@@ -8,6 +8,7 @@
 - Busca as versões mais recentes no registro do npm.
 - Dedup solicitações de registro com cache em memória de packument por execução.
 - Classifica atualizações como elegíveis (já antigas o suficiente) ou em quarentena (muito recentes).
+- Descobre `intermediateEligible`: versões mais novas que `wanted` e no máximo `latest` que já satisfazem o portão de idade, ordenadas de forma crescente — o último elemento é o alvo de atualização recomendado.
 - Emite relatórios em tabela, JSON ou Markdown.
 
 Implementado em [tools/check-updates.js](../../../tools/check-updates.js).
@@ -23,7 +24,8 @@ O comportamento é configurado no `package.json` sob `updateCheck`:
     "remindEveryDays": 1,
     "alwaysRemind": false,
     "registryTimeoutMs": 10000,
-    "cacheTtlHours": 24
+    "cacheTtlHours": 24,
+    "maxIntermediateEligible": 10
   }
 }
 ```
@@ -42,7 +44,14 @@ npm run defence:update-check -- --offline
 
 # Saída JSON
 npm run defence:update-check -- --format=json
+
+# Modo silencioso (suprime relatórios)
+npm run defence:update-check -- --silent
 ```
+
+> `--silent` suprime relatórios, mas **mensagens de segurança são sempre exibidas**: o
+> aviso de dessincronização (recomendando `npm ci`) e os avisos de fallback offline
+> continuam aparecendo, porque suprimi-los silenciosamente esconderia riscos reais.
 
 ## Exemplo de saída
 
