@@ -1,13 +1,6 @@
 ---
-name: Sync Pre-Commit Hash
-applyTo:
-  - ".husky/pre-commit"
-  - "package.json"
-  - ".defence-manifest.json"
-tools:
-  - read_file
-  - run_in_terminal
-  - replace_string_in_file
+name: pre-commit-hash-sync
+description: Synchronize the .husky/pre-commit integrity hashes stored in package.json and .defence-manifest.json. Use whenever .husky/pre-commit is edited, renamed, or otherwise changed.
 ---
 
 # Sync Pre-Commit Hash

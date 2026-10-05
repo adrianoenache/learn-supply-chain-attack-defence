@@ -1,18 +1,7 @@
 ---
-name: AI Self-Review
-applyTo:
-  - ".github/copilot-instructions.md"
-  - ".github/instructions/**"
-  - ".github/agents/**"
-  - ".github/skills/**"
-  - ".github/hooks/**"
-  - "docs/en/ai-guidelines.md"
-  - "docs/pt-BR/ai-guidelines.md"
-tools:
-  - read_file
-  - grep_search
-  - replace_string_in_file
-  - multi_replace_string_in_file
+name: self-review
+description: Review a previous AI output against the project's rules and decide whether instructions, agents, or the lessons-learned log need updating. Use after an AI mistake, rule violation, or skipped validation.
+argument-hint: "[AI output to review]"
 ---
 
 # AI Self-Review Skill
@@ -25,11 +14,14 @@ Prevent repeated mistakes and continuously improve the AI customization files.
 
 ## Procedure
 
-1. **Identify the rule that was violated.** Compare the AI output against:
+1. **Identify the rule that was violated.** Use the AI output provided with the
+   invocation; if none was provided, review the most recent AI output in the
+   current conversation. Compare the output against:
    - `.github/copilot-instructions.md`
-   - `.github/instructions/security.instructions.md`
-   - `.github/instructions/testing.instructions.md`
-   - `.github/instructions/docs.instructions.md`
+   - The relevant `.github/instructions/*.md` file for the domain
+     (security, testing, docs, shell scripts, educational code quality,
+     file organization, project evaluation)
+   - `.github/ai-lessons-learned.md` for previously logged mistakes
 
 2. **Determine the severity.**
    - **Critical:** weakened or removed a security gate, introduced a secret, or proposed adding a dependency without the secure pipeline.

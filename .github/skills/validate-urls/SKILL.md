@@ -1,21 +1,6 @@
 ---
-name: Validate URLs
-applyTo:
-  - "docs/**"
-  - "README.md"
-  - "SECURITY.md"
-  - "CONTRIBUTING.md"
-  - "CHANGELOG.md"
-  - ".github/**/*.md"
-  - ".github/**/*.json"
-  - ".github/**/*.yml"
-  - "tools/**/*.js"
-  - "package.json"
-tools:
-  - read_file
-  - grep_search
-  - fetch_webpage
-  - run_in_terminal
+name: validate-urls
+description: Verify that every external URL added to documentation, AI customizations, issue templates, or configuration files is reachable before it is committed. Prevents fictional, 404, or unreachable URLs from entering the project.
 ---
 
 # Validate URLs

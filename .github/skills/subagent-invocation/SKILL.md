@@ -1,13 +1,10 @@
 ---
+name: subagent-invocation
 description: |
   Guidelines for invoking specialized agents and verifying that they have the
   tools they need before delegation. Use this skill whenever you call a subagent
   via `runSubagent` to create, edit, audit, or review files.
   Keywords: subagent, agent invocation, tools, delegation, runSubagent, agent check.
-tools:
-  - read_file
-  - grep_search
-  - list_dir
 ---
 
 # Subagent Invocation

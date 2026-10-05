@@ -1,17 +1,7 @@
 ---
-name: Bilingual Documentation Update
-applyTo:
-  - "docs/**"
-  - "README.md"
-  - "SECURITY.md"
-  - "CONTRIBUTING.md"
-  - "CHANGELOG.md"
-tools:
-  - read_file
-  - replace_string_in_file
-  - multi_replace_string_in_file
-  - grep_search
-  - run_in_terminal
+name: docs-update
+description: Update the bilingual documentation (docs/en and docs/pt-BR) after a user-facing behavior change. Use when a change affects commands, flags, defense layers, tools, or documented workflows.
+argument-hint: "[behavior change description]"
 ---
 
 # Bilingual Documentation Update Skill
@@ -24,7 +14,11 @@ Keep `docs/en/` and `docs/pt-BR/` synchronized, accurate, and cross-linked.
 
 ## Procedure
 
-1. **Identify the behavior change.** Determine which docs need updating: README, security layer pages, tools page, quick reference, architecture, setup, testing, git-hooks, dependencies, or adoption guide.
+1. **Identify the behavior change.** Use the change description provided with the
+   invocation; if none was provided, ask the user which behavior change should be
+   documented. Determine which docs need updating: README, security layer pages,
+   tools page, quick reference, architecture, setup, testing, git-hooks,
+   dependencies, or adoption guide.
 
 2. **Update the English version first.** Make the factual changes in `docs/en/...`.
 

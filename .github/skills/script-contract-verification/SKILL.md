@@ -1,12 +1,7 @@
 ---
-name: Script Contract Verification
-applyTo:
-  - "tools/*.js"
-  - "tools/lib/*.js"
-tools:
-  - read_file
-  - grep_search
-  - run_in_terminal
+name: script-contract-verification
+description: Verify that a defense script honors its command contract, covering CLI flags, exit codes, output formats, silent and dry-run modes, and side effects. Use when creating or modifying scripts under tools/.
+argument-hint: "[script name or path]"
 ---
 
 # Script Contract Verification Skill
@@ -17,6 +12,15 @@ CLI arguments, exit codes, output formats, side effects, and error behavior.
 ## Goal
 
 Ensure the script behaves predictably for users, CI, and other tools that invoke it.
+
+If no script was specified with the invocation, ask the user which defense
+script to verify before proceeding.
+
+## Constraints
+
+- Do not run commands that modify files or install packages unless explicitly
+  in dry-run mode.
+- If a command can perform side effects, use `--dry-run` or equivalent.
 
 ## Procedure
 

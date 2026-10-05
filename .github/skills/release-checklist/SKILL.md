@@ -1,16 +1,6 @@
 ---
-name: Release v1.0.0 Checklist
-applyTo:
-  - "docs/en/release-checklist.md"
-  - "docs/pt-BR/release-checklist.md"
-  - "package.json"
-  - "package-lock.json"
-  - "CHANGELOG.md"
-  - ".defence-manifest.json"
-tools:
-  - read_file
-  - grep_search
-  - run_in_terminal
+name: release-checklist
+description: Execute the v1.0.0 release checklist consistently and produce the v1.0.0 tag and GitHub Release. Use only when TODO.md is 100% complete, all tests pass, and all documentation is synchronized.
 ---
 
 # Release v1.0.0 Checklist Skill

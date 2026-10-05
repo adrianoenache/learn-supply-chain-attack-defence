@@ -90,6 +90,8 @@ Os seguintes agents especializados podem ser invocados explicitamente ou corresp
 
 A [Matriz de Capacidades dos Agents](../../.github/agents/README.md) lista cada agente, suas ferramentas declaradas e as tarefas que cada um pode executar. Regenere-a com `node .github/agents/scripts/generate-capability-matrix.js` após editar qualquer agente.
 
+Os frontmatters das skills seguem a [especificação Agent Skills](https://code.visualstudio.com/docs/agent-customization/agent-skills) (VS Code 1.140): `name` em kebab-case igual ao nome da pasta, `description` explicando o que a skill faz e quando usá-la, e sem os campos legados `applyTo`/`tools`. A suíte de sanidade `.github/skills/skills.sanity.test.js` roda com `npm test` e falha ruidosamente se uma skill violar a spec, já que o VS Code ignora skills inválidas silenciosamente.
+
 Skills reutilizáveis incluem:
 
 | Skill | Use Quando |
@@ -107,20 +109,18 @@ Skills reutilizáveis incluem:
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Mantém os hashes de integridade de `.husky/pre-commit` sincronizados após edições do hook. |
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Revisa scripts shell quanto a shebang, opções de segurança, quoting e tratamento de JSON. |
 | [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifica o conjunto de ferramentas declarado de um agente antes de delegar trabalho via `runSubagent`. Inclui árvore de decisão, checklists pré/pós-delegação, templates de prompt, anti-patterns e passos de recuperação. |
+| [`.github/skills/context-recovery/SKILL.md`](../../.github/skills/context-recovery/SKILL.md) | Reconstruir o estado do projeto no início da sessão ou após uma pausa. |
 
-Skills sob demanda para tarefas one-shot (convertidas de `.github/prompts/` após o VS Code 1.140 remover o suporte a arquivos de prompt) incluem:
+Skills sob demanda para tarefas one-shot (invocadas explicitamente pelo menu `/`, com `disable-model-invocation: true`) incluem:
 
 | Skill | Use Quando |
 | --- | --- |
 | [`.github/skills/generate-test/SKILL.md`](../../.github/skills/generate-test/SKILL.md) | Gerar um teste para um script de defesa. |
-| [`.github/skills/review-security/SKILL.md`](../../.github/skills/review-security/SKILL.md) | Revisar uma mudança quanto a riscos de segurança. |
-| [`.github/skills/update-docs/SKILL.md`](../../.github/skills/update-docs/SKILL.md) | Atualizar documentação após uma mudança. |
 | [`.github/skills/check-hardcoded-values/SKILL.md`](../../.github/skills/check-hardcoded-values/SKILL.md) | Auditar valores hardcoded. |
-| [`.github/skills/review-ai-output/SKILL.md`](../../.github/skills/review-ai-output/SKILL.md) | Revisar uma saída anterior da AI. |
-| [`.github/skills/code-review-for-learning/SKILL.md`](../../.github/skills/code-review-for-learning/SKILL.md) | Revisar código como recurso de aprendizado. |
-| [`.github/skills/verify-command-contract/SKILL.md`](../../.github/skills/verify-command-contract/SKILL.md) | Verificar o contrato de comando de um script. |
 | [`.github/skills/validate-architecture/SKILL.md`](../../.github/skills/validate-architecture/SKILL.md) | Validar uma mudança contra a arquitetura do projeto. |
 | [`.github/skills/project-status-evaluation/SKILL.md`](../../.github/skills/project-status-evaluation/SKILL.md) | Avaliar o readiness do projeto para release. |
+
+> Após o VS Code 1.140 remover o suporte a arquivos de prompt, os antigos prompts one-shot foram convertidos em skills. Cinco deles se sobrepunham a skills existentes e foram fundidos: `review-security` em `security-audit`, `update-docs` em `docs-update`, `review-ai-output` em `self-review`, `verify-command-contract` em `script-contract-verification` e `code-review-for-learning` em `educational-code-review`.
 
 Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https://docs.github.com/en/copilot/reference/hooks-reference) (`{ "version": 1, "hooks": { ... } }`) e incluem:
 

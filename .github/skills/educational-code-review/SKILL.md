@@ -1,14 +1,7 @@
 ---
-name: Educational Code Review
-applyTo:
-  - "tools/*.js"
-  - "tools/lib/*.js"
-  - "tools/**/*.test.js"
-tools:
-  - read_file
-  - grep_search
-  - replace_string_in_file
-  - multi_replace_string_in_file
+name: educational-code-review
+description: Review code as a learning resource for supply-chain defense, checking headers, error messages, hardcoded values, naming, comments, and test readability. Use when reviewing tools/*.js, tools/lib/*.js, or test files for educational quality.
+argument-hint: "[files to review]"
 ---
 
 # Educational Code Review Skill
@@ -19,6 +12,15 @@ maintainability, and teaching value, not just correctness.
 ## Goal
 
 Ensure code and tests are understandable by someone learning supply-chain defense.
+
+If no files were specified with the invocation, ask the user which files to
+review before proceeding.
+
+## Constraints
+
+- Do not weaken security gates or bypass checks.
+- Do not suggest adding dependencies without using `npm run defence:add`.
+- Every hardcoded value must either be configurable or justified with a comment.
 
 ## Procedure
 

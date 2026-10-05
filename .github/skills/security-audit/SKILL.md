@@ -1,16 +1,7 @@
 ---
-name: Security Audit
-applyTo:
-  - "tools/**"
-  - ".npmrc"
-  - ".husky/**"
-  - "package.json"
-  - ".github/workflows/**"
-  - "SECURITY.md"
-tools:
-  - read_file
-  - grep_search
-  - run_in_terminal
+name: security-audit
+description: Review a change for npm supply-chain security risks against the project's twelve defense layers. Use when a diff touches dependencies, install behavior, registry trust, secrets, hooks, or CI configuration.
+argument-hint: "[change description or diff]"
 ---
 
 # Security Audit Skill
@@ -23,7 +14,11 @@ Ensure the change preserves or strengthens the defense-in-depth posture of the p
 
 ## Procedure
 
-1. **Identify the files in scope.** Confirm the change touches code, configuration, or documentation related to dependencies, install behavior, registry trust, secrets, hooks, or CI.
+1. **Identify the files in scope.** Use the change description or diff provided
+   with the invocation; if none was provided, review the current uncommitted
+   diff (`git diff`). Confirm the change touches code, configuration, or
+   documentation related to dependencies, install behavior, registry trust,
+   secrets, hooks, or CI.
 
 2. **Read the relevant defense-layer pages** in `docs/en/security/` and `docs/pt-BR/security/` if the change affects a specific layer.
 

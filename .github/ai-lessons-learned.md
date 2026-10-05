@@ -117,6 +117,34 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** All files listed above plus
   `.github/ai-lessons-learned.md`.
 
+### 2026-10-05 — Prompt files removed in VS Code 1.140
+
+- **Date:** 2026-10-05
+- **Rule violated:** AI customizations must stay compatible with the supported
+  VS Code customization surface.
+- **Affected files:** `.github/prompts/*.prompt.md` (deleted),
+  `.github/skills/*/SKILL.md`, `docs/en/ai-guidelines.md`,
+  `docs/pt-BR/ai-guidelines.md`
+- **What happened:** VS Code 1.140 removed support for
+  `.github/prompts/*.prompt.md`. An uncommitted conversion moved the nine
+  prompts into `.github/skills/` but kept redundant `description` fields equal
+  to the skill name and prompt-style placeholders, and left 18 broken links in
+  the bilingual AI guidelines, which made `npm test` fail. The fourteen
+  pre-existing skills also used the legacy experimental format (`name` in Title
+  Case, `applyTo`, `tools`), which VS Code silently fails to load because the
+  `name` did not match the folder name.
+- **Correction applied:** Rewrote all skill frontmatters to the Agent Skills
+  specification (kebab-case `name` equal to the folder, descriptive
+  `description` with what/when, `argument-hint` where input is expected),
+  merged five overlapping prompt/skill pairs into single skills, updated all
+  references, and added `.github/skills/skills.sanity.test.js` to `npm test` so
+  spec violations fail loudly in CI instead of silently in the IDE.
+- **Instruction/agent updated:**
+  `.github/instructions/file-organization.instructions.md`,
+  `.github/agents/repository-organization.agent.md`,
+  `.github/skills/self-review/SKILL.md`,
+  `docs/en/ai-guidelines.md`, `docs/pt-BR/ai-guidelines.md`.
+
 ---
 
 ## Review Cadence

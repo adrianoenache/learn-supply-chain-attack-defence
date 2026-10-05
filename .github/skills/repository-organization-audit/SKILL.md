@@ -1,15 +1,6 @@
 ---
-name: Repository Organization Audit
-applyTo:
-  - "tools/**"
-  - "docs/**"
-  - ".github/**"
-  - ".defence-manifest.json"
-tools:
-  - read_file
-  - grep_search
-  - list_dir
-  - run_in_terminal
+name: repository-organization-audit
+description: Audit the project structure for consistency, orphaned files, duplicated helpers, and applyTo pattern hygiene. Use to keep the repository predictable and easy to navigate as it grows.
 ---
 
 # Repository Organization Audit Skill

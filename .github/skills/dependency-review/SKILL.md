@@ -1,17 +1,6 @@
 ---
-name: Dependency Review
-applyTo:
-  - "package.json"
-  - "package-lock.json"
-  - "tools/add-package.js"
-  - "tools/check-package-age.js"
-  - "tools/check-licenses.js"
-  - "tools/lib/provenance.js"
-  - "tools/lib/package-utils.js"
-tools:
-  - read_file
-  - grep_search
-  - run_in_terminal
+name: dependency-review
+description: Validate that a new or changed dependency meets the project's supply-chain security requirements (age check, signature audit, vulnerability audit, license check) before it is committed. Use whenever a dependency is proposed or dependency-related code changes.
 ---
 
 # Dependency Review Skill

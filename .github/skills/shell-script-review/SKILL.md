@@ -1,12 +1,6 @@
 ---
-name: Shell Script Review
-applyTo:
-  - ".github/hooks/scripts/**/*.sh"
-  - ".husky/**"
-  - "tools/**/*.sh"
-tools:
-  - read_file
-  - grep_search
+name: shell-script-review
+description: Review shell scripts against the project's safety, security, and quality standards for bash code (shebang, set -euo pipefail, quoting, JSON handling). Use after creating or editing any .sh script, Husky hook, or hook implementation script.
 ---
 
 # Shell Script Review

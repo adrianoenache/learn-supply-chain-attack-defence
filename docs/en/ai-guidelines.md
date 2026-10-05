@@ -90,13 +90,15 @@ The following specialized agents can be invoked explicitly or matched automatica
 
 The [Agent Capability Matrix](../../.github/agents/README.md) lists every agent, its declared tools, and the tasks each agent can perform. Regenerate it with `node .github/agents/scripts/generate-capability-matrix.js` after editing any agent.
 
+Skill frontmatters follow the [Agent Skills specification](https://code.visualstudio.com/docs/agent-customization/agent-skills) (VS Code 1.140): kebab-case `name` matching the folder, a `description` stating what the skill does and when to use it, and no legacy `applyTo`/`tools` fields. The sanity suite `.github/skills/skills.sanity.test.js` runs with `npm test` and fails loudly if a skill violates the spec, since VS Code silently skips invalid skills.
+
 Reusable skills include:
 
 | Skill | Use When |
 | --- | --- |
 | [`.github/skills/security-audit/SKILL.md`](../../.github/skills/security-audit/SKILL.md) | Reviewing a change against the 12 defense layers. |
 | [`.github/skills/dependency-review/SKILL.md`](../../.github/skills/dependency-review/SKILL.md) | Adding or evaluating a dependency. |
-| [`.github/skills/docs-update/SKILL.md`](../../.github/skills/docs-update/SKILL.md) | Updating bilingual documentation. |
+| [`.github/skills/docs-update/SKILL.md`](../../.github/skills/docs-update/SKILL.md) | Updating bilingual documentation after a behavior change. |
 | [`.github/skills/release-checklist/SKILL.md`](../../.github/skills/release-checklist/SKILL.md) | Tagging a release. |
 | [`.github/skills/self-review/SKILL.md`](../../.github/skills/self-review/SKILL.md) | Reviewing a previous AI output and improving instructions. |
 | [`.github/skills/script-contract-verification/SKILL.md`](../../.github/skills/script-contract-verification/SKILL.md) | Verifying a defense script's CLI contract. |
@@ -107,20 +109,18 @@ Reusable skills include:
 | [`.github/skills/pre-commit-hash-sync/SKILL.md`](../../.github/skills/pre-commit-hash-sync/SKILL.md) | Keeps `.husky/pre-commit` integrity hashes in sync after hook edits. |
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Reviews shell scripts for shebang, safety options, quoting, and JSON handling. |
 | [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifies an agent's declared tool set before delegating work via `runSubagent`. Includes a decision tree, pre/post-delegation checklists, prompt templates, anti-patterns, and recovery steps. |
+| [`.github/skills/context-recovery/SKILL.md`](../../.github/skills/context-recovery/SKILL.md) | Reconstructing project state at session start or after a break. |
 
-On-demand skills for one-shot tasks (converted from `.github/prompts/` after VS Code 1.140 removed prompt file support) include:
+On-demand skills for one-shot tasks (invoked explicitly via the `/` menu, with `disable-model-invocation: true`) include:
 
 | Skill | Use When |
 | --- | --- |
 | [`.github/skills/generate-test/SKILL.md`](../../.github/skills/generate-test/SKILL.md) | Generating a test for a defense script. |
-| [`.github/skills/review-security/SKILL.md`](../../.github/skills/review-security/SKILL.md) | Reviewing a change for security risks. |
-| [`.github/skills/update-docs/SKILL.md`](../../.github/skills/update-docs/SKILL.md) | Updating documentation after a change. |
 | [`.github/skills/check-hardcoded-values/SKILL.md`](../../.github/skills/check-hardcoded-values/SKILL.md) | Auditing hardcoded values. |
-| [`.github/skills/review-ai-output/SKILL.md`](../../.github/skills/review-ai-output/SKILL.md) | Reviewing a previous AI output. |
-| [`.github/skills/code-review-for-learning/SKILL.md`](../../.github/skills/code-review-for-learning/SKILL.md) | Reviewing code as a learning resource. |
-| [`.github/skills/verify-command-contract/SKILL.md`](../../.github/skills/verify-command-contract/SKILL.md) | Verifying a script's command contract. |
 | [`.github/skills/validate-architecture/SKILL.md`](../../.github/skills/validate-architecture/SKILL.md) | Validating a change against project architecture. |
 | [`.github/skills/project-status-evaluation/SKILL.md`](../../.github/skills/project-status-evaluation/SKILL.md) | Evaluating project readiness for release. |
+
+> After VS Code 1.140 removed prompt file support, the former one-shot prompts were converted to skills. Five of them overlapped with existing skills and were merged: `review-security` into `security-audit`, `update-docs` into `docs-update`, `review-ai-output` into `self-review`, `verify-command-contract` into `script-contract-verification`, and `code-review-for-learning` into `educational-code-review`.
 
 Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference) (`{ "version": 1, "hooks": { ... } }`) and include:
 

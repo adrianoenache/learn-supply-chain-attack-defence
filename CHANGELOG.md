@@ -132,6 +132,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `.github/agents/repository-organization.agent.md`, and
   `.github/skills/self-review/SKILL.md` were updated accordingly.
 
+### Changed (skills normalization)
+
+- Normalized every skill in `.github/skills/` to the Agent Skills specification
+  (VS Code 1.140): kebab-case `name` matching the folder, required
+  `description` stating what the skill does and when to use it, and removal of
+  the legacy `applyTo`/`tools` fields, which are not part of the spec and
+  caused skills to fail loading silently.
+- Merged five overlapping prompt/skill pairs into single skills:
+  `review-security` into `security-audit`, `update-docs` into `docs-update`,
+  `review-ai-output` into `self-review`, `verify-command-contract` into
+  `script-contract-verification`, and `code-review-for-learning` into
+  `educational-code-review`.
+- Added `.github/skills/skills.sanity.test.js`, a sanity suite that validates
+  every skill frontmatter against the Agent Skills specification (folder/name
+  match, description presence and limits, no legacy fields), registered in the
+  `test` and `test:coverage` scripts.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

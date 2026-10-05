@@ -1,14 +1,6 @@
 ---
-name: Docs Completeness
-applyTo:
-  - "docs/**"
-  - "README.md"
-  - "CONTRIBUTING.md"
-  - "SECURITY.md"
-tools:
-  - read_file
-  - grep_search
-  - run_in_terminal
+name: docs-completeness
+description: Verify that documentation is complete, bilingual, and internally consistent. Use to confirm that every user-facing change is discoverable in both docs/en/ and docs/pt-BR/.
 ---
 
 # Docs Completeness Skill

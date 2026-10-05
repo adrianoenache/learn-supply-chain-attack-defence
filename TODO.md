@@ -367,13 +367,12 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 ### 4.7 Self-Improvement Loop ✅
 
 - [x] **[P2]** Create a lightweight self-improvement mechanism for AI instructions:
-  - `.github/skills/review-ai-output/SKILL.md` to review previous AI outputs against project rules.
-  - `.github/skills/self-review/SKILL.md` with a step-by-step self-review procedure.
+  - `.github/skills/self-review/SKILL.md` to review previous AI outputs against project rules (absorbed the former `review-ai-output` prompt).
   - `.github/ai-lessons-learned.md` to log recurring AI mistakes and corrections.
   - Periodic review of `.github/copilot-instructions.md` and `.github/instructions/*.md` based on accumulated lessons.
   - Impact: prevents repeated mistakes and lets the project evolve its AI guidance over time.
   - Depends on: file-specific instructions (Section 4.2).
-  - Files: `.github/skills/review-ai-output/SKILL.md`, `.github/skills/self-review/SKILL.md`, `.github/ai-lessons-learned.md`
+  - Files: `.github/skills/self-review/SKILL.md`, `.github/ai-lessons-learned.md`
 
 ---
 
