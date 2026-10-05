@@ -80,8 +80,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   silencioso/formato, códigos de saída, arquivo de teste) e linkar a partir de
   `docs/{en,pt-BR}/index.md` e `docs/{en,pt-BR}/tools.md`.
   - Concluído em 2026-10-05: 39 scripts em 7 categorias, links adicionados.
-- [ ] **F.3** Validação final: suite completa de gates + verificações manuais
+- [x] **F.3** Validação final: suite completa de gates + verificações manuais
   listadas no PLAN.
+  - Concluído em 2026-10-05: todos os gates verdes; verificado com dados reais
+    que `--silent` mantém avisos no stderr, `update-check` lista 6
+    intermediárias elegíveis reais de `@biomejs/biome`, links do checklist
+    resolvem e manifesto está sincronizado. Ver observação no PLAN.md sobre
+    intermediárias em pacotes em quarentena.
 
 ## Fase AI-2 — Governança e ergonomia das customizações AI
 

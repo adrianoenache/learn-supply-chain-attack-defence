@@ -8,9 +8,9 @@
 
 ## TL;DR
 
-Fases prévia, AI-0, Pre-Fase E, E e AI-1 (migração VS Code 1.140) concluídas.
-Próxima prioridade: **Fase F** (verificação de execução de comandos — nada de
-F.0–F.3 foi implementado ainda), seguida de **AI-2** (governança/ergonomia das
+Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140) e F
+(verificação de comandos, com `intermediateEligible` de ponta a ponta)
+concluídas. Próxima prioridade: **Fase AI-2** (governança/ergonomia das
 customizações AI: skills em fork, `user-invocable`, recursos empacotados,
 sanity test de hooks e índice gerado de skills), depois G (code review
 educacional), H (organização — item de lint do Biome confirmado aberto),
@@ -151,12 +151,17 @@ aprovação explícita).
   `npm run defence:check-md-links` (174 arquivos),
   `npm run defence:verify-defences` (72 arquivos) — todos passando.
 
-### Fase F — Verificação de execução de comandos
+### Fase F — Verificação de execução de comandos ✅
 
-> **Status (verificado em 2026-10-05): pendente.** Nenhum item de F.0–F.3 foi
-> implementado — `intermediateEligible` não existe em `tools/check-updates.js`
-> nem em `tools/update-packages.js`, e `command-verification-checklist.md` não
-> existe em `docs/{en,pt-BR}/`. Esta é a próxima fase a executar.
+> **Status: concluída em 2026-10-05.** F.0–F.3 implementados e validados.
+>
+> **Observação de design registrada na validação F.3.2 (dados reais):** quando
+> `latest` está em quarentena mas existem intermediárias elegíveis (caso real:
+> `@biomejs/biome 2.5.8 → 2.5.15` com 2.5.9–2.5.14 elegíveis), o pacote permanece
+> em `quarantine` e `defence:update` não o aplica — a F.1.1 cobre apenas pacotes
+> `eligible`. Avaliar como follow-up (nova decisão do mantenedor) se
+> `defence:update` deve oferecer/aplicar a maior intermediária elegível também
+> para pacotes em quarentena, já que elas passaram pelo mesmo portão de idade.
 
 > **Decisões confirmadas em 2026-09-08:**
 > - Mensagens informativas (sync warning e offline fallback) devem ser sempre exibidas em `defence:update-check`, mesmo com `--silent`.
