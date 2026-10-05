@@ -10,9 +10,9 @@
 
 Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140) e F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta)
-concluídas. Próxima prioridade: **Fase AI-2** (governança/ergonomia das
-customizações AI: skills em fork, `user-invocable`, recursos empacotados,
-sanity test de hooks e índice gerado de skills), depois G (code review
+concluídas. Próxima prioridade: **Fase F.4** (intermediárias elegíveis para
+pacotes em quarentena — decisão do mantenedor em 2026-10-05), seguida de
+**AI-2** (governança/ergonomia das customizações AI), G (code review
 educacional), H (organização — item de lint do Biome confirmado aberto),
 I (revisão de docs), J (avaliação 10/10) e só então K (release v1.0.0, com
 aprovação explícita).
@@ -196,11 +196,53 @@ aprovação explícita).
 - F.3.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `bash .husky/pre-commit`, `npm run defence:verify-defences`.
 - F.3.2 Verificações manuais: `--silent` mantém avisos; `update-check` lista intermediárias; `update` aplica intermediária; links do checklist resolvem; `.defence-manifest.json` sincronizado.
 
+### Fase F.4 — Intermediárias elegíveis para pacotes em quarentena
+
+> **Decisão do mantenedor (2026-10-05):** estender `defence:update` para agir
+> sobre pacotes em quarentena que possuem intermediárias elegíveis. Origem:
+> observação de design da F.3.2 — com dados reais, `@biomejs/biome 2.5.8 →
+> 2.5.15` (latest em quarentena) tinha 6 intermediárias (2.5.9–2.5.14) já
+> aprovadas no portão de idade, mas inacessíveis ao update. Como as
+> intermediárias passaram pelo mesmo portão de idade que qualquer pacote
+> elegível, aplicá-las não enfraquece a defesa — `latest` continua bloqueado
+> até completar a idade mínima.
+
+#### F.4.1 — Hardening da descoberta em `tools/check-updates.js`
+
+- F.4.1.1 Excluir versões **deprecated** de `intermediateEligible` (o packument traz `versions[v].deprecated`); uma versão depreciada nunca deve ser alvo recomendado — vale para pacotes elegíveis e em quarentena.
+- F.4.1.2 Testes: intermediária deprecated é excluída; lista pode ficar vazia quando só há deprecated/recentes.
+
+#### F.4.2 — Quarentena acionável em `tools/update-packages.js`
+
+- F.4.2.1 Definir `getActionableQuarantine(state)`: entradas de `quarantine` com `reason === 'too recent'` **e** `intermediateEligible.length > 0`. Entradas com falha de lookup no registry nunca são acionáveis (não há dados confiáveis).
+- F.4.2.2 Fluxo não-interativo: aplicar instalação pinada para elegíveis (alvo = maior intermediária, que inclui `latest` quando elegível) **e** para quarentena acionável (alvo = maior intermediária, sempre `< latest`); fallback para `npm update` genérico apenas quando não há nenhum dos dois.
+- F.4.2.3 Fluxo interativo: perguntar primeiro os elegíveis, depois a quarentena acionável com nota explícita (`latest X ainda em quarentena; alvo intermediário Y já passou o portão de idade`).
+- F.4.2.4 `saveDecisions`: registrar `target` e `source: 'eligible' | 'quarantine'` por pacote.
+- F.4.2.5 Dry-run (ambos os modos): listar os dois grupos separadamente com rótulos claros.
+
+#### F.4.3 — Testes
+
+- F.4.3.1 `tools/check-updates.test.js`: cobertura de F.4.1.
+- F.4.3.2 `tools/update-packages.test.js`: quarentena acionável aplicada no não-interativo; prompt com nota de quarentena no interativo; quarentena com falha de registry ignorada; decisões com `source`; dry-run separando os grupos.
+
+#### F.4.4 — Documentação
+
+- F.4.4.1 Atualizar `docs/{en,pt-BR}/tools/update-packages.md` e `docs/{en,pt-BR}/tools/check-updates.md` com o novo comportamento.
+- F.4.4.2 Atualizar as entradas de `update-packages.js`/`check-updates.js` em `docs/{en,pt-BR}/command-verification-checklist.md`.
+- F.4.4.3 Entrada no `CHANGELOG.md` (`[Unreleased]`).
+
+#### F.4.5 — Validação final (mesmo padrão da F.3)
+
+- F.4.5.1 Gates: `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit`.
+- F.4.5.2 Verificações manuais com dados reais: `check-updates --force` lista intermediárias; `update --dry-run` mostra a quarentena acionável de `@biomejs/biome` com alvo 2.5.14; `update --interactive --dry-run` idem; confirmar que `latest` 2.5.15 **não** é oferecido como alvo.
+- F.4.5.3 Registrar resultados no PLAN/TODO e commitar.
+
 ### Fase AI-2 — Governança e ergonomia das customizações AI
 
 > **Decisão do mantenedor (2026-10-05): executar após a Fase F.** Itens derivados
 > da avaliação da estrutura de AI pós-AI-1. Nenhum item é P0; o objetivo é
 > reduzir falhas silenciosas, ruído de invocação e drift de documentação.
+> **Nota:** com a criação da Fase F.4, a AI-2 executa após F.4.
 
 #### AI-2.1 — Skills pesadas em contexto `fork` (experimental)
 

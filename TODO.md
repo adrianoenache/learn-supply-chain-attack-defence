@@ -87,6 +87,18 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     intermediárias elegíveis reais de `@biomejs/biome`, links do checklist
     resolvem e manifesto está sincronizado. Ver observação no PLAN.md sobre
     intermediárias em pacotes em quarentena.
+- [ ] **F.4** Intermediárias elegíveis para pacotes em quarentena (decisão do
+  mantenedor, 2026-10-05; detalhamento em `.github/PLAN.md`, F.4.1–F.4.5).
+  - [ ] **F.4.1** Excluir versões deprecated de `intermediateEligible` em
+    `tools/check-updates.js` (+ testes).
+  - [ ] **F.4.2** `tools/update-packages.js`: `getActionableQuarantine()`
+    (somente `reason === 'too recent'` com intermediárias); aplicar alvo
+    pinado também para quarentena acionável nos fluxos não-interativo e
+    interativo; `source` no arquivo de decisões; dry-run com grupos separados.
+  - [ ] **F.4.3** Testes dos dois arquivos cobrindo os novos caminhos.
+  - [ ] **F.4.4** Docs bilíngues (tools pages + checklist) e CHANGELOG.
+  - [ ] **F.4.5** Validação final no padrão F.3 (gates + verificações manuais
+    com dados reais, confirmando que `latest` em quarentena não é oferecido).
 
 ## Fase AI-2 — Governança e ergonomia das customizações AI
 
