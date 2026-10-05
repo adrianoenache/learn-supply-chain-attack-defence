@@ -77,6 +77,30 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] **F.3** Validação final: suite completa de gates + verificações manuais
   listadas no PLAN.
 
+## Fase AI-2 — Governança e ergonomia das customizações AI
+
+> Detalhamento completo em `.github/PLAN.md` (AI-2.1–AI-2.6). Decisão do
+> mantenedor em 2026-10-05: executar após a Fase F.
+
+- [ ] **AI-2.1** Adicionar `context: fork` às skills pesadas
+  (`context-recovery`, `security-audit`, `repository-organization-audit`,
+  `project-status-evaluation`) e documentar o requisito experimental
+  (`github.copilot.chat.skillTool.enabled`) nos ai-guidelines bilíngues.
+- [ ] **AI-2.2** Marcar skills de conhecimento de fundo com
+  `user-invocable: false` (`subagent-invocation`, `context-recovery`) e
+  documentar a matriz de visibilidade (automática/manual/oculta).
+- [ ] **AI-2.3** Empacotar recursos nas skills: `release-checklist/checklist-template.md`
+  e `generate-test/test-template.js`, referenciados via links relativos;
+  estender `skills.sanity.test.js` para validar que recursos linkados existem.
+- [ ] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
+  campos obrigatórios da hooks reference, scripts e skills referenciadas
+  existem) e registrá-lo nos scripts `test`/`test:coverage`.
+- [ ] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
+  gerando `.github/skills/README.md`, com teste de drift no `npm test` e link
+  nos ai-guidelines bilíngues.
+- [ ] **AI-2.6** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
+  `ai-lessons-learned.md` atualizados.
+
 ## Fase G — Code review educacional
 
 - [ ] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
