@@ -1,6 +1,14 @@
+---
+name: review-security
+description: Review a change for npm supply-chain security risks against the project's defense layers. Use when a diff touches dependencies, install behavior, registry trust, secrets, hooks, or CI configuration.
+argument-hint: "[change description or diff]"
+disable-model-invocation: true
+---
 # Review Security
 
-Review the following change for supply-chain security risks.
+Review the change provided with the invocation for supply-chain security
+risks. If no change was described, review the current uncommitted diff
+(`git diff`) instead.
 
 ## Context
 
@@ -8,9 +16,7 @@ This project applies defense-in-depth to npm-based supply-chain attacks. The twe
 
 ## Change to Review
 
-```
-__DESCRIBE_CHANGE_OR_PASTE_DIFF__
-```
+Use the change description or diff provided with the invocation.
 
 ## Task
 

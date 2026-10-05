@@ -37,9 +37,10 @@ predictable, discoverable, and consistent across languages and customization lay
 2. **Mirror bilingual documentation.** Every file created in `docs/en/` must have a
    corresponding file in `docs/pt-BR/` with aligned headings and examples.
 
-3. **Keep `.github/` customization files aligned.** Agents, skills, instructions, and
-   prompts must use consistent naming (`{domain}.agent.md`, `{name}/SKILL.md`,
-   `{domain}.instructions.md`, `{action}-{target}.prompt.md`).
+3. **Keep `.github/` customization files aligned.** Agents, skills, and
+   instructions must use consistent naming (`{domain}.agent.md`, `{name}/SKILL.md`,
+   `{domain}.instructions.md`). Skill `name` fields must match the folder name in
+   kebab-case (VS Code 1.140 removed support for `.github/prompts/`).
 
 4. **Avoid orphaned files.** New files must be referenced by an index, manifest, or
    documentation page. Delete temporary or unused files before committing.

@@ -17,8 +17,9 @@ The following files configure how AI assistants behave when working with this co
 | [`.github/instructions/file-organization.instructions.md`](../../.github/instructions/file-organization.instructions.md) | Rules for file placement and project structure. |
 | [`.github/instructions/project-evaluation.instructions.md`](../../.github/instructions/project-evaluation.instructions.md) | Criteria for status reports and release readiness. |
 | [`.github/agents/`](../../.github/agents/) | Specialized agents for security, quality, performance, docs, compliance, command execution, code review, repository organization, and project evaluation. |
-| [`.github/skills/`](../../.github/skills/) | Reusable step-by-step procedures for security audits, dependency reviews, doc updates, releases, self-review, script contract verification, educational code review, docs completeness, and repository organization audits. |
-| [`.github/prompts/`](../../.github/prompts/) | One-shot prompt templates for tests, security reviews, doc updates, hardcode audits, AI output review, code review for learning, command contract verification, architecture validation, and project status evaluation. |
+| [`.github/skills/`](../../.github/skills/) | Reusable step-by-step procedures for security audits, dependency reviews, doc updates, releases, self-review, script contract verification, educational code review, docs completeness, repository organization audits, and one-shot tasks (tests, security reviews, hardcode audits, architecture validation, and project status evaluation). |
+
+> **VS Code 1.140:** support for `.github/prompts/*.prompt.md` was removed. The former one-shot prompts were converted into on-demand skills under `.github/skills/` with `disable-model-invocation: true`, so they run only when invoked explicitly via the `/` menu.
 | [`.github/hooks/`](../../.github/hooks/) | GitHub Copilot lifecycle hooks that block dangerous tool calls, suggest validation commands after edits, and inject project context at session start. |
 | [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log of recurring AI mistakes and corrections used to improve instructions over time. |
 
@@ -107,19 +108,19 @@ Reusable skills include:
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Reviews shell scripts for shebang, safety options, quoting, and JSON handling. |
 | [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifies an agent's declared tool set before delegating work via `runSubagent`. Includes a decision tree, pre/post-delegation checklists, prompt templates, anti-patterns, and recovery steps. |
 
-Prompts for one-shot tasks include:
+On-demand skills for one-shot tasks (converted from `.github/prompts/` after VS Code 1.140 removed prompt file support) include:
 
-| Prompt | Use When |
+| Skill | Use When |
 | --- | --- |
-| [`.github/prompts/generate-test.prompt.md`](../../.github/prompts/generate-test.prompt.md) | Generating a test for a defense script. |
-| [`.github/prompts/review-security.prompt.md`](../../.github/prompts/review-security.prompt.md) | Reviewing a change for security risks. |
-| [`.github/prompts/update-docs.prompt.md`](../../.github/prompts/update-docs.prompt.md) | Updating documentation after a change. |
-| [`.github/prompts/check-hardcoded-values.prompt.md`](../../.github/prompts/check-hardcoded-values.prompt.md) | Auditing hardcoded values. |
-| [`.github/prompts/review-ai-output.prompt.md`](../../.github/prompts/review-ai-output.prompt.md) | Reviewing a previous AI output. |
-| [`.github/prompts/code-review-for-learning.prompt.md`](../../.github/prompts/code-review-for-learning.prompt.md) | Reviewing code as a learning resource. |
-| [`.github/prompts/verify-command-contract.prompt.md`](../../.github/prompts/verify-command-contract.prompt.md) | Verifying a script's command contract. |
-| [`.github/prompts/validate-architecture.prompt.md`](../../.github/prompts/validate-architecture.prompt.md) | Validating a change against project architecture. |
-| [`.github/prompts/project-status-evaluation.prompt.md`](../../.github/prompts/project-status-evaluation.prompt.md) | Evaluating project readiness for release. |
+| [`.github/skills/generate-test/SKILL.md`](../../.github/skills/generate-test/SKILL.md) | Generating a test for a defense script. |
+| [`.github/skills/review-security/SKILL.md`](../../.github/skills/review-security/SKILL.md) | Reviewing a change for security risks. |
+| [`.github/skills/update-docs/SKILL.md`](../../.github/skills/update-docs/SKILL.md) | Updating documentation after a change. |
+| [`.github/skills/check-hardcoded-values/SKILL.md`](../../.github/skills/check-hardcoded-values/SKILL.md) | Auditing hardcoded values. |
+| [`.github/skills/review-ai-output/SKILL.md`](../../.github/skills/review-ai-output/SKILL.md) | Reviewing a previous AI output. |
+| [`.github/skills/code-review-for-learning/SKILL.md`](../../.github/skills/code-review-for-learning/SKILL.md) | Reviewing code as a learning resource. |
+| [`.github/skills/verify-command-contract/SKILL.md`](../../.github/skills/verify-command-contract/SKILL.md) | Verifying a script's command contract. |
+| [`.github/skills/validate-architecture/SKILL.md`](../../.github/skills/validate-architecture/SKILL.md) | Validating a change against project architecture. |
+| [`.github/skills/project-status-evaluation/SKILL.md`](../../.github/skills/project-status-evaluation/SKILL.md) | Evaluating project readiness for release. |
 
 Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference) (`{ "version": 1, "hooks": { ... } }`) and include:
 

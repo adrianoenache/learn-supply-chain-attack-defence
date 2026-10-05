@@ -1,3 +1,9 @@
+---
+name: review-ai-output
+description: Review a previous AI output against the project's rules and decide whether instructions, agents, or the lessons-learned log need updating. Use after an AI mistake, rule violation, or skipped validation.
+argument-hint: "[AI output to review]"
+disable-model-invocation: true
+---
 # Review AI Output
 
 Review a previous AI output against the project's rules and decide whether any instruction or agent needs updating.
@@ -13,9 +19,8 @@ The project maintains AI customization files under `.github/`:
 
 ## AI Output to Review
 
-```
-__PASTE_AI_OUTPUT_HERE__
-```
+Use the AI output provided with the invocation. If none was provided, review
+the most recent AI output in the current conversation instead.
 
 ## Task
 

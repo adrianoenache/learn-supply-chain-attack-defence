@@ -344,17 +344,18 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Depends on: file-specific instructions (Section 4.2).
   - Files: `.github/agents/*.agent.md`
 
-### 4.5 Skills and Prompts ✅
+### 4.5 Skills ✅
 
 - [x] **[P2]** Create skills in `.github/skills/` — `security-audit/SKILL.md`, `dependency-review/SKILL.md`, `docs-update/SKILL.md`, `release-checklist/SKILL.md`, and `self-review/SKILL.md`, each with step-by-step procedures and correct frontmatter.
   - Impact: packages repeatable workflows with bundled assets.
   - Depends on: custom agents (Section 4.4).
   - Files: `.github/skills/*/SKILL.md`
 
-- [x] **[P2]** Create prompts in `.github/prompts/` — `generate-test.prompt.md`, `review-security.prompt.md`, `update-docs.prompt.md`, `check-hardcoded-values.prompt.md`, and `review-ai-output.prompt.md`, each focused on a single task.
+- [x] **[P2]** Create one-shot task skills in `.github/skills/` — `generate-test`, `review-security`, `update-docs`, `check-hardcoded-values`, and `review-ai-output`, each focused on a single task and invoked explicitly via the `/` menu (`disable-model-invocation: true`).
   - Impact: gives developers reusable, one-shot task templates.
   - Depends on: file-specific instructions (Section 4.2).
-  - Files: `.github/prompts/*.prompt.md`
+  - Files: `.github/skills/*/SKILL.md`
+  - Note: originally created as `.github/prompts/*.prompt.md`; converted to skills after VS Code 1.140 removed prompt file support.
 
 ### 4.6 Hooks ✅
 
@@ -366,13 +367,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 ### 4.7 Self-Improvement Loop ✅
 
 - [x] **[P2]** Create a lightweight self-improvement mechanism for AI instructions:
-  - `.github/prompts/review-ai-output.prompt.md` to review previous AI outputs against project rules.
+  - `.github/skills/review-ai-output/SKILL.md` to review previous AI outputs against project rules.
   - `.github/skills/self-review/SKILL.md` with a step-by-step self-review procedure.
   - `.github/ai-lessons-learned.md` to log recurring AI mistakes and corrections.
   - Periodic review of `.github/copilot-instructions.md` and `.github/instructions/*.md` based on accumulated lessons.
   - Impact: prevents repeated mistakes and lets the project evolve its AI guidance over time.
   - Depends on: file-specific instructions (Section 4.2).
-  - Files: `.github/prompts/review-ai-output.prompt.md`, `.github/skills/self-review/SKILL.md`, `.github/ai-lessons-learned.md`
+  - Files: `.github/skills/review-ai-output/SKILL.md`, `.github/skills/self-review/SKILL.md`, `.github/ai-lessons-learned.md`
 
 ---
 

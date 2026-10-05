@@ -1,6 +1,14 @@
+---
+name: code-review-for-learning
+description: Review code as a learning resource for supply-chain defense, checking headers, error messages, hardcoded values, naming, and test readability. Use when reviewing tools/*.js or tools/lib/*.js for educational quality.
+argument-hint: "[files to review]"
+disable-model-invocation: true
+---
 # Code Review for Learning
 
-Review the following code as a learning resource for supply-chain defense.
+Review the code provided with the invocation as a learning resource for
+supply-chain defense. If no files were specified, ask the user which files to
+review before proceeding.
 
 ## Context
 
@@ -9,9 +17,7 @@ secure, correct, and easy to understand for learners and practitioners.
 
 ## Files to Review
 
-```
-__LIST_FILES_OR_PASTE_CODE__
-```
+Use the file list or code provided with the invocation.
 
 ## Task
 

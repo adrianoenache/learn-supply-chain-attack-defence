@@ -5,7 +5,6 @@ applyTo:
   - ".github/instructions/**"
   - ".github/agents/**"
   - ".github/skills/**"
-  - ".github/prompts/**"
   - ".github/hooks/**"
   - "docs/en/ai-guidelines.md"
   - "docs/pt-BR/ai-guidelines.md"

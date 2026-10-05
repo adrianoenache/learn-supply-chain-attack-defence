@@ -1,3 +1,9 @@
+---
+name: validate-architecture
+description: Validate that a proposed change fits the project architecture, including the native Node.js constraint, the defence:* namespace, the tools/lib/ shared layer, and bilingual docs. Use before implementing structural or organizational changes.
+argument-hint: "[change description or diff]"
+disable-model-invocation: true
+---
 # Validate Architecture
 
 Validate that a proposed change fits the project's architecture and organization.
@@ -10,9 +16,8 @@ a shared library layer in `tools/lib/`, and bilingual documentation in `docs/en/
 
 ## Change to Validate
 
-```
-__DESCRIBE_CHANGE_OR_PASTE_DIFF__
-```
+Use the change description or diff provided with the invocation. If none was
+provided, validate the current uncommitted diff (`git diff`) instead.
 
 ## Task
 

@@ -1,3 +1,9 @@
+---
+name: check-hardcoded-values
+description: Audit a file for hardcoded values that should be configurable or need inline justification. Use when reviewing code or tests for unexplained literals, magic numbers, or hardcoded thresholds.
+argument-hint: "[file path or code snippet]"
+disable-model-invocation: true
+---
 # Check Hardcoded Values
 
 Audit the provided file for hardcoded values that should be configurable or need inline justification.
@@ -14,9 +20,8 @@ Acceptable hardcodes include:
 
 ## File to Audit
 
-```
-__FILE_PATH_OR_CODE_SNIPPET__
-```
+Use the file path or code snippet provided with the invocation. If none was
+provided, ask the user which file or snippet to audit before proceeding.
 
 ## Task
 

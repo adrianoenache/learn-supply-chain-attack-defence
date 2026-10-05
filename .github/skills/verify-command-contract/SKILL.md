@@ -1,3 +1,9 @@
+---
+name: verify-command-contract
+description: Verify that a defense script honors its command contract, covering CLI flags, exit codes, output formats, silent and dry-run modes, and side effects. Use when creating or modifying scripts under tools/.
+argument-hint: "[script name or path]"
+disable-model-invocation: true
+---
 # Verify Command Contract
 
 Verify that a defense script honors its command contract.
@@ -9,9 +15,8 @@ exit codes, output formats, and side effects must be predictable.
 
 ## Script to Verify
 
-```
-__SCRIPT_NAME_OR_PATH__
-```
+Use the script name or path provided with the invocation. If none was
+provided, ask the user which defense script to verify before proceeding.
 
 ## Task
 

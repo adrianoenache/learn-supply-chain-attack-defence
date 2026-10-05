@@ -29,8 +29,11 @@ Applies to: `tools/**`, `tools/lib/**`, `docs/**`, `.github/**`
 - Agents: `.github/agents/<domain>.agent.md`
 - Skills: `.github/skills/<name>/SKILL.md`
 - Instructions: `.github/instructions/<domain>.instructions.md`
-- Prompts: `.github/prompts/<action>-<target>.prompt.md`
 - Hooks: `.github/hooks/<enforcement-type>.json`
+
+> VS Code 1.140 removed support for `.github/prompts/*.prompt.md`. One-shot
+> task templates now live in `.github/skills/<name>/SKILL.md` with
+> `disable-model-invocation: true`.
 
 ## Manifest and Indexes
 

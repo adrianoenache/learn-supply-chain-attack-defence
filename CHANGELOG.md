@@ -115,6 +115,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/memories/` and `.defence-profile.json` added to `.gitignore` to prevent
   per-session or per-run state from being committed.
 
+### Changed
+
+- Migrated one-shot prompts to skills after VS Code 1.140 removed support for
+  `.github/prompts/*.prompt.md`. The nine former prompts now live as on-demand
+  skills under `.github/skills/` (`generate-test`, `review-security`,
+  `update-docs`, `check-hardcoded-values`, `review-ai-output`,
+  `code-review-for-learning`, `verify-command-contract`,
+  `validate-architecture`, `project-status-evaluation`), each with
+  `disable-model-invocation: true` so they run only via explicit `/` invocation.
+  Skill frontmatter follows the Agent Skills specification: kebab-case `name`
+  matching the folder, a descriptive `description`, and `argument-hint` where
+  the skill accepts input. References in `docs/en/ai-guidelines.md`,
+  `docs/pt-BR/ai-guidelines.md`,
+  `.github/instructions/file-organization.instructions.md`,
+  `.github/agents/repository-organization.agent.md`, and
+  `.github/skills/self-review/SKILL.md` were updated accordingly.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

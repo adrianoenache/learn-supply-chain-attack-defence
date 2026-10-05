@@ -17,8 +17,9 @@ Os seguintes arquivos configuram como os assistentes de AI se comportam ao traba
 | [`.github/instructions/file-organization.instructions.md`](../../.github/instructions/file-organization.instructions.md) | Regras para localização de arquivos e estrutura do projeto. |
 | [`.github/instructions/project-evaluation.instructions.md`](../../.github/instructions/project-evaluation.instructions.md) | Critérios para relatórios de status e readiness de release. |
 | [`.github/agents/`](../../.github/agents/) | Agents especializados para revisões de segurança, qualidade, performance, documentação, compliance, execução de comandos, code review, organização do repositório e avaliação do projeto. |
-| [`.github/skills/`](../../.github/skills/) | Procedimentos reutilizáveis para auditorias de segurança, revisão de dependências, atualização de docs, releases, self-review, verificação de contratos de script, code review educacional, completude de docs e auditoria de organização do repositório. |
-| [`.github/prompts/`](../../.github/prompts/) | Templates de prompt one-shot para testes, revisões de segurança, atualização de docs, auditoria de hardcodes, revisão de saídas da AI, code review para aprendizado, verificação de contrato de comando, validação de arquitetura e avaliação de status do projeto. |
+| [`.github/skills/`](../../.github/skills/) | Procedimentos reutilizáveis para auditorias de segurança, revisão de dependências, atualização de docs, releases, self-review, verificação de contratos de script, code review educacional, completude de docs, auditoria de organização do repositório e tarefas one-shot (testes, revisões de segurança, auditoria de hardcodes, validação de arquitetura e avaliação de status do projeto). |
+
+> **VS Code 1.140:** o suporte a `.github/prompts/*.prompt.md` foi removido. Os antigos prompts one-shot foram convertidos em skills sob demanda em `.github/skills/` com `disable-model-invocation: true`, executadas apenas quando invocadas explicitamente pelo menu `/`.
 | [`.github/hooks/`](../../.github/hooks/) | Hooks de ciclo de vida do GitHub Copilot que bloqueiam chamadas perigosas de ferramentas, sugerem comandos de validação após edições e injetam contexto do projeto no início da sessão. |
 | [`.github/ai-lessons-learned.md`](../../.github/ai-lessons-learned.md) | Log de erros recorrentes da AI e correções usado para melhorar as instruções ao longo do tempo. |
 
@@ -107,19 +108,19 @@ Skills reutilizáveis incluem:
 | [`.github/skills/shell-script-review/SKILL.md`](../../.github/skills/shell-script-review/SKILL.md) | Revisa scripts shell quanto a shebang, opções de segurança, quoting e tratamento de JSON. |
 | [`.github/skills/subagent-invocation/SKILL.md`](../../.github/skills/subagent-invocation/SKILL.md) | Verifica o conjunto de ferramentas declarado de um agente antes de delegar trabalho via `runSubagent`. Inclui árvore de decisão, checklists pré/pós-delegação, templates de prompt, anti-patterns e passos de recuperação. |
 
-Prompts para tarefas one-shot incluem:
+Skills sob demanda para tarefas one-shot (convertidas de `.github/prompts/` após o VS Code 1.140 remover o suporte a arquivos de prompt) incluem:
 
-| Prompt | Use Quando |
+| Skill | Use Quando |
 | --- | --- |
-| [`.github/prompts/generate-test.prompt.md`](../../.github/prompts/generate-test.prompt.md) | Gerar um teste para um script de defesa. |
-| [`.github/prompts/review-security.prompt.md`](../../.github/prompts/review-security.prompt.md) | Revisar uma mudança quanto a riscos de segurança. |
-| [`.github/prompts/update-docs.prompt.md`](../../.github/prompts/update-docs.prompt.md) | Atualizar documentação após uma mudança. |
-| [`.github/prompts/check-hardcoded-values.prompt.md`](../../.github/prompts/check-hardcoded-values.prompt.md) | Auditar valores hardcoded. |
-| [`.github/prompts/review-ai-output.prompt.md`](../../.github/prompts/review-ai-output.prompt.md) | Revisar uma saída anterior da AI. |
-| [`.github/prompts/code-review-for-learning.prompt.md`](../../.github/prompts/code-review-for-learning.prompt.md) | Revisar código como recurso de aprendizado. |
-| [`.github/prompts/verify-command-contract.prompt.md`](../../.github/prompts/verify-command-contract.prompt.md) | Verificar o contrato de comando de um script. |
-| [`.github/prompts/validate-architecture.prompt.md`](../../.github/prompts/validate-architecture.prompt.md) | Validar uma mudança contra a arquitetura do projeto. |
-| [`.github/prompts/project-status-evaluation.prompt.md`](../../.github/prompts/project-status-evaluation.prompt.md) | Avaliar o readiness do projeto para release. |
+| [`.github/skills/generate-test/SKILL.md`](../../.github/skills/generate-test/SKILL.md) | Gerar um teste para um script de defesa. |
+| [`.github/skills/review-security/SKILL.md`](../../.github/skills/review-security/SKILL.md) | Revisar uma mudança quanto a riscos de segurança. |
+| [`.github/skills/update-docs/SKILL.md`](../../.github/skills/update-docs/SKILL.md) | Atualizar documentação após uma mudança. |
+| [`.github/skills/check-hardcoded-values/SKILL.md`](../../.github/skills/check-hardcoded-values/SKILL.md) | Auditar valores hardcoded. |
+| [`.github/skills/review-ai-output/SKILL.md`](../../.github/skills/review-ai-output/SKILL.md) | Revisar uma saída anterior da AI. |
+| [`.github/skills/code-review-for-learning/SKILL.md`](../../.github/skills/code-review-for-learning/SKILL.md) | Revisar código como recurso de aprendizado. |
+| [`.github/skills/verify-command-contract/SKILL.md`](../../.github/skills/verify-command-contract/SKILL.md) | Verificar o contrato de comando de um script. |
+| [`.github/skills/validate-architecture/SKILL.md`](../../.github/skills/validate-architecture/SKILL.md) | Validar uma mudança contra a arquitetura do projeto. |
+| [`.github/skills/project-status-evaluation/SKILL.md`](../../.github/skills/project-status-evaluation/SKILL.md) | Avaliar o readiness do projeto para release. |
 
 Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https://docs.github.com/en/copilot/reference/hooks-reference) (`{ "version": 1, "hooks": { ... } }`) e incluem:
 

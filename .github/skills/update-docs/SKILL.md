@@ -1,3 +1,9 @@
+---
+name: update-docs
+description: Update the bilingual documentation (docs/en and docs/pt-BR) after a user-facing behavior change. Use when a change affects commands, flags, defense layers, or documented workflows.
+argument-hint: "[behavior change description]"
+disable-model-invocation: true
+---
 # Update Documentation
 
 Update the project's bilingual documentation after a behavior change.
@@ -11,9 +17,8 @@ Update the project's bilingual documentation after a behavior change.
 
 ## Behavior Change
 
-```
-__DESCRIBE_CHANGE__
-```
+Use the change description provided with the invocation. If none was provided,
+ask the user which behavior change should be documented before proceeding.
 
 ## Task
 

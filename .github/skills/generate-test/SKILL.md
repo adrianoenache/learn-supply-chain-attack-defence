@@ -1,3 +1,9 @@
+---
+name: generate-test
+description: Generate node:test unit or integration tests for a defense script following project conventions (DI mocking, explicit timeouts, >= 95% line coverage). Use when asked to write tests for a tool or shared library file.
+argument-hint: "[file or function to test]"
+disable-model-invocation: true
+---
 # Generate Test
 
 Generate unit or integration tests for a specific file or function in this project.
@@ -13,7 +19,8 @@ Generate unit or integration tests for a specific file or function in this proje
 
 ## Task
 
-Generate tests for: `__FILE_OR_FUNCTION__`
+Generate tests for the file or function provided with the invocation. If none
+was provided, ask the user which file or function to cover before proceeding.
 
 ## Requirements
 
