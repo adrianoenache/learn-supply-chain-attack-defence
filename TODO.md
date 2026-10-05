@@ -69,9 +69,12 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   latest; incluir o campo nos formatos table/json/markdown; cobrir com testes.
   - Concluído em 2026-10-05: warnings roteados para stderr (stdout fica limpo
     para `--format=json`); 13 novos testes; config `maxIntermediateEligible`.
-- [ ] **F.1** Integrar `tools/update-packages.js`: preferir a maior versão
+- [x] **F.1** Integrar `tools/update-packages.js`: preferir a maior versão
   intermediária elegível em vez de `latest`, re-executar os portões de defesa
   após instalar; testes para intermediárias, fallback, interativo e dry-run.
+  - Concluído em 2026-10-05: `resolveTargetVersion` + instalação pinada
+    (`npm install --save-exact --ignore-scripts pkg@alvo`); portão de licenças
+    adicionado às camadas de verificação; 7 novos testes.
 - [ ] **F.2** Criar `docs/{en,pt-BR}/command-verification-checklist.md`
   documentando todos os scripts `defence:*` (propósito, contrato, flags, modos
   silencioso/formato, códigos de saída, arquivo de teste) e linkar a partir de

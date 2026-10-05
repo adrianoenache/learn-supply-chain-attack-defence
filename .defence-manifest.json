@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-05T22:23:56.944Z",
+  "installedAt": "2026-10-05T22:36:04.778Z",
   "files": [
     {
       "path": ".npmrc",
@@ -176,11 +176,11 @@
     },
     {
       "path": "tools/update-packages.js",
-      "hash": "37a94ce44761339a62233d95bc35c0189ce4899d6e8ccf63ce1ada496a052118"
+      "hash": "7503ba089695e4c2390b8364b136b0c1da5bd50f9f58cf13f3c9cc67fbe5931d"
     },
     {
       "path": "tools/update-packages.test.js",
-      "hash": "e3ee515557cd9760a06a53421d4201c0b3500d9eb569b8e92f4d3e5df673cbdc"
+      "hash": "9f694fb5b5f8c74de05f21da933355f6b2a73eb4fc53e53a966954584bf59afe"
     },
     {
       "path": "tools/verify-defences.js",

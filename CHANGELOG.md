@@ -165,6 +165,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `updateCheck.maxIntermediateEligible` setting (default 10) caps the
   per-package intermediate list so long release histories stay readable.
 
+### Changed (Fase F.1 — update applies eligible intermediates)
+
+- `tools/update-packages.js` now loads `.defence-update-check.json` and, for
+  each eligible package, installs the highest `intermediateEligible` version
+  with `npm install --save-exact --ignore-scripts <pkg>@<target>` instead of
+  jumping straight to `latest`. When no scan state exists, it falls back to
+  the generic in-range `npm update`.
+- Interactive mode shows the resolved target (with an explicit note when
+  `latest` is still in quarantine) and records the `target` version in
+  `.defence-update-decisions.json`.
+- Post-update verification layers now include the license check
+  (`defence:license-check:fail`) in addition to age, signatures, and
+  vulnerability audit.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

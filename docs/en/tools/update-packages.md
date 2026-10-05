@@ -4,7 +4,9 @@
 
 ## What it does
 
-- Runs `npm update` for eligible packages.
+- Loads eligible updates from `.defence-update-check.json` (produced by `defence:update-check`).
+- Resolves each package's target as the highest `intermediateEligible` version (already past the age gate at scan time), falling back to `latest` for older state files.
+- Installs pinned targets with `npm install --save-exact --ignore-scripts <pkg>@<target>`; falls back to generic in-range `npm update` only when no scan state exists.
 - Re-runs package-age checks, signature verification, vulnerability audit, and license checks.
 - Supports interactive approval of each update.
 - Supports dry-run mode for safe previewing.

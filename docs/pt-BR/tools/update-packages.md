@@ -4,7 +4,9 @@
 
 ## O que faz
 
-- Executa `npm update` para pacotes elegíveis.
+- Carrega as atualizações elegíveis de `.defence-update-check.json` (produzido pelo `defence:update-check`).
+- Resolve o alvo de cada pacote como a maior versão de `intermediateEligible` (já aprovada no portão de idade no momento do scan), com fallback para `latest` em arquivos de estado antigos.
+- Instala alvos fixados com `npm install --save-exact --ignore-scripts <pkg>@<alvo>`; usa o `npm update` genérico (dentro do range) apenas quando não existe estado de scan.
 - Reexecuta verificações de idade, assinatura, auditoria de vulnerabilidades e licenças.
 - Suporta aprovação interativa de cada atualização.
 - Suporta modo dry-run para pré-visualização segura.
