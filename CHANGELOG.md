@@ -179,6 +179,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`defence:license-check:fail`) in addition to age, signatures, and
   vulnerability audit.
 
+### Added (Fase F.2 — command verification checklist)
+
+- `docs/en/command-verification-checklist.md` and
+  `docs/pt-BR/command-verification-checklist.md`: the CLI contract of every
+  `defence:*` script (purpose, flags, silent/format modes, exit codes, test
+  file, observations), organized in seven categories and linked from
+  `docs/{en,pt-BR}/index.md` and `docs/{en,pt-BR}/tools.md`.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

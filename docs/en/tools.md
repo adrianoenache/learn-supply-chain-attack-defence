@@ -40,7 +40,7 @@ npm is the package manager. The project uses it both for installation and as a s
 
 ## Custom Scripts
 
-All custom scripts live in `tools/` and use only native Node.js modules. Each tool has a dedicated page with usage examples and related defense layers; see the [tool reference index](tools/).
+All custom scripts live in `tools/` and use only native Node.js modules. Each tool has a dedicated page with usage examples and related defense layers; see the [tool reference index](tools/). For the CLI contract of every `defence:*` script (flags, exit codes, silent/format modes), see the [command verification checklist](command-verification-checklist.md).
 
 | Script | Purpose | Page |
 | --- | --- | --- |

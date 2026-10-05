@@ -40,7 +40,7 @@ O npm é o gerenciador de pacotes. O projeto o utiliza tanto para instalação q
 
 ## Scripts Customizados
 
-Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos do Node.js. Cada ferramenta tem uma página dedicada com exemplos de uso e camadas de defesa relacionadas; veja o [índice de referência de ferramentas](tools/).
+Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos do Node.js. Cada ferramenta tem uma página dedicada com exemplos de uso e camadas de defesa relacionadas; veja o [índice de referência de ferramentas](tools/). Para o contrato CLI de cada script `defence:*` (flags, códigos de saída, modos silencioso/formato), veja o [checklist de verificação de comandos](command-verification-checklist.md).
 
 | Script | Propósito | Página |
 | --- | --- | --- |

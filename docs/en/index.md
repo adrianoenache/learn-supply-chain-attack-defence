@@ -49,6 +49,7 @@ This repository is a practical learning environment for understanding and applyi
 
 - [Architecture](architecture.md)
 - [Tools](tools.md)
+- [Command verification checklist](command-verification-checklist.md) — CLI contract (flags, exit codes, formats) of every `defence:*` script.
 - [Quick reference](quick-reference.md)
 - [GitHub Copilot & Kimi Code](copilot.md)
 

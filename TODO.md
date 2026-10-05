@@ -75,10 +75,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-10-05: `resolveTargetVersion` + instalação pinada
     (`npm install --save-exact --ignore-scripts pkg@alvo`); portão de licenças
     adicionado às camadas de verificação; 7 novos testes.
-- [ ] **F.2** Criar `docs/{en,pt-BR}/command-verification-checklist.md`
+- [x] **F.2** Criar `docs/{en,pt-BR}/command-verification-checklist.md`
   documentando todos os scripts `defence:*` (propósito, contrato, flags, modos
   silencioso/formato, códigos de saída, arquivo de teste) e linkar a partir de
   `docs/{en,pt-BR}/index.md` e `docs/{en,pt-BR}/tools.md`.
+  - Concluído em 2026-10-05: 39 scripts em 7 categorias, links adicionados.
 - [ ] **F.3** Validação final: suite completa de gates + verificações manuais
   listadas no PLAN.
 
