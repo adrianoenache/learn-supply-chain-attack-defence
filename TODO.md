@@ -46,22 +46,36 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   as novas fases.
 - [x] Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
 
-## Fase E — Documentação conceitual
+## Fase E — Documentação conceitual ✅
 
-- [ ] Criar `docs/{en,pt-BR}/learning-path.md`.
-- [ ] Criar `docs/{en,pt-BR}/faq.md`.
-- [ ] Criar `docs/{en,pt-BR}/tools/<tool>.md` para todas as ferramentas.
-- [ ] Atualizar `README.md`, `docs/{en,pt-BR}/index.md`,
+> Concluída em 2026-09-08 (ver PLAN.md, Fase E). Checkboxes sincronizados em 2026-10-05.
+
+- [x] Criar `docs/{en,pt-BR}/learning-path.md`.
+- [x] Criar `docs/{en,pt-BR}/faq.md`.
+- [x] Criar `docs/{en,pt-BR}/tools/<tool>.md` para todas as ferramentas.
+- [x] Atualizar `README.md`, `docs/{en,pt-BR}/index.md`,
   `docs/{en,pt-BR}/tools.md`.
-- [ ] Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de
+- [x] Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de
   `npm run format -- --check`.
 
 ## Fase F — Verificação de execução de comandos
 
-- [ ] Criar `docs/{en,pt-BR}/command-verification-checklist.md`.
-- [ ] Corrigir `defence:update-check`: mensagem informativa quando silencioso;
-  buscar versões intermediárias elegíveis.
-- [ ] Verificar contratos dos scripts críticos e documentar no checklist.
+> Detalhamento completo e decisões em `.github/PLAN.md` (F.0–F.3). Verificado em
+> 2026-10-05: nenhum subitem implementado — esta é a próxima fase a executar.
+
+- [ ] **F.0** Corrigir contrato em `tools/check-updates.js`: warnings de
+  sync/offline sempre visíveis mesmo com `--silent`; descobrir versões
+  intermediárias elegíveis (`intermediateEligible`) entre current/wanted e
+  latest; incluir o campo nos formatos table/json/markdown; cobrir com testes.
+- [ ] **F.1** Integrar `tools/update-packages.js`: preferir a maior versão
+  intermediária elegível em vez de `latest`, re-executar os portões de defesa
+  após instalar; testes para intermediárias, fallback, interativo e dry-run.
+- [ ] **F.2** Criar `docs/{en,pt-BR}/command-verification-checklist.md`
+  documentando todos os scripts `defence:*` (propósito, contrato, flags, modos
+  silencioso/formato, códigos de saída, arquivo de teste) e linkar a partir de
+  `docs/{en,pt-BR}/index.md` e `docs/{en,pt-BR}/tools.md`.
+- [ ] **F.3** Validação final: suite completa de gates + verificações manuais
+  listadas no PLAN.
 
 ## Fase G — Code review educacional
 

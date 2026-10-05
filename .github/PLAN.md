@@ -4,11 +4,15 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-09-08
+> Last updated: 2026-10-05
 
 ## TL;DR
 
-Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline real, criar customizações AI como prioridade zero, depois documentação, contratos de script, code review, organização, revisão total, avaliação de status e só então planejar release v1.0.0.
+Fases prévia, AI-0, Pre-Fase E, E e AI-1 (migração VS Code 1.140) concluídas.
+Próxima prioridade: **Fase F** (verificação de execução de comandos — nada de
+F.0–F.3 foi implementado ainda), seguida de G (code review educacional),
+H (organização — item de lint do Biome confirmado aberto), I (revisão de docs),
+J (avaliação 10/10) e só então K (release v1.0.0, com aprovação explícita).
 
 ## Fases
 
@@ -18,12 +22,14 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Rodar `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run defence:verify-defences`.
 - Sincronizar badge de testes em `README.md` com a contagem real (referências anteriores apontavam 432/432; validar contagem atual).
 
-### Fase AI-0 — AI Customizations Foundation (P0) (prioridade zero)
+### Fase AI-0 — AI Customizations Foundation (P0) ✅ (prioridade zero)
 
 - Criar agentes: `command-execution`, `code-review`, `repository-organization`, `project-evaluation`.
 - Criar skills: `script-contract-verification`, `educational-code-review`, `docs-completeness`, `repository-organization-audit`.
 - Criar instructions: `educational-code-quality`, `file-organization`, `project-evaluation`.
 - Criar prompts: `code-review-for-learning`, `verify-command-contract`, `validate-architecture`, `project-status-evaluation`.
+  - **Nota (2026-10-05):** os prompts foram convertidos em skills na Fase AI-1
+    após o VS Code 1.140 remover o suporte a `.github/prompts/`.
 - Criar hooks: `enforce-security`, `auto-lint-test`, `inject-context` seguindo o schema da [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference) (funcionalidades de docs-drift e command-contract foram incorporadas ao `auto-lint-test`).
 - Revisar agentes/skills/prompts/hooks/instructions existentes para refletir as novas fases.
 - Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
@@ -114,7 +120,40 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Registrar o incidente original e a expansão da governança em `.github/ai-lessons-learned.md`.
 - **Status:** concluída. Validações: `npm run lint`, `npm run format:check`, `npm test` 547/547, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit` passando.
 
+### Fase AI-1 — Migração VS Code 1.140 (prompts → skills) ✅
+
+> Concluída em 2026-10-05. VS Code 1.140 removeu o suporte a
+> `.github/prompts/*.prompt.md` e adota a especificação Agent Skills.
+
+- Converter os 9 prompts one-shot em skills sob demanda em `.github/skills/`
+  com `disable-model-invocation: true`, `description` real (o quê + quando) e
+  `argument-hint` onde aplicável; placeholders `__ESTILO_PROMPT__` substituídos
+  por instruções ao agente.
+- Normalizar as 14 skills legadas para a spec: `name` em kebab-case igual à
+  pasta, `description` obrigatória, remoção dos campos legados `applyTo`/`tools`
+  (nomes inválidos faziam o VS Code ignorar a skill silenciosamente).
+- Fundir 5 pares sobrepostos (decisão do mantenedor): `review-security` →
+  `security-audit`, `update-docs` → `docs-update`, `review-ai-output` →
+  `self-review`, `verify-command-contract` → `script-contract-verification`,
+  `code-review-for-learning` → `educational-code-review`. Total final: 18 skills.
+- Criar `.github/skills/skills.sanity.test.js` (163 testes) validando cada
+  frontmatter contra a spec; registrado nos scripts `test` e `test:coverage`.
+- Atualizar `docs/{en,pt-BR}/ai-guidelines.md`,
+  `.github/instructions/file-organization.instructions.md`,
+  `.github/agents/repository-organization.agent.md`,
+  `.github/skills/self-review/SKILL.md`, `TODO.md` (4.5/4.7), `CHANGELOG.md` e
+  `.github/ai-lessons-learned.md`.
+- **Commits:** `7c68fe2` (migração), `0a46aeb` (normalização + fusões).
+- **Validações:** `npm run lint`, `npm test` 710/710,
+  `npm run defence:check-md-links` (174 arquivos),
+  `npm run defence:verify-defences` (72 arquivos) — todos passando.
+
 ### Fase F — Verificação de execução de comandos
+
+> **Status (verificado em 2026-10-05): pendente.** Nenhum item de F.0–F.3 foi
+> implementado — `intermediateEligible` não existe em `tools/check-updates.js`
+> nem em `tools/update-packages.js`, e `command-verification-checklist.md` não
+> existe em `docs/{en,pt-BR}/`. Esta é a próxima fase a executar.
 
 > **Decisões confirmadas em 2026-09-08:**
 > - Mensagens informativas (sync warning e offline fallback) devem ser sempre exibidas em `defence:update-check`, mesmo com `--silent`.
@@ -151,11 +190,19 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 
 ### Fase G — Code review educacional
 
+> **Status (2026-10-05): pendente.** `docs/{en,pt-BR}/code-review-improvements.md`
+> não existe.
+
 - Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
 - Auditar headers, mensagens de erro, hardcoded values e links a camadas de defesa.
 - Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias P0/P1.
 
 ### Fase H — Organização e governança
+
+> **Status (2026-10-05): parcialmente aberta.** Verificado que o Biome ainda
+> cobre apenas `tools/**/*.js` e `*.js` (`files.includes` em `biome.json`;
+> `biome check .github/` processa 0 arquivos). Os helpers
+> `tools/lib/concurrency.js`, `formatters.js` e `cli.js` não foram extraídos.
 
 - Auditar estrutura, padrões applyTo e arquivos órfãos.
 - Extrair helpers duplicados para `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js`.
@@ -180,12 +227,14 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 
 ## Arquivos críticos
 
-- `PLAN.md`, `TODO.md` — realinhar nomenclatura.
+- `PLAN.md`, `TODO.md` — manter nomenclatura e checkboxes sincronizados com a realidade.
 - `package.json`, `CHANGELOG.md`, `README.md` — sincronizar contadores/status.
-- `tools/check-updates.js`, `tools/check-updates.test.js` — correções de contrato.
-- `.github/agents/`, `.github/skills/`, `.github/instructions/`, `.github/prompts/`, `.github/hooks/` — customizações AI.
+- `tools/check-updates.js`, `tools/check-updates.test.js` — correções de contrato (Fase F).
+- `.github/agents/`, `.github/skills/`, `.github/instructions/`, `.github/hooks/` — customizações AI
+  (`.github/prompts/` foi removido no VS Code 1.140; ver Fase AI-1).
+- `.github/skills/skills.sanity.test.js` — guarda de conformidade das skills com a spec.
 - `docs/{en,pt-BR}/tools/` — páginas individuais.
-- `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js` — helpers extraídos.
+- `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js` — helpers a extrair (Fase H).
 - `PROJECT_STATUS_REPORT.md` — regenerar na Fase J.
 
 ## Verificação
@@ -193,6 +242,8 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Toda fase: `npm test`, `npm run lint`, `npm run defence:check-md-links`, `bash .husky/pre-commit`, `npm run defence:verify-defences` passando.
 - Fase prévia: badge sincronizado com a contagem real de testes.
 - AI-0: novas customizações documentadas em `ai-guidelines.md`.
+- AI-1: skills válidas pela spec Agent Skills; `skills.sanity.test.js` verde;
+  zero referências a `.github/prompts/` fora de notas históricas.
 - E: páginas criadas e links validados.
 - F: `defence:update-check` informativo e com listagem de updates intermediários.
 - G: headers completos e listas de melhorias geradas.
@@ -208,3 +259,6 @@ Consolidar `PLAN.md` e `TODO.md` na nomenclatura AI-0/E–K, executar baseline r
 - Adicionar mensagem informativa no `defence:update-check` quando silencioso.
 - Buscar versões intermediárias elegíveis entre current e latest.
 - Extrair helpers duplicados para `tools/lib/`.
+- VS Code 1.140: skills seguem a spec Agent Skills (name = pasta em kebab-case,
+  description obrigatória); ex-prompts one-shot usam `disable-model-invocation: true`;
+  pares sobrepostos foram fundidos em vez de mantidos duplicados (2026-10-05).
