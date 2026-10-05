@@ -1486,6 +1486,79 @@ describe('check-updates', () => {
       )
       assert.deepEqual(versions, ['1.1.0', '1.9.0', '1.10.0', '2.0.0'])
     })
+
+    test('excludes deprecated versions even when they pass the age gate', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: {
+            statusCode: 200,
+            body: {
+              time: {
+                '1.0.0': '2026-07-01T00:00:00.000Z',
+                '1.1.0': OLD_RELEASE,
+                '1.2.0': OLD_RELEASE,
+                '2.0.0': RECENT_RELEASE,
+              },
+              versions: {
+                // 1.2.0 is old enough but deprecated — it must never be a
+                // recommended target (Fase F.4.1).
+                '1.2.0': { deprecated: 'security issue, upgrade to 2.x' },
+              },
+              repository: { url: 'git+https://github.com/example/pkg.git' },
+            },
+          },
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.deepEqual(result.quarantine.intermediateEligible, ['1.1.0'])
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('returns an empty list when only deprecated intermediates exist', async () => {
+      const mod = readScriptExports()
+      mod.setImpls({
+        fetchRegistryJson: makeMockFetchRegistryJson({
+          pkg: {
+            statusCode: 200,
+            body: {
+              time: {
+                '1.0.0': '2026-07-01T00:00:00.000Z',
+                '1.1.0': OLD_RELEASE,
+                '2.0.0': RECENT_RELEASE,
+              },
+              versions: {
+                '1.1.0': { deprecated: 'broken release' },
+              },
+              repository: { url: 'git+https://github.com/example/pkg.git' },
+            },
+          },
+        }),
+        now: () => baseTime,
+      })
+
+      try {
+        const result = await mod.classifyUpdate(
+          'pkg',
+          { current: '1.0.0', wanted: '1.0.0', latest: '2.0.0' },
+          new Map(),
+          { registryCacheHits: 0, registryCacheMisses: 0 },
+        )
+        assert.deepEqual(result.quarantine.intermediateEligible, [])
+      } finally {
+        mod.resetImpls()
+      }
+    })
   })
 
   describe('Fase F.0 — intermediateEligible in report formats and state', () => {

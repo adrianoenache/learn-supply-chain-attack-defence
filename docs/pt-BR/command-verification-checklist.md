@@ -108,13 +108,13 @@ cabeçalho no arquivo da ferramenta.
 
 ### update-packages.js
 
-- **Propósito:** aplica atualizações com segurança — instalações pinadas do maior alvo `intermediateEligible` aprovado no portão de idade, depois reexecuta todas as camadas de verificação.
+- **Propósito:** aplica atualizações com segurança — instalações pinadas do maior alvo `intermediateEligible` aprovado no portão de idade, incluindo entradas de quarentena acionáveis (pacotes em quarentena por idade com intermediárias elegíveis), depois reexecuta todas as camadas de verificação.
 - **Scripts:** `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`
 - **Flags:** `--interactive` (y/n/q por pacote), `--dry-run`.
 - **Modos silencioso/formato:** não suportados.
 - **Códigos de saída:** `0` concluído (incluindo "nada a fazer"); `1` quando qualquer instalação ou verificação falha.
 - **Testes:** `tools/update-packages.test.js`
-- **Observações:** modifica dependências exceto com `--dry-run`; usa `npm update` genérico quando não há estado de scan; registra decisões em `.defence-update-decisions.json`.
+- **Observações:** modifica dependências exceto com `--dry-run`; usa `npm update` genérico quando não há estado de scan; registra decisões (com `source: eligible|quarantine`) em `.defence-update-decisions.json`; nunca oferece um `latest` em quarentena como alvo.
 - **Docs:** [tools/update-packages.md](tools/update-packages.md)
 
 ### analyze-lifecycle-scripts.js

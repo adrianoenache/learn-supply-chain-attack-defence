@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-05T23:02:16.365Z",
+  "installedAt": "2026-10-05T23:08:58.790Z",
   "files": [
     {
       "path": ".npmrc",
@@ -108,11 +108,11 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "c944f16066e3597297f1abcaba58c715114d47197d7946297253e3945732b376"
+      "hash": "a659501b779ff20fda1a8855dcb64988b5f5eb84893bfa1a3031c33cc1a4d1a6"
     },
     {
       "path": "tools/check-updates.test.js",
-      "hash": "4b6586a171481609c6190266b4906edeea5b447a577e62bf59c18399143dedb1"
+      "hash": "2e007b72ce906fa344fe44e28bea1181e3449816e2a01fc0b58eef78132010c4"
     },
     {
       "path": "tools/generate-sbom.js",
@@ -176,11 +176,11 @@
     },
     {
       "path": "tools/update-packages.js",
-      "hash": "7503ba089695e4c2390b8364b136b0c1da5bd50f9f58cf13f3c9cc67fbe5931d"
+      "hash": "835297d18b384cc135e7991c6640df1d47a6b3f1a46462b8056b2e2333d4a6a4"
     },
     {
       "path": "tools/update-packages.test.js",
-      "hash": "9f694fb5b5f8c74de05f21da933355f6b2a73eb4fc53e53a966954584bf59afe"
+      "hash": "f63a34e24a728749d7ee1df84b03037f4a9c7e5c0e18d3df53b435164224036a"
     },
     {
       "path": "tools/verify-defences.js",

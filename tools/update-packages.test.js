@@ -544,4 +544,250 @@ describe('update-packages', () => {
       }
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Fase F.4 — actionable quarantine (age-gated intermediates).
+  // -------------------------------------------------------------------------
+
+  describe('Fase F.4 — actionable quarantine', () => {
+    const STATE_PATH = path.resolve(__dirname, '../.defence-update-check.json')
+    const DECISIONS_PATH = path.resolve(
+      __dirname,
+      '../.defence-update-decisions.json',
+    )
+
+    // Fixture: pkg is quarantined only because latest 2.0.0 is too recent;
+    // the 1.1.0 intermediate already passed the age gate.
+    const ACTIONABLE_QUARANTINE = {
+      name: 'quarantined-pkg',
+      current: '1.0.0',
+      wanted: '1.0.0',
+      latest: '2.0.0',
+      severity: 'major',
+      reason: 'too recent',
+      intermediateEligible: ['1.1.0'],
+    }
+
+    test('getActionableQuarantine keeps only age-quarantined entries with intermediates', () => {
+      const mod = readScriptExports()
+      const result = mod.getActionableQuarantine({
+        quarantine: [
+          ACTIONABLE_QUARANTINE,
+          {
+            // Registry failure: no trustworthy data — never actionable.
+            name: 'broken-pkg',
+            current: '1.0.0',
+            latest: '2.0.0',
+            reason: 'registry lookup failed: HTTP 404',
+            intermediateEligible: [],
+          },
+          {
+            // Too recent but no intermediate passed the age gate yet.
+            name: 'fresh-pkg',
+            current: '1.0.0',
+            latest: '2.0.0',
+            reason: 'too recent',
+            intermediateEligible: [],
+          },
+        ],
+      })
+      assert.deepEqual(
+        result.map((item) => item.name),
+        ['quarantined-pkg'],
+      )
+    })
+
+    test('non-interactive mode applies eligible and actionable quarantine in one pinned install', async () => {
+      const calls = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            eligible: [
+              {
+                name: 'eligible-pkg',
+                current: '1.0.0',
+                latest: '1.1.0',
+                severity: 'minor',
+                intermediateEligible: ['1.1.0'],
+              },
+            ],
+            quarantine: [ACTIONABLE_QUARANTINE],
+          }),
+        }),
+      )
+
+      try {
+        const code = await mod.main()
+        assert.equal(code, 0)
+        assert.equal(calls.length, 5)
+        assert.deepEqual(calls[0], {
+          cmd: 'npm',
+          args: [
+            'install',
+            '--save-exact',
+            '--ignore-scripts',
+            'eligible-pkg@1.1.0',
+            'quarantined-pkg@1.1.0',
+          ],
+        })
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+
+    test('non-interactive mode ignores quarantine entries from failed registry lookups', async () => {
+      const calls = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            eligible: [],
+            quarantine: [
+              {
+                name: 'broken-pkg',
+                current: '1.0.0',
+                latest: '2.0.0',
+                reason: 'registry lookup failed: HTTP 404',
+                intermediateEligible: [],
+              },
+            ],
+          }),
+        }),
+      )
+
+      try {
+        const code = await mod.main()
+        assert.equal(code, 0)
+        // Nothing actionable → falls back to generic npm update.
+        assert.deepEqual(calls[0], { cmd: 'npm', args: ['update'] })
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+
+    test('interactive mode installs the quarantine intermediate and records source', async () => {
+      const calls = []
+      const files = {
+        [STATE_PATH]: JSON.stringify({
+          eligible: [],
+          quarantine: [ACTIONABLE_QUARANTINE],
+        }),
+      }
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(makeMockFs(files))
+      mod.setReadlineImpl(makeMockReadline(['y']))
+
+      try {
+        const code = await mod.main(['--interactive'])
+        assert.equal(code, 0)
+        assert.deepEqual(calls[0], {
+          cmd: 'npm',
+          args: [
+            'install',
+            '--save-exact',
+            '--ignore-scripts',
+            'quarantined-pkg@1.1.0',
+          ],
+        })
+        const decisions = JSON.parse(files[DECISIONS_PATH])
+        assert.equal(decisions.approved[0].target, '1.1.0')
+        assert.equal(decisions.approved[0].source, 'quarantine')
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+        mod.resetReadlineImpl()
+      }
+    })
+
+    test('interactive dry-run separates eligible and quarantine groups', async () => {
+      const calls = []
+      const logs = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            eligible: [
+              {
+                name: 'eligible-pkg',
+                current: '1.0.0',
+                latest: '1.1.0',
+                severity: 'minor',
+                intermediateEligible: ['1.1.0'],
+              },
+            ],
+            quarantine: [ACTIONABLE_QUARANTINE],
+          }),
+        }),
+      )
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--interactive', '--dry-run'])
+        assert.equal(code, 0)
+        assert.equal(calls.length, 0)
+        assert.ok(logs.some((line) => line.includes('eligible-pkg')))
+        assert.ok(
+          logs.some((line) =>
+            line.includes('Quarantined packages with age-gated intermediate'),
+          ),
+        )
+        assert.ok(
+          logs.some(
+            (line) =>
+              line.includes('quarantined-pkg 1.0.0 → 1.1.0') &&
+              line.includes('latest 2.0.0 still in quarantine'),
+          ),
+        )
+      } finally {
+        console.log = originalLog
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+
+    test('non-interactive dry-run lists the quarantine group separately', async () => {
+      const calls = []
+      const logs = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            eligible: [],
+            quarantine: [ACTIONABLE_QUARANTINE],
+          }),
+        }),
+      )
+
+      const originalLog = console.log
+      console.log = (...args) => logs.push(args.join(' '))
+
+      try {
+        const code = await mod.main(['--dry-run'])
+        assert.equal(code, 0)
+        assert.equal(calls.length, 0)
+        assert.ok(
+          logs.some(
+            (line) =>
+              line.includes('pinned quarantine intermediate') &&
+              line.includes('quarantined-pkg@1.1.0') &&
+              line.includes('latest 2.0.0 still in quarantine'),
+          ),
+        )
+      } finally {
+        console.log = originalLog
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+  })
 })

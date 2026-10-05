@@ -107,13 +107,13 @@ behavior with the header comment in the tool file.
 
 ### update-packages.js
 
-- **Purpose:** applies updates safely — pinned installs of the highest age-gated `intermediateEligible` target, then re-runs all verification layers.
+- **Purpose:** applies updates safely — pinned installs of the highest age-gated `intermediateEligible` target, including actionable quarantine entries (age-quarantined packages with eligible intermediates), then re-runs all verification layers.
 - **Scripts:** `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`
 - **Flags:** `--interactive` (y/n/q per package), `--dry-run`.
 - **Silent/format modes:** not supported.
 - **Exit codes:** `0` completed (including "nothing to do"); `1` when any install or verification command fails.
 - **Tests:** `tools/update-packages.test.js`
-- **Notes:** modifies dependencies unless `--dry-run`; falls back to generic `npm update` when no scan state exists; records decisions in `.defence-update-decisions.json`.
+- **Notes:** modifies dependencies unless `--dry-run`; falls back to generic `npm update` when no scan state exists; records decisions (with `source: eligible|quarantine`) in `.defence-update-decisions.json`; never offers a quarantined `latest` as a target.
 - **Docs:** [tools/update-packages.md](tools/update-packages.md)
 
 ### analyze-lifecycle-scripts.js

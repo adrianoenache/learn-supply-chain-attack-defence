@@ -187,6 +187,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   file, observations), organized in seven categories and linked from
   `docs/{en,pt-BR}/index.md` and `docs/{en,pt-BR}/tools.md`.
 
+### Changed (Fase F.4 — actionable quarantine intermediates)
+
+- `tools/check-updates.js` now excludes **deprecated versions** from
+  `intermediateEligible` — a deprecated release is never a recommended target,
+  regardless of age.
+- `tools/update-packages.js` now treats age-quarantined packages
+  (`reason: "too recent"`) with age-gated intermediates as **actionable**: both
+  interactive and non-interactive flows offer/apply the highest eligible
+  intermediate while keeping `latest` blocked until it passes the age gate.
+  Quarantine entries caused by registry lookup failures are never actionable.
+  Decisions recorded in `.defence-update-decisions.json` now carry
+  `source: "eligible" | "quarantine"`.
+
 ### Fixed
 
 - Synchronized the cross-project installer (`tools/install-defences.js`) and its

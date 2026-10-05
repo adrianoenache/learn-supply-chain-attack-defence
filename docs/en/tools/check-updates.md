@@ -8,7 +8,7 @@
 - Fetches latest versions from the npm registry.
 - Dedupes registry requests with an in-memory packument cache per run.
 - Classifies updates as eligible (old enough) or quarantined (too recent).
-- Discovers `intermediateEligible`: versions newer than `wanted` and at most `latest` that already satisfy the age gate, sorted ascending — the last element is the recommended update target.
+- Discovers `intermediateEligible`: versions newer than `wanted` and at most `latest` that already satisfy the age gate, sorted ascending — the last element is the recommended update target. Pre-releases, packument metadata keys, and **deprecated versions** are excluded.
 - Emits table, JSON, or Markdown reports.
 
 Implemented in [tools/check-updates.js](../../../tools/check-updates.js).

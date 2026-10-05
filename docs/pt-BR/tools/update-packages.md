@@ -6,6 +6,7 @@
 
 - Carrega as atualizações elegíveis de `.defence-update-check.json` (produzido pelo `defence:update-check`).
 - Resolve o alvo de cada pacote como a maior versão de `intermediateEligible` (já aprovada no portão de idade no momento do scan), com fallback para `latest` em arquivos de estado antigos.
+- **Quarentena acionável:** pacotes em quarentena cujo único bloqueio é idade (`too recent`) e que têm intermediárias aprovadas no portão também são oferecidos/aplicados — a intermediária passou pelo mesmo portão de idade; `latest` permanece bloqueado até passar. Falhas de consulta ao registry nunca são acionáveis.
 - Instala alvos fixados com `npm install --save-exact --ignore-scripts <pkg>@<alvo>`; usa o `npm update` genérico (dentro do range) apenas quando não existe estado de scan.
 - Reexecuta verificações de idade, assinatura, auditoria de vulnerabilidades e licenças.
 - Suporta aprovação interativa de cada atualização.

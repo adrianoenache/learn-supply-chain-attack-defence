@@ -8,7 +8,7 @@
 - Busca as versões mais recentes no registro do npm.
 - Dedup solicitações de registro com cache em memória de packument por execução.
 - Classifica atualizações como elegíveis (já antigas o suficiente) ou em quarentena (muito recentes).
-- Descobre `intermediateEligible`: versões mais novas que `wanted` e no máximo `latest` que já satisfazem o portão de idade, ordenadas de forma crescente — o último elemento é o alvo de atualização recomendado.
+- Descobre `intermediateEligible`: versões mais novas que `wanted` e no máximo `latest` que já satisfazem o portão de idade, ordenadas de forma crescente — o último elemento é o alvo de atualização recomendado. Pré-releases, chaves de metadados do packument e **versões deprecated** são excluídas.
 - Emite relatórios em tabela, JSON ou Markdown.
 
 Implementado em [tools/check-updates.js](../../../tools/check-updates.js).

@@ -8,6 +8,11 @@
 // are still vetted. All installs run with --save-exact and --ignore-scripts,
 // mirroring the .npmrc hardening.
 //
+// Quarantined packages whose only blocker is age ("too recent") and that have
+// age-gated intermediates are also actionable (Fase F.4): the intermediate
+// passed the same minimum-age gate as any eligible package. Packages whose
+// registry lookup failed are never actionable.
+//
 // Usage:
 //   npm run defence:update
 //   npm run defence:update -- --dry-run
@@ -151,6 +156,29 @@ function loadEligibleUpdates() {
   return state.eligible
 }
 
+// Quarantined packages whose quarantine reason is purely age ("too recent")
+// and that have at least one age-gated intermediate are actionable: the
+// intermediate passed the same minimum-age gate as any eligible package.
+// Entries with a failed registry lookup are never actionable — there is no
+// trustworthy data to act on (Fase F.4).
+function getActionableQuarantine(state) {
+  if (!state || !Array.isArray(state.quarantine)) return []
+  return state.quarantine.filter(
+    (item) =>
+      item.reason === 'too recent' &&
+      Array.isArray(item.intermediateEligible) &&
+      item.intermediateEligible.length > 0,
+  )
+}
+
+function loadActionableUpdates() {
+  const state = readJsonSafe(STATE_FILE)
+  return {
+    eligible: state && Array.isArray(state.eligible) ? state.eligible : [],
+    quarantine: getActionableQuarantine(state),
+  }
+}
+
 function promptQuestion(rl, questionText) {
   return new Promise((resolve) => {
     let answered = false
@@ -183,34 +211,46 @@ function promptQuestion(rl, questionText) {
   })
 }
 
-async function promptForSelections(eligible) {
+// Resolves the display target and, when the target is not latest, an explicit
+// note explaining that latest is still inside the age gate (Fase F.4).
+function describeTarget(item) {
+  const target = resolveTargetVersion(item)
+  const note =
+    target !== item.latest
+      ? ` (intermediate target; latest ${item.latest} still in quarantine — it has not passed the age gate yet)`
+      : ''
+  return { target, note }
+}
+
+async function promptForSelections(eligible, quarantineActionable = []) {
   const approved = []
   const rejected = []
 
-  for (const item of eligible) {
-    const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
-    const target = resolveTargetVersion(item)
-    // When the resolved target is not latest, latest was still inside the
-    // age gate at scan time — say so explicitly to inform the decision.
-    const note =
-      target !== item.latest
-        ? ` (intermediate target; latest ${item.latest} still in quarantine)`
-        : ''
-    const question = `Update ${item.name} ${item.current} → ${target}${note}? (y/n/q)${label} `
-    const rl = readlineImpl.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    })
+  const groups = [
+    { items: eligible, source: 'eligible' },
+    { items: quarantineActionable, source: 'quarantine' },
+  ]
 
-    const answer = await promptQuestion(rl, question)
+  for (const group of groups) {
+    for (const item of group.items) {
+      const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
+      const { target, note } = describeTarget(item)
+      const question = `Update ${item.name} ${item.current} → ${target}${note}? (y/n/q)${label} `
+      const rl = readlineImpl.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      })
 
-    if (answer === 'q') {
-      return { approved, rejected, aborted: true }
-    }
-    if (answer === 'y') {
-      approved.push(item)
-    } else {
-      rejected.push(item)
+      const answer = await promptQuestion(rl, question)
+
+      if (answer === 'q') {
+        return { approved, rejected, aborted: true }
+      }
+      if (answer === 'y') {
+        approved.push({ item, source: group.source })
+      } else {
+        rejected.push({ item, source: group.source })
+      }
     }
   }
 
@@ -218,12 +258,15 @@ async function promptForSelections(eligible) {
 }
 
 function saveDecisions(approved, rejected) {
-  const toEntry = (item) => ({
+  const toEntry = ({ item, source }) => ({
     name: item.name,
     current: item.current,
     latest: item.latest,
     target: resolveTargetVersion(item),
     severity: item.severity,
+    // Whether the entry came from the eligible list or from an actionable
+    // quarantine (age-gated intermediate while latest is still too recent).
+    source,
   })
   const decisions = {
     updatedAt: new Date().toISOString(),
@@ -241,9 +284,9 @@ async function main(argv = process.argv.slice(2)) {
   const { isDryRun, isInteractive } = parseCliArgs(argv)
 
   if (isInteractive) {
-    const eligible = loadEligibleUpdates()
+    const { eligible, quarantine } = loadActionableUpdates()
 
-    if (eligible.length === 0) {
+    if (eligible.length === 0 && quarantine.length === 0) {
       console.log(
         'No eligible updates found. Run npm run defence:update-check first.',
       )
@@ -251,23 +294,31 @@ async function main(argv = process.argv.slice(2)) {
     }
 
     if (isDryRun) {
-      console.log('[dry-run] Would prompt for the following eligible updates:')
+      console.log('[dry-run] Would prompt for the following updates:')
       for (const item of eligible) {
         const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
-        const target = resolveTargetVersion(item)
-        const note =
-          target !== item.latest
-            ? ` (intermediate target; latest ${item.latest} still in quarantine)`
-            : ''
+        const { target, note } = describeTarget(item)
         console.log(
           `  - ${item.name} ${item.current} → ${target}${note}${label}`,
         )
       }
+      if (quarantine.length > 0) {
+        console.log(
+          '  Quarantined packages with age-gated intermediate targets:',
+        )
+        for (const item of quarantine) {
+          const { target, note } = describeTarget(item)
+          console.log(`  - ${item.name} ${item.current} → ${target}${note}`)
+        }
+      }
       return 0
     }
 
-    console.log('Select which eligible updates to apply:\n')
-    const { approved, rejected, aborted } = await promptForSelections(eligible)
+    console.log('Select which updates to apply:\n')
+    const { approved, rejected, aborted } = await promptForSelections(
+      eligible,
+      quarantine,
+    )
 
     if (aborted) {
       console.log('\nUpdate aborted. No changes were made.')
@@ -282,7 +333,7 @@ async function main(argv = process.argv.slice(2)) {
     }
 
     console.log(`\nApplying ${approved.length} approved update(s)...`)
-    runPinnedInstalls(approved)
+    runPinnedInstalls(approved.map((entry) => entry.item))
     runVerificationLayers()
 
     console.log('\nUpdate complete.')
@@ -293,15 +344,23 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (isDryRun) {
-    const eligible = loadEligibleUpdates()
+    const { eligible, quarantine } = loadActionableUpdates()
     console.log('[dry-run] Would update dependencies with:')
-    if (eligible.length > 0) {
-      const specs = eligible.map(
-        (item) => `${item.name}@${resolveTargetVersion(item)}`,
-      )
-      console.log(
-        `  - npm install --save-exact --ignore-scripts ${specs.join(' ')}`,
-      )
+    if (eligible.length > 0 || quarantine.length > 0) {
+      if (eligible.length > 0) {
+        const specs = eligible.map(
+          (item) => `${item.name}@${resolveTargetVersion(item)}`,
+        )
+        console.log(
+          `  - npm install --save-exact --ignore-scripts ${specs.join(' ')}`,
+        )
+      }
+      for (const item of quarantine) {
+        const { target } = describeTarget(item)
+        console.log(
+          `  - pinned quarantine intermediate: ${item.name}@${target} (latest ${item.latest} still in quarantine)`,
+        )
+      }
     } else {
       console.log('  - npm update (no scan state found; in-range updates only)')
     }
@@ -312,12 +371,12 @@ async function main(argv = process.argv.slice(2)) {
     return 0
   }
 
-  const eligible = loadEligibleUpdates()
-  if (eligible.length > 0) {
+  const { eligible, quarantine } = loadActionableUpdates()
+  if (eligible.length > 0 || quarantine.length > 0) {
     console.log(
-      `Applying ${eligible.length} eligible update(s) from the last defence:update-check scan...`,
+      `Applying ${eligible.length} eligible update(s) and ${quarantine.length} quarantined intermediate update(s) from the last defence:update-check scan...`,
     )
-    runPinnedInstalls(eligible)
+    runPinnedInstalls([...eligible, ...quarantine])
   } else {
     console.log(
       'No scanned eligible updates found; falling back to in-range npm update...',
@@ -349,6 +408,8 @@ module.exports = {
   main,
   parseCliArgs,
   loadEligibleUpdates,
+  getActionableQuarantine,
+  loadActionableUpdates,
   resolveTargetVersion,
   promptForSelections,
   saveDecisions,

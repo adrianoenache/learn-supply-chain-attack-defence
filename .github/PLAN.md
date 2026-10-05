@@ -8,11 +8,11 @@
 
 ## TL;DR
 
-Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140) e F
-(verificação de comandos, com `intermediateEligible` de ponta a ponta)
-concluídas. Próxima prioridade: **Fase F.4** (intermediárias elegíveis para
-pacotes em quarentena — decisão do mantenedor em 2026-10-05), seguida de
-**AI-2** (governança/ergonomia das customizações AI), G (code review
+Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
+(verificação de comandos, com `intermediateEligible` de ponta a ponta) e F.4
+(quarentena acionável: intermediárias aprovadas no portão de idade aplicáveis
+mesmo com `latest` em quarentena) concluídas. Próxima prioridade: **Fase
+AI-2** (governança/ergonomia das customizações AI), depois G (code review
 educacional), H (organização — item de lint do Biome confirmado aberto),
 I (revisão de docs), J (avaliação 10/10) e só então K (release v1.0.0, com
 aprovação explícita).
@@ -196,7 +196,12 @@ aprovação explícita).
 - F.3.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `bash .husky/pre-commit`, `npm run defence:verify-defences`.
 - F.3.2 Verificações manuais: `--silent` mantém avisos; `update-check` lista intermediárias; `update` aplica intermediária; links do checklist resolvem; `.defence-manifest.json` sincronizado.
 
-### Fase F.4 — Intermediárias elegíveis para pacotes em quarentena
+### Fase F.4 — Intermediárias elegíveis para pacotes em quarentena ✅
+
+> **Status: concluída em 2026-10-05.** Validação manual com dados reais:
+> `defence:update --dry-run` ofereceu `@biomejs/biome@2.5.14` (intermediário
+> aprovado no portão de idade) mantendo `2.5.15` bloqueado; `2.5.15` jamais
+> apareceu como alvo.
 
 > **Decisão do mantenedor (2026-10-05):** estender `defence:update` para agir
 > sobre pacotes em quarentena que possuem intermediárias elegíveis. Origem:

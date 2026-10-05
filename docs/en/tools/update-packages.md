@@ -6,6 +6,7 @@
 
 - Loads eligible updates from `.defence-update-check.json` (produced by `defence:update-check`).
 - Resolves each package's target as the highest `intermediateEligible` version (already past the age gate at scan time), falling back to `latest` for older state files.
+- **Actionable quarantine:** quarantined packages whose only blocker is age (`too recent`) and that have age-gated intermediates are also offered/applied — the intermediate passed the same age gate; `latest` stays blocked until it does. Registry-lookup failures are never actionable.
 - Installs pinned targets with `npm install --save-exact --ignore-scripts <pkg>@<target>`; falls back to generic in-range `npm update` only when no scan state exists.
 - Re-runs package-age checks, signature verification, vulnerability audit, and license checks.
 - Supports interactive approval of each update.

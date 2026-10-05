@@ -247,6 +247,11 @@ function findIntermediateEligibleVersions(info, wanted, latest, referenceMs) {
     if (compareVersions(version, wanted) <= 0) continue
     if (compareVersions(version, latest) > 0) continue
 
+    // Deprecated versions are never recommended targets, regardless of age
+    // (Fase F.4.1) — the deprecation flag lives per version in the packument.
+    const deprecated = info?.versions?.[version]?.deprecated
+    if (typeof deprecated === 'string' && deprecated.length > 0) continue
+
     const publishedMs = new Date(published).getTime()
     if (Number.isNaN(publishedMs)) continue
     if (daysBetween(publishedMs, referenceMs) < MIN_AGE_DAYS) continue
