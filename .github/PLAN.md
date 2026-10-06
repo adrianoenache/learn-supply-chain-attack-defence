@@ -248,10 +248,15 @@ aprovação explícita).
 > da avaliação da estrutura de AI pós-AI-1. Nenhum item é P0; o objetivo é
 > reduzir falhas silenciosas, ruído de invocação e drift de documentação.
 > **Nota:** com a criação da Fase F.4, a AI-2 executa após F.4.
+> **Escopo expandido (2026-10-06, aprovado pelo mantenedor):** revisão da fase
+> adicionou os blocos AI-2.6 (economia de tokens) e AI-2.7 (segurança da
+> execução), e ampliou AI-2.1/AI-2.4. Medidas de base: always-on
+> `copilot-instructions.md` ≈ 3,5 KB (~900 tokens por requisição);
+> instructions 12 KB; agents 24 KB; skills 46 KB.
 
 #### AI-2.1 — Skills pesadas em contexto `fork` (experimental)
 
-- AI-2.1.1 Adicionar `context: fork` às skills que leem muitos arquivos ou produzem raciocínio intermediário irrelevante para a conversa principal: `context-recovery`, `security-audit`, `repository-organization-audit`, `project-status-evaluation`.
+- AI-2.1.1 Adicionar `context: fork` às skills que leem muitos arquivos ou produzem raciocínio intermediário irrelevante para a conversa principal: `context-recovery`, `security-audit`, `repository-organization-audit`, `project-status-evaluation`, `docs-completeness`, `validate-urls`.
 - AI-2.1.2 Documentar em `docs/{en,pt-BR}/ai-guidelines.md` que `context: fork` é experimental e requer o setting `github.copilot.chat.skillTool.enabled`, com instrução de rollback (remover o campo) caso o comportamento mude.
 - AI-2.1.3 Registrar a decisão e a lista de skills forkadas em `docs/{en,pt-BR}/ai-guidelines.md` para que futuras skills pesadas sigam o mesmo padrão.
 - Critério de aceite: `skills.sanity.test.js` continua verde (já valida `context: fork`); skills sem `context` permanecem inline.
@@ -270,11 +275,12 @@ aprovação explícita).
 - AI-2.3.3 Estender `.github/skills/skills.sanity.test.js` para verificar que links Markdown relativos dentro de cada `SKILL.md` apontam para arquivos existentes no diretório da skill (a spec só carrega recursos referenciados).
 - Critério de aceite: recursos referenciados existem; sanity test cobre a regra.
 
-#### AI-2.4 — Sanity test para hooks
+#### AI-2.4 — Sanity test para hooks + escopo por glob
 
 - AI-2.4.1 Criar `.github/hooks/hooks.sanity.test.js` validando, para cada `.github/hooks/*.json`: JSON parseável; campos obrigatórios conforme a [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference) (`version`, `hooks`); todo caminho `scripts/*.sh` referenciado existe; toda skill mencionada na mensagem do script existe em `.github/skills/`.
 - AI-2.4.2 Registrar o novo teste nos scripts `test` e `test:coverage` do `package.json`.
-- Critério de aceite: hook quebrado ou órfão falha no `npm test` em vez de falhar silenciosamente em runtime.
+- AI-2.4.3 **Performance:** escopar hooks de pós-edição por glob (`auto-lint-test` para `tools/**/*.js`, `validate-urls` para `docs/**` + config) para reduzir execuções desnecessárias em cada edição.
+- Critério de aceite: hook quebrado ou órfão falha no `npm test` em vez de falhar silenciosamente em runtime; hooks de pós-edição só disparam em paths relevantes.
 
 #### AI-2.5 — Índice gerado de skills
 
@@ -283,10 +289,35 @@ aprovação explícita).
 - AI-2.5.3 Linkar o índice a partir de `docs/{en,pt-BR}/ai-guidelines.md`.
 - Critério de aceite: `node .github/skills/scripts/generate-skills-index.js` é idempotente; drift quebra o `npm test`.
 
-#### AI-2.6 — Validação e encerramento
+#### AI-2.6 — Economia de tokens
 
-- AI-2.6.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit`.
-- AI-2.6.2 Atualizar `CHANGELOG.md` (seção `[Unreleased]`), checkboxes do `TODO.md` e, se houver lições, `.github/ai-lessons-learned.md`.
+- AI-2.6.1 Compactar `.github/copilot-instructions.md` (always-on) de ~3,5 KB para ≤ 2,5 KB: fundir bullets redundantes (ex.: "Prevent Infinite Loops" em uma regra única; "Session Continuity" resumido, com detalhes delegados à skill `context-recovery`), sem perder nenhuma regra normativa.
+- AI-2.6.2 Deduplicar regras repetidas entre camadas: manter a regra canônica em um lugar só (copilot-instructions ou a instruction de domínio) e referenciar nas demais (ex.: regra de hardcoded values hoje aparece em 3 arquivos).
+- AI-2.6.3 Adicionar guarda de tamanho em `skills.sanity.test.js` e `agents.sanity.test.js`: `SKILL.md` ≤ 10 KB e `copilot-instructions.md` ≤ 3 KB, para impedir inchamento gradual (limites intencionalmente acima do atual — o objetivo é detectar crescimento descontrolado, não otimização fina).
+- Critério de aceite: always-on reduzido sem perda de regras; guarda de tamanho verde; `npm run defence:check-md-links` íntegro.
+
+#### AI-2.7 — Segurança da execução pela AI
+
+- AI-2.7.1 **Write guard:** novo hook `.github/hooks/enforce-write-paths.json` + script que bloqueia/avisa sobre escrita em paths sensíveis (`.env*`, `.npmrc` quando contém tokens, `.git/`, fora do workspace) e exige confirmação explícita para `.husky/` e `package.json` (que já têm gates próprios, mas merecem fricção extra).
+- AI-2.7.2 **Auditoria de bloqueios:** o script `enforce-security.sh` passa a registrar tentativas bloqueadas em log JSONL gitignored (`.github/hooks/security-blocks.log`), criando base para revisão periódica de falsos positivos (como o commit-message bloqueado na Fase F.1) e tentativas reais de bypass.
+- AI-2.7.3 **Auditoria da matriz agente×tool:** estender `agents.sanity.test.js` com o invariante de que todo agent com `run_in_terminal` declara escopo restrito em `applyTo` (não pode ser applyTo ausente/amplo), documentando a exceção se houver.
+- Critério de aceite: escrita em path sensível é bloqueada/avisada; bloqueios geram entrada de log; invariante da matriz verde.
+
+#### AI-2.8 — Validação e encerramento
+
+- AI-2.8.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit`.
+- AI-2.8.2 Atualizar `CHANGELOG.md` (seção `[Unreleased]`), checkboxes do `TODO.md` e, se houver lições, `.github/ai-lessons-learned.md`.
+
+### Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+
+> Escopo definido em 2026-10-06 durante a revisão da Fase AI-2; itens de maior
+> complexidade/baixa urgência adiados para depois da Fase G (ou conforme
+> prioridade do mantenedor).
+
+- AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
+- AI-3.2 **Smoke test de prompt-injection em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado — defesa contra supply-chain *de conteúdo*.
+- AI-3.3 **Observabilidade estruturada:** log JSONL unificado (gitignored) de hooks disparados, skills invocadas e bloqueios, com página docs/`{en,pt-BR}` explicando como ler — material didático ("quantas vezes a defesa te protegeu") e insumo para decidir quais regras viram hook.
+- AI-3.4 **Mapa da arquitetura de AI:** seção em `docs/{en,pt-BR}/architecture.md` descrevendo o modelo mental das 5 camadas (always-on → instructions → skills → agents → hooks) e onde posicionar cada tipo de regra nova.
 
 ### Fase G — Code review educacional
 
@@ -334,6 +365,7 @@ aprovação explícita).
   (`.github/prompts/` foi removido no VS Code 1.140; ver Fase AI-1).
 - `.github/skills/skills.sanity.test.js` — guarda de conformidade das skills com a spec.
 - `.github/hooks/hooks.sanity.test.js` — guarda de integridade dos hooks (a criar na Fase AI-2).
+- `.github/hooks/enforce-write-paths.json` + script — write guard de paths sensíveis (a criar na Fase AI-2.7).
 - `.github/skills/scripts/generate-skills-index.js` — índice gerado de skills (a criar na Fase AI-2).
 - `docs/{en,pt-BR}/tools/` — páginas individuais.
 - `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js` — helpers a extrair (Fase H).
@@ -348,7 +380,8 @@ aprovação explícita).
   zero referências a `.github/prompts/` fora de notas históricas.
 - AI-2: skills forkadas carregam com `context: fork`; hooks inválidos/órfãos
   falham no `npm test`; índice de skills sem drift; menu `/` sem skills de
-  conhecimento de fundo.
+  conhecimento de fundo; always-on ≤ 2,5 KB sem perda de regras; escrita em
+  path sensível bloqueada; bloqueios do enforce-security logados.
 - E: páginas criadas e links validados.
 - F: `defence:update-check` informativo e com listagem de updates intermediários.
 - G: headers completos e listas de melhorias geradas.
@@ -368,4 +401,6 @@ aprovação explícita).
   description obrigatória); ex-prompts one-shot usam `disable-model-invocation: true`;
   pares sobrepostos foram fundidos em vez de mantidos duplicados (2026-10-05).
 - Fase AI-2 executada após a Fase F (decisão do mantenedor, 2026-10-05):
-  melhorias de AI não bloqueiam o trabalho de produto.
+  melhorias de AI não bloqueiam o trabalho de produto. Escopo expandido em
+  2026-10-06 (aprovado): blocos de tokens (AI-2.6) e segurança da execução
+  (AI-2.7); itens adiados agrupados na Fase AI-3 (após a Fase G).

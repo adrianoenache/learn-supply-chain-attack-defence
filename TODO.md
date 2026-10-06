@@ -104,13 +104,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## Fase AI-2 — Governança e ergonomia das customizações AI
 
-> Detalhamento completo em `.github/PLAN.md` (AI-2.1–AI-2.6). Decisão do
-> mantenedor em 2026-10-05: executar após a Fase F.
+> Detalhamento completo em `.github/PLAN.md` (AI-2.1–AI-2.8). Decisão do
+> mantenedor em 2026-10-05: executar após a Fase F. Escopo expandido em
+> 2026-10-06 (aprovado): novos blocos AI-2.6 (tokens) e AI-2.7 (segurança).
 
 - [ ] **AI-2.1** Adicionar `context: fork` às skills pesadas
   (`context-recovery`, `security-audit`, `repository-organization-audit`,
-  `project-status-evaluation`) e documentar o requisito experimental
-  (`github.copilot.chat.skillTool.enabled`) nos ai-guidelines bilíngues.
+  `project-status-evaluation`, `docs-completeness`, `validate-urls`) e
+  documentar o requisito experimental nos ai-guidelines bilíngues.
 - [ ] **AI-2.2** Marcar skills de conhecimento de fundo com
   `user-invocable: false` (`subagent-invocation`, `context-recovery`) e
   documentar a matriz de visibilidade (automática/manual/oculta).
@@ -119,12 +120,37 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   estender `skills.sanity.test.js` para validar que recursos linkados existem.
 - [ ] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
   campos obrigatórios da hooks reference, scripts e skills referenciadas
-  existem) e registrá-lo nos scripts `test`/`test:coverage`.
+  existem), registrá-lo nos scripts `test`/`test:coverage`, e escopar hooks de
+  pós-edição por glob (`auto-lint-test` → `tools/**/*.js`, `validate-urls` →
+  docs/config).
 - [ ] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
   gerando `.github/skills/README.md`, com teste de drift no `npm test` e link
   nos ai-guidelines bilíngues.
-- [ ] **AI-2.6** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
+- [ ] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
+  (≤ 2,5 KB sem perder regras), deduplicar regras repetidas entre camadas por
+  referência, e guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,
+  copilot-instructions ≤ 3 KB).
+- [ ] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
+  escrita em `.env*`, `.git/`, fora do workspace; fricção extra para
+  `.husky/`/`package.json`), log JSONL de bloqueios do `enforce-security`
+  (gitignored), e invariante no `agents.sanity.test.js` (agent com
+  `run_in_terminal` exige `applyTo` restrito).
+- [ ] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
   `ai-lessons-learned.md` atualizados.
+
+## Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+
+> Definida em 2026-10-06 na revisão da AI-2; executar após a Fase G (ou por
+> prioridade do mantenedor). Detalhamento em `.github/PLAN.md` (AI-3.1–AI-3.4).
+
+- [ ] **AI-3.1** Otimizar o hook `inject-context` (medir custo do
+  session-start; cachear dados estáticos com invalidação por mtime).
+- [ ] **AI-3.2** Smoke test de prompt-injection em CI (fixtures com instruções
+  maliciosas embutidas; skills/agents devem manter o comportamento esperado).
+- [ ] **AI-3.3** Observabilidade estruturada: log JSONL unificado de hooks,
+  skills e bloqueios + página de docs bilíngue explicando a leitura.
+- [ ] **AI-3.4** Mapa da arquitetura de AI em `docs/{en,pt-BR}/architecture.md`
+  (as 5 camadas e onde posicionar regras novas).
 
 ## Fase G — Code review educacional
 
