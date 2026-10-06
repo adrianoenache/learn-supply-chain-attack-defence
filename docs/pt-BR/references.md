@@ -12,6 +12,12 @@ Esta página reúne links úteis sobre as defesas implementadas neste projeto e 
 - [Node.js test runner](https://nodejs.org/api/test.html)
 - [OpenSSF Scorecard](https://github.com/ossf/scorecard)
 
+## Segurança de Agentes de AI
+
+Referências acadêmicas e da indústria relevantes para a camada de customização de AI do projeto (hooks, skills e agents em `.github/`).
+
+- [APPA: Recoverable Information-Flow Control for Real-World LLM Agents (arXiv:2607.24625)](https://arxiv.org/abs/2607.24625v2) — monitor de referência em duas fases (pré-dispatch + validação de output), branches descartáveis de confinamento de taint e recuperação em vez de aborto. Inspirou os itens AI-2.7.5 e AI-3.2 do plano.
+
 ## Referências Extras
 
 ### Gerenciamento de Segredos

@@ -289,19 +289,23 @@ aprovação explícita).
 - AI-2.5.3 Linkar o índice a partir de `docs/{en,pt-BR}/ai-guidelines.md`.
 - Critério de aceite: `node .github/skills/scripts/generate-skills-index.js` é idempotente; drift quebra o `npm test`.
 
-#### AI-2.6 — Economia de tokens
+#### AI-2.6 — Economia de tokens + correção do session-memory
 
 - AI-2.6.1 Compactar `.github/copilot-instructions.md` (always-on) de ~3,5 KB para ≤ 2,5 KB: fundir bullets redundantes (ex.: "Prevent Infinite Loops" em uma regra única; "Session Continuity" resumido, com detalhes delegados à skill `context-recovery`), sem perder nenhuma regra normativa.
 - AI-2.6.2 Deduplicar regras repetidas entre camadas: manter a regra canônica em um lugar só (copilot-instructions ou a instruction de domínio) e referenciar nas demais (ex.: regra de hardcoded values hoje aparece em 3 arquivos).
 - AI-2.6.3 Adicionar guarda de tamanho em `skills.sanity.test.js` e `agents.sanity.test.js`: `SKILL.md` ≤ 10 KB e `copilot-instructions.md` ≤ 3 KB, para impedir inchamento gradual (limites intencionalmente acima do atual — o objetivo é detectar crescimento descontrolado, não otimização fina).
-- Critério de aceite: always-on reduzido sem perda de regras; guarda de tamanho verde; `npm run defence:check-md-links` íntegro.
+- AI-2.6.4 **Corrigir o drift do session-memory path (M1):** `copilot-instructions.md` referencia `/memories/session/plan.md`, mas o harness atual usa `~/.copilot/session-state/<id>/files/`. Tornar a instrução agnóstica de harness ("cópia de sessão fornecida pelo harness") e documentar o comportamento real.
+- Critério de aceite: always-on reduzido sem perda de regras; guarda de tamanho verde; instrução de memória consistente com o harness real; `npm run defence:check-md-links` íntegro.
 
 #### AI-2.7 — Segurança da execução pela AI
 
 - AI-2.7.1 **Write guard:** novo hook `.github/hooks/enforce-write-paths.json` + script que bloqueia/avisa sobre escrita em paths sensíveis (`.env*`, `.npmrc` quando contém tokens, `.git/`, fora do workspace) e exige confirmação explícita para `.husky/` e `package.json` (que já têm gates próprios, mas merecem fricção extra).
 - AI-2.7.2 **Auditoria de bloqueios:** o script `enforce-security.sh` passa a registrar tentativas bloqueadas em log JSONL gitignored (`.github/hooks/security-blocks.log`), criando base para revisão periódica de falsos positivos (como o commit-message bloqueado na Fase F.1) e tentativas reais de bypass.
 - AI-2.7.3 **Auditoria da matriz agente×tool:** estender `agents.sanity.test.js` com o invariante de que todo agent com `run_in_terminal` declara escopo restrito em `applyTo` (não pode ser applyTo ausente/amplo), documentando a exceção se houver.
-- Critério de aceite: escrita em path sensível é bloqueada/avisada; bloqueios geram entrada de log; invariante da matriz verde.
+- AI-2.7.4 **Contratos de saída versionados para state files (P1):** adicionar `schemaVersion` a `.defence-update-check.json` e `.defence-update-decisions.json`, com validação na leitura (warn quando a versão do arquivo for maior que a suportada pelo leitor). Fecha a classe de bugs "ferramenta A nova lendo state de versão desconhecida" — hoje coberta por sorte de design, não por garantia.
+- AI-2.7.5 **Bloqueio orientado a reparo (APPA lite):** toda mensagem de bloqueio/aviso dos hooks deve indicar o caminho sancionado (o `enforce-security` já faz isso informalmente — formalizar como regra coberta por teste, inspirado no conceito de recuperação-em-vez-de-aborto de [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2)).
+- AI-2.7.6 **Smoke test E2E do write guard (P3):** teste que simula chamadas do hook com paths maliciosos fora do IDE, provando o comportamento fora do editor.
+- Critério de aceite: escrita em path sensível é bloqueada/avisada; bloqueios geram entrada de log; invariante da matriz verde; state files carregam `schemaVersion` com warn em incompatibilidade; mensagens de bloqueio incluem o caminho sancionado.
 
 #### AI-2.8 — Validação e encerramento
 
@@ -315,9 +319,10 @@ aprovação explícita).
 > prioridade do mantenedor).
 
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
-- AI-3.2 **Smoke test de prompt-injection em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado — defesa contra supply-chain *de conteúdo*.
+- AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
 - AI-3.3 **Observabilidade estruturada:** log JSONL unificado (gitignored) de hooks disparados, skills invocadas e bloqueios, com página docs/`{en,pt-BR}` explicando como ler — material didático ("quantas vezes a defesa te protegeu") e insumo para decidir quais regras viram hook.
 - AI-3.4 **Mapa da arquitetura de AI:** seção em `docs/{en,pt-BR}/architecture.md` descrevendo o modelo mental das 5 camadas (always-on → instructions → skills → agents → hooks) e onde posicionar cada tipo de regra nova.
+- AI-3.5 **Memória de decisões (M2/M3):** criar `DECISIONS.md` (ADRs leves: data, decisão, motivo, alternativa rejeitada — ex.: "F.4: intermediárias aplicáveis em quarentena porque passam pelo mesmo portão de idade"); estender a skill `context-recovery` com um passo de destilação de fim de sessão (extrair para DECISIONS/lessons o que merece persistir).
 
 ### Fase G — Code review educacional
 
@@ -339,6 +344,7 @@ aprovação explícita).
 - Extrair helpers duplicados para `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js`.
 - Criar `docs/{en,pt-BR}/repository-organization.md`.
 - Expandir o escopo de lint/format do Biome para cobrir `.github/**/*.js` (atualmente só valida `tools/`).
+- **CODEOWNERS (P2, 2026-10-06):** criar `.github/CODEOWNERS` atribuindo `tools/`, `.npmrc`, `.husky/`, `.github/hooks/` e `.github/workflows/` ao mantenedor, e habilitar "require review from code owners" na branch protection — a camada de defesa *organizacional* que complementa as 12 camadas técnicas (dogfooding da defesa humana em revisão).
 
 ### Fase I — Revisão total da documentação
 
@@ -350,6 +356,7 @@ aprovação explícita).
 - Coletar métricas atuais e verificar problemas do `PROJECT_STATUS_REPORT.md` de 2026-08-20.
 - Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
 - Atualizar `TODO.md` com ações derivadas.
+- **(Opcional, P4)** `tools/measure-ai-context.js`: medir bytes por camada de customização AI (always-on, instructions, agents, skills) para incluir o custo de tokens real — medido, não estimado — no status report.
 
 ### Fase K — Planejamento do release v1.0.0
 

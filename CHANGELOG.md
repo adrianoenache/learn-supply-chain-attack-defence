@@ -186,6 +186,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `defence:*` script (purpose, flags, silent/format modes, exit codes, test
   file, observations), organized in seven categories and linked from
   `docs/{en,pt-BR}/index.md` and `docs/{en,pt-BR}/tools.md`.
+- AI agent security references section in `docs/{en,pt-BR}/references.md`,
+  starting with APPA (arXiv:2607.24625), which informed the AI-2.7.5
+  repair-oriented blocking and the AI-3.2 output-sanitization items.
 
 ### Changed (Fase F.4 — actionable quarantine intermediates)
 

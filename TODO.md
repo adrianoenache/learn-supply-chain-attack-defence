@@ -128,13 +128,17 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   nos ai-guidelines bilíngues.
 - [ ] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
   (≤ 2,5 KB sem perder regras), deduplicar regras repetidas entre camadas por
-  referência, e guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,
-  copilot-instructions ≤ 3 KB).
+  referência, guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,
+  copilot-instructions ≤ 3 KB), e corrigir o drift do session-memory path
+  (instrução fala de `/memories/`; harness real usa `session-state/<id>/files/`).
 - [ ] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
   escrita em `.env*`, `.git/`, fora do workspace; fricção extra para
   `.husky/`/`package.json`), log JSONL de bloqueios do `enforce-security`
-  (gitignored), e invariante no `agents.sanity.test.js` (agent com
-  `run_in_terminal` exige `applyTo` restrito).
+  (gitignored), invariante no `agents.sanity.test.js` (agent com
+  `run_in_terminal` exige `applyTo` restrito), `schemaVersion` nos state files
+  `.defence-update-check.json`/`.defence-update-decisions.json` (P1), mensagens
+  de bloqueio sempre indicando o caminho sancionado (APPA lite), e smoke test
+  E2E do write guard (P3).
 - [ ] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
   `ai-lessons-learned.md` atualizados.
 
@@ -145,12 +149,15 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 - [ ] **AI-3.1** Otimizar o hook `inject-context` (medir custo do
   session-start; cachear dados estáticos com invalidação por mtime).
-- [ ] **AI-3.2** Smoke test de prompt-injection em CI (fixtures com instruções
-  maliciosas embutidas; skills/agents devem manter o comportamento esperado).
+- [ ] **AI-3.2** Smoke test de prompt-injection e sanitização de outputs em CI
+  (fixtures com instruções maliciosas embutidas; validação de output de tools
+  externas antes de admitir no contexto — segunda fase do monitor, APPA).
 - [ ] **AI-3.3** Observabilidade estruturada: log JSONL unificado de hooks,
   skills e bloqueios + página de docs bilíngue explicando a leitura.
 - [ ] **AI-3.4** Mapa da arquitetura de AI em `docs/{en,pt-BR}/architecture.md`
   (as 5 camadas e onde posicionar regras novas).
+- [ ] **AI-3.5** Memória de decisões: criar `DECISIONS.md` (ADRs leves) e
+  estender `context-recovery` com destilação de fim de sessão.
 
 ## Fase G — Code review educacional
 
@@ -166,6 +173,10 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] Extrair helpers duplicados para `tools/lib/concurrency.js`,
   `tools/lib/formatters.js`, `tools/lib/cli.js`.
 - [ ] Criar `docs/{en,pt-BR}/repository-organization.md`.
+- [ ] Criar `.github/CODEOWNERS` atribuindo `tools/`, `.npmrc`, `.husky/`,
+  `.github/hooks/` e `.github/workflows/` ao mantenedor + habilitar "require
+  review from code owners" na branch protection (camada organizacional de
+  defesa — P2, 2026-10-06).
 
 ## Fase I — Revisão total da documentação
 
@@ -180,6 +191,8 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `PROJECT_STATUS_REPORT.md` de 2026-08-20.
 - [ ] Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
 - [ ] Atualizar `TODO.md` com ações derivadas.
+- [ ] (Opcional, P4) Criar `tools/measure-ai-context.js` para medir bytes por
+  camada de customização AI e incluir o custo de tokens real no status report.
 
 ## Fase K — Planejamento do release v1.0.0
 
