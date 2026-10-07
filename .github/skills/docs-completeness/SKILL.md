@@ -1,6 +1,7 @@
 ---
 name: docs-completeness
 description: Verify that documentation is complete, bilingual, and internally consistent. Use to confirm that every user-facing change is discoverable in both docs/en/ and docs/pt-BR/.
+context: fork
 ---
 
 # Docs Completeness Skill

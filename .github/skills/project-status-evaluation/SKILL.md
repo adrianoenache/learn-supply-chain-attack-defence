@@ -2,6 +2,7 @@
 name: project-status-evaluation
 description: Evaluate project readiness for the v1.0.0 release by collecting real metrics (tests, coverage, lint, link checks) and checking for open P0 items. Use when asked for a status evaluation or a release-readiness verdict.
 disable-model-invocation: true
+context: fork
 ---
 # Project Status Evaluation
 

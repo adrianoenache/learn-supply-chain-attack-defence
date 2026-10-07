@@ -2,6 +2,7 @@
 name: security-audit
 description: Review a change for npm supply-chain security risks against the project's twelve defense layers. Use when a diff touches dependencies, install behavior, registry trust, secrets, hooks, or CI configuration.
 argument-hint: "[change description or diff]"
+context: fork
 ---
 
 # Security Audit Skill

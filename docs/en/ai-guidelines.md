@@ -92,6 +92,17 @@ The [Agent Capability Matrix](../../.github/agents/README.md) lists every agent,
 
 Skill frontmatters follow the [Agent Skills specification](https://code.visualstudio.com/docs/agent-customization/agent-skills) (VS Code 1.140): kebab-case `name` matching the folder, a `description` stating what the skill does and when to use it, and no legacy `applyTo`/`tools` fields. The sanity suite `.github/skills/skills.sanity.test.js` runs with `npm test` and fails loudly if a skill violates the spec, since VS Code silently skips invalid skills.
 
+### Forked skills (experimental)
+
+Skills that read many files or produce long intermediate reasoning run in a **forked context** (`context: fork` in the frontmatter): they execute in a dedicated subagent and only their final result returns to the parent conversation, keeping the main context clean. The current forked skills are `context-recovery`, `security-audit`, `repository-organization-audit`, `project-status-evaluation`, `docs-completeness`, and `validate-urls`.
+
+> **Experimental requirement:** forked skills need the VS Code setting
+> `github.copilot.chat.skillTool.enabled` (VS Code ≥ 1.140). If the behavior of
+> this experimental feature changes, the rollback is simply removing
+> `context: fork` from the frontmatter — the skills work inline either way.
+> Any future skill with heavy read/report workloads should follow the same
+> pattern.
+
 Reusable skills include:
 
 | Skill | Use When |

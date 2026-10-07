@@ -1,6 +1,7 @@
 ---
 name: validate-urls
 description: Verify that every external URL added to documentation, AI customizations, issue templates, or configuration files is reachable before it is committed. Prevents fictional, 404, or unreachable URLs from entering the project.
+context: fork
 ---
 
 # Validate URLs

@@ -1,6 +1,7 @@
 ---
 name: repository-organization-audit
 description: Audit the project structure for consistency, orphaned files, duplicated helpers, and applyTo pattern hygiene. Use to keep the repository predictable and easy to navigate as it grows.
+context: fork
 ---
 
 # Repository Organization Audit Skill

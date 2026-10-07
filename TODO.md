@@ -108,10 +108,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > mantenedor em 2026-10-05: executar após a Fase F. Escopo expandido em
 > 2026-10-06 (aprovado): novos blocos AI-2.6 (tokens) e AI-2.7 (segurança).
 
-- [ ] **AI-2.1** Adicionar `context: fork` às skills pesadas
+- [x] **AI-2.1** Adicionar `context: fork` às skills pesadas
   (`context-recovery`, `security-audit`, `repository-organization-audit`,
   `project-status-evaluation`, `docs-completeness`, `validate-urls`) e
   documentar o requisito experimental nos ai-guidelines bilíngues.
+  - Concluído em 2026-10-07 (VS Code 1.141.0 com `skillTool.enabled`).
 - [ ] **AI-2.2** Marcar skills de conhecimento de fundo com
   `user-invocable: false` (`subagent-invocation`, `context-recovery`) e
   documentar a matriz de visibilidade (automática/manual/oculta).
