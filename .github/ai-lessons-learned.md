@@ -117,6 +117,24 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** All files listed above plus
   `.github/ai-lessons-learned.md`.
 
+### 2026-10-07 — `context: fork` has no observable effect in VS Code 1.141
+
+- **Date:** 2026-10-07
+- **Rule violated:** Validate behavioral claims, not just file correctness.
+- **Affected files:** `.github/skills/*/SKILL.md` (6 forked skills),
+  `docs/{en,pt-BR}/ai-guidelines.md`
+- **What happened:** AI-2.1 added `context: fork` to six skills. The
+  frontmatter is spec-valid and the sanity suite is green, but invoking
+  `/project-status-evaluation` in both the Copilot SDK harness and the Agents
+  Window (VS Code 1.141.0, `skillTool.enabled` on) executed the skill
+  inline/background with all intermediate steps visible — no subagent
+  indication in either environment.
+- **Correction applied:** kept the field (harmless when unsupported, may
+  activate in future releases) and documented the observed behavior plus the
+  re-validation trigger (VS Code updates) in the bilingual ai-guidelines.
+- **Instruction/agent updated:** `docs/en/ai-guidelines.md`,
+  `docs/pt-BR/ai-guidelines.md`.
+
 ### 2026-10-05 — Diagnostics on stdout corrupt the node:test runner
 
 - **Date:** 2026-10-05

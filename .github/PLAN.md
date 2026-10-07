@@ -260,6 +260,11 @@ aprovação explícita).
 - AI-2.1.2 Documentar em `docs/{en,pt-BR}/ai-guidelines.md` que `context: fork` é experimental e requer o setting `github.copilot.chat.skillTool.enabled`, com instrução de rollback (remover o campo) caso o comportamento mude.
 - AI-2.1.3 Registrar a decisão e a lista de skills forkadas em `docs/{en,pt-BR}/ai-guidelines.md` para que futuras skills pesadas sigam o mesmo padrão.
 - Critério de aceite: `skills.sanity.test.js` continua verde (já valida `context: fork`); skills sem `context` permanecem inline.
+- **Status (2026-10-07): concluído** (commit `509454e`). Observação registrada:
+  em VS Code 1.141.0, tanto o harness Copilot SDK quanto a Agents Window
+  executaram a skill forkada inline/background, sem indicação visível de
+  subagente — campo mantido por ser inócuo e futuramente ativável; revalidar
+  após updates do VS Code (ver `ai-lessons-learned.md`).
 
 #### AI-2.2 — Visibilidade no menu `/` (`user-invocable`)
 

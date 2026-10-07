@@ -102,6 +102,12 @@ Skills that read many files or produce long intermediate reasoning run in a **fo
 > `context: fork` from the frontmatter — the skills work inline either way.
 > Any future skill with heavy read/report workloads should follow the same
 > pattern.
+>
+> **Observed (2026-10-07, VS Code 1.141.0):** invoking a forked skill in both
+> the Copilot SDK harness and the Agents Window executed it inline/background
+> with no visible subagent indication. The field is kept because it is harmless
+> when unsupported and may activate in future releases; re-validate after VS
+> Code updates.
 
 Reusable skills include:
 

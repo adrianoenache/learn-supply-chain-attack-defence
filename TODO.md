@@ -167,6 +167,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   defesa.
 - [ ] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
   P0/P1.
+- [ ] Elevar a cobertura de linhas para ≥ 95% (avaliação 2026-10-07: 94,70%
+  geral; rodar `npm run test:coverage` para a lista atual de arquivos abaixo da
+  meta — 15 identificados nesta data, incl. `update-badge.js` 83%,
+  `run-audit-with-retry.js` 86%, `check-external-urls.js` 86%), conforme meta
+  de `testing.md` e gate de conclusão (Fase J).
 
 ## Fase H — Organização e governança
 
@@ -178,6 +183,12 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `.github/hooks/` e `.github/workflows/` ao mantenedor + habilitar "require
   review from code owners" na branch protection (camada organizacional de
   defesa — P2, 2026-10-06).
+- [ ] Corrigir drift do badge de testes (avaliação 2026-10-07):
+  `tools/update-badge.js` conta apenas `tools/**/*.test.js` (469 testes),
+  enquanto `npm test` executa 738 (inclui os sanity tests de `.github/`
+  adicionados nas Fases AI-1/AI-2). Estender `TEST_GLOBS` (e a contagem
+  dinâmica) para cobrir os mesmos arquivos do script `test`, ou documentar
+  explicitamente que o badge reflete apenas a suíte de `tools/`.
 
 ## Fase I — Revisão total da documentação
 

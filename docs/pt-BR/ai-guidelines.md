@@ -102,6 +102,12 @@ Skills que leem muitos arquivos ou produzem raciocínio intermediário longo rod
 > `context: fork` do frontmatter — as skills funcionam inline de qualquer
 > forma. Futuras skills com cargas pesadas de leitura/relatório devem seguir o
 > mesmo padrão.
+>
+> **Observado (2026-10-07, VS Code 1.141.0):** a invocação de uma skill forkada
+> tanto no harness Copilot SDK quanto na Agents Window executou inline/em
+> background, sem indicação visível de subagente. O campo é mantido porque é
+> inócuo quando não suportado e pode ser ativado em versões futuras; revalidar
+> após atualizações do VS Code.
 
 Skills reutilizáveis incluem:
 
