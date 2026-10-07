@@ -55,6 +55,15 @@ function resetImpls() {
 // Default scoring configuration.
 // ---------------------------------------------------------------------------
 
+// Signal weights sum to 100 by design, so the trust score reads as a
+// percentage. The split encodes a deliberate security posture: age (20) is
+// the strongest signal because time filters out most hijacked-release
+// campaigns; downloads (15), provenance (15), and lifecycle risk (15) follow
+// because popularity, attestation, and install-time behavior catch what age
+// misses; cadence (10), maintainers (10), typosquatting (10), and license (5)
+// are weaker but cheap signals. Override per project via options; these
+// defaults are policy, not physics — they are hardcoded here because every
+// adopter should start from the same audited baseline.
 const DEFAULT_WEIGHTS = {
   age: 20,
   cadence: 10,
@@ -66,6 +75,11 @@ const DEFAULT_WEIGHTS = {
   license: 5,
 }
 
+// Score bands: >= 70 auto-trusted, 40–69 review required, < 40 blocked.
+// 70 was chosen so that a package weak in any single strong signal (age or
+// provenance) cannot reach auto-trust; 40 keeps obviously-fresh or
+// unmaintained packages out of silent acceptance. Policy defaults, overridable
+// via options.
 const DEFAULT_THRESHOLDS = {
   trustedMin: 70,
   reviewRequiredMin: 40,

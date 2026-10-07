@@ -65,6 +65,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - [Git hooks](git-hooks.md)
 - [Adicionando dependências](dependencies.md)
 - [Testes](testing.md)
+- [Melhorias de code review](code-review-improvements.md) — auditoria educacional da Fase G: padrão de cabeçalho, achados de mensagens de erro e hardcodes.
 - [Checklist de release](release-checklist.md)
 - [Referências](references.md)
 - [Adotando em outros projetos](adopting-in-other-projects.md)

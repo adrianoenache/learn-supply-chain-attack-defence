@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-07T22:02:00.859Z",
+  "installedAt": "2026-10-07T22:10:01.096Z",
   "files": [
     {
       "path": ".npmrc",
@@ -232,7 +232,7 @@
     },
     {
       "path": "tools/lib/trust-engine.js",
-      "hash": "b1d86c4994d004a4a604efc1ae7aeebec242d03d121bc926489bd57199a0ef56"
+      "hash": "da9681019e5db1fa9ce90424fd11c929574abb78f6b0707683491b48405a0387"
     },
     {
       "path": "tools/lib/trust-engine.test.js",

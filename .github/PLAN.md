@@ -341,14 +341,13 @@ v1.0.0, com aprovação explícita).
 - AI-3.4 **Mapa da arquitetura de AI:** seção em `docs/{en,pt-BR}/architecture.md` descrevendo o modelo mental das 5 camadas (always-on → instructions → skills → agents → hooks) e onde posicionar cada tipo de regra nova.
 - AI-3.5 **Memória de decisões (M2/M3):** criar `DECISIONS.md` (ADRs leves: data, decisão, motivo, alternativa rejeitada — ex.: "F.4: intermediárias aplicáveis em quarentena porque passam pelo mesmo portão de idade"); estender a skill `context-recovery` com um passo de destilação de fim de sessão (extrair para DECISIONS/lessons o que merece persistir).
 
-### Fase G — Code review educacional
+### Fase G — Code review educacional (quase concluída)
 
-> **Status (2026-10-05): pendente.** `docs/{en,pt-BR}/code-review-improvements.md`
-> não existe.
-
-- Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
-- Auditar headers, mensagens de erro, hardcoded values e links a camadas de defesa.
-- Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias P0/P1.
+> **Status (2026-10-07):** G.1–G.3 concluídos (relatório bilíngue em
+> `docs/{en,pt-BR}/code-review-improvements.md`, correção P1 aplicada no
+> `trust-engine.js`). **Item remanescente:** elevar a cobertura de linhas de
+> 94,70% para ≥ 95% (item registrado no `TODO.md` sob esta fase; a lista atual
+> de hotspots sai de `npm run test:coverage`).
 
 ### Fase H — Organização e governança
 

@@ -65,6 +65,7 @@ This repository is a practical learning environment for understanding and applyi
 - [Git hooks](git-hooks.md)
 - [Adding dependencies](dependencies.md)
 - [Testing](testing.md)
+- [Code review improvements](code-review-improvements.md) — Fase G educational audit: header standard, error-message and hardcode findings.
 - [Release checklist](release-checklist.md)
 - [References](references.md)
 - [Adopting in other projects](adopting-in-other-projects.md)

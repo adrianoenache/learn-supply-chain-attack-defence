@@ -212,6 +212,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Size budgets in `skills.sanity.test.js` (Fase AI-2.6): `SKILL.md` ≤ 10 KB
   and `copilot-instructions.md` ≤ 3 KB, so context growth fails loudly
   instead of taxing every chat request.
+- `docs/{en,pt-BR}/code-review-improvements.md` (Fase G): educational audit
+  of all 34 production files — header standard formalized, zero P0, one P1
+  (trust-engine scoring constants) fixed with inline justification.
 - `.github/hooks/enforce-write-paths.json` + script (Fase AI-2.7.1): denies
   agent writes to `.env*`, `.git/`, and paths escaping the workspace; warns
   deliberately on `.husky/` and `package.json` edits. Covered by

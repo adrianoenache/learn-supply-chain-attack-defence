@@ -180,18 +180,24 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] **AI-3.5** Memória de decisões: criar `DECISIONS.md` (ADRs leves) e
   estender `context-recovery` com destilação de fim de sessão.
 
-## Fase G — Code review educacional
+## Fase G — Code review educacional (quase concluída)
 
-- [ ] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
-- [ ] Auditar headers, mensagens de erro, hardcoded values e links a camadas de
+- [x] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
+  - Formalizado em 2026-10-07: todos os 34 arquivos de produção já seguiam o
+    padrão de-facto (shebang → `'use strict'` → header de propósito); agora
+    documentado no relatório da fase.
+- [x] Auditar headers, mensagens de erro, hardcoded values e links a camadas de
   defesa.
-- [ ] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
+  - P0: nenhum. P1: pesos/thresholds do `trust-engine.js` sem justificativa —
+    corrigido inline. P2: 2 itens documentados como débito.
+- [x] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
   P0/P1.
 - [ ] Elevar a cobertura de linhas para ≥ 95% (avaliação 2026-10-07: 94,70%
   geral; rodar `npm run test:coverage` para a lista atual de arquivos abaixo da
   meta — 15 identificados nesta data, incl. `update-badge.js` 83%,
   `run-audit-with-retry.js` 86%, `check-external-urls.js` 86%), conforme meta
   de `testing.md` e gate de conclusão (Fase J).
+  - **Permanece aberto** — é o único item pendente da fase G.
 
 ## Fase H — Organização e governança
 
