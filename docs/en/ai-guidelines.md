@@ -8,7 +8,7 @@ The following files configure how AI assistants behave when working with this co
 
 | File or Directory | Purpose |
 | --- | --- |
-| [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Always-on instructions loaded on every chat request. |
+| [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Always-on instructions loaded on every chat request. Kept under a 3 KB budget (enforced by the skills sanity suite) because it taxes every interaction — domain detail belongs in `.github/instructions/*.md`. |
 | [`.github/instructions/security.instructions.md`](../../.github/instructions/security.instructions.md) | Context for `tools/**`, `.npmrc`, and `package.json`. |
 | [`.github/instructions/testing.instructions.md`](../../.github/instructions/testing.instructions.md) | Context for `tools/**/*.test.js`. |
 | [`.github/instructions/shell-scripts.instructions.md`](../../.github/instructions/shell-scripts.instructions.md) | Standards for `.sh` files, Husky hooks, and hook scripts. |

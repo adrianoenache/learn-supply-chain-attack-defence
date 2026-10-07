@@ -10,13 +10,10 @@ Audit the provided file for hardcoded values that should be configurable or need
 
 ## Context
 
-Project rule: every intentional hardcoded value in code must be accompanied by an inline comment explaining why that specific value remains hardcoded and is not configurable.
-
-Acceptable hardcodes include:
-- Parser edge-case fixtures.
-- Physical constants and conversion factors (e.g., `1024 * 1024`, `1000 * 60 * 60 * 24`).
-- Protocol defaults with stable semantics.
-- Reusable function defaults that are overridden by callers.
+Project rule (canonical text in `.github/copilot-instructions.md`, examples in
+`.github/instructions/educational-code-quality.instructions.md`): every
+intentional hardcoded value in code must be accompanied by an inline comment
+explaining why that specific value remains hardcoded and is not configurable.
 
 ## File to Audit
 

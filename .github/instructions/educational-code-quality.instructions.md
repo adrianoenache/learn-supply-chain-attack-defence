@@ -23,7 +23,10 @@ Applies to: `tools/**/*.js`, `tools/**/*.test.js`
 ## Hardcoded Values
 
 - Every intentional hardcoded value must have an inline comment explaining why it
-  is not configurable.
+  is not configurable (project-wide rule: `.github/copilot-instructions.md`).
+- Acceptable hardcodes include parser edge-case fixtures, physical constants and
+  conversion factors (e.g., `1024 * 1024`), and protocol defaults with stable
+  semantics.
 - If a value could reasonably vary between projects, move it to `package.json` or
   `tools/lib/config.js`.
 

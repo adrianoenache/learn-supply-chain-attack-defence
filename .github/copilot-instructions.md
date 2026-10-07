@@ -4,72 +4,47 @@ These instructions apply to every chat request in this workspace. They are desig
 
 ## Security-First Mindset
 
-This repository teaches and applies defense-in-depth against npm supply-chain attacks. Every change must preserve or strengthen the existing security gates. Do not propose shortcuts that bypass age checks, signature audits, vulnerability audits, license checks, or pre-commit hooks.
+This repository teaches and applies defense-in-depth against npm supply-chain attacks. Every change must preserve or strengthen the existing security gates. Never bypass age checks, signature audits, vulnerability audits, license checks, or pre-commit hooks.
 
 ## Required Validation Commands
 
-After editing or creating any code file, run these commands before declaring the task complete:
+After editing or creating any code file, run before declaring the task complete (fix failures at the root cause):
 
 - `npm run lint`
 - `npm test`
-- `npm run defence:check-md-links` (if markdown files were changed)
-
-If any command fails, fix the underlying issue before proceeding.
+- `npm run defence:check-md-links` (if markdown files changed)
 
 ## Dependency Policy
 
-Never add a dependency by running `npm install <package>` directly. Always use the security wrapper:
-
-```bash
-npm run defence:add -- pkg@x.y.z
-```
-
-New dependencies must pass the age check, signature audit, vulnerability audit, and license check before they can be committed.
+Never add a dependency with `npm install <pkg>` directly; always use `npm run defence:add -- pkg@x.y.z`, which enforces the age, signature, vulnerability, and license gates.
 
 ## Version Policy
 
-Before proposing changes to Node.js or npm versions, read `engines.node` and `engines.npm` from [`package.json`](../package.json). Do not introduce version numbers in code or tests without explaining why they differ from `package.json`.
+Read `engines.node`/`engines.npm` from [`package.json`](../package.json) before proposing version changes; justify in a comment any version in code/tests that differs.
 
 ## Hardcoded Values
 
-Every intentional hardcoded value in code or tests must be accompanied by an inline comment explaining why that specific value remains hardcoded and is not configurable. Examples of acceptable hardcodes include parser edge-case fixtures, physical constants, and protocol defaults.
+Intentional hardcoded values need an inline comment explaining why they are not configurable (see `.github/instructions/educational-code-quality.instructions.md`).
 
 ## Prevent Infinite Loops
 
-Every execution path that can repeat must have a safeguard against infinite loops:
-
-- Use explicit `timeout` options in tests and network calls.
-- Cap iteration counts in loops that process external data.
-- Return early when the same state is reached twice.
-- Prefer bounded recursion or iterative algorithms.
+Every repeating execution path needs a safeguard: explicit timeouts, iteration caps, or early return on repeated state.
 
 ## Context Before Action
 
-Before calling a search or execution tool, check whether the information is already available in the current conversation context. Avoid redundant tool calls.
+Check the current conversation context before calling search/execution tools; avoid redundant tool calls.
 
 ## Bilingual Documentation
 
-When user-facing behavior changes, update both `docs/en/` and `docs/pt-BR/`. Keep terminology consistent with the [glossary](../docs/en/glossary.md).
+User-facing changes update both `docs/en/` and `docs/pt-BR/`, with terminology from the [glossary](../docs/en/glossary.md).
 
 ## No Secrets
 
-Do not generate, embed, or suggest secrets, tokens, or credentials in source files. If the project needs a placeholder, use an obviously fake value and document it.
+Never generate or embed secrets, tokens, or credentials; use obviously fake, documented placeholders.
 
 ## Session Continuity and Plan Recovery
 
-Session memory can be lost between chat sections. Therefore, the project's
-authoritative plan lives in `.github/PLAN.md` and must always be kept in sync
-with the session working copy at `/memories/session/plan.md`.
+Session memory can be lost between chat sections. The authoritative plan is `.github/PLAN.md`; the session working copy lives in the harness-provided session files directory (e.g. `~/.copilot/session-state/<id>/files/plan.md` — the path varies by harness, so treat any session copy as disposable).
 
-- At the start of every session, if `.github/PLAN.md` exists, read it before
-  proposing actions or making assumptions about current priorities.
-- If the user asks to resume, review, or revise the plan, read `.github/PLAN.md`
-  first and update it after changes.
-- When creating or updating a plan, persist it to **both** locations:
-  1. `.github/PLAN.md` — authoritative, repository-scoped, survives session loss.
-  2. `/memories/session/plan.md` — session working copy, useful for quick lookup.
-- If the two plans diverge, `.github/PLAN.md` always takes precedence.
-- Never rely solely on `/memories/session/plan.md`; it is session-scoped and
-  may be cleared.
-- After updating `.github/PLAN.md`, run `npm run lint`, `npm test`, and
-  `npm run defence:check-md-links` if markdown changed.
+- Read `.github/PLAN.md` at session start and before any plan-related action; on divergence, `.github/PLAN.md` wins.
+- After updating `.github/PLAN.md`, refresh the session copy and run `npm run lint`, `npm test`, and `npm run defence:check-md-links` if markdown changed.

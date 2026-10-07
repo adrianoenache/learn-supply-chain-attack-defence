@@ -39,6 +39,10 @@ const LEGACY_FIELDS = ['applyTo', 'tools'];
 
 const NAME_MAX_LENGTH = 64; // spec limit for the skill name
 const DESCRIPTION_MAX_LENGTH = 1024; // spec limit for the description
+// Size guards (Fase AI-2.6): generous caps that only catch uncontrolled
+// growth — fine-tuning belongs to review, not to this test.
+const SKILL_MAX_BYTES = 10 * 1024; // 10 KB per SKILL.md
+const ALWAYS_ON_MAX_BYTES = 3 * 1024; // 3 KB for the always-on instructions
 
 function parseFrontmatter(filePath) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -195,8 +199,16 @@ describe('skills sanity', () => {
         }
       });
 
-      it('should reference only existing local resources', () => {
-        // The Agent Skills spec only loads bundled resources that are
+      it('should stay within the size budget', () => {
+        const size = fs.statSync(fullPath).size;
+        assert.ok(
+          size <= SKILL_MAX_BYTES,
+          `${dir}/SKILL.md is ${size} bytes (budget ${SKILL_MAX_BYTES}); ` +
+            'split long content into bundled resources referenced by link',
+        );
+      });
+
+      it('should reference only existing local resources', () => {        // The Agent Skills spec only loads bundled resources that are
         // referenced from SKILL.md, so a broken relative link means the agent
         // never receives the resource. Anchors, absolute paths (~/…), and
         // external URLs are out of scope here — external URLs are covered by
@@ -233,6 +245,20 @@ describe('skills sanity', () => {
         result.status,
         0,
         `skills index drifted — regenerate with: node .github/skills/scripts/generate-skills-index.js\n${result.stderr}`,
+      );
+    });
+  });
+
+  describe('always-on instructions budget', () => {
+    it('copilot-instructions.md should stay within the size budget', () => {
+      // The always-on file is prepended to every chat request, so uncontrolled
+      // growth taxes every interaction (Fase AI-2.6).
+      const filePath = path.resolve(SKILLS_DIR, '..', 'copilot-instructions.md');
+      const size = fs.statSync(filePath).size;
+      assert.ok(
+        size <= ALWAYS_ON_MAX_BYTES,
+        `copilot-instructions.md is ${size} bytes (budget ${ALWAYS_ON_MAX_BYTES}); ` +
+          'move domain detail to .github/instructions/*.md',
       );
     });
   });

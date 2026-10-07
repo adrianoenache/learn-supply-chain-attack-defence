@@ -209,6 +209,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (invocation mode, fork status, description) regenerated from frontmatters;
   a drift check in `skills.sanity.test.js` fails `npm test` when the
   committed index is stale.
+- Size budgets in `skills.sanity.test.js` (Fase AI-2.6): `SKILL.md` ≤ 10 KB
+  and `copilot-instructions.md` ≤ 3 KB, so context growth fails loudly
+  instead of taxing every chat request.
+
+### Changed (Fase AI-2.6)
+
+- `.github/copilot-instructions.md` compacted from 3,5 KB to ~2,4 KB (−32%)
+  without losing any normative rule; the hardcoded-values rule now lives
+  canonically there and is referenced (not repeated) by the
+  educational-code-quality instructions and the check-hardcoded-values skill.
+- The session-continuity rule no longer references the non-existent
+  `/memories/session/plan.md` path; it describes the harness-provided session
+  files directory instead (M1).
 
 ### Fixed (Fase AI-2.4)
 

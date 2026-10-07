@@ -138,11 +138,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   nos ai-guidelines bilíngues.
   - Concluído em 2026-10-07: índice com 18 skills (modo de invocação, fork,
     descrição), `--check` idempotente integrado ao sanity suite (182 testes).
-- [ ] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
+- [x] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
   (≤ 2,5 KB sem perder regras), deduplicar regras repetidas entre camadas por
   referência, guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,
   copilot-instructions ≤ 3 KB), e corrigir o drift do session-memory path
   (instrução fala de `/memories/`; harness real usa `session-state/<id>/files/`).
+  - Concluído em 2026-10-07: always-on 3,5 KB → 2,4 KB (−32%); regra de
+    hardcoded values canonizada e referenciada; guardas de tamanho ativas;
+    path de memória de sessão agnóstico de harness.
 - [ ] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
   escrita em `.env*`, `.git/`, fora do workspace; fricção extra para
   `.husky/`/`package.json`), log JSONL de bloqueios do `enforce-security`

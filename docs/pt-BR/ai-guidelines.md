@@ -8,7 +8,7 @@ Os seguintes arquivos configuram como os assistentes de AI se comportam ao traba
 
 | Arquivo ou Diretório | Propósito |
 | --- | --- |
-| [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Instruções sempre ativas carregadas em toda requisição de chat. |
+| [`.github/copilot-instructions.md`](../../.github/copilot-instructions.md) | Instruções sempre ativas carregadas em toda requisição de chat. Mantido sob um orçamento de 3 KB (aplicado pela suíte de sanidade de skills), pois ele onera toda interação — detalhes de domínio pertencem a `.github/instructions/*.md`. |
 | [`.github/instructions/security.instructions.md`](../../.github/instructions/security.instructions.md) | Contexto para `tools/**`, `.npmrc` e `package.json`. |
 | [`.github/instructions/testing.instructions.md`](../../.github/instructions/testing.instructions.md) | Contexto para `tools/**/*.test.js`. |
 | [`.github/instructions/shell-scripts.instructions.md`](../../.github/instructions/shell-scripts.instructions.md) | Padrões para arquivos `.sh`, hooks Husky e scripts de hooks. |
