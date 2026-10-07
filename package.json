@@ -75,13 +75,25 @@
     "failOnUnknown": false
   },
   "checkMdLinks": {
-    "ignoredDirs": ["node_modules", ".git"],
+    "ignoredDirs": [
+      "node_modules",
+      ".git"
+    ],
     "cacheTtlHours": 24,
     "cacheFile": ".md-links-cache.json"
   },
   "checkExternalUrls": {
-    "ignoredDirs": ["node_modules", ".git", "coverage", ".cache", "tmp"],
-    "ignoredFiles": [".external-urls-cache.json", ".defence-profile.json"],
+    "ignoredDirs": [
+      "node_modules",
+      ".git",
+      "coverage",
+      ".cache",
+      "tmp"
+    ],
+    "ignoredFiles": [
+      ".external-urls-cache.json",
+      ".defence-profile.json"
+    ],
     "cacheTtlHours": 24,
     "cacheFile": ".external-urls-cache.json",
     "timeoutMs": 15000,
@@ -177,7 +189,7 @@
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "husky": "9.1.7"
   }
 }
