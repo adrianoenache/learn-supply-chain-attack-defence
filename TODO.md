@@ -102,7 +102,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     - Concluído em 2026-10-05: 738/738 testes; caso real `@biomejs/biome`
       oferecido como `@2.5.14` (intermediário) com `2.5.15` bloqueado.
 
-## Fase AI-2 — Governança e ergonomia das customizações AI
+## Fase AI-2 — Governança e ergonomia das customizações AI ✅
 
 > Detalhamento completo em `.github/PLAN.md` (AI-2.1–AI-2.8). Decisão do
 > mantenedor em 2026-10-05: executar após a Fase F. Escopo expandido em
@@ -158,8 +158,10 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     do `enforce-security.sh`), 4 testes de schemaVersion, invariante de matriz
     verde; documentação do sandboxing do VS Code 1.141 como camada
     complementar.
-- [ ] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
+- [x] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
   `ai-lessons-learned.md` atualizados.
+  - Concluído em 2026-10-07: 844/844 testes, todos os gates verdes,
+    pre-commit exit 0; PLAN.md registra os critérios de aceite verificados.
 
 ## Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
 

@@ -4,18 +4,18 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-10-05
+> Last updated: 2026-10-07
 
 ## TL;DR
 
 Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
-(verificação de comandos, com `intermediateEligible` de ponta a ponta) e F.4
-(quarentena acionável: intermediárias aprovadas no portão de idade aplicáveis
-mesmo com `latest` em quarentena) concluídas. Próxima prioridade: **Fase
-AI-2** (governança/ergonomia das customizações AI), depois G (code review
-educacional), H (organização — item de lint do Biome confirmado aberto),
-I (revisão de docs), J (avaliação 10/10) e só então K (release v1.0.0, com
-aprovação explícita).
+(verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
+(quarentena acionável) e **AI-2** (governança/ergonomia das customizações AI,
+VS Code 1.141) concluídas. Próxima prioridade: **Fase G** (code review
+educacional + cobertura ≥ 95%), depois H (organização — lint do Biome,
+helpers, CODEOWNERS, drift do badge), I (revisão de docs), J (avaliação
+10/10), AI-3 (resiliência/observabilidade de AI) e só então K (release
+v1.0.0, com aprovação explícita).
 
 ## Fases
 
@@ -242,8 +242,20 @@ aprovação explícita).
 - F.4.5.2 Verificações manuais com dados reais: `check-updates --force` lista intermediárias; `update --dry-run` mostra a quarentena acionável de `@biomejs/biome` com alvo 2.5.14; `update --interactive --dry-run` idem; confirmar que `latest` 2.5.15 **não** é oferecido como alvo.
 - F.4.5.3 Registrar resultados no PLAN/TODO e commitar.
 
-### Fase AI-2 — Governança e ergonomia das customizações AI
+### Fase AI-2 — Governança e ergonomia das customizações AI ✅
 
+> **Status: concluída em 2026-10-07** (VS Code 1.141.0). Validação AI-2.8:
+> `npm test` 844/844, `lint`, `format:check`, `defence:check-md-links` (178),
+> `defence:check-external-urls` (100), `defence:verify-defences` (72) e
+> `bash .husky/pre-commit` — todos passando.
+>
+> Critérios de aceite verificados: 6 skills com `context: fork` (sem efeito
+> observável no 1.141 — mantido como futuramente ativável, documentado em
+> `ai-lessons-learned.md`); `hooks.sanity.test.js` verde; índice de skills com
+> drift check; menu `/` sem skills de background; always-on em 2.412 bytes
+> (≤ 3 KB); write guard bloqueando `.env*`/`.git/`/paths externos; bloqueios
+> logados em `security-blocks.log`; state files com `schemaVersion: 1`.
+>
 > **Decisão do mantenedor (2026-10-05): executar após a Fase F.** Itens derivados
 > da avaliação da estrutura de AI pós-AI-1. Nenhum item é P0; o objetivo é
 > reduzir falhas silenciosas, ruído de invocação e drift de documentação.
