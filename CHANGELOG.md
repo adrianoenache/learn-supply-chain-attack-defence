@@ -204,6 +204,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `.github/hooks/scripts/suggest-validation.test.js`: first test coverage for
   the post-edit suggestion hook, including a regression guard against
   hardcoded test counts (the script used to embed "432/432 expected").
+- `.github/skills/scripts/generate-skills-index.js` and the generated
+  `.github/skills/README.md` (Fase AI-2.5): human-facing skills index
+  (invocation mode, fork status, description) regenerated from frontmatters;
+  a drift check in `skills.sanity.test.js` fails `npm test` when the
+  committed index is stale.
 
 ### Fixed (Fase AI-2.4)
 

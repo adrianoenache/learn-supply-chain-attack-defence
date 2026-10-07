@@ -133,9 +133,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     hardcoded obsoleta "432/432 expected"; o escopo por path já existia dentro
     dos scripts (o campo `matcher` filtra por nome de ferramenta, não por path)
     e foi ampliado para cobrir testes em `.github/`.
-- [ ] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
+- [x] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
   gerando `.github/skills/README.md`, com teste de drift no `npm test` e link
   nos ai-guidelines bilíngues.
+  - Concluído em 2026-10-07: índice com 18 skills (modo de invocação, fork,
+    descrição), `--check` idempotente integrado ao sanity suite (182 testes).
 - [ ] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
   (≤ 2,5 KB sem perder regras), deduplicar regras repetidas entre camadas por
   referência, guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,

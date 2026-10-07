@@ -127,6 +127,11 @@ Conventions (established 2026-10-07, Phase AI-2.2):
 - Use **background** for knowledge the model should load when relevant but that
   would only add noise to the `/` menu.
 
+The [Skills Index](../../.github/skills/README.md) is auto-generated from the
+skill frontmatters (invocation mode, fork status, description). Regenerate it
+with `node .github/skills/scripts/generate-skills-index.js` after editing any
+skill — `npm test` fails when the committed index drifts from the frontmatters.
+
 Reusable skills include:
 
 | Skill | Use When |

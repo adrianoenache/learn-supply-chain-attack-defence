@@ -127,6 +127,12 @@ Convenções (estabelecidas em 2026-10-07, Fase AI-2.2):
 - Use **background** para conhecimento que o modelo deve carregar por
   relevância, mas que só adicionaria ruído ao menu `/`.
 
+O [Índice de Skills](../../.github/skills/README.md) é gerado automaticamente
+a partir dos frontmatters das skills (modo de invocação, fork, descrição).
+Regenere-o com `node .github/skills/scripts/generate-skills-index.js` após
+editar qualquer skill — o `npm test` falha quando o índice commitado diverge
+dos frontmatters.
+
 Skills reutilizáveis incluem:
 
 | Skill | Use Quando |

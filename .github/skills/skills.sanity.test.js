@@ -16,6 +16,7 @@ const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 
 const SKILLS_DIR = path.resolve(__dirname);
 
@@ -91,6 +92,8 @@ function listSkillDirs() {
     .readdirSync(SKILLS_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
+    // `scripts/` holds the index generator itself, not a skill.
+    .filter((name) => name !== 'scripts')
     .sort();
 }
 
@@ -215,4 +218,22 @@ describe('skills sanity', () => {
       })
     });
   }
+
+  describe('skills index drift', () => {
+    it('README.md should be in sync with the skill frontmatters', () => {
+      // The generated index is the human-facing map of the skills; drift
+      // means it lies about what exists. --check regenerates in memory and
+      // compares against the committed file without writing anything.
+      const result = spawnSync(
+        process.execPath,
+        [path.join(SKILLS_DIR, 'scripts', 'generate-skills-index.js'), '--check'],
+        { encoding: 'utf8', timeout: 10000 },
+      );
+      assert.equal(
+        result.status,
+        0,
+        `skills index drifted — regenerate with: node .github/skills/scripts/generate-skills-index.js\n${result.stderr}`,
+      );
+    });
+  });
 });
