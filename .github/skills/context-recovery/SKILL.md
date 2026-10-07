@@ -1,6 +1,7 @@
 ---
 name: context-recovery
 description: Reconstruct the current project state from versioned files when a chat session starts or when resuming work after a break, crash, or loss of session memory. Reads .github/PLAN.md, TODO.md, and PROJECT_STATUS_REPORT.md before any action is proposed.
+user-invocable: false
 context: fork
 ---
 

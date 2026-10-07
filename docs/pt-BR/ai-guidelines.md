@@ -109,6 +109,24 @@ Skills que leem muitos arquivos ou produzem raciocínio intermediário longo rod
 > inócuo quando não suportado e pode ser ativado em versões futuras; revalidar
 > após atualizações do VS Code.
 
+### Matriz de visibilidade das skills
+
+Cada skill tem exatamente um modo de invocação, declarado no frontmatter:
+
+| Modo | Frontmatter | No menu `/` | Carregada automaticamente pelo modelo | Skills |
+| --- | --- | --- | --- | --- |
+| **Automática** (padrão) | nenhuma flag | ✅ Sim | ✅ Sim, quando relevante | `dependency-review`, `docs-completeness`, `docs-update`, `educational-code-review`, `pre-commit-hash-sync`, `release-checklist`, `repository-organization-audit`, `script-contract-verification`, `security-audit`, `self-review`, `shell-script-review`, `validate-urls` |
+| **Manual** | `disable-model-invocation: true` | ✅ Sim | ❌ Não | `check-hardcoded-values`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
+| **Background** | `user-invocable: false` | ❌ Não | ✅ Sim, quando relevante | `context-recovery`, `subagent-invocation` |
+
+Convenções (estabelecidas em 2026-10-07, Fase AI-2.2):
+
+- Novas skills são **automáticas** por padrão, salvo motivo para restringir.
+- Use **manual** para skills de tarefa one-shot (convertidas dos antigos
+  prompts) cuja execução deve ser sempre uma decisão explícita do usuário.
+- Use **background** para conhecimento que o modelo deve carregar por
+  relevância, mas que só adicionaria ruído ao menu `/`.
+
 Skills reutilizáveis incluem:
 
 | Skill | Use Quando |

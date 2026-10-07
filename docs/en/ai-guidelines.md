@@ -109,6 +109,24 @@ Skills that read many files or produce long intermediate reasoning run in a **fo
 > when unsupported and may activate in future releases; re-validate after VS
 > Code updates.
 
+### Skill visibility matrix
+
+Each skill has exactly one invocation mode, declared in its frontmatter:
+
+| Mode | Frontmatter | In `/` menu | Auto-loaded by the model | Skills |
+| --- | --- | --- | --- | --- |
+| **Automatic** (default) | neither flag | ✅ Yes | ✅ Yes, when relevant | `dependency-review`, `docs-completeness`, `docs-update`, `educational-code-review`, `pre-commit-hash-sync`, `release-checklist`, `repository-organization-audit`, `script-contract-verification`, `security-audit`, `self-review`, `shell-script-review`, `validate-urls` |
+| **Manual** | `disable-model-invocation: true` | ✅ Yes | ❌ No | `check-hardcoded-values`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
+| **Background** | `user-invocable: false` | ❌ No | ✅ Yes, when relevant | `context-recovery`, `subagent-invocation` |
+
+Conventions (established 2026-10-07, Phase AI-2.2):
+
+- New skills default to **automatic** unless there is a reason to restrict them.
+- Use **manual** for one-shot task skills (converted from the removed prompt
+  files) whose execution should always be an explicit user decision.
+- Use **background** for knowledge the model should load when relevant but that
+  would only add noise to the `/` menu.
+
 Reusable skills include:
 
 | Skill | Use When |

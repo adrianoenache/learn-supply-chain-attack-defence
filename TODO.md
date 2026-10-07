@@ -113,9 +113,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `project-status-evaluation`, `docs-completeness`, `validate-urls`) e
   documentar o requisito experimental nos ai-guidelines bilíngues.
   - Concluído em 2026-10-07 (VS Code 1.141.0 com `skillTool.enabled`).
-- [ ] **AI-2.2** Marcar skills de conhecimento de fundo com
+- [x] **AI-2.2** Marcar skills de conhecimento de fundo com
   `user-invocable: false` (`subagent-invocation`, `context-recovery`) e
   documentar a matriz de visibilidade (automática/manual/oculta).
+  - Concluído em 2026-10-07: matriz documentada nos ai-guidelines bilíngues;
+    12 automáticas, 4 manuais, 2 background.
 - [ ] **AI-2.3** Empacotar recursos nas skills: `release-checklist/checklist-template.md`
   e `generate-test/test-template.js`, referenciados via links relativos;
   estender `skills.sanity.test.js` para validar que recursos linkados existem.
