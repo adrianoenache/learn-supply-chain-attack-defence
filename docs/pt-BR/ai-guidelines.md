@@ -169,3 +169,5 @@ Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https:/
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Valida chamadas `runSubagent`, emitindo contexto educativo, advertência ou bloqueio com base nas ferramentas declaradas do agente alvo. |
 
 As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
+
+As configurações dos hooks são validadas por `.github/hooks/hooks.sanity.test.js` (registrado no `npm test`): falha ruidosamente quando um JSON de hook está malformado, usa um evento não documentado, referencia um script inexistente, ou quando um script de hook menciona uma skill que não existe — o loader de hooks do Copilot descarta itens malformados silenciosamente, então essas checagens são o único alerta antecipado. Hooks de pós-edição escopam suas sugestões por caminho de arquivo dentro dos scripts (lint para `tools/**`, testes para qualquer `*.test.js`, verificação de links para docs), mantendo edições não relacionadas livres de ruído.

@@ -31,8 +31,8 @@ if printf '%s' "$FILE_PATH" | grep -qE '^tools/.*\.js$'; then
   MESSAGE="${MESSAGE}Run \`npm run lint\` to verify the edited file follows Biome rules.\n"
 fi
 
-if printf '%s' "$FILE_PATH" | grep -qE '^tools/.*\.test\.js$'; then
-  MESSAGE="${MESSAGE}Run \`npm test\` to confirm the new or updated tests pass (432/432 expected).\n"
+if printf '%s' "$FILE_PATH" | grep -qE '^(tools|\.github)/.*\.test\.js$'; then
+  MESSAGE="${MESSAGE}Run \`npm test\` to confirm the new or updated tests pass.\n"
 fi
 
 if printf '%s' "$FILE_PATH" | grep -qE '^(docs/.*|README\.md|SECURITY\.md|CONTRIBUTING\.md|CHANGELOG\.md)$'; then

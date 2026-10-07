@@ -198,6 +198,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `user-invocable: false` on `context-recovery` and `subagent-invocation`
   (Fase AI-2.2), with the skill visibility matrix (automatic / manual /
   background) documented in the bilingual AI guidelines.
+- `.github/hooks/hooks.sanity.test.js` (Fase AI-2.4): validates every hook
+  JSON (schema fields, documented events, referenced scripts) and every skill
+  path mentioned by hook scripts; registered in `test`/`test:coverage`.
+- `.github/hooks/scripts/suggest-validation.test.js`: first test coverage for
+  the post-edit suggestion hook, including a regression guard against
+  hardcoded test counts (the script used to embed "432/432 expected").
+
+### Fixed (Fase AI-2.4)
+
+- `suggest-validation.sh` no longer embeds the stale `432/432 expected` test
+  count and now suggests `npm test` for any `*.test.js` (the sanity suites in
+  `.github/` are part of the suite since Fase AI-1).
 
 ### Changed (Fase F.4 — actionable quarantine intermediates)
 

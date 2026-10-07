@@ -123,11 +123,16 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   estender `skills.sanity.test.js` para validar que recursos linkados existem.
   - Concluído em 2026-10-07: 181 testes de sanidade (18 novos de recursos);
     `file-organization.instructions.md` documenta o padrão de recursos.
-- [ ] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
+- [x] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
   campos obrigatórios da hooks reference, scripts e skills referenciadas
   existem), registrá-lo nos scripts `test`/`test:coverage`, e escopar hooks de
   pós-edição por glob (`auto-lint-test` → `tools/**/*.js`, `validate-urls` →
   docs/config).
+  - Concluído em 2026-10-07: 30 testes de sanidade de hooks + 8 testes novos
+    para `suggest-validation.sh` (que não tinha cobertura); corrigida contagem
+    hardcoded obsoleta "432/432 expected"; o escopo por path já existia dentro
+    dos scripts (o campo `matcher` filtra por nome de ferramenta, não por path)
+    e foi ampliado para cobrir testes em `.github/`.
 - [ ] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
   gerando `.github/skills/README.md`, com teste de drift no `npm test` e link
   nos ai-guidelines bilíngues.
