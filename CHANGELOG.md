@@ -189,6 +189,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - AI agent security references section in `docs/{en,pt-BR}/references.md`,
   starting with APPA (arXiv:2607.24625), which informed the AI-2.7.5
   repair-oriented blocking and the AI-3.2 output-sanitization items.
+- Bundled skill resources (Fase AI-2.3):
+  `.github/skills/release-checklist/checklist-template.md` and
+  `.github/skills/generate-test/test-template.js`, both referenced from their
+  `SKILL.md` so the Agent Skills loader picks them up;
+  `skills.sanity.test.js` now fails when a `SKILL.md` links a resource that
+  does not exist in the skill directory.
+- `user-invocable: false` on `context-recovery` and `subagent-invocation`
+  (Fase AI-2.2), with the skill visibility matrix (automatic / manual /
+  background) documented in the bilingual AI guidelines.
 
 ### Changed (Fase F.4 — actionable quarantine intermediates)
 

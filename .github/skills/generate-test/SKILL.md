@@ -22,6 +22,10 @@ Generate unit or integration tests for a specific file or function in this proje
 Generate tests for the file or function provided with the invocation. If none
 was provided, ask the user which file or function to cover before proceeding.
 
+Start from the bundled [test-template.js](./test-template.js): it already
+encodes the conventions above (fresh module load per test, DI hooks, explicit
+timeouts, arrange/act/assert, justified fixtures).
+
 ## Requirements
 
 1. Cover happy path, edge cases, and error paths.

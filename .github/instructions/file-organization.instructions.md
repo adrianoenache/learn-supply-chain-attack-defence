@@ -27,7 +27,9 @@ Applies to: `tools/**`, `tools/lib/**`, `docs/**`, `.github/**`
 ## AI Customizations
 
 - Agents: `.github/agents/<domain>.agent.md`
-- Skills: `.github/skills/<name>/SKILL.md`
+- Skills: `.github/skills/<name>/SKILL.md` (plus optional bundled resources —
+  templates, examples, scripts — referenced via relative links from `SKILL.md`;
+  the Agent Skills spec only loads referenced files)
 - Instructions: `.github/instructions/<domain>.instructions.md`
 - Hooks: `.github/hooks/<enforcement-type>.json`
 

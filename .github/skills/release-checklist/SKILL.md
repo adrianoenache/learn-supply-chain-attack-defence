@@ -13,6 +13,10 @@ Execute the release checklist consistently and produce the v1.0.0 tag and GitHub
 
 ## Procedure
 
+Use the bundled [checklist-template.md](./checklist-template.md) as the working
+artifact for the release execution: copy it, fill each item, and keep it out of
+the repository (it is a scratch artifact, not a deliverable).
+
 1. **Confirm TODO.md is 100% complete.** No open P0/P1 items should remain.
 
 2. **Run the full local validation matrix:**

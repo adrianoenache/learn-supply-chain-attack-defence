@@ -191,6 +191,28 @@ describe('skills sanity', () => {
           );
         }
       });
+
+      it('should reference only existing local resources', () => {
+        // The Agent Skills spec only loads bundled resources that are
+        // referenced from SKILL.md, so a broken relative link means the agent
+        // never receives the resource. Anchors, absolute paths (~/…), and
+        // external URLs are out of scope here — external URLs are covered by
+        // tools/check-external-urls.js.
+        const content = fs.readFileSync(fullPath, 'utf8')
+        const linkPattern = /\]\(([^)#\s]+)(#[^)]*)?\)/g
+        let match
+        while ((match = linkPattern.exec(content)) !== null) {
+          const target = match[1]
+          if (/^[a-z]+:/i.test(target)) continue // external URL
+          if (target.startsWith('~') || path.isAbsolute(target)) continue
+          const resolved = path.resolve(SKILLS_DIR, dir, target)
+          assert.ok(
+            fs.existsSync(resolved),
+            `broken resource link "${target}" in ${dir}/SKILL.md ` +
+              '(the Agent Skills spec only loads referenced files)',
+          )
+        }
+      })
     });
   }
 });

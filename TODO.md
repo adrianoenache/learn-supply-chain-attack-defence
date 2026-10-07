@@ -118,9 +118,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   documentar a matriz de visibilidade (automática/manual/oculta).
   - Concluído em 2026-10-07: matriz documentada nos ai-guidelines bilíngues;
     12 automáticas, 4 manuais, 2 background.
-- [ ] **AI-2.3** Empacotar recursos nas skills: `release-checklist/checklist-template.md`
+- [x] **AI-2.3** Empacotar recursos nas skills: `release-checklist/checklist-template.md`
   e `generate-test/test-template.js`, referenciados via links relativos;
   estender `skills.sanity.test.js` para validar que recursos linkados existem.
+  - Concluído em 2026-10-07: 181 testes de sanidade (18 novos de recursos);
+    `file-organization.instructions.md` documenta o padrão de recursos.
 - [ ] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
   campos obrigatórios da hooks reference, scripts e skills referenciadas
   existem), registrá-lo nos scripts `test`/`test:coverage`, e escopar hooks de
