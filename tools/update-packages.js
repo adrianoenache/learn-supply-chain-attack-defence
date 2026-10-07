@@ -148,11 +148,28 @@ function readJsonSafe(filePath) {
   }
 }
 
+// Newest state-file schema this reader understands (Fase AI-2.7.4). A newer
+// schemaVersion means the file was written by a newer check-updates.js and
+// may carry fields or semantics this version would misinterpret.
+const SUPPORTED_STATE_SCHEMA = 1
+
+function warnOnNewerStateSchema(state) {
+  const version = state?.schemaVersion
+  if (typeof version === 'number' && version > SUPPORTED_STATE_SCHEMA) {
+    console.error(
+      `\n⚠️  .defence-update-check.json has schemaVersion ${version}, ` +
+        `but this tool understands up to ${SUPPORTED_STATE_SCHEMA}. ` +
+        'Regenerate the scan with npm run defence:update-check -- --force.',
+    )
+  }
+}
+
 function loadEligibleUpdates() {
   const state = readJsonSafe(STATE_FILE)
   if (!state || !Array.isArray(state.eligible)) {
     return []
   }
+  warnOnNewerStateSchema(state)
   return state.eligible
 }
 
@@ -173,6 +190,7 @@ function getActionableQuarantine(state) {
 
 function loadActionableUpdates() {
   const state = readJsonSafe(STATE_FILE)
+  warnOnNewerStateSchema(state)
   return {
     eligible: state && Array.isArray(state.eligible) ? state.eligible : [],
     quarantine: getActionableQuarantine(state),
@@ -269,6 +287,9 @@ function saveDecisions(approved, rejected) {
     source,
   })
   const decisions = {
+    // Decisions-file schema version (Fase AI-2.7.4); readers of this file
+    // should warn when encountering a newer version.
+    schemaVersion: 1,
     updatedAt: new Date().toISOString(),
     approved: approved.map(toEntry),
     rejected: rejected.map(toEntry),

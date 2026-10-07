@@ -166,7 +166,8 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 
 | Hook | Purpose |
 | --- | --- |
-| [`.github/hooks/enforce-security.json`](../../.github/hooks/enforce-security.json) | Denies dangerous `bash`/`powershell` tool calls such as direct `npm install` or removing `ignore-scripts`. |
+| [`.github/hooks/enforce-security.json`](../../.github/hooks/enforce-security.json) | Denies dangerous `bash`/`powershell` tool calls such as direct `npm install` or removing `ignore-scripts`. Every block names the sanctioned alternative (repair-oriented) and is logged to the gitignored `security-blocks.log` for periodic review. |
+| [`.github/hooks/enforce-write-paths.json`](../../.github/hooks/enforce-write-paths.json) | Denies writes to `.env*`, `.git/`, and paths escaping the workspace; warns deliberately on `.husky/` and `package.json` edits. |
 | [`.github/hooks/auto-lint-test.json`](../../.github/hooks/auto-lint-test.json) | Suggests running lint, tests, link checks, doc-drift checks, and command-contract verification after file edits. |
 | [`.github/hooks/inject-context.json`](../../.github/hooks/inject-context.json) | Injects project context (engines, TODO count, defence manifest) at session start. |
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Reminds agents to update integrity hashes after `.husky/pre-commit` edits. |
@@ -174,5 +175,11 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Validates `runSubagent` calls, emitting educational, warning, or blocking context based on the target agent's declared tools. |
 
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
+
+### Agent execution security layers
+
+The hooks above are the **deterministic policy layer** — they travel with the repository and apply to every contributor's AI session. VS Code 1.141 added an optional, complementary layer below them: [agent host sandboxing](https://code.visualstudio.com/docs/agents/run/agent-sandboxing) (`chat.agent.sandbox.enabled`), which restricts filesystem and network access at the OS level to reduce the impact of model mistakes and prompt injection. The two layers are independent: hooks enforce project policy; the sandbox contains accidents. Enabling the sandbox is recommended for local development but is a per-user setting — the project never depends on it.
+
+The `agents.sanity.test.js` suite also enforces that any agent with `run_in_terminal` declares a restricted `applyTo` scope, so terminal power is always paired with a visible blast radius.
 
 Hook configs are validated by `.github/hooks/hooks.sanity.test.js` (registered in `npm test`): it fails loudly when a hook JSON is malformed, uses an undocumented event, references a missing script, or when a hook script mentions a skill that does not exist — the Copilot hooks loader drops malformed items silently, so these checks are the only early warning. Post-edit hooks scope their suggestions by file path inside the scripts (lint for `tools/**`, tests for any `*.test.js`, link checks for docs), keeping unrelated edits free of noise.

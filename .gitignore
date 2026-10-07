@@ -84,7 +84,8 @@ tools/e2e/.cache/
 
 # Incremental external URL reachability cache (never commit; per-developer state)
 .external-urls-cache.json
-
+# Hook security-block audit log (never commit; local-only audit trail)
+.github/hooks/scripts/security-blocks.log
 # Registry response cache for defence tools (never commit; per-developer state)
 .cache/
 

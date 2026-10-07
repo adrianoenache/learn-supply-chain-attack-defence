@@ -473,8 +473,13 @@ function loadState() {
   return readJsonSafe(STATE_FILE)
 }
 
+// State-file schema version (Fase AI-2.7.4). Bump when the shape changes in a
+// way readers must not silently misinterpret; readers warn when the file is
+// newer than what they understand.
+const STATE_SCHEMA_VERSION = 1
+
 function saveState(state) {
-  writeJson(STATE_FILE, state)
+  writeJson(STATE_FILE, { schemaVersion: STATE_SCHEMA_VERSION, ...state })
 }
 
 // ---------------------------------------------------------------------------

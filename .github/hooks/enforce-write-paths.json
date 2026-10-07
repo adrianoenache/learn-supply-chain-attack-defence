@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "edit|create|write",
+        "bash": "bash .github/hooks/scripts/enforce-write-paths.sh",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

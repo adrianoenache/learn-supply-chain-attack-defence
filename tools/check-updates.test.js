@@ -1710,5 +1710,26 @@ describe('check-updates', () => {
         mod.resetImpls()
       }
     })
+
+    test('persists schemaVersion in the saved state', async () => {
+      // State files are cross-tool contracts (Fase AI-2.7.4): readers warn on
+      // versions newer than they understand, so writers must always stamp one.
+      const calls = []
+      const capturedWrites = []
+      const mod = readScriptExports()
+      setupScan(mod, calls, capturedWrites)
+
+      const originalLog = console.log
+      console.log = () => {}
+
+      try {
+        await mod.main(['--force', '--silent'])
+        const saved = JSON.parse(capturedWrites[0])
+        assert.equal(saved.schemaVersion, 1)
+      } finally {
+        console.log = originalLog
+        mod.resetImpls()
+      }
+    })
   })
 })

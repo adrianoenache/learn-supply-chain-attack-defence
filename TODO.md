@@ -146,7 +146,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-10-07: always-on 3,5 KB → 2,4 KB (−32%); regra de
     hardcoded values canonizada e referenciada; guardas de tamanho ativas;
     path de memória de sessão agnóstico de harness.
-- [ ] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
+- [x] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
   escrita em `.env*`, `.git/`, fora do workspace; fricção extra para
   `.husky/`/`package.json`), log JSONL de bloqueios do `enforce-security`
   (gitignored), invariante no `agents.sanity.test.js` (agent com
@@ -154,6 +154,10 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `.defence-update-check.json`/`.defence-update-decisions.json` (P1), mensagens
   de bloqueio sempre indicando o caminho sancionado (APPA lite), e smoke test
   E2E do write guard (P3).
+  - Concluído em 2026-10-07: 13 testes de hooks novos (incl. primeira cobertura
+    do `enforce-security.sh`), 4 testes de schemaVersion, invariante de matriz
+    verde; documentação do sandboxing do VS Code 1.141 como camada
+    complementar.
 - [ ] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
   `ai-lessons-learned.md` atualizados.
 

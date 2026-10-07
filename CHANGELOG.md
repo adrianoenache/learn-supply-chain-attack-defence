@@ -212,6 +212,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Size budgets in `skills.sanity.test.js` (Fase AI-2.6): `SKILL.md` ≤ 10 KB
   and `copilot-instructions.md` ≤ 3 KB, so context growth fails loudly
   instead of taxing every chat request.
+- `.github/hooks/enforce-write-paths.json` + script (Fase AI-2.7.1): denies
+  agent writes to `.env*`, `.git/`, and paths escaping the workspace; warns
+  deliberately on `.husky/` and `package.json` edits. Covered by
+  `enforce-write-paths.test.js` (E2E via subprocess, AI-2.7.6).
+- `enforce-security.sh` now appends every blocked call to the gitignored
+  JSONL audit log `.github/hooks/scripts/security-blocks.log` (AI-2.7.2) and
+  is covered by `enforce-security.test.js`, which also enforces the
+  repair-oriented message rule (AI-2.7.5): every block names the sanctioned
+  alternative.
+- `agents.sanity.test.js` invariant (AI-2.7.3): agents with `run_in_terminal`
+  must declare a restricted `applyTo` scope.
+- `schemaVersion` on `.defence-update-check.json` and
+  `.defence-update-decisions.json` (AI-2.7.4): writers stamp it, readers warn
+  when the file is newer than they understand.
+- Bilingual AI guidelines document the new hook, the audit log, the agent
+  execution security layers (hooks + VS Code 1.141 sandboxing), and the
+  terminal-scope invariant.
 
 ### Changed (Fase AI-2.6)
 

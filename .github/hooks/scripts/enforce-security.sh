@@ -26,6 +26,18 @@ DECODED=$(printf '%s' "$COMBINED" | sed 's/\\"/"/g; s/\\\\/\\/g')
 
 deny() {
   local reason="$1"
+  # Audit trail (Fase AI-2.7.2): every blocked call is appended to a local
+  # JSONL log (gitignored) so false positives and real bypass attempts can be
+  # reviewed periodically. The log never leaves the machine and stores only
+  # a short prefix of the attempted command.
+  local log_file="$SCRIPT_DIR/security-blocks.log"
+  local snippet
+  snippet=$(printf '%s' "$DECODED" | head -c 200)
+  node -e "
+    const fs = require('node:fs');
+    const entry = { at: new Date().toISOString(), tool: process.argv[1], reason: process.argv[2], snippet: process.argv[3] };
+    fs.appendFileSync(process.argv[4], JSON.stringify(entry) + '\n');
+  " "$TOOL_NAME" "$reason" "$snippet" "$log_file" || true
   node -e "console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: process.argv[1] }))" "$reason"
   exit 0
 }

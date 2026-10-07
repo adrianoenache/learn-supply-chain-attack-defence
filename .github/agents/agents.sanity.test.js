@@ -170,6 +170,27 @@ describe('agents sanity', () => {
         }
       });
 
+      it('should restrict applyTo when run_in_terminal is declared', () => {
+        // Terminal access lets an agent execute arbitrary commands; the
+        // invariant (Fase AI-2.7.3) is that such power is always paired with a
+        // declared scope, so reviewers can see the intended blast radius.
+        const tools = frontmatter.tools || [];
+        const applyTo = frontmatter.applyTo || [];
+        if (tools.includes('run_in_terminal')) {
+          assert.ok(
+            Array.isArray(applyTo) && applyTo.length > 0,
+            `agent ${name} has run_in_terminal but no applyTo scope`,
+          );
+          for (const pattern of applyTo) {
+            assert.notEqual(
+              pattern,
+              '**',
+              `agent ${name} has run_in_terminal with an unbounded applyTo`,
+            );
+          }
+        }
+      });
+
       it('should have fetch_webpage when description mentions URL, web, external, or reference', () => {
         const description = String(frontmatter.description || '').toLowerCase();
         const tools = frontmatter.tools || [];

@@ -789,5 +789,116 @@ describe('update-packages', () => {
         mod.resetFsImpl()
       }
     })
+
+    test('warns on stderr when the state file has a newer schemaVersion', async () => {
+      // Cross-tool contract guard (Fase AI-2.7.4): a state file written by a
+      // newer check-updates may carry semantics this reader would misread.
+      const calls = []
+      const errors = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            schemaVersion: 99,
+            eligible: [
+              {
+                name: 'pkg',
+                current: '1.0.0',
+                latest: '1.1.0',
+                severity: 'minor',
+                intermediateEligible: ['1.1.0'],
+              },
+            ],
+            quarantine: [],
+          }),
+        }),
+      )
+
+      const originalError = console.error
+      console.error = (...args) => errors.push(args.join(' '))
+      const originalLog = console.log
+      console.log = () => {}
+
+      try {
+        const code = await mod.main()
+        assert.equal(code, 0)
+        assert.ok(
+          errors.some((line) => line.includes('schemaVersion 99')),
+          'should warn about the newer schema',
+        )
+      } finally {
+        console.error = originalError
+        console.log = originalLog
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+
+    test('does not warn for state files without schemaVersion or with a supported one', async () => {
+      const calls = []
+      const errors = []
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setFsImpl(
+        makeMockFs({
+          [STATE_PATH]: JSON.stringify({
+            schemaVersion: 1,
+            eligible: [],
+            quarantine: [],
+          }),
+        }),
+      )
+
+      const originalError = console.error
+      console.error = (...args) => errors.push(args.join(' '))
+      const originalLog = console.log
+      console.log = () => {}
+
+      try {
+        const code = await mod.main()
+        assert.equal(code, 0)
+        assert.ok(
+          !errors.some((line) => line.includes('schemaVersion')),
+          'no warning expected for a supported schema',
+        )
+      } finally {
+        console.error = originalError
+        console.log = originalLog
+        mod.resetSpawnSyncImpl()
+        mod.resetFsImpl()
+      }
+    })
+
+    test('saveDecisions stamps schemaVersion on the decisions file', () => {
+      const mod = readScriptExports()
+      const files = {}
+      mod.setFsImpl(makeMockFs(files))
+
+      try {
+        mod.saveDecisions(
+          [
+            {
+              item: {
+                name: 'pkg',
+                current: '1.0.0',
+                latest: '2.0.0',
+                severity: 'major',
+                intermediateEligible: ['1.1.0'],
+              },
+              source: 'quarantine',
+            },
+          ],
+          [],
+        )
+        const decisions = JSON.parse(
+          files[path.resolve(__dirname, '../.defence-update-decisions.json')],
+        )
+        assert.equal(decisions.schemaVersion, 1)
+        assert.equal(decisions.approved[0].source, 'quarantine')
+      } finally {
+        mod.resetFsImpl()
+      }
+    })
   })
 })
