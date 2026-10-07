@@ -321,7 +321,12 @@ function wrapExec(original) {
       }
     }
 
-    const child = original.call(this, command, options, wrappedCallback)
+    const child = childProcessImpl.exec.call(
+      this,
+      command,
+      options,
+      wrappedCallback,
+    )
     attachExitHandlers(child, event)
     return child
   }
@@ -337,7 +342,9 @@ function wrapExecSync(original) {
     const startTime = performanceImpl.now()
     let result
     try {
-      result = original.call(this, command, options)
+      // Route through the injectable implementation like the other wrappers,
+      // so tests (and the monitor's own DI contract) control the real call.
+      result = childProcessImpl.execSync.call(this, command, options)
       event.exitCode = 0
     } catch (err) {
       event.exitCode = err.status ?? err.code ?? null

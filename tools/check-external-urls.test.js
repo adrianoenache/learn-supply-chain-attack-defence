@@ -182,4 +182,85 @@ See https://example.com/real for details.`
       cleanup(tmpDir)
     }
   })
+
+  describe('checkUrl', () => {
+    const mod = require('./check-external-urls.js')
+
+    test('returns ok for a reachable URL', async () => {
+      mod.setImpls({ fetchBuffer: async () => Buffer.from('') })
+      try {
+        const result = await mod.checkUrl('https://example.com/ok')
+        assert.deepEqual(result, { ok: true, statusCode: 200 })
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('treats the 1-byte size-limit error as reachable', async () => {
+      // The check truncates responses at 1 byte; hitting the limit proves the
+      // server answered, so it must count as reachable.
+      mod.setImpls({
+        fetchBuffer: async () => {
+          throw new Error('response exceeded 1 bytes limit')
+        },
+      })
+      try {
+        const result = await mod.checkUrl('https://example.com/big')
+        assert.equal(result.ok, true)
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('treats 3xx redirects as reachable without following them', async () => {
+      mod.setImpls({
+        fetchBuffer: async () => {
+          const err = new Error('redirect')
+          err.statusCode = 302
+          throw err
+        },
+      })
+      try {
+        const result = await mod.checkUrl('https://example.com/moved')
+        assert.deepEqual(result, { ok: true, statusCode: 302 })
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('reports HTTP error status codes as broken', async () => {
+      mod.setImpls({
+        fetchBuffer: async () => {
+          const err = new Error('HTTP 404')
+          err.statusCode = 404
+          throw err
+        },
+      })
+      try {
+        // Fixture URL: the fetch is mocked, and the .invalid TLD (RFC 2606)
+        // guarantees the pre-commit URL checker never resolves a real host.
+        const result = await mod.checkUrl('https://example.invalid/missing')
+        assert.equal(result.ok, false)
+        assert.equal(result.statusCode, 404)
+      } finally {
+        mod.resetImpls()
+      }
+    })
+
+    test('reports network failures without a status code', async () => {
+      mod.setImpls({
+        fetchBuffer: async () => {
+          throw new Error('ECONNREFUSED')
+        },
+      })
+      try {
+        const result = await mod.checkUrl('https://example.invalid/down')
+        assert.equal(result.ok, false)
+        assert.equal(result.statusCode, null)
+        assert.equal(result.error, 'ECONNREFUSED')
+      } finally {
+        mod.resetImpls()
+      }
+    })
+  })
 })

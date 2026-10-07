@@ -215,6 +215,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/{en,pt-BR}/code-review-improvements.md` (Fase G): educational audit
   of all 34 production files — header standard formalized, zero P0, one P1
   (trust-engine scoring constants) fixed with inline justification.
+
+### Fixed (Fase G — coverage)
+
+- **Production bug found by the coverage push:** the `exec`/`execSync`
+  wrappers in `tools/lib/process-monitor.js` called the original
+  `child_process` functions instead of the injectable `childProcessImpl`,
+  breaking the monitor's DI contract (and silently executing real commands in
+  tests). Both wrappers now route through the injected implementation.
+- Line coverage raised from 94.70% to 95.94% with 14 new tests on the four
+  biggest hotspots (`update-badge.js` 83→98%, `process-monitor.js` 87→96%,
+  `run-audit-with-retry.js` 86→93%, `check-external-urls.js` 86→95%).
 - `.github/hooks/enforce-write-paths.json` + script (Fase AI-2.7.1): denies
   agent writes to `.env*`, `.git/`, and paths escaping the workspace; warns
   deliberately on `.husky/` and `package.json` edits. Covered by

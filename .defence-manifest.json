@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-07T22:10:01.096Z",
+  "installedAt": "2026-10-07T22:31:45.859Z",
   "files": [
     {
       "path": ".npmrc",
@@ -48,7 +48,7 @@
     },
     {
       "path": "tools/check-external-urls.test.js",
-      "hash": "31d8e4480e1887afbe2e3c7f6c61fd465264724c566056f983ef612224cd7424"
+      "hash": "b4e3f10c1c972b5cf5adbc6b7ac4d03334b46be3f3763de7547589f5b80ea8d6"
     },
     {
       "path": "tools/check-hooks.js",
@@ -156,7 +156,7 @@
     },
     {
       "path": "tools/run-audit-with-retry.test.js",
-      "hash": "6cdf28fa5c35f98a31a008e905fc677ca24449da37b443cdb5c27e997f8fbc3a"
+      "hash": "a1db6bf4eb5c52d16b5740c65f6f4c9e3c92f2f4ba85df2cd16509214c178212"
     },
     {
       "path": "tools/setup-bootstrap.js",
@@ -172,7 +172,7 @@
     },
     {
       "path": "tools/update-badge.test.js",
-      "hash": "b6edd6b99b468853f854b473807d1dd10cfaccfeab561b68852c228bf67729ad"
+      "hash": "8307b67d89ff29de638313dba9f91c4d121f039409dd098ce30d13de8c5d0c9e"
     },
     {
       "path": "tools/update-packages.js",
@@ -240,11 +240,11 @@
     },
     {
       "path": "tools/lib/process-monitor.js",
-      "hash": "967161c9a3671ea2eb40a23105458add0be26c5f9b5510485fad12e936d7f9b3"
+      "hash": "b6364d82dc88ead01b4a02af0f9296796997ff770e826f523fe0dfeee23c0709"
     },
     {
       "path": "tools/lib/process-monitor.test.js",
-      "hash": "9d028d838074325f005597779800841182b785f0d55dbae185a5089e7ff0e6ed"
+      "hash": "172cf5c68eead06d774abc3b2dc7581338a0a138a14e462f2d96350654765ab9"
     },
     {
       "path": "tools/lib/install-monitor-report.js",

@@ -34,3 +34,17 @@ Each entry must include:
   `tools/lib/script-analyzer.test.js`
 - **Why kept:** Fictitious attacker-controlled URL used as a fixture when
   testing detection of malicious lifecycle scripts and network calls.
+
+### `https://example.invalid/missing`
+
+- **Used in:** `tools/check-external-urls.test.js`
+- **Why kept:** Fixture for the `checkUrl` HTTP-404 branch. The fetch is
+  mocked in the test, and the `.invalid` TLD (RFC 2606) guarantees no real
+  host is ever contacted.
+
+### `https://example.invalid/down`
+
+- **Used in:** `tools/check-external-urls.test.js`
+- **Why kept:** Fixture for the `checkUrl` network-failure branch. The fetch
+  is mocked in the test, and the `.invalid` TLD (RFC 2606) guarantees no real
+  host is ever contacted.

@@ -180,7 +180,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] **AI-3.5** Memória de decisões: criar `DECISIONS.md` (ADRs leves) e
   estender `context-recovery` com destilação de fim de sessão.
 
-## Fase G — Code review educacional (quase concluída)
+## Fase G — Code review educacional ✅
 
 - [x] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
   - Formalizado em 2026-10-07: todos os 34 arquivos de produção já seguiam o
@@ -192,12 +192,10 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     corrigido inline. P2: 2 itens documentados como débito.
 - [x] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
   P0/P1.
-- [ ] Elevar a cobertura de linhas para ≥ 95% (avaliação 2026-10-07: 94,70%
-  geral; rodar `npm run test:coverage` para a lista atual de arquivos abaixo da
-  meta — 15 identificados nesta data, incl. `update-badge.js` 83%,
-  `run-audit-with-retry.js` 86%, `check-external-urls.js` 86%), conforme meta
-  de `testing.md` e gate de conclusão (Fase J).
-  - **Permanece aberto** — é o único item pendente da fase G.
+- [x] Elevar a cobertura de linhas para ≥ 95% (concluído em 2026-10-07:
+  **95,94%**, era 94,70%; +14 testes nos 4 maiores hotspots; a busca por
+  cobertura revelou e corrigiu um bug de produção nos wrappers `exec`/`execSync`
+  de `tools/lib/process-monitor.js`, que ignoravam a implementação injetável).
 
 ## Fase H — Organização e governança
 

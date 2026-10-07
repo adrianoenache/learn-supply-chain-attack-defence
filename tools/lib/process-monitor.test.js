@@ -205,4 +205,66 @@ describe('process-monitor', () => {
     processMonitor.stopMonitoring()
     assert.equal(cp.spawnSync, original)
   })
+
+  it('records exec events with error details in the callback', async () => {
+    const mockCp = makeMockChildProcess()
+    // Override exec to invoke the callback with an error, covering the
+    // error branch of the wrapped callback.
+    const err = Object.assign(new Error('command failed'), {
+      code: 127,
+      signal: null,
+    })
+    mockCp.exec = (_command, _options, callback) => {
+      const child = mockCp.createMockChild()
+      process.nextTick(() => {
+        child.emit('spawn')
+        callback(err, '', 'not found')
+        child.emit('exit', 127, null)
+      })
+      return child
+    }
+    processMonitor.setImpls({
+      childProcess: mockCp,
+      process: makeMockProcess(),
+      performance: makeMockPerformance(),
+    })
+
+    processMonitor.startMonitoring()
+    const cp = require('node:child_process')
+    await new Promise((resolve) => {
+      cp.exec('missing-cmd', { cwd: '/project' }, () => resolve())
+    })
+    processMonitor.stopMonitoring()
+
+    const events = processMonitor.getEvents()
+    assert.equal(events.length, 1)
+    assert.equal(events[0].command, 'missing-cmd')
+    // The wrapped callback records error.code (127 from our mock error).
+    assert.equal(events[0].exitCode, 127)
+  })
+
+  it('records execSync events including failures', () => {
+    const mockCp = makeMockChildProcess()
+    mockCp.execSync = () => {
+      const err = new Error('execSync failed')
+      err.status = 2
+      throw err
+    }
+    processMonitor.setImpls({
+      childProcess: mockCp,
+      process: makeMockProcess(),
+      performance: makeMockPerformance(),
+    })
+
+    processMonitor.startMonitoring()
+    const cp = require('node:child_process')
+    assert.throws(() => cp.execSync('failing-cmd', {}))
+    processMonitor.stopMonitoring()
+
+    const events = processMonitor.getEvents()
+    assert.equal(events.length, 1)
+    assert.equal(events[0].command, 'failing-cmd')
+    assert.equal(events[0].exitCode, 2)
+    assert.ok(events[0].durationMs !== null)
+  })
 })

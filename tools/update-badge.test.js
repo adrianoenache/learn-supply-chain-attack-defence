@@ -256,4 +256,73 @@ describe('update-badge', () => {
     assert.equal(result.status, 0)
     assert.ok(result.stdout.includes('Test badge would be'))
   })
+
+  test('countTestsDynamically parses the TAP test count', () => {
+    // Covers the spawnSync path used when the script runs outside node:test.
+    const mod = readScriptExports()
+    mod.setImpls({ spawnSync: makeMockSpawnSync(123) })
+    try {
+      const count = mod.countTestsDynamically(['/tools/a.test.js'])
+      assert.equal(count, 123)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('countTestsDynamically throws an actionable error when the count is missing', () => {
+    const mod = readScriptExports()
+    mod.setImpls({
+      spawnSync: () => ({
+        status: 1,
+        stdout: '',
+        stderr: 'boom',
+        signal: null,
+      }),
+    })
+    try {
+      assert.throws(
+        () => mod.countTestsDynamically(['/tools/a.test.js']),
+        /Could not determine test count/,
+      )
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('countTestsDynamically returns 0 when there are no test files', () => {
+    const mod = readScriptExports()
+    try {
+      assert.equal(mod.countTestsDynamically([]), 0)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('main reports when the badge is already up to date', () => {
+    const mod = readScriptExports()
+    const files = {
+      [README_PATH]:
+        '![Tests](https://img.shields.io/badge/Tests-2%2F2%20passing-brightgreen)',
+      '/tools/a.test.js': "test('a1', () => {})\ntest('a2', () => {})",
+    }
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    mod.setImpls({
+      fs: makeMockFs(files),
+      globSync: makeMockGlob(['/tools/a.test.js']),
+      spawnSync: makeMockSpawnSync(2),
+      exit: () => {},
+      readmePath: README_PATH,
+    })
+
+    try {
+      const code = mod.main([])
+      assert.equal(code, 0)
+      assert.ok(logs.some((line) => line.includes('already up to date')))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
 })

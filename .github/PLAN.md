@@ -341,13 +341,17 @@ v1.0.0, com aprovação explícita).
 - AI-3.4 **Mapa da arquitetura de AI:** seção em `docs/{en,pt-BR}/architecture.md` descrevendo o modelo mental das 5 camadas (always-on → instructions → skills → agents → hooks) e onde posicionar cada tipo de regra nova.
 - AI-3.5 **Memória de decisões (M2/M3):** criar `DECISIONS.md` (ADRs leves: data, decisão, motivo, alternativa rejeitada — ex.: "F.4: intermediárias aplicáveis em quarentena porque passam pelo mesmo portão de idade"); estender a skill `context-recovery` com um passo de destilação de fim de sessão (extrair para DECISIONS/lessons o que merece persistir).
 
-### Fase G — Code review educacional (quase concluída)
+### Fase G — Code review educacional ✅
 
-> **Status (2026-10-07):** G.1–G.3 concluídos (relatório bilíngue em
+> **Status: concluída em 2026-10-07.** G.1–G.3 concluídos (relatório bilíngue em
 > `docs/{en,pt-BR}/code-review-improvements.md`, correção P1 aplicada no
-> `trust-engine.js`). **Item remanescente:** elevar a cobertura de linhas de
-> 94,70% para ≥ 95% (item registrado no `TODO.md` sob esta fase; a lista atual
-> de hotspots sai de `npm run test:coverage`).
+> `trust-engine.js`) e **cobertura elevada de 94,70% para 95,94%**, acima da
+> meta de ≥ 95%. A busca por cobertura encontrou e corrigiu um bug de produção
+> real: os wrappers `exec`/`execSync` de `tools/lib/process-monitor.js`
+> ignoravam a implementação injetável (`childProcessImpl`), quebrando o
+> contrato de DI do monitor. Hotspots atacados: `update-badge.js` 83→98%,
+> `process-monitor.js` 87→96%, `run-audit-with-retry.js` 86→93%,
+> `check-external-urls.js` 86→95%.
 
 ### Fase H — Organização e governança
 
