@@ -376,6 +376,31 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 > cobre apenas `tools/**/*.js` e `*.js` (`files.includes` em `biome.json`;
 > `biome check .github/` processa 0 arquivos). Os helpers
 > `tools/lib/concurrency.js`, `formatters.js` e `cli.js` não foram extraídos.
+>
+> **Refinamento (2026-10-08, aprovado pelo mantenedor) com dados reais:**
+> 0 arquivos órfãos em `tools/`; applyTo consistente (sem `**` amplo);
+> `runWithConcurrencyLimit` idêntica em 3 arquivos + 1 variação;
+> `parseCliArgs` em 12 arquivos mas com flags heterogêneas; formatters são
+> específicos de domínio. Conclusão: **extrair apenas `concurrency.js`**
+> (duplicação real); `formatters.js`/`cli.js` seriam falsa abstração —
+> documentar as convenções em vez de extrair.
+>
+> Sub-itens refinados:
+> - **H.1** Extrair `tools/lib/concurrency.js` de `check-updates.js`,
+>   `check-package-age.js`, `trust-engine.js` (e avaliar
+>   `check-external-urls.js`) + testes + manifesto.
+> - **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir.
+> - **H.3** Criar `.github/CODEOWNERS` (tools/, .npmrc, .husky/, hooks,
+>   workflows → mantenedor) + documentar a exigência de review de code owner
+>   na branch protection.
+> - **H.4** Corrigir o drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
+>   deve cobrir os mesmos arquivos do script `test` (incl. `.github/**`).
+> - **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
+>   final (incl. a decisão de não extrair formatters/cli).
+> - **H.6** Validação final (gates completos) + registrar no `DECISIONS.md` a
+>   decisão "documentar, não extrair" para formatters/cli.
+>
+> Itens originais preservados abaixo para rastreabilidade:
 
 - Auditar estrutura, padrões applyTo e arquivos órfãos.
 - Extrair helpers duplicados para `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js`.

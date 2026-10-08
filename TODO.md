@@ -209,14 +209,24 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## Fase H — Organização e governança
 
-- [ ] Auditar estrutura, padrões applyTo e arquivos órfãos.
-- [ ] Extrair helpers duplicados para `tools/lib/concurrency.js`,
-  `tools/lib/formatters.js`, `tools/lib/cli.js`.
-- [ ] Criar `docs/{en,pt-BR}/repository-organization.md`.
-- [ ] Criar `.github/CODEOWNERS` atribuindo `tools/`, `.npmrc`, `.husky/`,
-  `.github/hooks/` e `.github/workflows/` ao mantenedor + habilitar "require
-  review from code owners" na branch protection (camada organizacional de
-  defesa — P2, 2026-10-06).
+> Refinada em 2026-10-08 com dados reais (ver PLAN.md). Extrair apenas
+> `concurrency.js` (duplicação real); formatters/cli seriam falsa abstração —
+> documentar as convenções.
+
+- [ ] **H.1** Extrair `tools/lib/concurrency.js` (`runWithConcurrencyLimit`)
+  de `check-updates.js`, `check-package-age.js`, `trust-engine.js` e avaliar
+  `check-external-urls.js`; testes + regenerar manifesto.
+- [ ] **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir
+  (13 arquivos hoje não lintados).
+- [ ] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
+  `.github/hooks/`, `.github/workflows/` → mantenedor) + documentar a exigência
+  de review de code owner na branch protection.
+- [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
+  cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
+- [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
+  final (incl. a decisão de não extrair formatters/cli).
+- [ ] **H.6** Validação final + registrar no `DECISIONS.md` a decisão
+  "documentar, não extrair" para formatters/cli.
 - [ ] Corrigir drift do badge de testes (avaliação 2026-10-07):
   `tools/update-badge.js` conta apenas `tools/**/*.test.js` (469 testes),
   enquanto `npm test` executa 738 (inclui os sanity tests de `.github/`

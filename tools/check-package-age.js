@@ -21,6 +21,9 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { runWithConcurrencyLimit } = require(
+  path.resolve(__dirname, './lib/concurrency.js'),
+)
 const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
@@ -188,43 +191,6 @@ async function fetchPackageAge(name, version) {
 // this ensures the HTTP request is only started when a slot becomes available.
 // Returns an array in the same shape as Promise.allSettled.
 // Empty list resolves immediately with [].
-function runWithConcurrencyLimit(tasks, limit) {
-  return new Promise((resolve) => {
-    if (tasks.length === 0) return resolve([])
-    const results = new Array(tasks.length)
-    let started = 0
-    let completed = 0
-
-    function runNext() {
-      if (started >= tasks.length) return
-      const index = started++
-      Promise.resolve()
-        .then(() => tasks[index]())
-        .then(
-          (value) => {
-            results[index] = { status: 'fulfilled', value }
-            onDone()
-          },
-          (reason) => {
-            results[index] = { status: 'rejected', reason }
-            onDone()
-          },
-        )
-    }
-
-    function onDone() {
-      completed++
-      if (completed === tasks.length) {
-        resolve(results)
-        return
-      }
-      runNext()
-    }
-
-    const initial = Math.min(limit, tasks.length)
-    for (let i = 0; i < initial; i++) runNext()
-  })
-}
 
 async function main(options = {}) {
   // In test mode, allow injecting a custom package manifest, lockfile, argv, and exit function.
@@ -392,7 +358,6 @@ if (require.main === module) {
 module.exports = {
   fetchPackageAge,
   resolveExactVersion,
-  runWithConcurrencyLimit,
   MAX_RESPONSE_BYTES,
   main,
   buildDeps,

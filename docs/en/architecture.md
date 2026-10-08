@@ -42,6 +42,7 @@ This document describes the high-level architecture of the project: how the file
     ├── verify-defences.js
     └── lib/
         ├── config.js
+        ├── concurrency.js
         ├── package-utils.js
         ├── provenance.js
         ├── registry-cache.js
@@ -77,6 +78,7 @@ This document describes the high-level architecture of the project: how the file
 | `tools/install-defences.js` | Copies defences into another Node.js project and writes `.defence-manifest.json`. |
 | `tools/verify-defences.js` | Verifies copied files against `.defence-manifest.json`. |
 | `tools/lib/package-utils.js` | Shared helpers for parsing package specifiers. |
+| `tools/lib/concurrency.js` | Shared bounded-concurrency runner used by registry-parallel tools. |
 | `tools/lib/registry-cache.js` | Disk-backed registry response cache shared by tools that query npm. |
 | `tools/lib/retry-fetch.js` | Shared fetch layer with gzip support, response-size limits, and retry/backoff. |
 | `tools/lib/sync-check.js` | Verifies that `node_modules` matches `package-lock.json`. |
