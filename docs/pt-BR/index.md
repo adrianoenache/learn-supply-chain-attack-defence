@@ -48,6 +48,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 ### Projeto
 
 - [Arquitetura](architecture.md)
+- [Organização do repositório](repository-organization.md) — convenções de layout e a camada organizacional de defesa CODEOWNERS.
 - [Ferramentas](tools.md)
 - [Checklist de verificação de comandos](command-verification-checklist.md) — contrato CLI (flags, códigos de saída, formatos) de cada script `defence:*`.
 - [Decisões](../../DECISIONS.md) — ADRs leves registrando *por que* as escolhas-chave foram feitas.

@@ -253,6 +253,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-package-age.js` (and referenced by `trust-engine.js`) is now a single
   shared module with its own tests; the legacy re-export and duplicated tests
   in `check-package-age` were removed.
+- `.github/CODEOWNERS` (Fase H.3): the organizational defense layer — changes
+  to the defense tools, supply-chain policy files (`.npmrc`, `package.json`,
+  lockfile, manifest), git hooks, CI workflows, and the AI customization
+  surface now require code-owner review once branch protection is enabled;
+  `docs/{en,pt-BR}/repository-organization.md` documents the setup, and the
+  security index notes the human layer alongside the twelve technical ones.
 
 ### Changed (Fase H.2)
 

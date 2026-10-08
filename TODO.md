@@ -226,9 +226,16 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     ampliados para `tools/ .github/` (86 arquivos, +15); auto-fixes aplicados;
     correções manuais no template de teste (biome-ignore justificado) e no
     sanity suite (sem assignment-em-expressão).
-- [ ] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
+- [x] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
   `.github/hooks/`, `.github/workflows/` → mantenedor) + documentar a exigência
   de review de code owner na branch protection.
+  - Concluído em 2026-10-08: `.github/CODEOWNERS` criado cobrindo também a
+    superfície de AI (`copilot-instructions`, `instructions/`, `agents/`,
+    `skills/`); páginas `docs/{en,pt-BR}/repository-organization.md` criadas
+    com a seção CODEOWNERS completa (o restante da página é H.5); nota da
+    camada organizacional adicionada ao índice de segurança bilíngue.
+    **Pendente (ação manual do mantenedor no GitHub):** habilitar "Require
+    review from Code Owners" em Settings → Branches para `main` e `dev`.
 - [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
   cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
 - [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
