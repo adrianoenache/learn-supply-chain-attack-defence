@@ -117,6 +117,22 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** All files listed above plus
   `.github/ai-lessons-learned.md`.
 
+### 2026-10-08 — Date-stamped generated files break drift checks
+
+- **Date:** 2026-10-08
+- **Rule violated:** Deterministic, auditable behavior (tests must not depend
+  on wall-clock).
+- **Affected files:** `.github/skills/scripts/generate-skills-index.js`,
+  `.github/skills/README.md`
+- **What happened:** The generated skills index embedded `Last generated:
+  <date>`, so the drift check (`--check` in `npm test`) failed on the next
+  day without any content change — a false positive that would train
+  contributors to ignore the check.
+- **Correction applied:** the generator no longer embeds the generation date;
+  the README points to git history for chronology.
+- **Instruction/agent updated:** none — the fix is self-documenting in the
+  generator comment and README note.
+
 ### 2026-10-07 — `context: fork` has no observable effect in VS Code 1.141
 
 - **Date:** 2026-10-07

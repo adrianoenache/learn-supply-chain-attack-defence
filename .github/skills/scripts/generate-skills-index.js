@@ -118,7 +118,8 @@ function buildIndex(skills) {
     '',
     '---',
     '',
-    `*Last generated: ${new Date().toISOString().split('T')[0]}*`,
+    '*Last generated: see git history (the generation date is intentionally not',
+    ' embedded so the drift check does not produce false positives across days)*',
     '',
   ].join('\n');
 }
