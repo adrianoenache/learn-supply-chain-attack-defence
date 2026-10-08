@@ -163,22 +163,28 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-10-07: 844/844 testes, todos os gates verdes,
     pre-commit exit 0; PLAN.md registra os critérios de aceite verificados.
 
-## Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+## Fase AI-3 — Resiliência e observabilidade da estrutura de AI
 
-> Definida em 2026-10-06 na revisão da AI-2; executar após a Fase G (ou por
-> prioridade do mantenedor). Detalhamento em `.github/PLAN.md` (AI-3.1–AI-3.4).
+> Definida em 2026-10-06 na revisão da AI-2. Ressequenciada em 2026-10-08
+> (decisão do mantenedor) por dependência real: **AI-3.5 → H → I(+AI-3.4) →
+> AI-3.3 → J → AI-3.2 → AI-3.1 → K**. Detalhamento em `.github/PLAN.md`.
 
-- [ ] **AI-3.1** Otimizar o hook `inject-context` (medir custo do
-  session-start; cachear dados estáticos com invalidação por mtime).
-- [ ] **AI-3.2** Smoke test de prompt-injection e sanitização de outputs em CI
-  (fixtures com instruções maliciosas embutidas; validação de output de tools
-  externas antes de admitir no contexto — segunda fase do monitor, APPA).
-- [ ] **AI-3.3** Observabilidade estruturada: log JSONL unificado de hooks,
-  skills e bloqueios + página de docs bilíngue explicando a leitura.
-- [ ] **AI-3.4** Mapa da arquitetura de AI em `docs/{en,pt-BR}/architecture.md`
-  (as 5 camadas e onde posicionar regras novas).
-- [ ] **AI-3.5** Memória de decisões: criar `DECISIONS.md` (ADRs leves) e
-  estender `context-recovery` com destilação de fim de sessão.
+- [ ] **AI-3.5** (executar antes de H) Memória de decisões: criar
+  `DECISIONS.md` (ADRs leves) e estender `context-recovery` com destilação de
+  fim de sessão.
+- [ ] **AI-3.1** (última; condicionada à medição) Otimizar o hook
+  `inject-context` (medir custo do session-start; cachear dados estáticos com
+  invalidação por mtime).
+- [ ] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
+  outputs em CI (fixtures com instruções maliciosas embutidas; validação de
+  output de tools externas antes de admitir no contexto — segunda fase do
+  monitor, APPA).
+- [ ] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
+  unificado de hooks, skills e bloqueios + página de docs bilíngue explicando
+  a leitura.
+- [ ] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
+  `docs/{en,pt-BR}/architecture.md` (as 5 camadas e onde posicionar regras
+  novas).
 
 ## Fase G — Code review educacional ✅
 

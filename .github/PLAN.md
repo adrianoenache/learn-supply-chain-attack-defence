@@ -10,12 +10,15 @@
 
 Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
-(quarentena acionável) e **AI-2** (governança/ergonomia das customizações AI,
-VS Code 1.141) concluídas. Próxima prioridade: **Fase G** (code review
-educacional + cobertura ≥ 95%), depois H (organização — lint do Biome,
-helpers, CODEOWNERS, drift do badge), I (revisão de docs), J (avaliação
-10/10), AI-3 (resiliência/observabilidade de AI) e só então K (release
-v1.0.0, com aprovação explícita).
+(quarentena acionável), AI-2 (governança/ergonomia das customizações AI) e G
+(code review educacional + cobertura 94,70% → 95,94%) concluídas.
+
+Sequência restante (ressequenciada em 2026-10-08 por dependência real):
+**AI-3.5** (DECISIONS.md + destilação) → **H** (organização: lint do Biome,
+helpers, CODEOWNERS, drift do badge) → **I** (+ AI-3.4: mapa de arquitetura de
+AI) → **AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) →
+**AI-3.2** (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a
+medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 
 ## Fases
 
@@ -329,11 +332,25 @@ v1.0.0, com aprovação explícita).
 - AI-2.8.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit`.
 - AI-2.8.2 Atualizar `CHANGELOG.md` (seção `[Unreleased]`), checkboxes do `TODO.md` e, se houver lições, `.github/ai-lessons-learned.md`.
 
-### Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+### Fase AI-3 — Resiliência e observabilidade da estrutura de AI
 
 > Escopo definido em 2026-10-06 durante a revisão da Fase AI-2; itens de maior
 > complexidade/baixa urgência adiados para depois da Fase G (ou conforme
 > prioridade do mantenedor).
+>
+> **Resequenciamento (2026-10-08, decisão do mantenedor):** em vez de uma fase
+> monolítica pós-J, os itens foram distribuídos por dependência real com as
+> demais fases — avaliação de "o que acelera/melhora H, I e J":
+>
+> | Item | Posição | Motivo |
+> |---|---|---|
+> | AI-3.5 DECISIONS.md + destilação | **Antes de H** (primeiro a executar) | Captura as decisões de H/I *enquanto acontecem*; depois seria reconstrução retroativa |
+> | AI-3.4 Mapa da arquitetura de AI | **Fundido à Fase I** | Documentar a estrutura antes de H reorganizá-la geraria retrabalho; I já reescreve `architecture.md` |
+> | AI-3.3 Observabilidade JSONL unificada | **Entre I e J** | O log consolidado alimenta a avaliação J com evidências medidas de uso/bloqueios |
+> | AI-3.2 Prompt-injection + sanitização de outputs | **Entre J e K** | Endurecimento de conteúdo pré-release; não muda estrutura, docs ou métricas de H/I/J |
+> | AI-3.1 Otimização do inject-context | **Última; condicionada à medição** | O hook injeta ~120 bytes hoje; só otimizar se a medição mostrar custo real — pode virar "não fazer" documentado |
+>
+> Sequência efetiva: **AI-3.5 → H → I(+AI-3.4) → AI-3.3 → J → AI-3.2 → AI-3.1 → K**
 
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
 - AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
