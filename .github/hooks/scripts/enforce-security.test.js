@@ -68,9 +68,7 @@ describe('enforce-security.sh', () => {
     })
     const output = JSON.parse(runWithInput(input))
     assert.equal(output.permissionDecision, 'deny')
-    assert.ok(
-      output.permissionDecisionReason.includes('maintainer approval'),
-    )
+    assert.ok(output.permissionDecisionReason.includes('maintainer approval'))
     fs.unlinkSync(LOG_FILE)
   })
 

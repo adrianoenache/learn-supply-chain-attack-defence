@@ -248,6 +248,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `context-recovery` skill now reads it at session start and distills
   decisions/lessons/plan-state at session end. Linked from the bilingual
   documentation indexes and referenced by the always-on instructions.
+- `tools/lib/concurrency.js` (Fase H.1): the bounded-concurrency runner
+  previously copied byte-identically into `check-updates.js` and
+  `check-package-age.js` (and referenced by `trust-engine.js`) is now a single
+  shared module with its own tests; the legacy re-export and duplicated tests
+  in `check-package-age` were removed.
+
+### Changed (Fase H.2)
+
+- Biome lint/format now covers `.github/**/*.js` in addition to `tools/`
+  (86 files, up from 71): `biome.json` `files.includes` and the
+  `lint`/`format`/`lint:fix`/`format:check` scripts were extended, and the
+  newly covered files were brought into compliance (template `test-template.js`
+  keeps an intentional `assert` import behind a justified biome-ignore).
 
 ### Changed (Fase AI-2.6)
 

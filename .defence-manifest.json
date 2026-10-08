@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-08T23:21:21.969Z",
+  "installedAt": "2026-10-08T23:30:39.211Z",
   "files": [
     {
       "path": ".npmrc",
@@ -16,7 +16,7 @@
     },
     {
       "path": "biome.json",
-      "hash": "34fb7c62be39a2940ecf221172f02041de618dbc2175f6d03ee323f5e17ce73b"
+      "hash": "82e9855b19d8be1e9f6bfc88e28f35fe197fa8664b67eb2317b99a36bfddf971"
     },
     {
       "path": "tools/add-package.js",

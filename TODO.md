@@ -213,11 +213,19 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > `concurrency.js` (duplicação real); formatters/cli seriam falsa abstração —
 > documentar as convenções.
 
-- [ ] **H.1** Extrair `tools/lib/concurrency.js` (`runWithConcurrencyLimit`)
+- [x] **H.1** Extrair `tools/lib/concurrency.js` (`runWithConcurrencyLimit`)
   de `check-updates.js`, `check-package-age.js`, `trust-engine.js` e avaliar
   `check-external-urls.js`; testes + regenerar manifesto.
-- [ ] **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir
+  - Concluído em 2026-10-08: helper compartilhado com 5 testes próprios;
+    re-export legado e testes duplicados removidos de `check-package-age`;
+    `check-external-urls.js` avaliado e mantido (usa loop sequencial, não o
+    helper); docs de arquitetura bilíngues atualizadas.
+- [x] **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir
   (13 arquivos hoje não lintados).
+  - Concluído em 2026-10-08: escopo em `biome.json` + scripts `lint`/`format`
+    ampliados para `tools/ .github/` (86 arquivos, +15); auto-fixes aplicados;
+    correções manuais no template de teste (biome-ignore justificado) e no
+    sanity suite (sem assignment-em-expressão).
 - [ ] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
   `.github/hooks/`, `.github/workflows/` → mantenedor) + documentar a exigência
   de review de code owner na branch protection.
