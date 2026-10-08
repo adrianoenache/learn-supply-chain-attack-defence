@@ -169,9 +169,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > (decisão do mantenedor) por dependência real: **AI-3.5 → H → I(+AI-3.4) →
 > AI-3.3 → J → AI-3.2 → AI-3.1 → K**. Detalhamento em `.github/PLAN.md`.
 
-- [ ] **AI-3.5** (executar antes de H) Memória de decisões: criar
+- [x] **AI-3.5** (executar antes de H) Memória de decisões: criar
   `DECISIONS.md` (ADRs leves) e estender `context-recovery` com destilação de
   fim de sessão.
+  - Concluído em 2026-10-08: `DECISIONS.md` criado com 7 ADRs retroativas
+    (F.4, migração de skills, stderr, reparo APPA, resequenciamento AI-3,
+    data-free drift check); context-recovery lê DECISIONS no início e destila
+    decisões/lições/plano no fim da sessão; referência no always-on.
 - [ ] **AI-3.1** (última; condicionada à medição) Otimizar o hook
   `inject-context` (medir custo do session-start; cachear dados estáticos com
   invalidação por mtime).

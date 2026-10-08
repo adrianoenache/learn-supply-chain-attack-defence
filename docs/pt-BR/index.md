@@ -50,6 +50,7 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - [Arquitetura](architecture.md)
 - [Ferramentas](tools.md)
 - [Checklist de verificação de comandos](command-verification-checklist.md) — contrato CLI (flags, códigos de saída, formatos) de cada script `defence:*`.
+- [Decisões](../../DECISIONS.md) — ADRs leves registrando *por que* as escolhas-chave foram feitas.
 - [Referência rápida](quick-reference.md)
 - [GitHub Copilot e Kimi Code](copilot.md)
 

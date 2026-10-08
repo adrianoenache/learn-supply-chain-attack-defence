@@ -243,6 +243,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bilingual AI guidelines document the new hook, the audit log, the agent
   execution security layers (hooks + VS Code 1.141 sandboxing), and the
   terminal-scope invariant.
+- `DECISIONS.md` (Fase AI-3.5): lightweight ADRs recording *why* key choices
+  were made, seeded with the seven decisions from Fases F.4–AI-3; the
+  `context-recovery` skill now reads it at session start and distills
+  decisions/lessons/plan-state at session end. Linked from the bilingual
+  documentation indexes and referenced by the always-on instructions.
 
 ### Changed (Fase AI-2.6)
 

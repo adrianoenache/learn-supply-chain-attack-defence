@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-08T22:57:55.085Z",
+  "installedAt": "2026-10-08T23:03:57.924Z",
   "files": [
     {
       "path": ".npmrc",
@@ -156,7 +156,7 @@
     },
     {
       "path": "tools/run-audit-with-retry.test.js",
-      "hash": "a1db6bf4eb5c52d16b5740c65f6f4c9e3c92f2f4ba85df2cd16509214c178212"
+      "hash": "012a8ce94cc38e46a65332e4b2bf415b04251dfc936a248978efb08c080a0254"
     },
     {
       "path": "tools/setup-bootstrap.js",
