@@ -44,6 +44,9 @@ const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
 const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
+const { runWithConcurrencyLimit } = require(
+  path.resolve(__dirname, './lib/concurrency.js'),
+)
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 
 const config = loadConfig()
@@ -421,48 +424,6 @@ async function classifyUpdate(name, data, inMemoryCache, metrics) {
       },
     }
   }
-}
-
-// ---------------------------------------------------------------------------
-// Concurrency helper (same shape as check-package-age.js).
-// ---------------------------------------------------------------------------
-
-function runWithConcurrencyLimit(tasks, limit) {
-  return new Promise((resolve) => {
-    if (tasks.length === 0) return resolve([])
-    const results = new Array(tasks.length)
-    let started = 0
-    let completed = 0
-
-    function runNext() {
-      if (started >= tasks.length) return
-      const index = started++
-      Promise.resolve()
-        .then(() => tasks[index]())
-        .then(
-          (value) => {
-            results[index] = { status: 'fulfilled', value }
-            onDone()
-          },
-          (reason) => {
-            results[index] = { status: 'rejected', reason }
-            onDone()
-          },
-        )
-    }
-
-    function onDone() {
-      completed++
-      if (completed === tasks.length) {
-        resolve(results)
-        return
-      }
-      runNext()
-    }
-
-    const initial = Math.min(limit, tasks.length)
-    for (let i = 0; i < initial; i++) runNext()
-  })
 }
 
 // ---------------------------------------------------------------------------

@@ -38,4 +38,5 @@
 
 ---
 
-*Last generated: 2026-10-07*
+*Last generated: see git history (the generation date is intentionally not
+ embedded so the drift check does not produce false positives across days)*

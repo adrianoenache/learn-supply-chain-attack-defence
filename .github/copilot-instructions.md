@@ -44,7 +44,8 @@ Never generate or embed secrets, tokens, or credentials; use obviously fake, doc
 
 ## Session Continuity and Plan Recovery
 
-Session memory can be lost between chat sections. The authoritative plan is `.github/PLAN.md`; the session working copy lives in the harness-provided session files directory (e.g. `~/.copilot/session-state/<id>/files/plan.md` — the path varies by harness, so treat any session copy as disposable).
+Session memory can be lost between chat sections. The authoritative plan is `.github/PLAN.md`; the session working copy lives in the harness-provided session files directory (e.g. `~/.copilot/session-state/<id>/files/plan.md` — the path varies by harness, so treat any session copy as disposable). Decisions and their rationale live in `DECISIONS.md`; recurring AI mistakes live in `.github/ai-lessons-learned.md`.
 
 - Read `.github/PLAN.md` at session start and before any plan-related action; on divergence, `.github/PLAN.md` wins.
 - After updating `.github/PLAN.md`, refresh the session copy and run `npm run lint`, `npm test`, and `npm run defence:check-md-links` if markdown changed.
+- At session end, distill what must survive: decisions to `DECISIONS.md`, mistakes to `.github/ai-lessons-learned.md`, plan state to `PLAN.md`/`TODO.md`.

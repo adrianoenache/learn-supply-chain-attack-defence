@@ -42,6 +42,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
     ├── verify-defences.js
     └── lib/
         ├── config.js
+        ├── concurrency.js
         ├── package-utils.js
         ├── provenance.js
         ├── registry-cache.js
@@ -77,6 +78,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
 | `tools/install-defences.js` | Copia as defesas para outro projeto Node.js e escreve `.defence-manifest.json`. |
 | `tools/verify-defences.js` | Verifica arquivos copiados contra `.defence-manifest.json`. |
 | `tools/lib/package-utils.js` | Helpers compartilhados para parse de especificadores de pacotes. |
+| `tools/lib/concurrency.js` | Executor compartilhado de concorrência limitada usado pelas ferramentas que consultam o registry em paralelo. |
 | `tools/lib/registry-cache.js` | Cache em disco de respostas do registry compartilhado entre as ferramentas. |
 | `tools/lib/retry-fetch.js` | Camada compartilhada de fetch com suporte a gzip, limite de tamanho e retry/backoff. |
 | `tools/lib/sync-check.js` | Verifica se `node_modules` está sincronizado com `package-lock.json`. |

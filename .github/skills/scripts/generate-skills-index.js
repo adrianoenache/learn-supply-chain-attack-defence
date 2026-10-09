@@ -9,90 +9,94 @@
 // mode runs in `npm test` (via skills.sanity.test.js) so drift fails CI
 // instead of misleading contributors.
 
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs')
+const path = require('node:path')
 
-const SKILLS_DIR = path.resolve(__dirname, '..');
-const README_PATH = path.join(SKILLS_DIR, 'README.md');
+const SKILLS_DIR = path.resolve(__dirname, '..')
+const README_PATH = path.join(SKILLS_DIR, 'README.md')
 
 // Minimal frontmatter parser, intentionally identical in behavior to the one
 // in ../skills.sanity.test.js (kept separate: the test suite and the
 // generator must not share an implementation, or a parser bug would pass
 // both sides of the drift check).
 function parseFrontmatter(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!match) return null;
+  const content = fs.readFileSync(filePath, 'utf8')
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/)
+  if (!match) return null
 
-  const lines = match[1].split('\n');
-  const frontmatter = {};
-  let key = null;
-  let keyIndent = 0;
-  let blockScalar = null;
+  const lines = match[1].split('\n')
+  const frontmatter = {}
+  let key = null
+  let keyIndent = 0
+  let blockScalar = null
 
   for (const rawLine of lines) {
-    const line = rawLine.replace(/\r$/, '');
-    const indent = line.length - line.trimStart().length;
+    const line = rawLine.replace(/\r$/, '')
+    const indent = line.length - line.trimStart().length
 
     if (blockScalar && (indent > keyIndent || line.trim() === '')) {
-      blockScalar.lines.push(line.trim());
-      continue;
+      blockScalar.lines.push(line.trim())
+      continue
     }
     if (blockScalar) {
-      frontmatter[blockScalar.key] = blockScalar.lines.join('\n').trim();
-      blockScalar = null;
+      frontmatter[blockScalar.key] = blockScalar.lines.join('\n').trim()
+      blockScalar = null
     }
 
-    const keyMatch = line.match(/^([A-Za-z-]+):(.*)$/);
-    if (!keyMatch) continue;
+    const keyMatch = line.match(/^([A-Za-z-]+):(.*)$/)
+    if (!keyMatch) continue
 
-    key = keyMatch[1];
-    keyIndent = indent;
-    const value = keyMatch[2].trim();
+    key = keyMatch[1]
+    keyIndent = indent
+    const value = keyMatch[2].trim()
 
     if (value === '|' || value === '|-' || value === '|+') {
-      blockScalar = { key, lines: [] };
-      continue;
+      blockScalar = { key, lines: [] }
+      continue
     }
 
-    frontmatter[key] = value.replace(/^["']|["']$/g, '');
+    frontmatter[key] = value.replace(/^["']|["']$/g, '')
   }
 
   if (blockScalar) {
-    frontmatter[blockScalar.key] = blockScalar.lines.join('\n').trim();
+    frontmatter[blockScalar.key] = blockScalar.lines.join('\n').trim()
   }
 
-  return frontmatter;
+  return frontmatter
 }
 
 function invocationMode(frontmatter) {
-  if (frontmatter['user-invocable'] === 'false') return 'Background (auto-loaded, hidden from `/`)';
-  if (frontmatter['disable-model-invocation'] === 'true') return 'Manual (`/` menu only)';
-  return 'Automatic (menu + model)';
+  if (frontmatter['user-invocable'] === 'false')
+    return 'Background (auto-loaded, hidden from `/`)'
+  if (frontmatter['disable-model-invocation'] === 'true')
+    return 'Manual (`/` menu only)'
+  return 'Automatic (menu + model)'
 }
 
 function oneLine(text) {
-  return String(text).trim().split('\n').join(' ').replace(/\s+/g, ' ');
+  return String(text).trim().split('\n').join(' ').replace(/\s+/g, ' ')
 }
 
 function listSkills() {
-  return fs
-    .readdirSync(SKILLS_DIR, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name)
-    // `scripts/` holds the index generator itself, not a skill.
-    .filter((name) => name !== 'scripts')
-    .sort();
+  return (
+    fs
+      .readdirSync(SKILLS_DIR, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => entry.name)
+      // `scripts/` holds the index generator itself, not a skill.
+      .filter((name) => name !== 'scripts')
+      .sort()
+  )
 }
 
 function buildIndex(skills) {
-  const header = '| Skill | Invocation | Forked | Description |';
-  const separator = '| --- | --- | --- | --- |';
+  const header = '| Skill | Invocation | Forked | Description |'
+  const separator = '| --- | --- | --- | --- |'
   const rows = skills.map(({ name, frontmatter }) => {
-    const mode = invocationMode(frontmatter);
-    const forked = frontmatter.context === 'fork' ? '✅' : '—';
-    return `| [\`${name}\`](${name}/SKILL.md) | ${mode} | ${forked} | ${oneLine(frontmatter.description)} |`;
-  });
+    const mode = invocationMode(frontmatter)
+    const forked = frontmatter.context === 'fork' ? '✅' : '—'
+    return `| [\`${name}\`](${name}/SKILL.md) | ${mode} | ${forked} | ${oneLine(frontmatter.description)} |`
+  })
 
   return [
     '# Skills Index',
@@ -118,45 +122,46 @@ function buildIndex(skills) {
     '',
     '---',
     '',
-    `*Last generated: ${new Date().toISOString().split('T')[0]}*`,
+    '*Last generated: see git history (the generation date is intentionally not',
+    ' embedded so the drift check does not produce false positives across days)*',
     '',
-  ].join('\n');
+  ].join('\n')
 }
 
 function main() {
-  const checkOnly = process.argv.includes('--check');
-  const skillNames = listSkills();
+  const checkOnly = process.argv.includes('--check')
+  const skillNames = listSkills()
 
   const skills = skillNames.map((name) => {
-    const skillPath = path.join(SKILLS_DIR, name, 'SKILL.md');
+    const skillPath = path.join(SKILLS_DIR, name, 'SKILL.md')
     if (!fs.existsSync(skillPath)) {
-      throw new Error(`Missing SKILL.md in .github/skills/${name}/`);
+      throw new Error(`Missing SKILL.md in .github/skills/${name}/`)
     }
-    const frontmatter = parseFrontmatter(skillPath);
-    if (!frontmatter || !frontmatter.name || !frontmatter.description) {
-      throw new Error(`Invalid frontmatter in ${name}/SKILL.md`);
+    const frontmatter = parseFrontmatter(skillPath)
+    if (!frontmatter?.name || !frontmatter.description) {
+      throw new Error(`Invalid frontmatter in ${name}/SKILL.md`)
     }
-    return { name, frontmatter };
-  });
+    return { name, frontmatter }
+  })
 
-  const content = buildIndex(skills);
+  const content = buildIndex(skills)
 
   if (checkOnly) {
     const current = fs.existsSync(README_PATH)
       ? fs.readFileSync(README_PATH, 'utf8')
-      : '';
+      : ''
     if (current !== content) {
       console.error(
         'Skills index is out of date. Run: node .github/skills/scripts/generate-skills-index.js',
-      );
-      process.exit(1);
+      )
+      process.exit(1)
     }
-    console.log('Skills index is up to date.');
-    return;
+    console.log('Skills index is up to date.')
+    return
   }
 
-  fs.writeFileSync(README_PATH, content, 'utf8');
-  console.log(`Updated ${README_PATH} with ${skills.length} skill(s).`);
+  fs.writeFileSync(README_PATH, content, 'utf8')
+  console.log(`Updated ${README_PATH} with ${skills.length} skill(s).`)
 }
 
-main();
+main()

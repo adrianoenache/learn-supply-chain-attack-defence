@@ -16,13 +16,9 @@ const SCRIPT_PATH = path.resolve(__dirname, './check-package-age.js')
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
-const {
-  resolveExactVersion,
-  fetchPackageAge,
-  runWithConcurrencyLimit,
-  main,
-  buildDeps,
-} = require(path.resolve(__dirname, './check-package-age.js'))
+const { resolveExactVersion, fetchPackageAge, main, buildDeps } = require(
+  path.resolve(__dirname, './check-package-age.js'),
+)
 const { setImpls: setRegistryImpls, resetImpls: resetRegistryImpls } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
@@ -228,84 +224,6 @@ describe('parsePackageArg', () => {
     const result = parsePackageArg('@types/node@22.15.3')
     assert.ok(result.name.startsWith('@'))
     assert.equal(result.name, '@types/node')
-  })
-})
-
-// ---------------------------------------------------------------------------
-// runWithConcurrencyLimit
-// ---------------------------------------------------------------------------
-
-describe('runWithConcurrencyLimit', () => {
-  test('resolves with [] for empty task list', async () => {
-    const results = await runWithConcurrencyLimit([], 5)
-    assert.deepEqual(results, [])
-  })
-
-  test('runs all tasks and returns results in allSettled format', async () => {
-    const tasks = [
-      () => Promise.resolve('a'),
-      () => Promise.resolve('b'),
-      () => Promise.resolve('c'),
-    ]
-    const results = await runWithConcurrencyLimit(tasks, 2)
-    assert.deepEqual(results, [
-      { status: 'fulfilled', value: 'a' },
-      { status: 'fulfilled', value: 'b' },
-      { status: 'fulfilled', value: 'c' },
-    ])
-  })
-
-  test('rejected task does not stop the others', async () => {
-    const tasks = [
-      () => Promise.resolve('ok1'),
-      () => Promise.reject(new Error('failure')),
-      () => Promise.resolve('ok2'),
-    ]
-    const results = await runWithConcurrencyLimit(tasks, 3)
-    assert.equal(results.length, 3)
-    assert.equal(results[0].status, 'fulfilled')
-    assert.equal(results[0].value, 'ok1')
-    assert.equal(results[1].status, 'rejected')
-    assert.equal(results[1].reason.message, 'failure')
-    assert.equal(results[2].status, 'fulfilled')
-    assert.equal(results[2].value, 'ok2')
-  })
-
-  test('keeps result order independent of completion order', async () => {
-    // Task 0 uses setImmediate (slower), task 1 resolves immediately.
-    // Result index must follow insertion order, not completion order.
-    const results = await runWithConcurrencyLimit(
-      [
-        () => new Promise((res) => setImmediate(() => res('slow'))),
-        () => Promise.resolve('fast'),
-      ],
-      2,
-    )
-    assert.equal(results[0].value, 'slow')
-    assert.equal(results[1].value, 'fast')
-  })
-
-  test('respects the concurrency limit', async () => {
-    let running = 0
-    let maxRunning = 0
-    const LIMIT = 3
-    const tasks = Array.from(
-      { length: 10 },
-      () => () =>
-        new Promise((resolve) => {
-          running++
-          if (running > maxRunning) maxRunning = running
-          setImmediate(() => {
-            running--
-            resolve()
-          })
-        }),
-    )
-    await runWithConcurrencyLimit(tasks, LIMIT)
-    assert.ok(
-      maxRunning <= LIMIT,
-      `Maximum concurrent was ${maxRunning}, expected <= ${LIMIT}`,
-    )
   })
 })
 

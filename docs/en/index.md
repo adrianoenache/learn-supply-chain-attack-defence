@@ -48,8 +48,10 @@ This repository is a practical learning environment for understanding and applyi
 ### Project
 
 - [Architecture](architecture.md)
+- [Repository organization](repository-organization.md) — layout conventions and the CODEOWNERS organizational defense layer.
 - [Tools](tools.md)
 - [Command verification checklist](command-verification-checklist.md) — CLI contract (flags, exit codes, formats) of every `defence:*` script.
+- [Decisions](../../DECISIONS.md) — lightweight ADRs recording *why* key choices were made.
 - [Quick reference](quick-reference.md)
 - [GitHub Copilot & Kimi Code](copilot.md)
 

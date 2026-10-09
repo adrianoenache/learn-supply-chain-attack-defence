@@ -2,6 +2,14 @@
 
 Este projeto protege a árvore de dependências usando doze camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
 
+> **A camada organizacional.** As doze camadas são técnicas e automáticas.
+> O [.github/CODEOWNERS](../../../.github/CODEOWNERS) adiciona a camada humana:
+> caminhos que podem enfraquecer um portão (as ferramentas de defesa, o
+> `.npmrc`, os hooks, a superfície de customização de AI) exigem revisão do
+> code owner listado. Veja
+> [Organização do repositório](../repository-organization.md#codeowners) para
+> como habilitar.
+
 ## Grupos de Defesa
 
 As doze defesas estão organizadas em três grupos de adoção. Comece pelo grupo **Core** e adicione os demais conforme o projeto amadurece.

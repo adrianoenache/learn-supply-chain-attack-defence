@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-10-07T22:31:45.859Z",
+  "installedAt": "2026-10-09T00:38:02.748Z",
   "files": [
     {
       "path": ".npmrc",
@@ -16,7 +16,7 @@
     },
     {
       "path": "biome.json",
-      "hash": "34fb7c62be39a2940ecf221172f02041de618dbc2175f6d03ee323f5e17ce73b"
+      "hash": "82e9855b19d8be1e9f6bfc88e28f35fe197fa8664b67eb2317b99a36bfddf971"
     },
     {
       "path": "tools/add-package.js",
@@ -84,11 +84,11 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "b368683be9c2ce545c84cf4f408b8044f28924c69acd4dde034e8dd966479c2d"
+      "hash": "f8972fc48d869668b4bc9168baeded9b8a06caa05f7fdcb3997a9a1cd86383d4"
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "e1b9113f919a6fcdbaac822b122e0da3f0e61762eb7dc47077f4bff7673c1f5c"
+      "hash": "aa48256e94c993bfe1492d70f20242213e74751c512c83e53d1e3a85be5b6f5e"
     },
     {
       "path": "tools/check-secrets.js",
@@ -108,7 +108,7 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "f6e1b1bfa22df2c5fd6be45ba7cb592a9181506e103dffc77fb9cc5aed68d9b6"
+      "hash": "beca9736d79ce27c3f6b10d97f37281149da9be6c64d989cfc040d7ce94253a2"
     },
     {
       "path": "tools/check-updates.test.js",
@@ -156,7 +156,7 @@
     },
     {
       "path": "tools/run-audit-with-retry.test.js",
-      "hash": "a1db6bf4eb5c52d16b5740c65f6f4c9e3c92f2f4ba85df2cd16509214c178212"
+      "hash": "012a8ce94cc38e46a65332e4b2bf415b04251dfc936a248978efb08c080a0254"
     },
     {
       "path": "tools/setup-bootstrap.js",
@@ -232,7 +232,7 @@
     },
     {
       "path": "tools/lib/trust-engine.js",
-      "hash": "da9681019e5db1fa9ce90424fd11c929574abb78f6b0707683491b48405a0387"
+      "hash": "eb196838bb383e79c42964752d5263f1c1c63053d235ecf8e6b67e269cb8e245"
     },
     {
       "path": "tools/lib/trust-engine.test.js",

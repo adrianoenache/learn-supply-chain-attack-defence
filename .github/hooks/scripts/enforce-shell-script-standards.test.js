@@ -10,10 +10,7 @@ const assert = require('node:assert/strict')
 const { execSync } = require('node:child_process')
 const path = require('node:path')
 
-const SCRIPT = path.resolve(
-  __dirname,
-  './enforce-shell-script-standards.sh',
-)
+const SCRIPT = path.resolve(__dirname, './enforce-shell-script-standards.sh')
 
 function runWithInput(input) {
   return execSync(`bash "${SCRIPT}"`, {

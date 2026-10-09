@@ -103,4 +103,4 @@ Security-focused agent for supply-chain defense reviews in Node.js/npm projects.
 
 ---
 
-*Last generated: 2026-09-08*
+*Last generated: 2026-10-08*

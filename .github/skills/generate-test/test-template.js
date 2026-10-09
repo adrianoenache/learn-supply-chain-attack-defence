@@ -11,6 +11,10 @@
 //   - Hardcoded fixture values carry an inline justification comment.
 
 const { test, describe } = require('node:test')
+// `assert` is intentionally imported even though the TODO body does not use it
+// yet: this is a teaching template, and generated tests must start with the
+// strict assertion library available. The lint rule is disabled for this file
+// via a justified override in biome.json.
 const assert = require('node:assert/strict')
 const path = require('node:path')
 
@@ -23,21 +27,23 @@ function readScriptExports() {
 }
 
 describe('TOOL_NAME', () => {
-  test('happy path: TODO describe the main behavior', { timeout: 5000 }, async () => {
+  test('happy path: TODO describe the main behavior', {
+    timeout: 5000,
+  }, async () => {
     const mod = readScriptExports()
     // TODO: inject fakes via mod.set*Impl({ ... })
     try {
       // Arrange
-
       // Act
-
       // Assert
     } finally {
       mod.resetImpls?.() // reset whichever setters were used
     }
   })
 
-  test('edge case: TODO describe the boundary condition', { timeout: 5000 }, async () => {
+  test('edge case: TODO describe the boundary condition', {
+    timeout: 5000,
+  }, async () => {
     const mod = readScriptExports()
     try {
       // Arrange / Act / Assert
@@ -46,7 +52,9 @@ describe('TOOL_NAME', () => {
     }
   })
 
-  test('error path: TODO describe the failure mode', { timeout: 5000 }, async () => {
+  test('error path: TODO describe the failure mode', {
+    timeout: 5000,
+  }, async () => {
     const mod = readScriptExports()
     try {
       // Assert the actionable error message or the expected exit code

@@ -163,22 +163,32 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-10-07: 844/844 testes, todos os gates verdes,
     pre-commit exit 0; PLAN.md registra os critérios de aceite verificados.
 
-## Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+## Fase AI-3 — Resiliência e observabilidade da estrutura de AI
 
-> Definida em 2026-10-06 na revisão da AI-2; executar após a Fase G (ou por
-> prioridade do mantenedor). Detalhamento em `.github/PLAN.md` (AI-3.1–AI-3.4).
+> Definida em 2026-10-06 na revisão da AI-2. Ressequenciada em 2026-10-08
+> (decisão do mantenedor) por dependência real: **AI-3.5 → H → I(+AI-3.4) →
+> AI-3.3 → J → AI-3.2 → AI-3.1 → K**. Detalhamento em `.github/PLAN.md`.
 
-- [ ] **AI-3.1** Otimizar o hook `inject-context` (medir custo do
-  session-start; cachear dados estáticos com invalidação por mtime).
-- [ ] **AI-3.2** Smoke test de prompt-injection e sanitização de outputs em CI
-  (fixtures com instruções maliciosas embutidas; validação de output de tools
-  externas antes de admitir no contexto — segunda fase do monitor, APPA).
-- [ ] **AI-3.3** Observabilidade estruturada: log JSONL unificado de hooks,
-  skills e bloqueios + página de docs bilíngue explicando a leitura.
-- [ ] **AI-3.4** Mapa da arquitetura de AI em `docs/{en,pt-BR}/architecture.md`
-  (as 5 camadas e onde posicionar regras novas).
-- [ ] **AI-3.5** Memória de decisões: criar `DECISIONS.md` (ADRs leves) e
-  estender `context-recovery` com destilação de fim de sessão.
+- [x] **AI-3.5** (executar antes de H) Memória de decisões: criar
+  `DECISIONS.md` (ADRs leves) e estender `context-recovery` com destilação de
+  fim de sessão.
+  - Concluído em 2026-10-08: `DECISIONS.md` criado com 7 ADRs retroativas
+    (F.4, migração de skills, stderr, reparo APPA, resequenciamento AI-3,
+    data-free drift check); context-recovery lê DECISIONS no início e destila
+    decisões/lições/plano no fim da sessão; referência no always-on.
+- [ ] **AI-3.1** (última; condicionada à medição) Otimizar o hook
+  `inject-context` (medir custo do session-start; cachear dados estáticos com
+  invalidação por mtime).
+- [ ] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
+  outputs em CI (fixtures com instruções maliciosas embutidas; validação de
+  output de tools externas antes de admitir no contexto — segunda fase do
+  monitor, APPA).
+- [ ] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
+  unificado de hooks, skills e bloqueios + página de docs bilíngue explicando
+  a leitura.
+- [ ] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
+  `docs/{en,pt-BR}/architecture.md` (as 5 camadas e onde posicionar regras
+  novas).
 
 ## Fase G — Code review educacional ✅
 
@@ -199,14 +209,48 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## Fase H — Organização e governança
 
-- [ ] Auditar estrutura, padrões applyTo e arquivos órfãos.
-- [ ] Extrair helpers duplicados para `tools/lib/concurrency.js`,
-  `tools/lib/formatters.js`, `tools/lib/cli.js`.
-- [ ] Criar `docs/{en,pt-BR}/repository-organization.md`.
-- [ ] Criar `.github/CODEOWNERS` atribuindo `tools/`, `.npmrc`, `.husky/`,
-  `.github/hooks/` e `.github/workflows/` ao mantenedor + habilitar "require
-  review from code owners" na branch protection (camada organizacional de
-  defesa — P2, 2026-10-06).
+> Refinada em 2026-10-08 com dados reais (ver PLAN.md). Extrair apenas
+> `concurrency.js` (duplicação real); formatters/cli seriam falsa abstração —
+> documentar as convenções.
+
+- [x] **H.1** Extrair `tools/lib/concurrency.js` (`runWithConcurrencyLimit`)
+  de `check-updates.js`, `check-package-age.js`, `trust-engine.js` e avaliar
+  `check-external-urls.js`; testes + regenerar manifesto.
+  - Concluído em 2026-10-08: helper compartilhado com 5 testes próprios;
+    re-export legado e testes duplicados removidos de `check-package-age`;
+    `check-external-urls.js` avaliado e mantido (usa loop sequencial, não o
+    helper); docs de arquitetura bilíngues atualizadas.
+- [x] **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir
+  (13 arquivos hoje não lintados).
+  - Concluído em 2026-10-08: escopo em `biome.json` + scripts `lint`/`format`
+    ampliados para `tools/ .github/` (86 arquivos, +15); auto-fixes aplicados;
+    correções manuais no template de teste (biome-ignore justificado) e no
+    sanity suite (sem assignment-em-expressão).
+- [x] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
+  `.github/hooks/`, `.github/workflows/` → mantenedor) + documentar a exigência
+  de review de code owner na branch protection.
+  - Concluído em 2026-10-08: `.github/CODEOWNERS` criado cobrindo também a
+    superfície de AI (`copilot-instructions`, `instructions/`, `agents/`,
+    `skills/`); páginas `docs/{en,pt-BR}/repository-organization.md` criadas
+    com a seção CODEOWNERS completa (o restante da página é H.5); nota da
+    camada organizacional adicionada ao índice de segurança bilíngue.
+    ✅ **Confirmado pelo mantenedor em 2026-10-08:** branch protection com
+    "Require PR + review de Code Owner" ativa em `main` e `dev`.
+- [x] **H.3.1** (evolução sugerida pelo Copilot, aceita em 2026-10-08) Habilitar
+  **Required Status Checks** em `main` e `dev`: "Require status checks to pass
+  before merging" com os 11 jobs de `.github/workflows/ci.yml` (`Build`,
+  `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
+  `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
+  `Defence Gates`) + "Require branches to be up to date before merging".
+  Documentado em `docs/{en,pt-BR}/repository-organization.md`; a ativação é
+  manual (Settings → Branches) — marcar como feito após aplicar no GitHub.
+  - ✅ Concluído em 2026-10-08: confirmado pelo mantenedor nos dois branches.
+- [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
+  cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
+- [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
+  final (incl. a decisão de não extrair formatters/cli).
+- [ ] **H.6** Validação final + registrar no `DECISIONS.md` a decisão
+  "documentar, não extrair" para formatters/cli.
 - [ ] Corrigir drift do badge de testes (avaliação 2026-10-07):
   `tools/update-badge.js` conta apenas `tools/**/*.test.js` (469 testes),
   enquanto `npm test` executa 738 (inclui os sanity tests de `.github/`

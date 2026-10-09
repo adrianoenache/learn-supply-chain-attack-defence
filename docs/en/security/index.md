@@ -2,6 +2,13 @@
 
 This project protects the dependency tree using twelve complementary layers. Each layer addresses a different attack vector, and together they make it much harder for a malicious or compromised package to enter the project.
 
+> **The organizational layer.** The twelve layers are technical and automatic.
+> [.github/CODEOWNERS](../../../.github/CODEOWNERS) adds the human one: paths that
+> can weaken a gate (the defense tools, `.npmrc`, the hooks, the AI
+> customization surface) require review from the listed code owner. See
+> [Repository organization](../repository-organization.md#codeowners) for how
+> to enable it.
+
 ## Defense Groups
 
 The twelve defenses are organized into three adoption groups. Start with the **Core** group and add the others as your project matures.

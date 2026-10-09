@@ -10,12 +10,15 @@
 
 Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
-(quarentena acionável) e **AI-2** (governança/ergonomia das customizações AI,
-VS Code 1.141) concluídas. Próxima prioridade: **Fase G** (code review
-educacional + cobertura ≥ 95%), depois H (organização — lint do Biome,
-helpers, CODEOWNERS, drift do badge), I (revisão de docs), J (avaliação
-10/10), AI-3 (resiliência/observabilidade de AI) e só então K (release
-v1.0.0, com aprovação explícita).
+(quarentena acionável), AI-2 (governança/ergonomia das customizações AI) e G
+(code review educacional + cobertura 94,70% → 95,94%) concluídas.
+
+Sequência restante (ressequenciada em 2026-10-08 por dependência real):
+**AI-3.5** (DECISIONS.md + destilação) → **H** (organização: lint do Biome,
+helpers, CODEOWNERS, drift do badge) → **I** (+ AI-3.4: mapa de arquitetura de
+AI) → **AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) →
+**AI-3.2** (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a
+medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 
 ## Fases
 
@@ -329,11 +332,25 @@ v1.0.0, com aprovação explícita).
 - AI-2.8.1 Rodar `npm test`, `npm run lint`, `npm run format:check`, `npm run defence:check-md-links`, `npm run defence:check-external-urls`, `npm run defence:verify-defences`, `bash .husky/pre-commit`.
 - AI-2.8.2 Atualizar `CHANGELOG.md` (seção `[Unreleased]`), checkboxes do `TODO.md` e, se houver lições, `.github/ai-lessons-learned.md`.
 
-### Fase AI-3 — Resiliência e observabilidade da estrutura de AI (futura)
+### Fase AI-3 — Resiliência e observabilidade da estrutura de AI
 
 > Escopo definido em 2026-10-06 durante a revisão da Fase AI-2; itens de maior
 > complexidade/baixa urgência adiados para depois da Fase G (ou conforme
 > prioridade do mantenedor).
+>
+> **Resequenciamento (2026-10-08, decisão do mantenedor):** em vez de uma fase
+> monolítica pós-J, os itens foram distribuídos por dependência real com as
+> demais fases — avaliação de "o que acelera/melhora H, I e J":
+>
+> | Item | Posição | Motivo |
+> |---|---|---|
+> | AI-3.5 DECISIONS.md + destilação | **Antes de H** (primeiro a executar) | Captura as decisões de H/I *enquanto acontecem*; depois seria reconstrução retroativa |
+> | AI-3.4 Mapa da arquitetura de AI | **Fundido à Fase I** | Documentar a estrutura antes de H reorganizá-la geraria retrabalho; I já reescreve `architecture.md` |
+> | AI-3.3 Observabilidade JSONL unificada | **Entre I e J** | O log consolidado alimenta a avaliação J com evidências medidas de uso/bloqueios |
+> | AI-3.2 Prompt-injection + sanitização de outputs | **Entre J e K** | Endurecimento de conteúdo pré-release; não muda estrutura, docs ou métricas de H/I/J |
+> | AI-3.1 Otimização do inject-context | **Última; condicionada à medição** | O hook injeta ~120 bytes hoje; só otimizar se a medição mostrar custo real — pode virar "não fazer" documentado |
+>
+> Sequência efetiva: **AI-3.5 → H → I(+AI-3.4) → AI-3.3 → J → AI-3.2 → AI-3.1 → K**
 
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
 - AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
@@ -359,6 +376,31 @@ v1.0.0, com aprovação explícita).
 > cobre apenas `tools/**/*.js` e `*.js` (`files.includes` em `biome.json`;
 > `biome check .github/` processa 0 arquivos). Os helpers
 > `tools/lib/concurrency.js`, `formatters.js` e `cli.js` não foram extraídos.
+>
+> **Refinamento (2026-10-08, aprovado pelo mantenedor) com dados reais:**
+> 0 arquivos órfãos em `tools/`; applyTo consistente (sem `**` amplo);
+> `runWithConcurrencyLimit` idêntica em 3 arquivos + 1 variação;
+> `parseCliArgs` em 12 arquivos mas com flags heterogêneas; formatters são
+> específicos de domínio. Conclusão: **extrair apenas `concurrency.js`**
+> (duplicação real); `formatters.js`/`cli.js` seriam falsa abstração —
+> documentar as convenções em vez de extrair.
+>
+> Sub-itens refinados:
+> - **H.1** Extrair `tools/lib/concurrency.js` de `check-updates.js`,
+>   `check-package-age.js`, `trust-engine.js` (e avaliar
+>   `check-external-urls.js`) + testes + manifesto.
+> - **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir.
+> - **H.3** Criar `.github/CODEOWNERS` (tools/, .npmrc, .husky/, hooks,
+>   workflows → mantenedor) + documentar a exigência de review de code owner
+>   na branch protection.
+> - **H.4** Corrigir o drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
+>   deve cobrir os mesmos arquivos do script `test` (incl. `.github/**`).
+> - **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
+>   final (incl. a decisão de não extrair formatters/cli).
+> - **H.6** Validação final (gates completos) + registrar no `DECISIONS.md` a
+>   decisão "documentar, não extrair" para formatters/cli.
+>
+> Itens originais preservados abaixo para rastreabilidade:
 
 - Auditar estrutura, padrões applyTo e arquivos órfãos.
 - Extrair helpers duplicados para `tools/lib/concurrency.js`, `tools/lib/formatters.js`, `tools/lib/cli.js`.

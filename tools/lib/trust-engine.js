@@ -15,6 +15,9 @@
 
 const path = require('node:path')
 
+const { runWithConcurrencyLimit } = require(
+  path.resolve(__dirname, './concurrency.js'),
+)
 const registryCache = require(path.resolve(__dirname, './registry-cache.js'))
 const retryFetch = require(path.resolve(__dirname, './retry-fetch.js'))
 const provenance = require(path.resolve(__dirname, './provenance.js'))
@@ -356,45 +359,6 @@ function classifyScore(score, thresholds) {
   if (score >= thresholds.trustedMin) return 'trusted'
   if (score >= thresholds.reviewRequiredMin) return 'review required'
   return 'high risk'
-}
-
-// Runs tasks with a concurrency limit (same shape as check-package-age.js).
-function runWithConcurrencyLimit(tasks, limit) {
-  return new Promise((resolve) => {
-    if (tasks.length === 0) return resolve([])
-    const results = new Array(tasks.length)
-    let started = 0
-    let completed = 0
-
-    function runNext() {
-      if (started >= tasks.length) return
-      const index = started++
-      Promise.resolve()
-        .then(() => tasks[index]())
-        .then(
-          (value) => {
-            results[index] = { status: 'fulfilled', value }
-            onDone()
-          },
-          (reason) => {
-            results[index] = { status: 'rejected', reason }
-            onDone()
-          },
-        )
-    }
-
-    function onDone() {
-      completed++
-      if (completed === tasks.length) {
-        resolve(results)
-        return
-      }
-      runNext()
-    }
-
-    const initial = Math.min(limit, tasks.length)
-    for (let i = 0; i < initial; i++) runNext()
-  })
 }
 
 async function analyzePackages(packages, context) {

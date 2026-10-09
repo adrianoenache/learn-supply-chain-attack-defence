@@ -2,11 +2,11 @@
 // generate-capability-matrix.js — Regenerates .github/agents/README.md from agent frontmatters.
 // Usage: node .github/agents/scripts/generate-capability-matrix.js
 
-const fs = require('node:fs');
-const path = require('node:path');
+const fs = require('node:fs')
+const path = require('node:path')
 
-const AGENTS_DIR = path.resolve(__dirname, '..');
-const README_PATH = path.join(AGENTS_DIR, 'README.md');
+const AGENTS_DIR = path.resolve(__dirname, '..')
+const README_PATH = path.join(AGENTS_DIR, 'README.md')
 
 const ALL_TOOLS = [
   'read_file',
@@ -19,23 +19,53 @@ const ALL_TOOLS = [
   'list_dir',
   'fetch_webpage',
   'run_in_terminal',
-];
+]
 
 const TASK_ROWS = [
   {
     task: 'Create new files/directories',
     tools: ['create_file', 'create_directory'],
-    agents: ['docs', 'security', 'quality', 'performance', 'compliance', 'command-execution', 'code-review', 'repository-organization', 'project-evaluation'],
+    agents: [
+      'docs',
+      'security',
+      'quality',
+      'performance',
+      'compliance',
+      'command-execution',
+      'code-review',
+      'repository-organization',
+      'project-evaluation',
+    ],
   },
   {
     task: 'Edit existing files',
     tools: ['replace_string_in_file', 'multi_replace_string_in_file'],
-    agents: ['docs', 'security', 'quality', 'performance', 'compliance', 'command-execution', 'code-review', 'repository-organization', 'project-evaluation'],
+    agents: [
+      'docs',
+      'security',
+      'quality',
+      'performance',
+      'compliance',
+      'command-execution',
+      'code-review',
+      'repository-organization',
+      'project-evaluation',
+    ],
   },
   {
     task: 'Run validation commands',
     tools: ['run_in_terminal'],
-    agents: ['docs', 'security', 'quality', 'performance', 'compliance', 'command-execution', 'code-review', 'repository-organization', 'project-evaluation'],
+    agents: [
+      'docs',
+      'security',
+      'quality',
+      'performance',
+      'compliance',
+      'command-execution',
+      'code-review',
+      'repository-organization',
+      'project-evaluation',
+    ],
   },
   {
     task: 'Fetch external references',
@@ -47,95 +77,95 @@ const TASK_ROWS = [
     tools: ['run_in_terminal'],
     agents: ['command-execution'],
   },
-];
+]
 
 function parseFrontmatter(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return null;
+  const content = fs.readFileSync(filePath, 'utf8')
+  const match = content.match(/^---\n([\s\S]*?)\n---/)
+  if (!match) return null
 
-  const lines = match[1].split('\n');
-  const frontmatter = { tools: [], applyTo: [] };
-  let key = null;
-  let baseIndent = 0;
-  let multilineValue = null;
+  const lines = match[1].split('\n')
+  const frontmatter = { tools: [], applyTo: [] }
+  let key = null
+  let baseIndent = 0
+  let multilineValue = null
 
   for (const rawLine of lines) {
-    const line = rawLine.replace(/\r$/, '');
-    const leadingSpaces = line.length - line.trimStart().length;
+    const line = rawLine.replace(/\r$/, '')
+    const leadingSpaces = line.length - line.trimStart().length
 
     if (leadingSpaces <= baseIndent && line.includes(':')) {
       if (multilineValue !== null && key) {
-        frontmatter[key] = multilineValue.trim();
-        multilineValue = null;
+        frontmatter[key] = multilineValue.trim()
+        multilineValue = null
       }
 
-      const [k, ...rest] = line.split(':');
-      key = k.trim();
-      const value = rest.join(':').trim();
+      const [k, ...rest] = line.split(':')
+      key = k.trim()
+      const value = rest.join(':').trim()
       if (value === '') {
-        frontmatter[key] = [];
-        baseIndent = leadingSpaces;
+        frontmatter[key] = []
+        baseIndent = leadingSpaces
       } else if (value.startsWith('"') && value.endsWith('"')) {
-        frontmatter[key] = value.slice(1, -1);
-        key = null;
+        frontmatter[key] = value.slice(1, -1)
+        key = null
       } else if (value.startsWith("'") && value.endsWith("'")) {
-        frontmatter[key] = value.slice(1, -1);
-        key = null;
+        frontmatter[key] = value.slice(1, -1)
+        key = null
       } else {
-        multilineValue = value;
+        multilineValue = value
       }
-      continue;
+      continue
     }
 
     if (key && line.trim().startsWith('- ')) {
-      const item = line.trim().slice(2).trim();
-      frontmatter[key].push(item.replace(/^["']|["']$/g, ''));
-      continue;
+      const item = line.trim().slice(2).trim()
+      frontmatter[key].push(item.replace(/^["']|["']$/g, ''))
+      continue
     }
 
     if (key && multilineValue !== null) {
-      multilineValue += '\n' + line;
+      multilineValue += `\n${line}`
     }
   }
 
   if (multilineValue !== null && key) {
-    frontmatter[key] = multilineValue.trim();
+    frontmatter[key] = multilineValue.trim()
   }
 
-  return frontmatter;
+  return frontmatter
 }
 
 function buildAgentTable(agents) {
-  const header = `| Agent | ${ALL_TOOLS.map((t) => `\`${t}\``).join(' | ')} |`;
-  const separator = `| --- | ${ALL_TOOLS.map(() => '---').join(' | ')} |`;
+  const header = `| Agent | ${ALL_TOOLS.map((t) => `\`${t}\``).join(' | ')} |`
+  const separator = `| --- | ${ALL_TOOLS.map(() => '---').join(' | ')} |`
   const rows = agents.map(({ name, tools }) => {
-    const cells = ALL_TOOLS.map((tool) => (tools.includes(tool) ? '✅' : '—'));
-    return `| ${name} | ${cells.join(' | ')} |`;
-  });
-  return [header, separator, ...rows].join('\n');
+    const cells = ALL_TOOLS.map((tool) => (tools.includes(tool) ? '✅' : '—'))
+    return `| ${name} | ${cells.join(' | ')} |`
+  })
+  return [header, separator, ...rows].join('\n')
 }
 
 function buildTaskTable() {
-  const header = '| Task | Required tools | Suitable agents |';
-  const separator = '| --- | --- | --- |';
+  const header = '| Task | Required tools | Suitable agents |'
+  const separator = '| --- | --- | --- |'
   const rows = TASK_ROWS.map(({ task, tools, agents }) => {
-    return `| ${task} | ${tools.map((t) => `\`${t}\``).join(', ')} | ${agents.map((a) => `\`${a}\``).join(', ')} |`;
-  });
-  return [header, separator, ...rows].join('\n');
+    return `| ${task} | ${tools.map((t) => `\`${t}\``).join(', ')} | ${agents.map((a) => `\`${a}\``).join(', ')} |`
+  })
+  return [header, separator, ...rows].join('\n')
 }
 
 function main() {
   const files = fs
     .readdirSync(AGENTS_DIR)
     .filter((f) => f.endsWith('.agent.md'))
-    .sort();
+    .sort()
 
   const agents = files.map((file) => {
-    const name = file.replace('.agent.md', '');
-    const frontmatter = parseFrontmatter(path.join(AGENTS_DIR, file));
+    const name = file.replace('.agent.md', '')
+    const frontmatter = parseFrontmatter(path.join(AGENTS_DIR, file))
     if (!frontmatter) {
-      throw new Error(`Could not parse frontmatter in ${file}`);
+      throw new Error(`Could not parse frontmatter in ${file}`)
     }
     return {
       name,
@@ -143,8 +173,8 @@ function main() {
       applyTo: frontmatter.applyTo || [],
       tools: frontmatter.tools || [],
       file,
-    };
-  });
+    }
+  })
 
   const lines = [
     '# Agent Capability Matrix',
@@ -162,24 +192,38 @@ function main() {
     '',
     '## Agent descriptions',
     '',
-    ...agents.flatMap(({ name, description, file, applyTo }) => {
-      const cleanDescription = description
-        .trim()
-        .split('\n')
-        .map((line) => line.trim())
-        .join(' ')
-        .replace(/\s+/g, ' ');
-      const applyToLine = applyTo.length > 0 ? `**Applies to:** ${applyTo.map((p) => `\`${p}\``).join(', ')}` : '';
-      return [`### ${name}`, '', cleanDescription, '', applyToLine, '', `[${file}](${file})`, ''];
-    }).map((line) => line.replace(/^\| /, '')),
+    ...agents
+      .flatMap(({ name, description, file, applyTo }) => {
+        const cleanDescription = description
+          .trim()
+          .split('\n')
+          .map((line) => line.trim())
+          .join(' ')
+          .replace(/\s+/g, ' ')
+        const applyToLine =
+          applyTo.length > 0
+            ? `**Applies to:** ${applyTo.map((p) => `\`${p}\``).join(', ')}`
+            : ''
+        return [
+          `### ${name}`,
+          '',
+          cleanDescription,
+          '',
+          applyToLine,
+          '',
+          `[${file}](${file})`,
+          '',
+        ]
+      })
+      .map((line) => line.replace(/^\| /, '')),
     '---',
     '',
-    '*Last generated: ' + new Date().toISOString().split('T')[0] + '*',
+    `*Last generated: ${new Date().toISOString().split('T')[0]}*`,
     '',
-  ];
+  ]
 
-  fs.writeFileSync(README_PATH, lines.join('\n'), 'utf8');
-  console.log(`Updated ${README_PATH} with ${agents.length} agent(s).`);
+  fs.writeFileSync(README_PATH, lines.join('\n'), 'utf8')
+  console.log(`Updated ${README_PATH} with ${agents.length} agent(s).`)
 }
 
-main();
+main()

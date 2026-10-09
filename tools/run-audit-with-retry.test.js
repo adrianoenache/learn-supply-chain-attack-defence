@@ -123,8 +123,14 @@ describe('run-audit-with-retry', () => {
     const written = { out: [], err: [] }
     const originalOut = process.stdout.write.bind(process.stdout)
     const originalErr = process.stderr.write.bind(process.stderr)
-    process.stdout.write = (chunk) => (written.out.push(chunk), true)
-    process.stderr.write = (chunk) => (written.err.push(chunk), true)
+    process.stdout.write = (chunk) => {
+      written.out.push(chunk)
+      return true
+    }
+    process.stderr.write = (chunk) => {
+      written.err.push(chunk)
+      return true
+    }
     mod.runAudit = () => ({
       status: 0,
       stdout: 'audit-ok-out',
