@@ -245,8 +245,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   Documentado em `docs/{en,pt-BR}/repository-organization.md`; a ativação é
   manual (Settings → Branches) — marcar como feito após aplicar no GitHub.
   - ✅ Concluído em 2026-10-08: confirmado pelo mantenedor nos dois branches.
-- [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
+- [x] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
   cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
+  - Concluído em 2026-10-08: globs estendidos para as suítes de sanidade de
+    `.github/`; badge atualizado de 487 → 859; guarda de regressão trava o
+    drift comparando `TEST_GLOBS` com o script `test` do `package.json`.
 - [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
   final (incl. a decisão de não extrair formatters/cli).
 - [ ] **H.6** Validação final + registrar no `DECISIONS.md` a decisão

@@ -42,14 +42,17 @@ function makeMockGlob(filePaths) {
     const isPerf =
       pattern.includes(`${path.sep}perf${path.sep}`) ||
       pattern.includes('/perf/')
+    const isGithub = pattern.includes('.github')
     return filePaths.filter((p) => {
       const hasLib =
         p.includes(`${path.sep}lib${path.sep}`) || p.includes('/lib/')
       const hasPerf =
         p.includes(`${path.sep}perf${path.sep}`) || p.includes('/perf/')
-      if (isLib) return hasLib
-      if (isPerf) return hasPerf
-      return !hasLib && !hasPerf
+      const hasGithub = p.includes('.github')
+      if (isGithub) return hasGithub
+      if (isLib) return hasLib && !hasGithub
+      if (isPerf) return hasPerf && !hasGithub
+      return !hasLib && !hasPerf && !hasGithub
     })
   }
 }
@@ -255,6 +258,30 @@ describe('update-badge', () => {
     })
     assert.equal(result.status, 0)
     assert.ok(result.stdout.includes('Test badge would be'))
+  })
+
+  test('badge globs cover the same files as the package.json test script', () => {
+    // Regression guard for the H.4 drift: the badge counted 469 tests while
+    // npm test ran 738 because TEST_GLOBS never saw the .github suites. The
+    // badge must derive from the same file set as the `test` script.
+    const mod = readScriptExports()
+    const pkg = require(path.resolve(__dirname, '..', 'package.json'))
+    const testScript = pkg.scripts.test
+    // Every .test.js path/group in the script must have a corresponding glob.
+    const scriptRefs =
+      testScript.match(/[\w./-]*\.test\.js|[\w./-]+\*\.test\.js/g) ?? []
+    const globDirs = mod.TEST_GLOBS.join(' ')
+    for (const ref of scriptRefs) {
+      // Both script refs and globs are repo-root relative; the glob list uses
+      // absolute paths, so we check by suffix containment of the directory.
+      const dir = ref.replace(/[^/]*\.test\.js$/, '').replace(/\*$/, '')
+      assert.ok(
+        dir === '' ||
+          globDirs.includes(dir.replace(/\/$/, '')) ||
+          globDirs.includes(dir),
+        `test script covers "${ref}" but TEST_GLOBS has no matching entry`,
+      )
+    }
   })
 
   test('countTestsDynamically parses the TAP test count', () => {
