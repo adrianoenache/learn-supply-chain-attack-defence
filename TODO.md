@@ -236,7 +236,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     camada organizacional adicionada ao índice de segurança bilíngue.
     ✅ **Confirmado pelo mantenedor em 2026-10-08:** branch protection com
     "Require PR + review de Code Owner" ativa em `main` e `dev`.
-- [ ] **H.3.1** (evolução sugerida pelo Copilot, aceita em 2026-10-08) Habilitar
+- [x] **H.3.1** (evolução sugerida pelo Copilot, aceita em 2026-10-08) Habilitar
   **Required Status Checks** em `main` e `dev`: "Require status checks to pass
   before merging" com os 11 jobs de `.github/workflows/ci.yml` (`Build`,
   `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
@@ -244,6 +244,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `Defence Gates`) + "Require branches to be up to date before merging".
   Documentado em `docs/{en,pt-BR}/repository-organization.md`; a ativação é
   manual (Settings → Branches) — marcar como feito após aplicar no GitHub.
+  - ✅ Concluído em 2026-10-08: confirmado pelo mantenedor nos dois branches.
 - [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
   cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
 - [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
