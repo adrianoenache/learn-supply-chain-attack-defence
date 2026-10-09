@@ -16,10 +16,18 @@ const { spawnSync } = require('node:child_process')
 const { globSync } = require('node:fs')
 
 const README_PATH = path.resolve(__dirname, '../README.md')
+// These globs must cover exactly the same files as the `test` script in
+// package.json; otherwise the badge reports a count smaller than the real
+// suite (the drift introduced when the .github sanity suites joined npm test
+// in Phase AI-1, and caught during the Phase H audit).
 const TEST_GLOBS = [
   path.resolve(__dirname, '*.test.js'),
   path.resolve(__dirname, 'lib', '*.test.js'),
   path.resolve(__dirname, 'perf', '*.test.js'),
+  path.resolve(__dirname, '..', '.github', 'agents', 'agents.sanity.test.js'),
+  path.resolve(__dirname, '..', '.github', 'skills', 'skills.sanity.test.js'),
+  path.resolve(__dirname, '..', '.github', 'hooks', 'hooks.sanity.test.js'),
+  path.resolve(__dirname, '..', '.github', 'hooks', 'scripts', '*.test.js'),
 ]
 const BADGE_RE =
   /!\[Tests\]\(https:\/\/img\.shields\.io\/badge\/Tests-\d+%2F\d+%20passing-[a-zA-Z]+\)/
@@ -214,4 +222,5 @@ module.exports = {
   countTestsDynamically,
   setImpls,
   resetImpls,
+  TEST_GLOBS,
 }
