@@ -52,6 +52,13 @@ O CODEOWNERS só faz efeito quando a branch protection o referencia:
 A partir daí, qualquer PR que toque um caminho protegido solicita revisão de
 `@adrianoenache` automaticamente.
 
+> **Nota sobre mantenedor único (estado atual):** o número mínimo de
+> *aprovações* está em **0**, porque um mantenedor solo não pode aprovar a
+> própria PR (count = 1 travaria todo merge). A exigência de revisão de Code
+> Owner e os status checks permanecem totalmente ativos. Esta é uma flexibilização
+> **temporária e documentada** — revisite quando o projeto ganhar mantenedores
+> ou revisores adicionais. Registrado em [DECISIONS.md](../../DECISIONS.md).
+
 ### Status checks obrigatórios (próximo passo recomendado)
 
 O CODEOWNERS garante revisão *humana*; ele não impede o merge de uma PR com o

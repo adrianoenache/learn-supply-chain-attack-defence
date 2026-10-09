@@ -93,7 +93,20 @@ Keep entries concise; link to the phase/commit for detail.
 - **Consequences:** Each phase feeds the next; the J evaluation reads
   DECISIONS.md and the observability log as evidence.
 
-### 2026-10-08 — Generated files never embed the generation date
+### 2026-10-08 — Zero required approvers while the project has a single maintainer
+
+- **Decision:** Branch protection on `main` and `dev` requires PRs, code-owner
+  review, and the 11 CI status checks, but the minimum *approving review count*
+  is 0 — a solo maintainer cannot approve their own PR.
+- **Context:** With count = 1 the CODEOWNERS flow deadlocked: the only code
+  owner is also the PR author, so no merge could ever complete.
+- **Rejected alternative:** Keep count = 1 — makes the repository unmergeable
+  in practice and teaches a rule that cannot be followed.
+- **Consequences:** The CODEOWNERS requirement (which paths need owner review)
+  and the status checks remain fully active; the flexibility is documented as
+  **temporary** and must be revisited when the project gains additional
+  maintainers or reviewers. This is a conscious governance trade-off, not a
+  removal of the layer.
 
 - **Decision:** `generate-skills-index.js` omits `Last generated:`; chronology
   comes from git history.
