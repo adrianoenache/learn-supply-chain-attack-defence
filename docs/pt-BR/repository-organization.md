@@ -52,6 +52,29 @@ O CODEOWNERS só faz efeito quando a branch protection o referencia:
 A partir daí, qualquer PR que toque um caminho protegido solicita revisão de
 `@adrianoenache` automaticamente.
 
+### Status checks obrigatórios (próximo passo recomendado)
+
+O CODEOWNERS garante revisão *humana*; ele não impede o merge de uma PR com o
+CI vermelho. Habilitar **Require status checks to pass before merging** fecha
+essa lacuna — a aprovação humana só acontece depois dos portões automáticos
+estarem verdes:
+
+1. Na mesma regra de branch, habilite **Require status checks to pass before
+   merging**.
+2. Habilite **Require branches to be up to date before merging** (modo
+   estrito; relaxe-o primeiro se o atrito de rebase se tornar desproporcional
+   em um repositório de baixo tráfego).
+3. Adicione os nomes dos jobs de `.github/workflows/ci.yml` como checks
+   obrigatórios: `Build`, `Test`, `Coverage`, `Lint`, `Format`,
+   `Documentation Links`, `License Check`, `Lockfile Integrity`,
+   `Secret Scan`, `Installer Dry-Run`, `Defence Gates`.
+
+A cadeia de merge resultante é o projeto ensinando o próprio modelo:
+
+```text
+commit → git hooks → GitHub Actions → status checks obrigatórios → CODEOWNERS → merge
+```
+
 ### Ajustando a titularidade
 
 Edite `.github/CODEOWNERS` conforme o projeto ganha mantenedores. Prefira o

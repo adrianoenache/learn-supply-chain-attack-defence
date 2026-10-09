@@ -234,8 +234,16 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     `skills/`); páginas `docs/{en,pt-BR}/repository-organization.md` criadas
     com a seção CODEOWNERS completa (o restante da página é H.5); nota da
     camada organizacional adicionada ao índice de segurança bilíngue.
-    **Pendente (ação manual do mantenedor no GitHub):** habilitar "Require
-    review from Code Owners" em Settings → Branches para `main` e `dev`.
+    ✅ **Confirmado pelo mantenedor em 2026-10-08:** branch protection com
+    "Require PR + review de Code Owner" ativa em `main` e `dev`.
+- [ ] **H.3.1** (evolução sugerida pelo Copilot, aceita em 2026-10-08) Habilitar
+  **Required Status Checks** em `main` e `dev`: "Require status checks to pass
+  before merging" com os 11 jobs de `.github/workflows/ci.yml` (`Build`,
+  `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
+  `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
+  `Defence Gates`) + "Require branches to be up to date before merging".
+  Documentado em `docs/{en,pt-BR}/repository-organization.md`; a ativação é
+  manual (Settings → Branches) — marcar como feito após aplicar no GitHub.
 - [ ] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
   cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
 - [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
