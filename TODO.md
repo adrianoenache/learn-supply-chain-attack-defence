@@ -207,7 +207,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   cobertura revelou e corrigiu um bug de produção nos wrappers `exec`/`execSync`
   de `tools/lib/process-monitor.js`, que ignoravam a implementação injetável).
 
-## Fase H — Organização e governança
+## Fase H — Organização e governança ✅
 
 > Refinada em 2026-10-08 com dados reais (ver PLAN.md). Extrair apenas
 > `concurrency.js` (duplicação real); formatters/cli seriam falsa abstração —
@@ -250,16 +250,17 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-10-08: globs estendidos para as suítes de sanidade de
     `.github/`; badge atualizado de 487 → 859; guarda de regressão trava o
     drift comparando `TEST_GLOBS` com o script `test` do `package.json`.
-- [ ] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
+- [x] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
   final (incl. a decisão de não extrair formatters/cli).
-- [ ] **H.6** Validação final + registrar no `DECISIONS.md` a decisão
+  - Concluído em 2026-10-08: página completa com convenções de layout, seção
+    "o que deliberadamente NÃO é extraído", resultados da auditoria (zero
+    órfãos, applyTo higiênico) e a seção CODEOWNERS.
+- [x] **H.6** Validação final + registrar no `DECISIONS.md` a decisão
   "documentar, não extrair" para formatters/cli.
-- [ ] Corrigir drift do badge de testes (avaliação 2026-10-07):
-  `tools/update-badge.js` conta apenas `tools/**/*.test.js` (469 testes),
-  enquanto `npm test` executa 738 (inclui os sanity tests de `.github/`
-  adicionados nas Fases AI-1/AI-2). Estender `TEST_GLOBS` (e a contagem
-  dinâmica) para cobrir os mesmos arquivos do script `test`, ou documentar
-  explicitamente que o badge reflete apenas a suíte de `tools/`.
+  - Concluído em 2026-10-08: ADR registrado; gates verdes.
+- [x] ~~Corrigir drift do badge de testes (avaliação 2026-10-07)~~ — **coberto
+  por H.4** (item original da sessão de avaliação K2; resolvido com guarda de
+  regressão).
 
 ## Fase I — Revisão total da documentação
 

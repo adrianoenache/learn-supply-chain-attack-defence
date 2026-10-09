@@ -370,8 +370,14 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 > `process-monitor.js` 87→96%, `run-audit-with-retry.js` 86→93%,
 > `check-external-urls.js` 86→95%.
 
-### Fase H — Organização e governança
+### Fase H — Organização e governança ✅
 
+> **Status: concluída em 2026-10-08.** H.1 (concurrency extraído), H.2 (Biome
+> cobre `.github/**/*.js`, 86 arquivos), H.3 + H.3.1 (CODEOWNERS + status
+> checks ativos em `main` e `dev`), H.4 (badge 487 → 859 com guarda de
+> regressão), H.5 (página bilíngue completa), H.6 (validação + ADR).
+> O fluxo de trabalho mudou para PR obrigatória (branch protection ativa).
+>
 > **Status (2026-10-05): parcialmente aberta.** Verificado que o Biome ainda
 > cobre apenas `tools/**/*.js` e `*.js` (`files.includes` em `biome.json`;
 > `biome check .github/` processa 0 arquivos). Os helpers

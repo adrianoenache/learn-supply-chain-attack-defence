@@ -1,12 +1,8 @@
 # Organização do Repositório
 
 Como este repositório é organizado e por quê. Esta página documenta as
-convenções de layout, a camada CODEOWNERS e as regras que mantêm o projeto
-previsível à medida que cresce.
-
-> **Nota (Fase H):** esta página está sendo expandida durante a Fase H; a
-> seção CODEOWNERS abaixo está completa, e a auditoria estrutural completa
-> chega com o item H.5.
+convenções de layout, a camada CODEOWNERS, os resultados da auditoria e as
+regras que mantêm o projeto previsível à medida que cresce.
 
 ## Convenções de layout
 
@@ -14,13 +10,39 @@ previsível à medida que cresce.
   irmão e uma página em `docs/{en,pt-BR}/tools/`.
 - `tools/lib/` — helpers compartilhados com uma única responsabilidade por
   módulo (`config.js`, `concurrency.js`, `retry-fetch.js`, `registry-cache.js`, …).
+- `tools/perf/` — harness de benchmark das ferramentas de defesa.
+- `tools/e2e/` — fixtures e testes de ponta a ponta (requerem acesso à rede).
 - `docs/en/` e `docs/pt-BR/` — documentação bilíngue com estrutura idêntica;
   toda página existe nos dois idiomas.
 - `.github/` — customizações de AI (`instructions/`, `agents/`, `skills/`,
-  `hooks/`), workflows de CI e templates do repositório.
+  `hooks/`), workflows de CI, templates de issue/PR e os arquivos de
+  governança (`CODEOWNERS`, `PLAN.md`).
 
-Arquivos novos devem ser descobertas a partir de um índice, manifesto ou
+Arquivos novos devem ser descobertos a partir de um índice, manifesto ou
 página de documentação (sem arquivos órfãos).
+
+## O que deliberadamente NÃO é extraído
+
+A Fase H avaliou extrair `tools/lib/formatters.js` e `tools/lib/cli.js` e
+decidiu **contra** (registrado em `DECISIONS.md`): os formatadores de relatório
+são específicos de domínio por ferramenta (uma tabela de licenças não é uma
+tabela de SBOM), e `parseCliArgs` é uma convenção de 3 linhas
+(`argv.includes('--flag')`) que um módulo compartilhado complicaria, não
+simplificaria. A regra: extrair apenas quando a implementação é
+byte-idêntica em mais de um arquivo — como foi o caso de
+`tools/lib/concurrency.js`.
+
+## Resultados da auditoria (2026-10-08)
+
+- **Arquivos órfãos:** nenhum. Todo script é referenciado pelo `package.json`,
+  uma página de docs, uma entrada de manifesto ou um hook. Arquivos de teste
+  são descobertos pelos globs do script `test` e não precisam de entrada em
+  índice.
+- **Higiene de applyTo:** nenhum padrão amplo `**`; toda instruction/agent
+  declara um padrão com escopo. Garantido continuamente pelo
+  `agents.sanity.test.js`.
+- **Nomes:** ferramentas são `<acao>.js`; testes são `<acao>.test.js` irmãos;
+  páginas de docs espelham o nome da ferramenta em `docs/{en,pt-BR}/tools/`.
 
 ## CODEOWNERS
 
