@@ -259,6 +259,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   surface now require code-owner review once branch protection is enabled;
   `docs/{en,pt-BR}/repository-organization.md` documents the setup, and the
   security index notes the human layer alongside the twelve technical ones.
+- `docs/{en,pt-BR}/repository-organization.md` completed (Fase H.5): layout
+  conventions, the "deliberately not extracted" rule (formatters/cli), the
+  2026-10-08 audit results (zero orphaned files, clean applyTo hygiene), and
+  the CODEOWNERS + required-status-checks setup.
+- README test badge counts the full suite again (Fase H.4):
+  `tools/update-badge.js` `TEST_GLOBS` now mirror the `package.json` test
+  script (859/859, previously 487/487), with a regression test locking the
+  two together.
+- Branch protection is active on `main` and `dev` (H.3.1): PR required,
+  code-owner review, and the 11 CI status checks. The minimum approving
+  review count is temporarily 0 while the project has a single maintainer
+  (ADR in `DECISIONS.md`).
 
 ### Changed (Fase H.2)
 

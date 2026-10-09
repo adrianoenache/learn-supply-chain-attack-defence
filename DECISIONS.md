@@ -93,6 +93,22 @@ Keep entries concise; link to the phase/commit for detail.
 - **Consequences:** Each phase feeds the next; the J evaluation reads
   DECISIONS.md and the observability log as evidence.
 
+### 2026-10-08 — Document, don't extract, the formatters and CLI patterns
+
+- **Decision:** Do not create `tools/lib/formatters.js` or
+  `tools/lib/cli.js`; document the conventions instead.
+- **Context:** Phase H originally planned to extract both. Real data showed the
+  report formatters are domain-specific per tool (a license table is not an
+  SBOM table) and `parseCliArgs` is a 3-line convention
+  (`argv.includes('--flag')`) repeated with heterogeneous flags. A shared
+  module would be a false abstraction.
+- **Rejected alternative:** Extract anyway for uniformity — adds indirection
+  without removing duplication, and every tool would still need its own
+  rendering logic.
+- **Consequences:** The rule is "extract only byte-identical implementations
+  used by more than one file" (as done for `tools/lib/concurrency.js`); the
+  conventions are documented in `docs/{en,pt-BR}/repository-organization.md`.
+
 ### 2026-10-08 — Zero required approvers while the project has a single maintainer
 
 - **Decision:** Branch protection on `main` and `dev` requires PRs, code-owner

@@ -1,12 +1,8 @@
 # Repository Organization
 
 How this repository is organized and why. This page documents the layout
-conventions, the CODEOWNERS layer, and the rules that keep the project
-predictable as it grows.
-
-> **Note (Fase H):** this page is being expanded during Phase H; the
-> CODEOWNERS section below is complete, and the full structural audit lands
-> with item H.5.
+conventions, the CODEOWNERS layer, the audit results, and the rules that keep
+the project predictable as it grows.
 
 ## Layout conventions
 
@@ -14,13 +10,36 @@ predictable as it grows.
   `<action>.test.js` and a page under `docs/{en,pt-BR}/tools/`.
 - `tools/lib/` — shared helpers with a single responsibility per module
   (`config.js`, `concurrency.js`, `retry-fetch.js`, `registry-cache.js`, …).
+- `tools/perf/` — benchmark harness for the defense tools.
+- `tools/e2e/` — end-to-end fixtures and tests (require network access).
 - `docs/en/` and `docs/pt-BR/` — bilingual documentation with identical
   structure; every page exists in both languages.
 - `.github/` — AI customizations (`instructions/`, `agents/`, `skills/`,
-  `hooks/`), CI workflows, and repository templates.
+  `hooks/`), CI workflows, issue/PR templates, and the governance files
+  (`CODEOWNERS`, `PLAN.md`).
 
 New files must be discoverable from an index, manifest, or documentation page
 (no orphaned files).
+
+## What is deliberately NOT extracted
+
+Phase H evaluated extracting `tools/lib/formatters.js` and `tools/lib/cli.js`
+and decided **against** it (recorded in `DECISIONS.md`): the report formatters
+are domain-specific per tool (a license table is not an SBOM table), and
+`parseCliArgs` is a 3-line convention (`argv.includes('--flag')`) that a shared
+module would complicate, not simplify. The rule: extract only when the
+implementation is byte-identical in more than one file — as was the case for
+`tools/lib/concurrency.js`.
+
+## Audit results (2026-10-08)
+
+- **Orphaned files:** none. Every script is referenced by `package.json`, a
+  docs page, a manifest entry, or a hook. Test files are discovered by the
+  `test` script globs and need no index entry.
+- **applyTo hygiene:** no broad `**` patterns; every instruction/agent declares
+  a scoped pattern. Enforced continuously by `agents.sanity.test.js`.
+- **Naming:** tools are `<action>.js`; tests are `<action>.test.js` siblings;
+  docs pages mirror the tool name under `docs/{en,pt-BR}/tools/`.
 
 ## CODEOWNERS
 
