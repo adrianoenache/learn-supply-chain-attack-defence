@@ -264,10 +264,21 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 ## Fase I — Revisão total da documentação
 
-- [ ] Atualizar `docs/{en,pt-BR}/architecture.md` com todas as ferramentas e
-  bibliotecas.
-- [ ] Revisar camadas de segurança, `README.md`, `CONTRIBUTING.md`,
-  `SECURITY.md`, glossário e consistência bilíngue.
+> Refinada em 2026-10-08 com auditoria real (ver PLAN.md). README/SECURITY e
+> paridade bilíngue já saudáveis; trabalho em 3 arquivos + 1 rename + seção AI.
+
+- [ ] **I.1** `docs/{en,pt-BR}/architecture.md`: árvore completa de
+  `tools/lib/` (5 módulos + testes de lib faltando) + seção "AI customization
+  layer" (AI-3.4).
+- [ ] **I.2** `docs/{en,pt-BR}/glossary.md`: +8 termos (intermediateEligible,
+  quarantine, schemaVersion, CODEOWNERS, skill, agent, hook, fork).
+- [ ] **I.3** `CONTRIBUTING.md`: corrigir comando de format obsoleto e alinhar
+  a tabela de jobs de CI ao `ci.yml` real.
+- [ ] **I.4** Renomear `docs/{en,pt-BR}/tools/check-links.md` →
+  `check-md-links.md` e corrigir links.
+- [ ] **I.5** Revisão de confirmação de `README.md` e `SECURITY.md` (leitura
+  completa) + consistência final dos índices.
+- [ ] **I.6** Validação final (gates + paridade bilíngue + links).
 
 ## Fase J — Avaliação do projeto
 

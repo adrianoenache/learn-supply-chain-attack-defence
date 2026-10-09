@@ -4,7 +4,7 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-10-07
+> Last updated: 2026-10-08
 
 ## TL;DR
 
@@ -416,8 +416,29 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 
 ### Fase I — Revisão total da documentação
 
-- Atualizar `docs/{en,pt-BR}/architecture.md` com todas as ferramentas e bibliotecas.
-- Revisar camadas de segurança, `README.md`, `CONTRIBUTING.md`, `SECURITY.md`, glossário e consistência bilíngue.
+> **Refinamento (2026-10-08) com auditoria real:** README, SECURITY e paridade
+> bilíngue já estão saudáveis; o trabalho concentra-se em 3 arquivos + 1 rename
+> + a seção de AI (AI-3.4 fundido). A pedido do mantenedor, inclui também uma
+> revisão de confirmação do README/SECURITY.
+>
+> - **I.1** `docs/{en,pt-BR}/architecture.md`: árvore completa de `tools/lib/`
+>   (faltam 5 módulos: install-monitor-report, process-monitor, profiler,
+>   script-analyzer, trust-engine; e 12 testes de lib na árvore) + nova seção
+>   "AI customization layer" (AI-3.4: as 5 camadas — always-on → instructions →
+>   skills → agents → hooks — e onde posicionar regras novas).
+> - **I.2** `docs/{en,pt-BR}/glossary.md`: adicionar 8 termos criados nas fases
+>   recentes — `intermediateEligible`, `quarantine`, `schemaVersion`,
+>   `CODEOWNERS`, `skill`, `agent`, `hook`, `fork`.
+> - **I.3** `CONTRIBUTING.md`: corrigir o comando de format documentado
+>   (`npx biome format tools/ --check` → `npm run format:check`) e alinhar a
+>   tabela de jobs de CI com o `ci.yml` real (faltam installer-dry-run,
+>   actionlint; nomes desatualizados).
+> - **I.4** Renomear `docs/{en,pt-BR}/tools/check-links.md` →
+>   `check-md-links.md` para alinhar com o script, e corrigir os links.
+> - **I.5** Revisão de confirmação do `README.md` e `SECURITY.md` (leitura
+>   completa para garantir que nada ficou de fora, mesmo já estando saudáveis)
+>   + revisão final de consistência dos índices.
+> - **I.6** Validação final (gates completos + paridade bilíngue + links).
 
 ### Fase J — Avaliação do projeto
 
