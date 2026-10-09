@@ -51,6 +51,13 @@ CODEOWNERS only takes effect when branch protection references it:
 From then on, any PR touching a protected path requests review from
 `@adrianoenache` automatically.
 
+> **Single-maintainer note (current state):** the minimum *approving review
+> count* is set to **0**, because a solo maintainer cannot approve their own
+> PR (count = 1 would deadlock every merge). The code-owner requirement and
+> the status checks remain fully active. This is a **temporary, documented**
+> trade-off — revisit it when the project gains additional maintainers or
+> reviewers. Recorded in [DECISIONS.md](../../DECISIONS.md).
+
 ### Required status checks (recommended next step)
 
 CODEOWNERS guarantees *human* review; it does not prevent merging a PR whose
