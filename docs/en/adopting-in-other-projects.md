@@ -64,6 +64,7 @@ Existing scripts that do not conflict are preserved. If a target script already 
 ## After Running the Installer
 
 1. Run `npm install` in the target project to install husky, Biome, and generate a lock file.
+   - **Important:** the adopted `.npmrc` sets `ignore-scripts=true`, which also blocks the project's own `prepare` script — so husky's git-hook wiring does not run automatically. Run `npm run prepare` once after the install (this is exactly what the installer's `setup` script does).
    - Alternatively, if there is no `package-lock.json`, run `npm run defence:bootstrap` after the install.
 2. Verify the pre-commit hook: `bash .husky/pre-commit`
 3. Verify code quality: `npm run lint`
