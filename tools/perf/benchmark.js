@@ -87,6 +87,9 @@ function makePackageAgeResponse(url) {
   const name = decodeURIComponent(url.split('/').pop())
   const version = name.startsWith('@') ? '2.5.8' : '9.1.7'
   return {
+    // Since Fase AI-3.2 the tools validate packument shape (name match,
+    // versions map, parseable dates) before trusting it.
+    name,
     time: { [version]: published },
     'dist-tags': { latest: version },
     versions: {
@@ -95,8 +98,9 @@ function makePackageAgeResponse(url) {
   }
 }
 
-function makeUpdateCheckResponse() {
+function makeUpdateCheckResponse(name = 'benchmark-pkg') {
   return {
+    name,
     time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
     versions: {
       '2.6.0': { maintainers: [{ name: 'a' }, { name: 'b' }] },

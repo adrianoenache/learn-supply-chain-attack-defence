@@ -33,6 +33,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-npmrc` and `update-engines`, and both documents state the
   organizational layer (branch protection + required checks + CODEOWNERS).
 
+### Added (Fase AI-3.2 — injection hardening)
+
+- New `tools/lib/validate-external-content.js` — output validation before
+  trust (APPA phase 2): packument shape (name match, versions/time maps,
+  parseable dates), publish-date plausibility (24h clock-skew tolerance), and
+  Node.js dist-index entry shapes. Wired into `check-package-age.js`,
+  `check-updates.js`, and `update-engines.js`; both registry consumers
+  self-heal poisoned cache entries with one forced re-fetch.
+- New prompt-injection smoke suite (`.github/test-fixtures/`): fixtures
+  simulate a fully compromised model demanding dangerous actions; the real
+  hook scripts deny every one. A containment suite asserts no shipped AI file
+  carries injection phrases. The defense model (rules are guidance, hooks are
+  the boundary, payloads are validated) is documented in the bilingual
+  ai-guidelines.
+
 ### Added (Fase J — project evaluation)
 
 - `PROJECT_STATUS_REPORT.md` regenerated with measured metrics: **10/10** in

@@ -266,7 +266,22 @@ describe('fetchPackageAge', () => {
         err.statusCode = response.statusCode
         throw err
       }
-      return response.body
+      const body = response.body
+      // Since Fase AI-3.2 the tools validate the packument shape before
+      // trusting it, so fixtures must look like real registry documents:
+      // fill in `name` and a `versions` map (derived from `time`) when the
+      // test only cares about other fields.
+      if (body && typeof body === 'object') {
+        if (body.time && body.name === undefined) body.name = name
+        if (body.time && body.versions === undefined) {
+          body.versions = Object.fromEntries(
+            Object.keys(body.time)
+              .filter((k) => k !== 'created' && k !== 'modified')
+              .map((v) => [v, {}]),
+          )
+        }
+      }
+      return body
     }
   }
 
@@ -310,7 +325,7 @@ describe('fetchPackageAge', () => {
     }
   })
 
-  test('rejects with "Could not parse publish date" for invalid date', async () => {
+  test('rejects with "unparseable publish date" for invalid date', async () => {
     setRegistryImpls({
       fs: noOpFs,
       fetchJson: mockFetchRegistryJson({
@@ -320,8 +335,40 @@ describe('fetchPackageAge', () => {
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Could not parse publish date for mypkg@1\.0\.0/,
+        // Since Fase AI-3.2 the packument validator rejects the document
+        // before the age computation ever sees the date.
+        /unparseable publish date/,
       )
+    } finally {
+      resetRegistryImpls()
+    }
+  })
+
+  test('self-heals a poisoned cache entry by re-fetching with force', async () => {
+    const publishDate = new Date(
+      Date.now() - 10 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+    let calls = 0
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: async () => {
+        calls += 1
+        // First call simulates a poisoned cache entry (no name field); the
+        // second call (triggered by the validation failure) returns a valid
+        // document. Two calls prove the forced re-fetch happened — the
+        // registry-cache layer consumes `force` before the fetch layer.
+        if (calls === 1) return { time: { '1.0.0': publishDate } }
+        return {
+          name: 'mypkg',
+          versions: { '1.0.0': {} },
+          time: { '1.0.0': publishDate },
+        }
+      },
+    })
+    try {
+      const result = await fetchPackageAge('mypkg', '1.0.0')
+      assert.equal(calls, 2)
+      assert.ok(result.ageDays >= 9.9)
     } finally {
       resetRegistryImpls()
     }
@@ -444,7 +491,14 @@ describe('Integration — check-package-age dependency modes', () => {
             new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
           ]),
         )
-        const data = { time }
+        // Since Fase AI-3.2 the tools validate the packument shape, so the
+        // dynamic fixture mirrors a real registry document (name + versions
+        // derived from the time map).
+        const data = {
+          name,
+          time,
+          versions: Object.fromEntries(Object.keys(time).map((v) => [v, {}])),
+        }
         cache.set(key, data)
         return data
       },

@@ -367,6 +367,18 @@ completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
 - AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
+  - **Status (2026-11-03): concluído.** `tools/lib/validate-external-content.js`
+    valida packuments (nome confere com o pedido, maps versions/time, datas
+    parseáveis) e o dist index do Node (shapes de version/npm/lts), com
+    tolerância documentada de 24h para clock skew; conectado a
+    check-package-age, check-updates e update-engines, com autocorreção de
+    cache envenenado (1 re-fetch forçado) — validador pegou entradas de cache
+    vazias reais no primeiro uso. Smoke suite
+    `.github/test-fixtures/prompt-injection.test.js` simula um modelo
+    totalmente comprometido: as ações exigidas pelas fixtures são negadas
+    pelos hooks reais; segunda suíte garante que nenhum arquivo de AI
+    distribuído carrega frases de injeção. Modelo de 3 camadas documentado no
+    ai-guidelines (EN/PT); ADR registrado.
 - AI-3.3 **Observabilidade estruturada:** log JSONL unificado (gitignored) de hooks disparados, skills invocadas e bloqueios, com página docs/`{en,pt-BR}` explicando como ler — material didático ("quantas vezes a defesa te protegeu") e insumo para decidir quais regras viram hook.
   - **Status (2026-11-03): concluído** — logger unificado + summary script +
     9 hooks fiados + página bilíngue + ADR; invocações de skills pelo modelo

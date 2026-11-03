@@ -179,10 +179,15 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] **AI-3.1** (última; condicionada à medição) Otimizar o hook
   `inject-context` (medir custo do session-start; cachear dados estáticos com
   invalidação por mtime).
-- [ ] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
+- [x] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
   outputs em CI (fixtures com instruções maliciosas embutidas; validação de
   output de tools externas antes de admitir no contexto — segunda fase do
   monitor, APPA).
+  - Concluído em 2026-11-03: `validate-external-content.js` (packument + dist
+    index) conectado às 3 ferramentas que decidem com dados externos;
+    autocorreção de cache envenenado; smoke suite de injeção (modelo
+    comprometido → hooks negam) + guarda de frases de injeção nos arquivos
+    de AI; ADR + ai-guidelines EN/PT.
 - [x] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
   unificado de hooks, skills e bloqueios + página de docs bilíngue explicando
   a leitura.

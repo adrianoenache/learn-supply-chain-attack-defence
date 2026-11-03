@@ -103,6 +103,8 @@ const FILES_TO_COPY = [
   'tools/lib/script-analyzer.test.js',
   'tools/lib/trust-engine.js',
   'tools/lib/trust-engine.test.js',
+  'tools/lib/validate-external-content.js',
+  'tools/lib/validate-external-content.test.js',
   'tools/lib/process-monitor.js',
   'tools/lib/process-monitor.test.js',
   'tools/lib/install-monitor-report.js',
