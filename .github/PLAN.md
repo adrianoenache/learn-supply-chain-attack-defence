@@ -22,7 +22,7 @@ review em 4 eixos com `code-review-pass` + `check-dead-code`, adoção VS Code
 revisados) concluídas.
 
 Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) → **AI-3.2**
+**J** (avaliação 10/10) → **AI-3.2**
 (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
 justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
 (release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding
@@ -367,6 +367,9 @@ completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
 - AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
 - AI-3.3 **Observabilidade estruturada:** log JSONL unificado (gitignored) de hooks disparados, skills invocadas e bloqueios, com página docs/`{en,pt-BR}` explicando como ler — material didático ("quantas vezes a defesa te protegeu") e insumo para decidir quais regras viram hook.
+  - **Status (2026-11-03): concluído** — logger unificado + summary script +
+    9 hooks fiados + página bilíngue + ADR; invocações de skills pelo modelo
+    não são observáveis por hooks (limitação documentada).
 - AI-3.4 **Mapa da arquitetura de AI:** seção em `docs/{en,pt-BR}/architecture.md` descrevendo o modelo mental das 5 camadas (always-on → instructions → skills → agents → hooks) e onde posicionar cada tipo de regra nova.
 - AI-3.5 **Memória de decisões (M2/M3):** criar `DECISIONS.md` (ADRs leves: data, decisão, motivo, alternativa rejeitada — ex.: "F.4: intermediárias aplicáveis em quarentena porque passam pelo mesmo portão de idade"); estender a skill `context-recovery` com um passo de destilação de fim de sessão (extrair para DECISIONS/lessons o que merece persistir).
 

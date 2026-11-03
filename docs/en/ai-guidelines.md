@@ -181,6 +181,8 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Validates `runSubagent` calls, emitting educational, warning, or blocking context based on the target agent's declared tools. |
 | [`.github/hooks/warn-oversized-commit.json`](../../.github/hooks/warn-oversized-commit.json) | Advises (never blocks) when a `git commit` stages a large or multi-domain diff, reinforcing the one-commit-one-intent rule with the split procedure. Thresholds are justified in `DECISIONS.md`. |
 
+All hooks append JSONL events to the local, gitignored `.github/hooks/scripts/observability.jsonl` — see [AI observability](ai-observability.md) for the format and how to read it. The legacy `security-blocks.log` (blocks only) was migrated into this unified log.
+
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
 
 ### Agent execution security layers

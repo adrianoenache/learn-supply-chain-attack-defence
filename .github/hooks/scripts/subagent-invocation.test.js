@@ -4,8 +4,17 @@ const { describe, it } = require('node:test')
 const assert = require('node:assert/strict')
 const { spawnSync } = require('node:child_process')
 const path = require('node:path')
+const os = require('node:os')
+const fs = require('node:fs')
 
 const SCRIPT = path.resolve(__dirname, 'subagent-invocation.sh')
+
+// Hook scripts now emit observability events; point the log at a throwaway
+// file so the suite never pollutes the real (gitignored) observability.jsonl.
+const OBS_LOG = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'obs-test-')),
+  'observability.jsonl',
+)
 const _PARSE_SCRIPT = path.resolve(__dirname, 'parse-hook-input.js')
 
 function runHook(payload) {
@@ -13,6 +22,7 @@ function runHook(payload) {
     input: JSON.stringify(payload),
     encoding: 'utf8',
     timeout: 10000,
+    env: { ...process.env, OBS_LOG_FILE: OBS_LOG },
   })
   return {
     stdout: result.stdout.trim(),

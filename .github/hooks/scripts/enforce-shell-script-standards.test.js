@@ -9,14 +9,24 @@ const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 const { execSync } = require('node:child_process')
 const path = require('node:path')
+const os = require('node:os')
+const fs = require('node:fs')
 
 const SCRIPT = path.resolve(__dirname, './enforce-shell-script-standards.sh')
+
+// Hook scripts now emit observability events; point the log at a throwaway
+// file so the suite never pollutes the real (gitignored) observability.jsonl.
+const OBS_LOG = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'obs-test-')),
+  'observability.jsonl',
+)
 
 function runWithInput(input) {
   return execSync(`bash "${SCRIPT}"`, {
     input,
     encoding: 'utf8',
     timeout: 5000,
+    env: { ...process.env, OBS_LOG_FILE: OBS_LOG },
   }).trim()
 }
 

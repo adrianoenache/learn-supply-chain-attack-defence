@@ -242,6 +242,25 @@ Keep entries concise; link to the phase/commit for detail.
   only ever be a complementary layer for running vetted code, and this ADR is
   the reference when the topic resurfaces.
 
+### 2026-11-03 — Unified hook observability log is local-only and bounded
+
+- **Decision:** All Copilot hooks append JSONL events to a single gitignored
+  file (`.github/hooks/scripts/observability.jsonl`) via a shared logger;
+  the legacy `security-blocks.log` was migrated into it. The log is capped at
+  5,000 entries (oldest dropped), and logging errors are always swallowed.
+- **Context:** Hook enforcement was invisible — there was no way to answer
+  "how often did the defenses fire?" The summary script turns the log into
+  the teaching payoff. Unbounded logs become a disk problem; failing log
+  writes would break commit hooks; committing the log would leak local
+  command history.
+- **Rejected alternative:** Per-hook log files (the status quo) — fragmented
+  and only covered blocks; and logging every silent pass — noise that would
+  drown the signal and grow the file with zero informational value.
+- **Consequences:** `observability-summary.js` reports counts by hook and
+  action; skill invocations by the model are not hook-observable and stay
+  unlogged (documented limitation); hook tests redirect the log via
+  `OBS_LOG_FILE` so suites never pollute the real file.
+
 ### 2026-11-03 — Dead-code detection is an advisory tool, never a hard gate
 
 - **Decision:** `check-dead-code.js` always exits 0 and reports *candidates*

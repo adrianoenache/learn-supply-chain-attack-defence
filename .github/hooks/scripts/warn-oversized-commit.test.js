@@ -14,6 +14,13 @@ const os = require('node:os')
 const path = require('node:path')
 
 const SCRIPT = path.resolve(__dirname, './warn-oversized-commit.sh')
+
+// Hook scripts now emit observability events; point the log at a throwaway
+// file so the suite never pollutes the real (gitignored) observability.jsonl.
+const OBS_LOG = path.join(
+  fs.mkdtempSync(path.join(os.tmpdir(), 'obs-test-')),
+  'observability.jsonl',
+)
 const tempDirs = []
 
 function makeRepo() {
@@ -40,7 +47,7 @@ function runHook(cwd, command, env = {}) {
     encoding: 'utf8',
     timeout: 10000, // cold git + node spawns on loaded machines
     cwd,
-    env: { ...process.env, ...env },
+    env: { ...process.env, OBS_LOG_FILE: OBS_LOG, ...env },
   }).trim()
   return JSON.parse(output)
 }

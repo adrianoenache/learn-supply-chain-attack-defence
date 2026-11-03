@@ -11,6 +11,7 @@ This repository is a practical learning environment for understanding and applyi
 - [Project overview](project-overview.md) — purpose, audience, and how to use this repository.
 - [Glossary](glossary.md) — definitions of supply-chain security terms.
 - [AI guidelines](ai-guidelines.md) — how this project uses GitHub Copilot / Kimi Code.
+- [AI observability](ai-observability.md) — reading the unified hook event log.
 
 ### Getting Started
 

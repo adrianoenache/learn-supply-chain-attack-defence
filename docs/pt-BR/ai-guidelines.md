@@ -183,6 +183,8 @@ Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https:/
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Valida chamadas `runSubagent`, emitindo contexto educativo, advertência ou bloqueio com base nas ferramentas declaradas do agente alvo. |
 | [`.github/hooks/warn-oversized-commit.json`](../../.github/hooks/warn-oversized-commit.json) | Adverte (nunca bloqueia) quando um `git commit` prepara um diff grande ou multidomínio, reforçando a regra um-commit-uma-intenção com o procedimento de divisão. Os limites estão justificados em `DECISIONS.md`. |
 
+Todos os hooks adicionam eventos JSONL ao log local e gitignored `.github/hooks/scripts/observability.jsonl` — veja [Observabilidade de AI](ai-observability.md) para o formato e como lê-lo. O legado `security-blocks.log` (só bloqueios) foi migrado para este log unificado.
+
 As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
 
 ### Camadas de segurança da execução da AI

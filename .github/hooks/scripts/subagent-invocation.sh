@@ -7,6 +7,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(cat)
 
+# Unified observability (Fase AI-3.3): one JSONL entry per emitted event in
+# the gitignored observability.jsonl. Logging never fails the hook.
+log_event() {
+  printf '%s' "$1" | node "$SCRIPT_DIR/log-hook-event.js" || true
+}
+
 TOOL_NAME=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolName)
 if [ "$TOOL_NAME" != "runSubagent" ]; then
   echo '{}'
@@ -55,4 +61,5 @@ else
   MESSAGE="✅ runSubagent to '$AGENT_NAME' with tool verification acknowledged. Remember the post-delegation checklist in .github/skills/subagent-invocation/SKILL.md."
 fi
 
+log_event "$(node -e "console.log(JSON.stringify({ hook: 'subagent-invocation', event: 'preToolUse', action: 'suggest', reason: '' + String(process.argv[1]).slice(0, 200) }))" "$MESSAGE")"
 node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"

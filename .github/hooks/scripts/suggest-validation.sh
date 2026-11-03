@@ -7,6 +7,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(cat)
 
+# Unified observability (Fase AI-3.3): one JSONL entry per emitted event in
+# the gitignored observability.jsonl. Logging never fails the hook.
+log_event() {
+  printf '%s' "$1" | node "$SCRIPT_DIR/log-hook-event.js" || true
+}
+
 # Extract fields safely with Node.js instead of sed to avoid JSON parsing fragility.
 TOOL_NAME=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolName)
 
@@ -52,7 +58,8 @@ if printf '%s' "$FILE_PATH" | grep -qE '^package\.json$'; then
 fi
 
 if [ -n "$MESSAGE" ]; then
-  node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
+  log_event "$(node -e "console.log(JSON.stringify({ hook: 'suggest-validation', event: 'postToolUse', action: 'suggest', reason: '' + String(process.argv[1]).slice(0, 200) }))" "$MESSAGE")"
+node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
 else
   echo '{}'
 fi
