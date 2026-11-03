@@ -29,12 +29,15 @@ npm run defence:update -- --interactive --dry-run
 
 ## Exemplo de saída
 
+Saída real de dry-run (capturada em 2026-11-03; a ferramenta imprime em inglês):
+
 ```text
-Atualizações elegíveis: lodash 4.17.20 -> 4.17.21
-Executando npm update ...
-Verificação de assinatura: ok
-Verificação de licença: ok
-Verificação de idade: ok
+[dry-run] Would update dependencies with:
+  - pinned quarantine intermediate: @biomejs/biome@2.6.3 (latest 2.6.4 still in quarantine)
+  - npm run defence:pkg-age-check -- --transitive
+  - npm audit signatures
+  - npm audit --audit-level=high
+  - npm run defence:license-check:fail
 ```
 
 ## Camadas de defesa relacionadas
