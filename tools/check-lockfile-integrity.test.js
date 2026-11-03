@@ -101,6 +101,30 @@ describe('check-lockfile-integrity', () => {
     mod.resetFsImpl()
   })
 
+  test('classifies git dependencies separately instead of failing them', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+          // Git deps never carry a tarball hash; the resolved URL pins the
+          // commit. They must be reported, not failed (Fase M.1 finding).
+          'node_modules/my-loader': {
+            resolved: 'git+ssh://git@github.com:example/my-loader.git#a1b2c3',
+          },
+        },
+      }),
+    )
+
+    const { code, logs } = runMain(mod, [])
+    assert.equal(code, 0)
+    assert.ok(logs.some((line) => line.includes('git/file dependenc')))
+    assert.ok(logs.some((line) => line.includes('my-loader')))
+    assert.ok(!logs.some((line) => line.includes('Missing integrity')))
+    mod.resetFsImpl()
+  })
+
   test('fails when an entry uses sha1 integrity', () => {
     const mod = readScriptExports()
     mod.setFsImpl(

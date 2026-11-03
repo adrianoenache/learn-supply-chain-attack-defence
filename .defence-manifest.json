@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T23:39:05.857Z",
+  "installedAt": "2026-11-03T23:48:43.066Z",
   "files": [
     {
       "path": ".npmrc",
@@ -68,11 +68,11 @@
     },
     {
       "path": "tools/check-lockfile-integrity.js",
-      "hash": "f50d733a77edebd8645887d5235ad487c8056f184699717c5108ab379268a729"
+      "hash": "dec21d36845ffa640430073c9efbf463668b14663417fbbe60cd54dc6601fcc1"
     },
     {
       "path": "tools/check-lockfile-integrity.test.js",
-      "hash": "1de47daeca3508307a2432d5be95fe000f1b789c4937a0d5c1c0450f81aa7ae8"
+      "hash": "480b2b8abd84cd894d9e7b167499a8dd1ab9d4d72ec6212ae86297cefa0a8509"
     },
     {
       "path": "tools/check-md-links.js",
@@ -100,11 +100,11 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "cd2c296e4c592328d0aea63bdb58658b814b2ddce941e6a527c9498ff5abe044"
+      "hash": "cae05f67ea3cf34fefc7cf974fece12e493037f54d6599be5f1e23cdd2e27ab8"
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "4409ae29724255f63b6d21d53f51afd62aa7044b239aa7cd7b75e7d364e1dff2"
+      "hash": "d639801b769bb4c560b73c3bdea437b5e72bb9e2fecb5a179e94b7f08dae6891"
     },
     {
       "path": "tools/check-secrets.js",
@@ -148,7 +148,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "f885007a8467d44f410e4da038f14b5264fe7b6958493ae5b201568f65707c77"
+      "hash": "01b87295366f702852a7ebec1f1606254336294f34cc997e723628f0e6776c08"
     },
     {
       "path": "tools/monitor-install.js",
@@ -160,7 +160,7 @@
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "16dab48412d95394d7ae6c152d32e1acba4f5c1372514972720b91e552bcedfd"
+      "hash": "97a5a4854f1d44b1d3eb2f553b7011474e4c1f4ab0db2bfd8d5c4c4fbda9ac33"
     },
     {
       "path": "tools/integration.test.js",

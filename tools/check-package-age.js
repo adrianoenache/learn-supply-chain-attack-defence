@@ -230,7 +230,44 @@ async function main(options = {}) {
   })
   const minAgeDays = options.minAgeDays ?? MIN_AGE_DAYS
 
-  const entries = Object.entries(deps)
+  // Non-registry specs (git URLs, file:/link:, workspace:, tarball URLs)
+  // cannot be age-checked against the registry — they pin by commit/URL.
+  // They are reported as an advisory instead of failing the lookup.
+  // (Dogfooding finding, Fase M.1: a git dependency failed the gate with a
+  // confusing "no publish date in registry" error.)
+  const isNonRegistrySpec = (spec) =>
+    /^(git(\+[^:]+)?:|git@|https?:\/\/|file:|link:|workspace:)/.test(
+      String(spec),
+    ) || String(spec).includes('.git#')
+
+  let entries = Object.entries(deps)
+  const nonRegistry = entries.filter(([, spec]) => isNonRegistrySpec(spec))
+  entries = entries.filter(([, spec]) => !isNonRegistrySpec(spec))
+
+  // In transitive mode the value is the resolved version; a git dependency
+  // reveals itself through the lockfile's resolved URL instead.
+  if (mode.transitive && lock?.packages) {
+    const stillRegistry = []
+    for (const [name, version] of entries) {
+      const resolved = lock.packages[`node_modules/${name}`]?.resolved ?? ''
+      if (isNonRegistrySpec(resolved)) {
+        nonRegistry.push([name, resolved])
+      } else {
+        stillRegistry.push([name, version])
+      }
+    }
+    entries = stillRegistry
+  }
+
+  if (nonRegistry.length > 0) {
+    console.log(
+      `Non-registry dependencies (age gate not applicable — pinned by commit/URL, verify them manually):`,
+    )
+    for (const [name, spec] of nonRegistry) {
+      console.log(`  SKIP     ${name} — ${String(spec).slice(0, 80)}`)
+    }
+    console.log('')
+  }
 
   if (entries.length === 0) {
     console.log('No dependencies to check.')
