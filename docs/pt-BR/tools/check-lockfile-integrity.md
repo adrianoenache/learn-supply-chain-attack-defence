@@ -20,6 +20,9 @@ npm run defence:check-lockfile-integrity
 # Saída JSON
 npm run defence:check-lockfile-integrity -- --format=json
 
+# Saída em Markdown
+npm run defence:check-lockfile-integrity -- --format=markdown
+
 # Modo silencioso (apenas código de saída)
 npm run defence:check-lockfile-integrity -- --silent
 ```
