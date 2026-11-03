@@ -18,6 +18,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(cat)
 
+# Unified observability (Fase AI-3.3): one JSONL entry per hook event in the
+# gitignored observability.jsonl. Logging never fails the hook.
+log_event() {
+  printf '%s' "$1" | node "$SCRIPT_DIR/log-hook-event.js" || true
+}
+
 TOOL_NAME=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolName)
 
 case "$TOOL_NAME" in
@@ -44,12 +50,14 @@ fi
 
 deny() {
   local reason="$1"
+  log_event "$(node -e "console.log(JSON.stringify({ hook: 'enforce-write-paths', event: 'preToolUse', action: 'block', reason: process.argv[1] }))" "$reason")"
   node -e "console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: process.argv[1] }))" "$reason"
   exit 0
 }
 
 warn() {
   local message="$1"
+  log_event "$(node -e "console.log(JSON.stringify({ hook: 'enforce-write-paths', event: 'preToolUse', action: 'warn', reason: process.argv[1] }))" "$message")"
   node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$message"
   exit 0
 }

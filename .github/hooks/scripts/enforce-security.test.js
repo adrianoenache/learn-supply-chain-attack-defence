@@ -2,29 +2,43 @@
 'use strict'
 
 // Tests for enforce-security.sh behavior, including the block audit log and
-// the repair-oriented message rule (Fase AI-2.7.2 / AI-2.7.5).
+// the repair-oriented message rule (Fase AI-2.7.2 / AI-2.7.5). Since Fase
+// AI-3.3 the audit trail lives in the unified observability log; tests point
+// OBS_LOG_FILE at a temp file so the real log is never touched.
 
 const { describe, test } = require('node:test')
 const assert = require('node:assert/strict')
 const { execSync } = require('node:child_process')
 const fs = require('node:fs')
+const os = require('node:os')
 const path = require('node:path')
 
 const SCRIPT = path.resolve(__dirname, './enforce-security.sh')
-const LOG_FILE = path.resolve(__dirname, './security-blocks.log')
+
+let logFile = null
+
+function freshLog() {
+  logFile = path.join(
+    fs.mkdtempSync(path.join(os.tmpdir(), 'obs-sec-')),
+    'observability.jsonl',
+  )
+  return logFile
+}
 
 function runWithInput(input) {
+  if (!logFile) freshLog() // never let a test touch the real log
   return execSync(`bash "${SCRIPT}"`, {
     input,
     encoding: 'utf8',
     timeout: 5000,
+    env: { ...process.env, OBS_LOG_FILE: logFile },
   }).trim()
 }
 
 function readLog() {
-  if (!fs.existsSync(LOG_FILE)) return []
+  if (!logFile || !fs.existsSync(logFile)) return []
   return fs
-    .readFileSync(LOG_FILE, 'utf8')
+    .readFileSync(logFile, 'utf8')
     .trim()
     .split('\n')
     .filter(Boolean)
@@ -33,7 +47,7 @@ function readLog() {
 
 describe('enforce-security.sh', () => {
   test('denies direct npm install with the sanctioned alternative', () => {
-    const before = readLog().length
+    freshLog()
     const input = JSON.stringify({
       toolName: 'bash',
       toolArgs: { command: 'npm install lodash' },
@@ -43,11 +57,13 @@ describe('enforce-security.sh', () => {
     // Repair-oriented rule: every block message names the sanctioned path.
     assert.ok(output.permissionDecisionReason.includes('defence:add'))
 
-    const after = readLog()
-    assert.equal(after.length, before + 1, 'block should be logged')
-    assert.equal(after[after.length - 1].tool, 'bash')
-    assert.ok(after[after.length - 1].snippet.includes('lodash'))
-    fs.unlinkSync(LOG_FILE) // test cleanup: the log is local-only state
+    const entries = readLog()
+    assert.equal(entries.length, 1, 'block should be logged')
+    assert.equal(entries[0].tool, 'bash')
+    assert.equal(entries[0].action, 'block')
+    assert.equal(entries[0].hook, 'enforce-security')
+    assert.ok(entries[0].snippet.includes('lodash'))
+    fs.rmSync(path.dirname(logFile), { recursive: true, force: true })
   })
 
   test('denies removing ignore-scripts with a pointer to the safe procedure', () => {
@@ -58,7 +74,7 @@ describe('enforce-security.sh', () => {
     const output = JSON.parse(runWithInput(input))
     assert.equal(output.permissionDecision, 'deny')
     assert.ok(output.permissionDecisionReason.includes('rebuild procedure'))
-    fs.unlinkSync(LOG_FILE)
+    fs.rmSync(path.dirname(logFile), { recursive: true, force: true })
   })
 
   test('denies bypassing security gates with the approval path', () => {
@@ -69,7 +85,7 @@ describe('enforce-security.sh', () => {
     const output = JSON.parse(runWithInput(input))
     assert.equal(output.permissionDecision, 'deny')
     assert.ok(output.permissionDecisionReason.includes('maintainer approval'))
-    fs.unlinkSync(LOG_FILE)
+    fs.rmSync(path.dirname(logFile), { recursive: true, force: true })
   })
 
   test('allows npm ci (the sanctioned deterministic install)', () => {

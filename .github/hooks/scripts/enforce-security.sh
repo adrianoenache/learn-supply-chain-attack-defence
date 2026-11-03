@@ -7,6 +7,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(cat)
 
+# Unified observability (Fase AI-3.3): one JSONL entry per hook event in the
+# gitignored observability.jsonl. Logging never fails the hook.
+log_event() {
+  printf '%s' "$1" | node "$SCRIPT_DIR/log-hook-event.js" || true
+}
+
 # Extract fields safely with Node.js instead of sed to avoid JSON parsing fragility.
 TOOL_NAME=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolName)
 TOOL_INPUT=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolArgs)
@@ -26,18 +32,17 @@ DECODED=$(printf '%s' "$COMBINED" | sed 's/\\"/"/g; s/\\\\/\\/g')
 
 deny() {
   local reason="$1"
-  # Audit trail (Fase AI-2.7.2): every blocked call is appended to a local
-  # JSONL log (gitignored) so false positives and real bypass attempts can be
-  # reviewed periodically. The log never leaves the machine and stores only
-  # a short prefix of the attempted command.
-  local log_file="$SCRIPT_DIR/security-blocks.log"
+  # Audit trail (Fase AI-2.7.2, unified in AI-3.3): every blocked call is
+  # appended to the gitignored JSONL observability log so false positives and
+  # real bypass attempts can be reviewed periodically. The log never leaves
+  # the machine and stores only a short prefix of the attempted command.
   local snippet
   snippet=$(printf '%s' "$DECODED" | head -c 200)
-  node -e "
-    const fs = require('node:fs');
-    const entry = { at: new Date().toISOString(), tool: process.argv[1], reason: process.argv[2], snippet: process.argv[3] };
-    fs.appendFileSync(process.argv[4], JSON.stringify(entry) + '\n');
-  " "$TOOL_NAME" "$reason" "$snippet" "$log_file" || true
+  local entry
+  entry=$(node -e "
+    console.log(JSON.stringify({ hook: 'enforce-security', event: 'preToolUse', action: 'block', tool: process.argv[1], reason: process.argv[2], snippet: process.argv[3] }));
+  " "$TOOL_NAME" "$reason" "$snippet")
+  log_event "$entry"
   node -e "console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: process.argv[1] }))" "$reason"
   exit 0
 }

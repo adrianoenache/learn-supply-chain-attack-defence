@@ -5,6 +5,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONTEXT=""
 
 if [ -f "$REPO_ROOT/package.json" ]; then
@@ -31,3 +32,8 @@ if [ -n "$CONTEXT" ]; then
 else
   echo '{}'
 fi
+
+# Unified observability (Fase AI-3.3): record every session start. Never
+# fails the hook.
+printf '%s' '{"hook":"inject-context","event":"sessionStart","action":"fired"}' \
+  | node "$SCRIPT_DIR/log-hook-event.js" || true

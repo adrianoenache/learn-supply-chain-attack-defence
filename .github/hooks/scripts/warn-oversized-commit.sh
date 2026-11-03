@@ -27,6 +27,12 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(cat)
 
+# Unified observability (Fase AI-3.3): one JSONL entry per advisory in the
+# gitignored observability.jsonl. Logging never fails the hook.
+log_event() {
+  printf '%s' "$1" | node "$SCRIPT_DIR/log-hook-event.js" || true
+}
+
 TOOL_NAME=$(printf '%s' "$INPUT" | node "$SCRIPT_DIR/parse-hook-input.js" toolName)
 if [ "$TOOL_NAME" != "bash" ] && [ "$TOOL_NAME" != "powershell" ]; then
   echo '{}'
@@ -106,6 +112,7 @@ DOMAIN_LIST=$(printf '%s' "$STATS" | node "$SCRIPT_DIR/parse-hook-input.js" doma
 
 if [ "$FILES" -gt "$MAX_FILES" ] || [ "$LINES" -gt "$MAX_LINES" ] || [ "$DOMAINS" -gt "$MAX_DOMAINS" ]; then
   MESSAGE="Oversized or multi-domain commit: ${FILES} files, ${LINES} changed lines across ${DOMAINS} domain(s) (${DOMAIN_LIST}); thresholds are ${MAX_FILES} files / ${MAX_LINES} lines / ${MAX_DOMAINS} domains. Rule (copilot-instructions.md): one commit = one intent — do not mix code, documentation, and plan bookkeeping. To split: 'git restore --staged .', then 'git add <paths-of-one-intent>' and commit per intent. This is advisory only; the commit is not blocked."
+  log_event "$(node -e "console.log(JSON.stringify({ hook: 'warn-oversized-commit', event: 'preToolUse', action: 'warn', reason: process.argv[1] }))" "${FILES} files / ${LINES} lines / ${DOMAINS} domains (${DOMAIN_LIST})")"
   node -e "console.log(JSON.stringify({ additionalContext: process.argv[1] }))" "$MESSAGE"
   exit 0
 fi
