@@ -15,17 +15,18 @@ Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 destilação), H (organização: Biome, helpers, CODEOWNERS, badge), **L**
 (gestão de engines: update 24.19.0 → 24.22.2 por CVEs, ferramenta
 `update-engines.js`, guarda `check-npmrc`, ADRs de min-release-age e
-Permission Model) e **AI-4** (commits granulares com hook consultivo, code
+Permission Model), **AI-4** (commits granulares com hook consultivo, code
 review em 4 eixos com `code-review-pass` + `check-dead-code`, adoção VS Code
-1.144) concluídas.
+1.144) e **I** (documentação: architecture.md reescrito + camada de AI
+(AI-3.4), glossário +8 termos, CONTRIBUTING corrigido, README/SECURITY
+revisados) concluídas.
 
 Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**I** (+ AI-3.4: mapa de arquitetura de AI) → **AI-3.3** (observabilidade
-JSONL) → **J** (avaliação 10/10) → **AI-3.2** (prompt-injection/sanitização)
-→ **AI-3.1** (inject-context, se a medição justificar) → **M.1** (dogfooding
-do instalador no projeto irmão) → **K** (release v1.0.0, com aprovação
-explícita) → **M.2/M.3** (scaffolding completo e scaffolding de infra AI —
-pós-v1.0.0, alvo v1.1.0).
+**AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) → **AI-3.2**
+(prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
+justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
+(release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding
+completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 
 ## Fases
 
@@ -607,10 +608,23 @@ pós-v1.0.0, alvo v1.1.0).
 >   actionlint; nomes desatualizados).
 > - **I.4** Renomear `docs/{en,pt-BR}/tools/check-links.md` →
 >   `check-md-links.md` para alinhar com o script, e corrigir os links.
+>   **Resolvido sem ação (2026-11-03):** os arquivos já se chamam
+>   `check-md-links.md` nos dois idiomas e nenhuma referência a
+>   `check-links` existe fora deste item do plano.
 > - **I.5** Revisão de confirmação do `README.md` e `SECURITY.md` (leitura
 >   completa para garantir que nada ficou de fora, mesmo já estando saudáveis)
 >   + revisão final de consistência dos índices.
 > - **I.6** Validação final (gates completos + paridade bilíngue + links).
+>
+> **Status (2026-11-03): Fase I concluída.** I.1 (architecture.md reescrito
+> com a árvore real + seção da camada de AI com as 5 camadas e a regra de
+> posicionamento), I.2 (glossário +8 termos em ambos os idiomas), I.3
+> (CONTRIBUTING: comando de format e conteúdo do defence-gates corrigidos),
+> I.4 (resolvido sem ação — rename já estava correto), I.5 (README/SECURITY
+> saudáveis; adicionadas as capacidades da Fase L e a camada organizacional;
+> índices consistentes), I.6 (926/926 testes, lint 94 arquivos, 190 md,
+> manifesto 81). Bônus: removido o diretório vazio `.github/prompts/`
+> (resíduo da AI-1).
 
 ### Fase J — Avaliação do projeto
 

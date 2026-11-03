@@ -16,6 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Changed (Fase I — documentation overhaul)
+
+- `docs/{en,pt-BR}/architecture.md` rewritten from the live filesystem: full
+  annotated tree (root, `.github/`, `tools/`, `tools/lib/`), a complete
+  components table, and the new **AI Customization Layer** section (AI-3.4)
+  mapping the five layers with the guideline/procedure/reviewer/guarantee
+  placement rule. Design Decisions now record the advisory-vs-gate split,
+  manifest-driven adoption, and the extraction rule.
+- `docs/{en,pt-BR}/glossary.md` gains 8 terms: agent, CODEOWNERS, fork, hook,
+  intermediateEligible, quarantine, schemaVersion, skill.
+- `CONTRIBUTING.md`: the CI table now references `npm run format:check`
+  (instead of the removed direct biome call) and the current defence-gates
+  contents.
+- `README.md`/`SECURITY.md`: supporting capabilities now include
+  `check-npmrc` and `update-engines`, and both documents state the
+  organizational layer (branch protection + required checks + CODEOWNERS).
+
 ### Added (Fase AI-4.3 — VS Code 1.144 adoption)
 
 - All nine `.github/agents/*.agent.md` now declare `target: github-copilot`,

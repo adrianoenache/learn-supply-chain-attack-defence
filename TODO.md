@@ -327,23 +327,27 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [x] **AI-4.4** Validação final (gates + sanity suites + docs bilíngues).
   - Concluído em 2026-11-03: 926/926 testes, lint 94, 190 md, manifesto 81.
 
-## Fase I — Revisão total da documentação
+## Fase I — Revisão total da documentação ✅
 
 > Refinada em 2026-10-08 com auditoria real (ver PLAN.md). README/SECURITY e
 > paridade bilíngue já saudáveis; trabalho em 3 arquivos + 1 rename + seção AI.
+> **Concluída em 2026-11-03.**
 
-- [ ] **I.1** `docs/{en,pt-BR}/architecture.md`: árvore completa de
-  `tools/lib/` (5 módulos + testes de lib faltando) + seção "AI customization
-  layer" (AI-3.4).
-- [ ] **I.2** `docs/{en,pt-BR}/glossary.md`: +8 termos (intermediateEligible,
+- [x] **I.1** `docs/{en,pt-BR}/architecture.md`: árvore completa real +
+  seção "AI customization layer" (AI-3.4) com as 5 camadas e a regra de
+  posicionamento de regras novas.
+- [x] **I.2** `docs/{en,pt-BR}/glossary.md`: +8 termos (intermediateEligible,
   quarantine, schemaVersion, CODEOWNERS, skill, agent, hook, fork).
-- [ ] **I.3** `CONTRIBUTING.md`: corrigir comando de format obsoleto e alinhar
-  a tabela de jobs de CI ao `ci.yml` real.
-- [ ] **I.4** Renomear `docs/{en,pt-BR}/tools/check-links.md` →
-  `check-md-links.md` e corrigir links.
-- [ ] **I.5** Revisão de confirmação de `README.md` e `SECURITY.md` (leitura
-  completa) + consistência final dos índices.
-- [ ] **I.6** Validação final (gates + paridade bilíngue + links).
+- [x] **I.3** `CONTRIBUTING.md`: comando de format corrigido
+  (`npm run format:check`) e defence-gates alinhado ao ci.yml (incl.
+  check-npmrc da L.2).
+- [x] **I.4** Renomear check-links → check-md-links: **resolvido sem ação** —
+  os arquivos já estavam corretos; zero referências obsoletas.
+- [x] **I.5** README.md/SECURITY.md revisados: adicionadas as capacidades da
+  Fase L (check-npmrc, update-engines) e a camada organizacional; índices
+  EN/PT consistentes.
+- [x] **I.6** Validação final: 926/926 testes, lint 94 arquivos, 190 md,
+  manifesto 81, paridade bilíngue mantida.
 
 ## Fase J — Avaliação do projeto
 
