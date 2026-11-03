@@ -174,6 +174,7 @@ Hooks de ciclo de vida seguem a [referência de hooks do GitHub Copilot](https:/
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Lembra os agentes de atualizar os hashes de integridade após edições de `.husky/pre-commit`. |
 | [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Lembra os agents de revisar scripts shell contra os padrões do projeto após edições. |
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Valida chamadas `runSubagent`, emitindo contexto educativo, advertência ou bloqueio com base nas ferramentas declaradas do agente alvo. |
+| [`.github/hooks/warn-oversized-commit.json`](../../.github/hooks/warn-oversized-commit.json) | Adverte (nunca bloqueia) quando um `git commit` prepara um diff grande ou multidomínio, reforçando a regra um-commit-uma-intenção com o procedimento de divisão. Os limites estão justificados em `DECISIONS.md`. |
 
 As implementações dos hooks ficam em [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
 

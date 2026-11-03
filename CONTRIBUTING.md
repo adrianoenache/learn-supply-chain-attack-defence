@@ -20,6 +20,10 @@ Thank you for your interest in improving this project. This guide explains how t
 
 For the branch strategy, required checks, and pre-PR checklist, see [docs/en/git-workflow.md](docs/en/git-workflow.md).
 
+## Commit Granularity
+
+One commit carries one intent. Do not mix production code, documentation, and plan bookkeeping (`PLAN.md`/`TODO.md`/`DECISIONS.md`) in a single commit — split large or multi-domain staged diffs into per-intent commits so every change stays reviewable and revertable. AI assistants follow the same rule; the `warn-oversized-commit` Copilot hook advises (never blocks) when a staged diff exceeds the thresholds recorded in `DECISIONS.md`.
+
 ## CI Pipeline
 
 The GitHub Actions workflow in `.github/workflows/ci.yml` is documented in [docs/en/ci-cd-overview.md](docs/en/ci-cd-overview.md). It runs on pushes to `dev` and pull requests to `main` and `dev` with the following jobs:

@@ -502,6 +502,14 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
     disparo: `preToolUse` em `git commit` vs `.husky/pre-commit`) — avisar, não
     bloquear, com o caminho sancionado (como dividir).
   - ADR registrando a regra e o threshold escolhido.
+  - **Status (2026-11-03): concluído.** Regra no always-on
+    (`copilot-instructions.md`, 2.998/3.072 bytes) e em `CONTRIBUTING.md`;
+    hook `.github/hooks/warn-oversized-commit.json` (preToolUse,
+    `bash|powershell`) medindo o staged diff no momento do `git commit` —
+    consultivo por decisão (ADR): bumps mecânicos legítimos não podem ser
+    bloqueados. Limites: 8 arquivos / 400 linhas / 2 domínios (par bilíngue
+    conta como 1), sobregraváveis por env para testes. 9 testes E2E em repos
+    git temporários.
 - **AI-4.2** Processo de code review de AI em 4 eixos:
   - Qualidade de código (reusar `educational-code-review`), segurança de
     código (reusar `security-audit`), **remoção de código morto (novo)** e

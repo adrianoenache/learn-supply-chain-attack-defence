@@ -173,6 +173,7 @@ Lifecycle hooks follow the [GitHub Copilot hooks reference](https://docs.github.
 | [`.github/hooks/sync-pre-commit-hash.json`](../../.github/hooks/sync-pre-commit-hash.json) | Reminds agents to update integrity hashes after `.husky/pre-commit` edits. |
 | [`.github/hooks/enforce-shell-script-standards.json`](../../.github/hooks/enforce-shell-script-standards.json) | Reminds agents to review shell scripts against project standards after edits. |
 | [`.github/hooks/subagent-invocation.json`](../../.github/hooks/subagent-invocation.json) | Validates `runSubagent` calls, emitting educational, warning, or blocking context based on the target agent's declared tools. |
+| [`.github/hooks/warn-oversized-commit.json`](../../.github/hooks/warn-oversized-commit.json) | Advises (never blocks) when a `git commit` stages a large or multi-domain diff, reinforcing the one-commit-one-intent rule with the split procedure. Thresholds are justified in `DECISIONS.md`. |
 
 Hook implementations live in [`.github/hooks/scripts/`](../../.github/hooks/scripts/).
 

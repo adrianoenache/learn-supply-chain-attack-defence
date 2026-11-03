@@ -292,8 +292,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > Permissions GA; `context: fork` sem menção — re-teste empírico).
 > Executa depois da L e antes da Fase I (decisão do mantenedor, 2026-11-03).
 
-- [ ] **AI-4.1** Commits granulares: regra normativa (1 commit = 1 intenção) +
+- [x] **AI-4.1** Commits granulares: regra normativa (1 commit = 1 intenção) +
   hook de advertência para staged diff grande/multidomínio + ADR.
+  - Concluído em 2026-11-03: regra no always-on (2.998 bytes, dentro do
+    orçamento de 3 KB) e no CONTRIBUTING; hook `warn-oversized-commit`
+    (consultivo, nunca bloqueia) com 9 testes E2E em repos temporários;
+    limites 8 arquivos / 400 linhas / 2 domínios (par bilíngue = 1 domínio)
+    justificados em ADR.
 - [ ] **AI-4.2** Processo de code review em 4 eixos (qualidade, segurança,
   código morto, docs relacionadas): skill orquestradora + avaliar ferramenta
   leve de dead-code sem deps novas.

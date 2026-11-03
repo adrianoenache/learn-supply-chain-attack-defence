@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Security (Fase L.0 — engine update)
-
 - Updated the minimum Node.js from 24.19.0 to 24.22.2 and npm from 11.17.0 to
   11.19.1 (the version bundled with Node 24.22.2). The previous pin predated
   the 2026-10-21 Node.js security release, which fixed 8 CVEs (4 High,
@@ -16,6 +15,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   across the 22.x/24.x/26.x lines. Updated `package.json`,
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
+
+### Added (Fase AI-4.1 — commit granularity)
+
+- New advisory Copilot hook `warn-oversized-commit` (preToolUse on
+  `bash`/`powershell`): when a `git commit` stages more than 8 files, 400
+  changed lines, or 2 path domains, it advises splitting into per-intent
+  commits with the exact procedure — it never blocks (ADR in
+  `DECISIONS.md`). Ships with 9 end-to-end tests running against throwaway
+  git repositories.
+- The one-commit-one-intent rule is now normative in
+  `.github/copilot-instructions.md` (AI) and `CONTRIBUTING.md` (humans).
 
 ### Added
 

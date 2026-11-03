@@ -42,6 +42,10 @@ User-facing changes update both `docs/en/` and `docs/pt-BR/`, with terminology f
 
 Never generate or embed secrets, tokens, or credentials; use obviously fake, documented placeholders.
 
+## Commit Granularity
+
+One commit = one intent: never mix code, documentation, and plan bookkeeping (PLAN/TODO/DECISIONS) in a single commit. Split large or multi-domain staged diffs into per-intent commits before committing; the `warn-oversized-commit` hook advises at commit time (thresholds in `DECISIONS.md`).
+
 ## Session Continuity and Plan Recovery
 
 Session memory can be lost between chat sections. The authoritative plan is `.github/PLAN.md`; the session working copy lives in the harness-provided session files directory (e.g. `~/.copilot/session-state/<id>/files/plan.md` — the path varies by harness, so treat any session copy as disposable). Decisions and their rationale live in `DECISIONS.md`; recurring AI mistakes live in `.github/ai-lessons-learned.md`.
