@@ -287,10 +287,15 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     mantidas por decisão do mantenedor, comentários inline alinhados. Nova
     ferramenta `check-npmrc.js` (gate no pre-commit + CI). Drift de adoção do
     instalador corrigido com teste de completude (manifesto 72 → 79).
-- [ ] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
+- [x] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
   (com docs bilíngues do tradeoff) e avaliar o Permission Model
   (`--permission` não é sandbox de install).
-- [ ] **L.4** Validação final (gates + `nvm use` + CI + CHANGELOG/DECISIONS).
+  - Concluído em 2026-11-03: 2 ADRs em DECISIONS.md; fail-closed documentado
+    em npmrc-hardening (EN/PT); limitação do Permission Model registrada em
+    lifecycle-script-analysis (EN/PT).
+- [x] **L.4** Validação final (gates + `nvm use` + CI + CHANGELOG/DECISIONS).
+  - Concluído em 2026-11-03: 902/902 testes, lint 92 arquivos, 187 md,
+    CI verde nas PRs da fase.
 
 ## Fase AI-4 — Processos de AI: granularidade de commits e code review
 

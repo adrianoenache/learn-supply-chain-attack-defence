@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Added (Fase L.3 — documented evaluations)
+
+- Two ADRs in `DECISIONS.md`: the retroactive formalization of
+  `min-release-age=7` (including the fail-closed tradeoff — npm keeps the
+  vulnerable version and warns when the age window blocks a patch, with
+  `min-release-age-exclude` as the documented emergency escape) and the
+  rejection of Node's Permission Model as an install-time sandbox (vendor
+  disclaimer + two bypass CVEs in the 2026-10-21 security release; any future
+  sandbox must use OS-level isolation). Reflected in `npmrc-hardening.md` and
+  `security/lifecycle-script-analysis.md`, both languages.
+
 ### Added (Fase L.2 — npm configuration surface guard)
 
 - New `tools/check-npmrc.js` with `defence:check-npmrc`, wired into the

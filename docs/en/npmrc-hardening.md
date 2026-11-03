@@ -76,7 +76,7 @@ Fails `npm ci` and `npm install` if the active Node.js or npm version does not s
 min-release-age=7
 ```
 
-npm itself rejects versions published less than 7 days ago. This is a second layer beyond `tools/check-package-age.js` and also affects `npm audit fix`, which may fail if a published patch is too recent. For emergency patches that cannot wait, use the commented `min-release-age-exclude[]=` option temporarily.
+npm itself rejects versions published less than 7 days ago. This is a second layer beyond `tools/check-package-age.js` and also affects `npm audit fix`, which may fail if a published patch is too recent. The failure mode is deliberately **fail-closed**: when the age window blocks a patched version, npm keeps the old (vulnerable) version, warns, and exits non-zero rather than silently installing either version — the explicit tradeoff between waiting out the typosquat/compromise window and patching fast. For emergency patches that cannot wait, use the commented `min-release-age-exclude[]=` option temporarily. The adoption is formalized in `DECISIONS.md` (2026-11-03).
 
 ### Audit configuration
 
