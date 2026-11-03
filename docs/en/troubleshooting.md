@@ -229,7 +229,7 @@ npm run defence:bootstrap
 
 ### Cause
 
-`.husky/pre-commit` was modified and no longer matches the hash stored in `package.json` `defences.hookHash`.
+`.husky/pre-commit` was modified and no longer matches the hash stored in `package.json` under `defences.huskyPreCommitHash`.
 
 ### Fix
 
@@ -240,17 +240,35 @@ npm run defence:bootstrap
 git diff HEAD -- .husky/pre-commit
 ```
 
-3. If the change was intentional, update the hash in `package.json` after review:
-
-```bash
-npm run defence:check-hooks
-```
-
+3. If the change was intentional, follow the `pre-commit-hash-sync` procedure: recompute the SHA-256 of the hook, update `defences.huskyPreCommitHash` in `package.json`, run `npm run defence:verify-defences:fix` to refresh the manifest, and commit all three files together. `defence:check-hooks` only *verifies* — it never updates the hash.
 4. If the change was accidental, restore the original file:
 
 ```bash
 git checkout HEAD -- .husky/pre-commit
 ```
+
+---
+
+## npm Configuration Surface Failures
+
+### Symptom
+
+```text
+npm warn Unknown project config "some-key". This will stop working in the next major version of npm.
+```
+
+or a pre-commit/CI failure from `defence:check-npmrc` naming a `PROBLEM` key.
+
+### Cause
+
+The `.npmrc` contains a key npm does not recognize (typo, invented key, or a key from another package manager). Two keys are intentionally registered as *lookahead* settings and produce expected warnings: `npm-audit-fix-level` and `send-metrics` — see [npmrc-hardening](npmrc-hardening.md#lookahead--future-facing-settings).
+
+### Fix
+
+1. If the key is a typo or mistake, remove or correct it.
+2. If it is a documented npm key this project has not adopted yet, add it to `KNOWN_KEYS` in `tools/check-npmrc.js`.
+3. If it is a deliberate lookahead setting, register it in `LOOKAHEAD_KEYS` with a justification and document it in [npmrc-hardening](npmrc-hardening.md).
+4. If `defence:check-npmrc` reports `.npm-extension.mjs`/`.cjs` or an `extension-file` key, remove it — that npm v12 mechanism executes root-owned code during install and is not adopted by this project.
 
 ---
 

@@ -229,7 +229,7 @@ npm run defence:bootstrap
 
 ### Causa
 
-`.husky/pre-commit` foi modificado e não corresponde mais ao hash armazenado em `package.json` `defences.hookHash`.
+`.husky/pre-commit` foi modificado e não corresponde mais ao hash armazenado em `package.json` sob `defences.huskyPreCommitHash`.
 
 ### Correção
 
@@ -240,17 +240,35 @@ npm run defence:bootstrap
 git diff HEAD -- .husky/pre-commit
 ```
 
-3. Se a mudança foi intencional, atualize o hash em `package.json` após revisão:
-
-```bash
-npm run defence:check-hooks
-```
-
+3. Se a mudança foi intencional, siga o procedimento da skill `pre-commit-hash-sync`: recalcule o SHA-256 do hook, atualize `defences.huskyPreCommitHash` no `package.json`, execute `npm run defence:verify-defences:fix` para atualizar o manifesto e commite os três arquivos juntos. O `defence:check-hooks` apenas *verifica* — ele nunca atualiza o hash.
 4. Se a mudança foi acidental, restaure o arquivo original:
 
 ```bash
 git checkout HEAD -- .husky/pre-commit
 ```
+
+---
+
+## Falhas na Superfície de Configuração do npm
+
+### Sintoma
+
+```text
+npm warn Unknown project config "some-key". This will stop working in the next major version of npm.
+```
+
+ou uma falha de pre-commit/CI do `defence:check-npmrc` nomeando uma chave `PROBLEM`.
+
+### Causa
+
+O `.npmrc` contém uma chave que o npm não reconhece (typo, chave inventada ou chave de outro gerenciador de pacotes). Duas chaves são intencionalmente registradas como configurações *lookahead* e produzem avisos esperados: `npm-audit-fix-level` e `send-metrics` — veja [npmrc-hardening](npmrc-hardening.md).
+
+### Correção
+
+1. Se a chave é um typo ou engano, remova-a ou corrija-a.
+2. Se é uma chave documentada do npm ainda não adotada pelo projeto, adicione-a a `KNOWN_KEYS` em `tools/check-npmrc.js`.
+3. Se é uma configuração lookahead deliberada, registre-a em `LOOKAHEAD_KEYS` com justificativa e documente no [npmrc-hardening](npmrc-hardening.md).
+4. Se o `defence:check-npmrc` reportar `.npm-extension.mjs`/`.cjs` ou uma chave `extension-file`, remova — esse mecanismo do npm v12 executa código root-owned durante o install e não é adotado por este projeto.
 
 ---
 
