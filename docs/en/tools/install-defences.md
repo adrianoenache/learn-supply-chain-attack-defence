@@ -5,13 +5,16 @@
 ## What it does
 
 - Copies `.npmrc`, Husky hooks, Biome config, tools, libraries, tests, and benchmarks.
-- Adds defense-prefixed npm scripts to the target `package.json`.
-- Adds `husky` and `@biomejs/biome` to devDependencies.
+- Adds defense-prefixed npm scripts to the target `package.json` (aborts on conflicting script names — rename the target's script to `<name>:legacy` and re-run).
+- Adds `husky` and `@biomejs/biome` to devDependencies, tracking this project's **current** pins at install time.
+- Merges the defence configuration blocks (`pkgAgeCheck`, `updateCheck`, `licensesCheck`, …) into the target `package.json` when absent — blocks already defined by the adopter always win.
+- Writes `defences.huskyPreCommitHash` for the hook present after copying, so the adopted `check-hooks` gate passes from day one.
+- Merges the defence state/cache entries into the target's `.gitignore` (created when absent), so tool state is never committed.
 - Writes `.defence-manifest.json` with SHA-256 hashes of every copied file.
 - Refuses to overwrite existing files unless `--force` is passed.
 - Creates backups before overwriting.
 
-Implemented in [tools/install-defences.js](../../../tools/install-defences.js).
+Implemented in [tools/install-defences.js](../../../tools/install-defences.js). The real-world adoption report lives in [Dogfooding report (Fase M.1)](../dogfooding-m1-report.md).
 
 ## Usage
 

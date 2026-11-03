@@ -5,13 +5,16 @@
 ## O que faz
 
 - Copia `.npmrc`, hooks Husky, configuração do Biome, ferramentas, bibliotecas, testes e benchmarks.
-- Adiciona scripts npm prefixados com `defence:` ao `package.json` do projeto alvo.
-- Adiciona `husky` e `@biomejs/biome` em `devDependencies`.
+- Adiciona scripts npm prefixados com `defence:` ao `package.json` do projeto alvo (aborta diante de nomes de script conflitantes — renomeie o script do alvo para `<nome>:legacy` e rode novamente).
+- Adiciona `husky` e `@biomejs/biome` em `devDependencies`, acompanhando os pins **atuais** deste projeto no momento da instalação.
+- Mescla os blocos de configuração de defesa (`pkgAgeCheck`, `updateCheck`, `licensesCheck`, …) no `package.json` alvo quando ausentes — blocos já definidos pelo adotante sempre prevalecem.
+- Grava `defences.huskyPreCommitHash` para o hook presente após a cópia, para que o gate `check-hooks` adotado passe desde o primeiro dia.
+- Mescla as entradas de estado/cache de defesa no `.gitignore` do alvo (criado quando ausente), para que o estado das ferramentas nunca seja commitado.
 - Grava `.defence-manifest.json` com hashes SHA-256 de cada arquivo copiado.
 - Recusa sobrescrever arquivos existentes a menos que `--force` seja passado.
 - Cria backups antes de sobrescrever.
 
-Implementado em [tools/install-defences.js](../../../tools/install-defences.js).
+Implementado em [tools/install-defences.js](../../../tools/install-defences.js). O relatório de adoção em projeto real está em [Relatório de dogfooding (Fase M.1)](../dogfooding-m1-report.md).
 
 ## Uso
 

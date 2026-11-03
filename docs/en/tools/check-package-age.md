@@ -55,3 +55,7 @@ All packages passed the minimum age check.
 ## Related defense layer
 
 - [Defense Layer 1 — Package age check](../security/defense-layer-1-package-age.md)
+
+## Non-registry dependencies
+
+Git URLs, `file:`/`link:`/`workspace:` specs, and tarball URLs cannot be age-checked against the registry — they pin by commit or path, not by publish date. The tool reports them as `SKIP` with an advisory (verify them manually) instead of failing with a registry-lookup error.

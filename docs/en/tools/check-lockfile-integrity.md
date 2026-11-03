@@ -36,3 +36,7 @@ npm run defence:check-lockfile-integrity -- --silent
 ## Related defense layer
 
 - [Defense Layer 4 — Deterministic install](../security/defense-layer-4-deterministic-install.md)
+
+## Git/file dependencies
+
+Entries resolved from git URLs or `file:`/`link:` paths never carry a tarball integrity hash — they pin by commit in the resolved URL. They are reported in their own informational section and do not fail the check; registry entries still must carry SHA-512.

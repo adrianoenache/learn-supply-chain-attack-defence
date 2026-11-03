@@ -72,6 +72,7 @@ This repository is a practical learning environment for understanding and applyi
 - [Release checklist](release-checklist.md)
 - [References](references.md)
 - [Adopting in other projects](adopting-in-other-projects.md)
+- [Dogfooding report (Fase M.1)](dogfooding-m1-report.md) — what installing into a real pre-existing project surfaced, and the fixes it produced.
 
 ## Other Languages
 
