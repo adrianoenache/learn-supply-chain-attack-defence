@@ -274,10 +274,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   upgrade (major LTS); consulta `nodejs.org/dist/index.json`; npm = bundled;
   edição cirúrgica de `package.json`/`.nvmrc`; recusa alvo fora do dist;
   scripts `defence:engines:*` + checklist de comandos.
-- [ ] **L.2** Blind spot `.npm-extension.mjs` (npm v12): detecção nas
-  ferramentas + docs bilíngues (`ignore-scripts` ⇒ `ignore-extension`).
-- [ ] **L.3** ADRs: avaliação de `min-release-age` nativo do npm e do
-  Permission Model (`--permission` não é sandbox de install).
+- [ ] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
+  `npm-audit-fix-level`/`send-metrics` + guarda de chaves conhecidas) e blind
+  spot `.npm-extension.mjs` (npm v12): detecção nas ferramentas + docs
+  bilíngues (`ignore-scripts` ⇒ `ignore-extension`).
+- [ ] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
+  (com docs bilíngues do tradeoff) e avaliar o Permission Model
+  (`--permission` não é sandbox de install).
 - [ ] **L.4** Validação final (gates + `nvm use` + CI + CHANGELOG/DECISIONS).
 
 ## Fase AI-4 — Processos de AI: granularidade de commits e code review

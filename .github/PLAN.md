@@ -453,16 +453,21 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
     formatação — lição do `npm install` que reescreve JSON).
   - Recusa alvo ausente do dist (= indisponível no CI) com mensagem acionável.
   - Registrar `defence:engines:*` no `package.json` e no checklist de comandos.
-- **L.2** Blind spot `.npm-extension.mjs` (npm v12): auditar
-  `analyze-lifecycle-scripts.js`/`check-secrets.js` para detectar/flagar o
-  arquivo de extensão root-owned; documentar que `ignore-scripts` implica
-  `ignore-extension` e que ferramentas anteriores ao recurso não o conhecem;
-  atualizar a página da camada afetada em ambos os idiomas.
+- **L.2** Higiene do `.npmrc` e blind spot `.npm-extension.mjs`:
+  - **Achado de 2026-11-03:** npm ≥ 11.2 avisa `Unknown project config` para
+    `npm-audit-fix-level` e `send-metrics` — chaves mortas cujos comentários
+    prometem comportamento que o npm não implementa (falsa sensação de
+    segurança). Remover/substituir por configuração válida e adicionar guarda
+    de chaves conhecidas (sanity check; avaliar `strict-npmrc` do npm v12).
+  - Auditar `analyze-lifecycle-scripts.js`/`check-secrets.js` para detectar/
+    flagar `.npm-extension.mjs` (extensão root-owned do npm v12); documentar
+    que `ignore-scripts` implica `ignore-extension`; atualizar a página da
+    camada afetada em ambos os idiomas.
 - **L.3** Avaliações documentadas (ADRs + docs):
-  - `min-release-age` nativo do npm (presente desde v11): prós/contras vs a
-    camada de idade custom (`check-package-age.js`); se adotado, `.npmrc` +
-    docs bilíngues mostrando o tradeoff "janela de idade × patch de segurança"
-    (npm falha fechado: mantém a versão vulnerável e avisa).
+  - `min-release-age=7` **já está adotado** no `.npmrc` (verificado em
+    2026-11-03): falta o ADR formalizando a adoção e docs bilíngues do
+    tradeoff "janela de idade × patch de segurança" (npm falha fechado:
+    mantém a versão vulnerável e avisa; escape via `min-release-age-exclude`).
   - Permission Model do Node (`--permission`, estável): registrar por que
     **não** é sandbox de install para código não-confiável (docs oficiais +
     2 CVEs de bypass corrigidos em out/2026); posicioná-lo, se adotado, como
