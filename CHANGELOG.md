@@ -16,6 +16,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Added (Fase L.2 — npm configuration surface guard)
+
+- New `tools/check-npmrc.js` with `defence:check-npmrc`, wired into the
+  pre-commit hook and the CI `defence-gates` job: validates `.npmrc` keys
+  against a curated known list plus a justified lookahead registry
+  (`npm-audit-fix-level`, `send-metrics`), rejects weakened defensive values
+  (`ignore-scripts=false`, `strict-ssl=false`, …), and rejects the npm v12
+  extension mechanism (`extension-file` key and auto-discovered
+  `.npm-extension.mjs`/`.cjs` files — install-time code execution invisible
+  to lifecycle-script detectors).
+- The `.npmrc` inline comments now declare the lookahead status of
+  `npm-audit-fix-level`/`send-metrics` explicitly (kept per maintainer
+  decision; incompatible with npm v12 `strict-npmrc`).
+
+### Fixed (Fase L.2 — adoption manifest drift)
+
+- `FILES_TO_COPY` in `install-defences.js` had drifted from the tree:
+  `concurrency.js` (H.1), `semver.js` and `update-engines.js` (L.1), and
+  `check-npmrc.js` (L.2) were missing, so an adopted toolset would break at
+  require time. Added, plus `defence:check-npmrc` and
+  `defence:update-engines*` in `SCRIPTS_TO_ADD`, an explicit
+  `EXCLUDED_FROM_ADOPTION` list (`tools/e2e/**`), and a completeness test
+  requiring every `tools/` file to be adopted or excluded (manifest 72 → 79
+  files).
+
 ### Added (Fase L.1 — engine lifecycle tooling)
 
 - New `tools/update-engines.js` with `defence:update-engines`,

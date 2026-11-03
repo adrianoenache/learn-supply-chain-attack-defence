@@ -133,6 +133,27 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** none — the fix is self-documenting in the
   generator comment and README note.
 
+### 2026-11-03 — Manual file lists drift; guard them with completeness tests
+
+- **Date:** 2026-11-03
+- **Rule violated:** Deterministic, auditable behavior / defence-in-depth (a
+  gate that cannot see drift is not a gate).
+- **Affected files:** `tools/install-defences.js`,
+  `tools/install-defences.test.js`
+- **What happened:** `FILES_TO_COPY` — the authoritative list of files the
+  installer copies to adopters — is manual. Phases H.1, L.1, and L.2 added
+  `concurrency.js`, `semver.js`, `update-engines.js`, and `check-npmrc.js`
+  without registering them. The adopted toolset would break at `require`
+  time, and the `install-defences-dry-run` CI job could not see it because
+  it only hashes files already on the list.
+- **Correction applied:** missing files registered; new completeness test
+  walks the real `tools/` tree and fails unless every file is either in
+  `FILES_TO_COPY` or under an explicitly justified `EXCLUDED_FROM_ADOPTION`
+  prefix (`tools/e2e/**`).
+- **Instruction/agent updated:** none — the test is self-enforcing. Rule of
+  thumb: any hand-maintained list that must mirror the filesystem needs a
+  test that walks the filesystem.
+
 ### 2026-11-03 — Version-coupled test fixtures break on engine bumps
 
 - **Date:** 2026-11-03

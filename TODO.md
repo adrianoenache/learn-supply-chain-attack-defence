@@ -279,10 +279,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   - Concluído em 2026-11-03 (scripts registrados como
     `defence:update-engines[:update|:upgrade]`); 14 testes + smoke test real;
     helpers semver extraídos para `tools/lib/semver.js`.
-- [ ] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
+- [x] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
   `npm-audit-fix-level`/`send-metrics` + guarda de chaves conhecidas) e blind
   spot `.npm-extension.mjs` (npm v12): detecção nas ferramentas + docs
   bilíngues (`ignore-scripts` ⇒ `ignore-extension`).
+  - Concluído em 2026-11-03: chaves eram lookahead intencional documentado —
+    mantidas por decisão do mantenedor, comentários inline alinhados. Nova
+    ferramenta `check-npmrc.js` (gate no pre-commit + CI). Drift de adoção do
+    instalador corrigido com teste de completude (manifesto 72 → 79).
 - [ ] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
   (com docs bilíngues do tradeoff) e avaliar o Permission Model
   (`--permission` não é sandbox de install).
