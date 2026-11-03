@@ -13,11 +13,12 @@
   `github.copilot.chat.skillTool.enabled` setting is on (VS Code >= 1.140);
   executes inline otherwise.
 
-## Skills (18)
+## Skills (19)
 
 | Skill | Invocation | Forked | Description |
 | --- | --- | --- | --- |
 | [`check-hardcoded-values`](check-hardcoded-values/SKILL.md) | Manual (`/` menu only) | — | Audit a file for hardcoded values that should be configurable or need inline justification. Use when reviewing code or tests for unexplained literals, magic numbers, or hardcoded thresholds. |
+| [`code-review-pass`](code-review-pass/SKILL.md) | Manual (`/` menu only) | — | Run the project's full AI code-review pass over a change set, chaining four axes — code quality, code security, dead code removal, and related documentation review — into a single report. Use when the user asks for a complete review of a feature, PR, or file set before merge or release. |
 | [`context-recovery`](context-recovery/SKILL.md) | Background (auto-loaded, hidden from `/`) | ✅ | Reconstruct the current project state from versioned files when a chat session starts or when resuming work after a break, crash, or loss of session memory. Reads .github/PLAN.md, TODO.md, and PROJECT_STATUS_REPORT.md before any action is proposed. |
 | [`dependency-review`](dependency-review/SKILL.md) | Automatic (menu + model) | — | Validate that a new or changed dependency meets the project's supply-chain security requirements (age check, signature audit, vulnerability audit, license check) before it is committed. Use whenever a dependency is proposed or dependency-related code changes. |
 | [`docs-completeness`](docs-completeness/SKILL.md) | Automatic (menu + model) | ✅ | Verify that documentation is complete, bilingual, and internally consistent. Use to confirm that every user-facing change is discoverable in both docs/en/ and docs/pt-BR/. |
