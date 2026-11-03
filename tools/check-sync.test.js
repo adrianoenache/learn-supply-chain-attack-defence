@@ -136,6 +136,43 @@ describe('sync-check helper', () => {
     }
   })
 
+  test('npm ls fallback accepts ranges satisfied by the lockfile version', () => {
+    const mod = readSyncCheckExports()
+    // A range declaration (^8.0.1) never equals the installed version string;
+    // the reference must be the lockfile's resolved version. Dogfooding
+    // finding (Fase M.1) from a real adopter project.
+    const lock = JSON.stringify({
+      name: 'test',
+      lockfileVersion: 3,
+      packages: {
+        'node_modules/@babel/core': { version: '8.0.1' },
+      },
+    })
+
+    mod.setImpls({
+      fs: makeMockFs({
+        lock,
+        nodeModulesLock: { packageLockHash: 'different-hash' },
+      }),
+      spawnSync: () => ({
+        status: 0,
+        stdout: JSON.stringify({
+          dependencies: { '@babel/core': { version: '8.0.1' } },
+        }),
+      }),
+      pkg: {
+        dependencies: { '@babel/core': '^8.0.1' },
+      },
+    })
+
+    try {
+      const result = mod.isNodeModulesInSync()
+      assert.equal(result.inSync, true)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
   test('npm ls fallback detects version mismatch', () => {
     const mod = readSyncCheckExports()
     const lock = JSON.stringify({ name: 'test', lockfileVersion: 3 })
