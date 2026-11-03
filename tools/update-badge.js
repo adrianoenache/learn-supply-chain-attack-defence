@@ -28,6 +28,7 @@ const TEST_GLOBS = [
   path.resolve(__dirname, '..', '.github', 'skills', 'skills.sanity.test.js'),
   path.resolve(__dirname, '..', '.github', 'hooks', 'hooks.sanity.test.js'),
   path.resolve(__dirname, '..', '.github', 'hooks', 'scripts', '*.test.js'),
+  path.resolve(__dirname, '..', '.github', 'test-fixtures', '*.test.js'),
 ]
 const BADGE_RE =
   /!\[Tests\]\(https:\/\/img\.shields\.io\/badge\/Tests-\d+%2F\d+%20passing-[a-zA-Z]+\)/

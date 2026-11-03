@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T22:53:28.027Z",
+  "installedAt": "2026-11-03T23:00:36.937Z",
   "files": [
     {
       "path": ".npmrc",
@@ -184,7 +184,7 @@
     },
     {
       "path": "tools/update-badge.js",
-      "hash": "1f347eca8c45c5c78f49b9c52d93fdd6e126586e9f9937768b4d43986e2c5834"
+      "hash": "c42abe8b6265f1e635b2732323349cdb8f73a2c7144d3cfe00bbe8ac28ccea5e"
     },
     {
       "path": "tools/update-badge.test.js",
