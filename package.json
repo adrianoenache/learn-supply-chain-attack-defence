@@ -171,6 +171,7 @@
     "defence:update-check:force": "node ./tools/check-updates.js --force",
     "defence:update-check:json": "node ./tools/check-updates.js --format=json",
     "defence:update-check:offline": "node ./tools/check-updates.js --offline",
+    "defence:measure-ai-context": "node ./tools/measure-ai-context.js",
     "defence:update-engines": "node ./tools/update-engines.js",
     "defence:update-engines:update": "node ./tools/update-engines.js --update",
     "defence:update-engines:upgrade": "node ./tools/update-engines.js --upgrade",
