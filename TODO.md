@@ -262,6 +262,44 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   por H.4** (item original da sessão de avaliação K2; resolvido com guarda de
   regressão).
 
+## Fase L — Gestão de engines (Node.js/npm)
+
+> Origem: release de segurança Node.js 2026-10-21 (8 CVEs, 4 High) — pin atual
+> `24.19.0` antecede os fixes. Detalhes e política npm-bundled no PLAN.md.
+> Executa antes da Fase I (decisão do mantenedor, 2026-11-03).
+
+- [ ] **L.0** Update imediato `24.19.0 → 24.22.2` (npm `>=11.19.1`):
+  `package.json#engines` + `.nvmrc` + `nvm install/use` + gates + CI verde.
+- [ ] **L.1** `tools/update-engines.js` + testes: modos update (in-major) e
+  upgrade (major LTS); consulta `nodejs.org/dist/index.json`; npm = bundled;
+  edição cirúrgica de `package.json`/`.nvmrc`; recusa alvo fora do dist;
+  scripts `defence:engines:*` + checklist de comandos.
+- [ ] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
+  `npm-audit-fix-level`/`send-metrics` + guarda de chaves conhecidas) e blind
+  spot `.npm-extension.mjs` (npm v12): detecção nas ferramentas + docs
+  bilíngues (`ignore-scripts` ⇒ `ignore-extension`).
+- [ ] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
+  (com docs bilíngues do tradeoff) e avaliar o Permission Model
+  (`--permission` não é sandbox de install).
+- [ ] **L.4** Validação final (gates + `nvm use` + CI + CHANGELOG/DECISIONS).
+
+## Fase AI-4 — Processos de AI: granularidade de commits e code review
+
+> Origem: feedback do mantenedor (commits acumulando escopo) + avaliação do
+> VS Code 1.144.1 (zero deprecations; Copilot Memory cloud; Assisted
+> Permissions GA; `context: fork` sem menção — re-teste empírico).
+> Executa depois da L e antes da Fase I (decisão do mantenedor, 2026-11-03).
+
+- [ ] **AI-4.1** Commits granulares: regra normativa (1 commit = 1 intenção) +
+  hook de advertência para staged diff grande/multidomínio + ADR.
+- [ ] **AI-4.2** Processo de code review em 4 eixos (qualidade, segurança,
+  código morto, docs relacionadas): skill orquestradora + avaliar ferramenta
+  leve de dead-code sem deps novas.
+- [ ] **AI-4.3** Adoção VS Code 1.144: re-teste de `context: fork`; `target`
+  explícito nos `.agent.md`; política Copilot Memory × memória em arquivos;
+  interação Assisted Permissions × hooks; deep links de customização (opcional).
+- [ ] **AI-4.4** Validação final (gates + sanity suites + docs bilíngues).
+
 ## Fase I — Revisão total da documentação
 
 > Refinada em 2026-10-08 com auditoria real (ver PLAN.md). README/SECURITY e
@@ -293,6 +331,20 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 
 - [ ] Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
 - [ ] Planejar tag, GitHub Release com SBOM e comunicação.
+
+## Fase M — Adoção e scaffolding
+
+> M.1 executa antes da K (validação pré-release do instalador); M.2/M.3 são
+> pós-v1.0.0, alvo v1.1.0 (decisão do mantenedor, 2026-11-03).
+
+- [ ] **M.1** Dogfooding: `install-defences.js` em
+  `../setup-webpack-stylus-liquid/`; documentar gaps; iterar até instalação
+  limpa; relatório bilíngue.
+- [ ] **M.2** (v1.1.0) `tools/create-defended-project.js`: scaffolding de
+  projeto zerado com defesas completas, com opção de infra de AI incluída.
+- [ ] **M.3** (v1.1.0) Scaffolding exclusivo da infra de AI (`.github/`) para
+  projetos zerados ou em andamento; avaliar marketplace do VS Code 1.144 como
+  canal de distribuição.
 
 ---
 

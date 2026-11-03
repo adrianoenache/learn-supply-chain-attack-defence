@@ -124,6 +124,8 @@ Keep entries concise; link to the phase/commit for detail.
   maintainers or reviewers. This is a conscious governance trade-off, not a
   removal of the layer.
 
+### 2026-10-08 — Generated files never embed a generation date
+
 - **Decision:** `generate-skills-index.js` omits `Last generated:`; chronology
   comes from git history.
 - **Context:** The drift check failed the next day with zero content change —
@@ -132,3 +134,49 @@ Keep entries concise; link to the phase/commit for detail.
   a value with no informational purpose.
 - **Consequences:** Drift checks are deterministic; the rule applies to any
   future generated file.
+
+### 2026-11-03 — npm version always tracks the Node.js bundled release
+
+- **Decision:** `engines.npm` is always the npm version bundled with the
+  adopted Node.js release (e.g., Node 24.22.2 → npm 11.19.1; Node 26.13.0 →
+  npm 11.20.0) — never a standalone `npm@latest` install.
+- **Context:** The project uses nvm and treats the Node release as the unit of
+  trust; the bundled npm is the combination the Node.js project itself tested
+  and shipped. `npm@latest` (12.2.1) is ahead of what any LTS bundles.
+- **Rejected alternative:** Track `npm@latest` independently — introduces an
+  untested Node/npm combination and breaks reproducibility between local (nvm)
+  and CI (`setup-node`), which both install the bundled pair.
+- **Consequences:** Engine tooling (Fase L, `update-engines.js`) reads the
+  bundled npm from `nodejs.org/dist/index.json`; a single source of truth
+  drives both engines entries.
+
+### 2026-11-03 — Engine management (Fase L) runs before the docs phase (Fase I)
+
+- **Decision:** The new Fase L executes first in the remaining sequence: an
+  immediate manual update `24.19.0 → 24.22.2` (L.0), then the
+  `update-engines.js` tooling (L.1). The v26 major upgrade waits for the tool.
+- **Context:** The Node.js security release of 2026-10-21 fixed 8 CVEs (4
+  High, including a Brotli OOB write with RCE potential); the pinned 24.19.0
+  predates every fix. A supply-chain defense project cannot teach currency
+  while running an unpatched runtime.
+- **Rejected alternative:** Fold engine bumps into routine phase work — a
+  security release would wait for unrelated documentation phases.
+- **Consequences:** Node security releases become a forcing function for an
+  immediate patch-bump PR; CI compatibility is proxied by presence in
+  `nodejs.org/dist/index.json` (the same source `actions/setup-node` uses).
+
+### 2026-11-03 — Scaffolding features target v1.1.0; dogfooding stays pre-release
+
+- **Decision:** M.2 (full project scaffolding) and M.3 (AI-infrastructure-only
+  scaffolding) are post-v1.0.0 (v1.1.0 scope); M.1 (dogfooding
+  `install-defences.js` on `../setup-webpack-stylus-liquid/`) stays
+  pre-release, between AI-3.1 and K.
+- **Context:** Scaffolding is a large new feature surface; adding it before
+  v1.0.0 would delay the release indefinitely. Dogfooding the existing
+  installer, by contrast, is *validation* of a feature that ships in v1.0.0.
+- **Rejected alternative:** Everything before v1.0.0 (scope creep) or
+  everything after (shipping an installer never exercised on a real external
+  project).
+- **Consequences:** v1.0.0 keeps a bounded scope; the VS Code 1.144
+  marketplace/Browse channel is evaluated later as a distribution option for
+  the scaffolding features.

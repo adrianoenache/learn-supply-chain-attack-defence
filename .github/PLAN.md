@@ -4,21 +4,25 @@
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-10-08
+> Last updated: 2026-11-03
 
 ## TL;DR
 
 Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
-(quarentena acionável), AI-2 (governança/ergonomia das customizações AI) e G
-(code review educacional + cobertura 94,70% → 95,94%) concluídas.
+(quarentena acionável), AI-2 (governança/ergonomia das customizações AI), G
+(code review educacional + cobertura 94,70% → 95,94%), AI-3.5 (DECISIONS.md +
+destilação) e H (organização: Biome, helpers, CODEOWNERS, badge) concluídas.
 
-Sequência restante (ressequenciada em 2026-10-08 por dependência real):
-**AI-3.5** (DECISIONS.md + destilação) → **H** (organização: lint do Biome,
-helpers, CODEOWNERS, drift do badge) → **I** (+ AI-3.4: mapa de arquitetura de
-AI) → **AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) →
-**AI-3.2** (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a
-medição justificar) → **K** (release v1.0.0, com aprovação explícita).
+Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
+**L** (gestão de engines — update v24 imediato por CVEs + ferramenta
+update/upgrade) → **AI-4** (processos de AI: commits granulares, code review,
+adoção VS Code 1.144) → **I** (+ AI-3.4: mapa de arquitetura de AI) →
+**AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) → **AI-3.2**
+(prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
+justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
+(release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding completo
+e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 
 ## Fases
 
@@ -351,6 +355,10 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 > | AI-3.1 Otimização do inject-context | **Última; condicionada à medição** | O hook injeta ~120 bytes hoje; só otimizar se a medição mostrar custo real — pode virar "não fazer" documentado |
 >
 > Sequência efetiva: **AI-3.5 → H → I(+AI-3.4) → AI-3.3 → J → AI-3.2 → AI-3.1 → K**
+>
+> **Atualização (2026-11-03):** as fases **L** (engines) e **AI-4** (processos
+> de AI) foram inseridas **antes** da Fase I, e a **M.1** (dogfooding) antes da
+> K — ver TL;DR para a sequência vigente.
 
 - AI-3.1 **Otimização do hook `inject-context`:** medir o custo do session-start (tempo e tokens injetados); cachear dados estáticos (engines, contagens) com invalidação por mtime dos arquivos-fonte.
 - AI-3.2 **Smoke test de prompt-injection e sanitização de outputs em CI:** fixtures de documentação com instruções maliciosas embutidas ("ignore previous instructions…") verificando que skills/agents mantêm o comportamento esperado; estender a skills/tools que ingerem conteúdo externo (web fetch, respostas de registry) com validação do output *antes* de admiti-lo no contexto — segunda fase do monitor de referência inspirada em [APPA, arXiv:2607.24625](https://arxiv.org/abs/2607.24625v2).
@@ -414,6 +422,104 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 - Expandir o escopo de lint/format do Biome para cobrir `.github/**/*.js` (atualmente só valida `tools/`).
 - **CODEOWNERS (P2, 2026-10-06):** criar `.github/CODEOWNERS` atribuindo `tools/`, `.npmrc`, `.husky/`, `.github/hooks/` e `.github/workflows/` ao mantenedor, e habilitar "require review from code owners" na branch protection — a camada de defesa *organizacional* que complementa as 12 camadas técnicas (dogfooding da defesa humana em revisão).
 
+### Fase L — Gestão de engines (Node.js/npm)
+
+> **Origem (2026-11-03):** o release de segurança do Node.js de 2026-10-21
+> corrigiu **8 CVEs (4 High, incl. OOB write no Brotli com potencial de RCE
+> via `node:zlib`)** nas linhas 22.x/24.x/26.x; o pin atual `24.19.0`
+> (2026-08-03) antecede todos esses fixes. v24.22.2 (Krypton, npm bundled
+> 11.19.1) é o tip da linha v24; **v26.13.0 "Lithium"** é o novo LTS
+> (2026-10-28, npm bundled 11.20.0). Fonte oficial:
+> `nodejs.org/dist/index.json` — a mesma que `actions/setup-node` consome,
+> portanto "existe no dist" = "disponível no CI".
+>
+> **Política de npm (decisão do mantenedor, 2026-11-03):** a versão do npm é
+> sempre a **bundled com o release do Node.js** — nunca `npm@latest` solto.
+>
+> **Sequência:** executa **antes** da Fase I (remediação de CVE é forcing
+> function — não pode esperar docs).
+
+- **L.0** Update imediato `24.19.0 → 24.22.2` (npm `>=11.19.1`): editar
+  `package.json#engines` e `.nvmrc`, `nvm install`/`use`, rodar gates locais e
+  confirmar CI verde. Execução manual e documentada — serve como especificação
+  viva para a ferramenta da L.1. **Upgrade para v26 fica para depois da L.1**
+  (decisão do mantenedor: primeiro só o update v24).
+- **L.1** `tools/update-engines.js` + `update-engines.test.js`:
+  - Modo *update* (patch/minor dentro do major atual) e modo *upgrade*
+    (major LTS alvo), com `--dry-run`, `--format=json`, `--silent`.
+  - Consulta `nodejs.org/dist/index.json` (com cache/retry via `tools/lib/`)
+    para descobrir o alvo mais recente e a versão de npm bundled.
+  - Atualiza `package.json#engines` e `.nvmrc` de forma cirúrgica (preservar
+    formatação — lição do `npm install` que reescreve JSON).
+  - Recusa alvo ausente do dist (= indisponível no CI) com mensagem acionável.
+  - Registrar `defence:engines:*` no `package.json` e no checklist de comandos.
+- **L.2** Higiene do `.npmrc` e blind spot `.npm-extension.mjs`:
+  - **Achado de 2026-11-03:** npm ≥ 11.2 avisa `Unknown project config` para
+    `npm-audit-fix-level` e `send-metrics` — chaves mortas cujos comentários
+    prometem comportamento que o npm não implementa (falsa sensação de
+    segurança). Remover/substituir por configuração válida e adicionar guarda
+    de chaves conhecidas (sanity check; avaliar `strict-npmrc` do npm v12).
+  - Auditar `analyze-lifecycle-scripts.js`/`check-secrets.js` para detectar/
+    flagar `.npm-extension.mjs` (extensão root-owned do npm v12); documentar
+    que `ignore-scripts` implica `ignore-extension`; atualizar a página da
+    camada afetada em ambos os idiomas.
+- **L.3** Avaliações documentadas (ADRs + docs):
+  - `min-release-age=7` **já está adotado** no `.npmrc` (verificado em
+    2026-11-03): falta o ADR formalizando a adoção e docs bilíngues do
+    tradeoff "janela de idade × patch de segurança" (npm falha fechado:
+    mantém a versão vulnerável e avisa; escape via `min-release-age-exclude`).
+  - Permission Model do Node (`--permission`, estável): registrar por que
+    **não** é sandbox de install para código não-confiável (docs oficiais +
+    2 CVEs de bypass corrigidos em out/2026); posicioná-lo, se adotado, como
+    hardening de runtime de código já vetado.
+- **L.4** Validação final: gates completos + `nvm use` limpo + CI verde +
+  entradas no CHANGELOG/TODO/DECISIONS.
+
+### Fase AI-4 — Processos de AI: granularidade de commits e code review
+
+> **Origem (2026-11-03):** feedback do mantenedor — commits de AI acumulam
+> features/correções demais; faltam processos de review cobrindo qualidade,
+> segurança e remoção de código morto (incl. docs relacionadas). Somado à
+> avaliação do VS Code 1.144.1 (release notes lidos integralmente:
+> **zero deprecations**; novidades: validação de `.agent.md` com completions de
+> `model`/`tools`/`skills`, `/skills info`, Copilot Memory cloud habilitado por
+> padrão, Assisted Permissions GA, marketplace Browse; `context: fork` **sem
+> menção** — exige re-teste empírico; blog Agent Host indica hooks rodando em
+> processo host compartilhado/remoto).
+>
+> **Sequência:** executa depois da L e **antes** da Fase I — AI-4.1 melhora a
+> qualidade de todos os commits das fases seguintes.
+
+- **AI-4.1** Commits granulares:
+  - Regra normativa (copilot-instructions + instruction de domínio): 1 commit
+    = 1 intenção; separar código/docs/plano; tamanho prático por commit;
+    mensagens com escopo único.
+  - Hook de advertência para staged diff grande/multidomínio (avaliar ponto de
+    disparo: `preToolUse` em `git commit` vs `.husky/pre-commit`) — avisar, não
+    bloquear, com o caminho sancionado (como dividir).
+  - ADR registrando a regra e o threshold escolhido.
+- **AI-4.2** Processo de code review de AI em 4 eixos:
+  - Qualidade de código (reusar `educational-code-review`), segurança de
+    código (reusar `security-audit`), **remoção de código morto (novo)** e
+    revisão da documentação relacionada aos itens revisados (reusar
+    `docs-completeness`).
+  - Criar skill orquestradora (ex.: `code-review-pass`) que encadeia os eixos
+    e produz relatório único; avaliar ferramenta leve de dead-code sem deps
+    novas (exports/CLI flags não referenciados) ou manter análise 100% agente.
+- **AI-4.3** Adoção VS Code 1.144:
+  - Re-teste empírico de `context: fork` nas 6 skills forkadas (procedimento
+    da AI-2.1); atualizar `ai-lessons-learned.md` com o resultado.
+  - Declarar `target` explícito nos `.agent.md` (comportamento determinístico
+    de completions/validação independente do harness ativo).
+  - Política Copilot Memory × memória em arquivos: DECISIONS.md/lessons/
+    PLAN.md continuam sendo a fonte **versionada e auditável**; memory cloud é
+    cache volátil — documentar em `ai-guidelines` (ambos idiomas).
+  - Registrar a interação Assisted Permissions × nossos hooks `preToolUse`
+    (nossos hooks continuam sendo a última palavra).
+  - Avaliar deep links `vscode://chat-customizations/open?page=...` nos docs
+    de onboarding (opcional, baixo custo).
+- **AI-4.4** Validação final: gates completos + docs bilíngues + sanity suites.
+
 ### Fase I — Revisão total da documentação
 
 > **Refinamento (2026-10-08) com auditoria real:** README, SECURITY e paridade
@@ -452,6 +558,26 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 - Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
 - Planejar tag, GitHub Release com SBOM e comunicação.
 
+### Fase M — Adoção e scaffolding
+
+> **Origem (2026-11-03, decisão do mantenedor):** levar as defesas para fora
+> do próprio repositório. **M.1 executa antes da K** (valida o instalador num
+> projeto real e alimenta correções pré-release); **M.2/M.3 são pós-v1.0.0**
+> (alvo v1.1.0) para não inflar o escopo do release.
+
+- **M.1** Dogfooding (pré-release): executar `install-defences.js` em
+  `../setup-webpack-stylus-liquid/` (projeto real, webpack/babel/postcss),
+  documentar gaps encontrados, abrir itens de correção e reexecutar até a
+  instalação ficar limpa; registrar o relatório em docs bilíngues.
+- **M.2** Scaffolding de projeto zerado (v1.1.0):
+  `tools/create-defended-project.js` — novo projeto Node.js já com todas as
+  camadas de defesa configuradas (ou pré-configuradas com prompts), incluindo
+  opção de nascer com a infraestrutura de AI deste repositório.
+- **M.3** Scaffolding exclusivo da infraestrutura de AI (v1.1.0): instalar
+  apenas o conjunto `.github/` (instructions, agents, skills, hooks,
+  sanity suites) em projeto zerado ou em andamento sem infra de AI; avaliar o
+  marketplace/Browse do VS Code 1.144 como canal de distribuição.
+
 ## Arquivos críticos
 
 - `PLAN.md`, `TODO.md` — manter nomenclatura e checkboxes sincronizados com a realidade.
@@ -482,9 +608,17 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
 - F: `defence:update-check` informativo e com listagem de updates intermediários.
 - G: headers completos e listas de melhorias geradas.
 - H: helpers extraídos sem regressão; lint/format do Biome cobrindo `.github/**/*.js`.
+- L: engines no tip da linha v24 (ou v26 após upgrade); `update-engines.js`
+  honra contrato de comando; `.npm-extension.mjs` detectado; ADRs de
+  `min-release-age` e Permission Model registrados.
+- AI-4: regra de commit granular normativa + hook de advertência ativo;
+  processo de review em 4 eixos documentado; `context: fork` re-testado no
+  VS Code 1.144; `target` explícito nos agents; política Copilot Memory
+  documentada.
 - I: arquitetura e glossário atualizados.
 - J: novo status report reflete estado real.
 - K: só após aprovação explícita.
+- M.1: instalação no projeto irmão limpa, com relatório bilíngue.
 
 ## Decisões confirmadas
 
@@ -500,3 +634,9 @@ medição justificar) → **K** (release v1.0.0, com aprovação explícita).
   melhorias de AI não bloqueiam o trabalho de produto. Escopo expandido em
   2026-10-06 (aprovado): blocos de tokens (AI-2.6) e segurança da execução
   (AI-2.7); itens adiados agrupados na Fase AI-3 (após a Fase G).
+- A versão do npm é sempre a bundled com o release do Node.js adotado — nunca
+  `npm@latest` avulso (decisão do mantenedor, 2026-11-03).
+- Release de segurança do Node.js é forcing function para update imediato de
+  engine (patch/minor), separado do drift de rotina (2026-11-03).
+- Fases L e AI-4 executam antes da Fase I; M.1 (dogfooding) antes da K;
+  scaffolding M.2/M.3 fica para v1.1.0 (decisões do mantenedor, 2026-11-03).
