@@ -12,10 +12,12 @@
 // Usage:
 //   node ./tools/measure-ai-context.js [--format json]
 //
-// Exit codes: 0 always (read-only measurement).
+// Also measures the session-start injection (`.github/hooks/inject-context`)
+// by running its script with empty input — the AI-3.1 decision baseline.
 
 const fs = require('node:fs')
 const path = require('node:path')
+const { execFileSync } = require('node:child_process')
 
 const REPO_ROOT = path.resolve(__dirname, '..')
 
@@ -26,17 +28,20 @@ const BYTES_PER_TOKEN = 4
 
 let listDirImpl = (dir) => fs.readdirSync(dir, { withFileTypes: true })
 let readFileImpl = (p) => fs.readFileSync(p, 'utf8')
+let execFileImpl = execFileSync
 let logImpl = console.log
 
 function setImpls(impls) {
   if (impls.listDir) listDirImpl = impls.listDir
   if (impls.readFile) readFileImpl = impls.readFile
+  if (impls.execFile) execFileImpl = impls.execFile
   if (impls.log) logImpl = impls.log
 }
 
 function resetImpls() {
   listDirImpl = (dir) => fs.readdirSync(dir, { withFileTypes: true })
   readFileImpl = (p) => fs.readFileSync(p, 'utf8')
+  execFileImpl = execFileSync
   logImpl = console.log
 }
 
@@ -78,18 +83,35 @@ function collect() {
   const skills = dirMarkdownBytes('.github/skills', (n) => n === 'SKILL.md')
   const hooks = dirMarkdownBytes('.github/hooks', (n) => n.endsWith('.json'))
 
+  // The sessionStart hook payload is dynamic (engines, TODO count, manifest
+  // count), so it is measured by running the script once with empty input.
+  // Failure is non-fatal: the layer table stays meaningful without it.
+  let sessionStart = null
+  try {
+    const out = execFileImpl(
+      'bash',
+      [path.join(REPO_ROOT, '.github/hooks/scripts/inject-context.sh')],
+      { input: '{}', encoding: 'utf8', timeout: 5000 },
+    ).trim()
+    sessionStart = { files: 0, bytes: out.length }
+  } catch {
+    sessionStart = null
+  }
+
   return {
     alwaysOn: { files: 1, bytes: alwaysOnBytes },
     instructions,
     agents,
     skills,
     hooks,
+    sessionStart,
   }
 }
 
 function main(argv = process.argv.slice(2)) {
   const layers = collect()
-  const total = Object.values(layers).reduce((sum, l) => sum + l.bytes, 0)
+  const present = Object.values(layers).filter(Boolean)
+  const total = present.reduce((sum, l) => sum + l.bytes, 0)
   const isJson =
     argv.includes('--format') && argv[argv.indexOf('--format') + 1] === 'json'
 
@@ -112,6 +134,7 @@ function main(argv = process.argv.slice(2)) {
   logImpl('AI context footprint (measured from disk):')
   logImpl('')
   for (const [name, layer] of Object.entries(layers)) {
+    if (!layer) continue // sessionStart unavailable (hook failed)
     const tokens = Math.round(layer.bytes / BYTES_PER_TOKEN)
     logImpl(
       `  ${name.padEnd(14)} ${String(layer.files).padStart(3)} file(s)  ${String(layer.bytes).padStart(7)} bytes  ~${tokens} tokens`,
