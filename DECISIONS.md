@@ -261,6 +261,26 @@ Keep entries concise; link to the phase/commit for detail.
   unlogged (documented limitation); hook tests redirect the log via
   `OBS_LOG_FILE` so suites never pollute the real file.
 
+### 2026-11-03 — The model is not the security boundary; payloads are validated before trust
+
+- **Decision:** Two-layer defense against prompt injection and malicious
+  external content: (1) deterministic hooks are the enforcement boundary —
+  proven by a smoke suite that simulates a fully compromised model;
+  (2) external payloads (npm packuments, Node.js dist index) are
+  shape-validated by `tools/lib/validate-external-content.js` before driving
+  any security decision, with poisoned-cache self-healing (one forced
+  re-fetch).
+- **Context:** APPA's reference monitor (arXiv:2607.24625) separates
+  pre-dispatch evaluation from output validation. Our hooks already covered
+  pre-dispatch; tools trusted registry data blindly — a manipulated publish
+  date could bypass the age gate, and a malformed dist entry could be written
+  into `engines`.
+- **Rejected alternative:** Model-level "don't follow injections"
+  instructions as the primary defense — they are guidance, not enforcement.
+- **Consequences:** The age/update/engine decisions no longer trust
+  unvalidated payloads; the injection smoke suite is regression evidence in
+  `npm test`; the model document lives in ai-guidelines (EN/PT).
+
 ### 2026-11-03 — Dead-code detection is an advisory tool, never a hard gate
 
 - **Decision:** `check-dead-code.js` always exits 0 and reports *candidates*
