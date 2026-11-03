@@ -55,6 +55,8 @@ const FILES_TO_COPY = [
   'tools/check-lockfile-integrity.test.js',
   'tools/check-md-links.js',
   'tools/check-md-links.test.js',
+  'tools/check-npmrc.js',
+  'tools/check-npmrc.test.js',
   'tools/check-package-age.js',
   'tools/check-package-age.test.js',
   'tools/check-secrets.js',
@@ -78,18 +80,23 @@ const FILES_TO_COPY = [
   'tools/setup-bootstrap.test.js',
   'tools/update-badge.js',
   'tools/update-badge.test.js',
+  'tools/update-engines.js',
+  'tools/update-engines.test.js',
   'tools/update-packages.js',
   'tools/update-packages.test.js',
   'tools/verify-defences.js',
   'tools/verify-defences.test.js',
   'tools/lib/config.js',
   'tools/lib/config.test.js',
+  'tools/lib/concurrency.js',
+  'tools/lib/concurrency.test.js',
   'tools/lib/package-utils.js',
   'tools/lib/profiler.js',
   'tools/lib/profiler.test.js',
   'tools/lib/provenance.js',
   'tools/lib/provenance.test.js',
   'tools/lib/registry-cache.js',
+  'tools/lib/semver.js',
   'tools/lib/script-analyzer.js',
   'tools/lib/script-analyzer.test.js',
   'tools/lib/trust-engine.js',
@@ -109,6 +116,18 @@ const FILES_TO_COPY = [
   'tools/perf/baselines.json',
 ]
 
+// Paths under tools/ that are deliberately NOT copied to adopters. The
+// completeness test in install-defences.test.js requires every file on disk
+// to be either listed above or excluded here, so adding a tool without
+// updating the installer fails loudly instead of drifting silently
+// (incident of 2026-11-03: concurrency.js/semver.js/update-engines.js were
+// missing, which would have broken the adopted toolset at require time).
+//
+// - tools/e2e/** exercises this repository's own test harness (fixtures and
+//   helpers reference the local registry cache); it is development-time
+//   tooling, not part of the adopted defence set.
+const EXCLUDED_FROM_ADOPTION = ['tools/e2e/']
+
 const MANIFEST_NAME = '.defence-manifest.json'
 
 const SCRIPTS_TO_ADD = {
@@ -127,6 +146,7 @@ const SCRIPTS_TO_ADD = {
   'defence:check-engines': 'node ./tools/check-engines.js',
   'defence:check-hooks': 'node ./tools/check-hooks.js',
   'defence:check-md-links': 'node ./tools/check-md-links.js',
+  'defence:check-npmrc': 'node ./tools/check-npmrc.js',
   'defence:check-external-urls': 'node ./tools/check-external-urls.js',
   'defence:check-external-urls:force':
     'node ./tools/check-external-urls.js --force',
@@ -160,6 +180,9 @@ const SCRIPTS_TO_ADD = {
   'defence:update-check:force': 'node ./tools/check-updates.js --force',
   'defence:update-check:json': 'node ./tools/check-updates.js --format=json',
   'defence:update-check:offline': 'node ./tools/check-updates.js --offline',
+  'defence:update-engines': 'node ./tools/update-engines.js',
+  'defence:update-engines:update': 'node ./tools/update-engines.js --update',
+  'defence:update-engines:upgrade': 'node ./tools/update-engines.js --upgrade',
   'defence:verify-defences': 'node ./tools/verify-defences.js',
   'defence:verify-defences:fix':
     'node ./tools/install-defences.js --update-local-manifest',
@@ -408,5 +431,6 @@ module.exports = {
   writeManifest,
   updateLocalManifest,
   FILES_TO_COPY,
+  EXCLUDED_FROM_ADOPTION,
   MANIFEST_NAME,
 }
