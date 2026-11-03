@@ -54,6 +54,9 @@ beforeEach(() => {
       if (!files.has(rel)) throw new Error(`unexpected read: ${rel}`)
       return files.get(rel)
     },
+    // The sessionStart channel runs the inject-context hook script; tests
+    // inject a canned payload instead of spawning bash.
+    execFile: () => '{"additionalContext":"Project engines: {}"}',
     listDir: (dir) => {
       const rel = path.relative(path.resolve(__dirname, '..'), dir)
       if (rel.endsWith('instructions'))
@@ -83,6 +86,8 @@ describe('measure-ai-context', () => {
     assert.equal(layers.skills.bytes, 200)
     assert.equal(layers.skills.files, 1)
     assert.equal(layers.hooks.bytes, 2)
+    // The sessionStart channel measured the injected hook payload.
+    assert.ok(layers.sessionStart.bytes > 0)
   })
 
   test('prints the per-layer table with token estimates', () => {
@@ -95,8 +100,13 @@ describe('measure-ai-context', () => {
   test('--format json emits machine-readable totals', () => {
     script.main(['--format', 'json'])
     const report = JSON.parse(logs.join('\n'))
-    assert.equal(report.totalBytes, 402)
-    assert.equal(report.approxTokens, Math.round(402 / script.BYTES_PER_TOKEN))
+    // 402 bytes of file layers + the canned sessionStart payload.
+    const expected = 402 + report.layers.sessionStart.bytes
+    assert.equal(report.totalBytes, expected)
+    assert.equal(
+      report.approxTokens,
+      Math.round(expected / report.bytesPerTokenHeuristic),
+    )
     assert.equal(report.bytesPerTokenHeuristic, 4)
   })
 })

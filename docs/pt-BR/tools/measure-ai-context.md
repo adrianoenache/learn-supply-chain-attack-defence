@@ -7,6 +7,7 @@
 - Percorre `.github/` e soma bytes por camada (skills contam apenas os arquivos `SKILL.md`; o índice gerado e recursos empacotados são excluídos).
 - Converte bytes em tokens aproximados com a heurística padrão de ~4 bytes/token (para comparação entre camadas e ao longo do tempo, não para precisão de cobrança).
 - Imprime uma tabela por camada ou um relatório legível por máquina.
+- Mede a injeção dinâmica de `sessionStart` executando o hook `inject-context` uma vez (a base da decisão AI-3.1).
 
 Implementado em [tools/measure-ai-context.js](../../../tools/measure-ai-context.js).
 
@@ -28,6 +29,8 @@ AI context footprint (measured from disk):
   skills          19 file(s)    51291 bytes  ~12823 tokens
   hooks            9 file(s)     2082 bytes  ~521 tokens
 ```
+
+(O relatório também inclui uma linha `sessionStart` com o payload do `inject-context` medido no momento da execução.)
 
 (A saída da ferramenta é em inglês.) Apenas as instruções always-on vão em **toda** requisição; as demais camadas carregam sob demanda por escopo/relevância.
 

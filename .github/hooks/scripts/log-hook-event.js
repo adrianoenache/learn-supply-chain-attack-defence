@@ -68,7 +68,7 @@ function main() {
       const target = Math.min(TRIM_TO, maxLines)
       lines = lines.slice(lines.length - target)
     }
-    fs.writeFileSync(logFile, lines.join('\n') + '\n')
+    fs.writeFileSync(logFile, `${lines.join('\n')}\n`)
   } catch {
     // disk full / read-only — logging must never break the hook
   }

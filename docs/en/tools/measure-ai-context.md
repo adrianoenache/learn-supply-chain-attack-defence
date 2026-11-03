@@ -7,6 +7,7 @@
 - Walks `.github/` and sums bytes per layer (skills count only `SKILL.md` files; the generated index and bundled resources are excluded).
 - Converts bytes to approximate tokens with the standard ~4 bytes/token heuristic (for comparison across layers and over time, not billing precision).
 - Prints a per-layer table or a machine-readable report.
+- Measures the dynamic `sessionStart` injection by running the `inject-context` hook once (the AI-3.1 decision baseline).
 
 Implemented in [tools/measure-ai-context.js](../../../tools/measure-ai-context.js).
 
@@ -28,6 +29,8 @@ AI context footprint (measured from disk):
   skills          19 file(s)    51291 bytes  ~12823 tokens
   hooks            9 file(s)     2082 bytes  ~521 tokens
 ```
+
+(The report also includes a `sessionStart` line with the live `inject-context` payload measured at run time.)
 
 Only the always-on instructions ship with **every** request; the other layers load on demand by scope/relevance.
 
