@@ -32,10 +32,12 @@ npm run defence:check-engines
 ## Output example
 
 ```text
-Node.js: v24.22.2 >= >=24.22.2 ✓
-npm: 11.19.1 >= >=11.19.1 ✓
+Node.js 24.22.2 (required >=24.22.2)
+npm 11.19.1 (required >=11.19.1)
+Engine requirements satisfied.
 ```
 
 ## Related defense layer
 
 - Part of the [secure setup](../setup.md) flow.
+- Kept current by [update-engines](update-engines.md), which manages the floor this tool validates.
