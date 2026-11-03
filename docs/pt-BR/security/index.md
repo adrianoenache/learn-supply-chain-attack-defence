@@ -56,6 +56,9 @@ Além disso, o toolkit fornece capacidades de suporte que não se encaixam em um
 | Dashboard de trust score | `defence:trust-report` | Agrega sinais de supply chain em uma pontuação de 0 a 100 por pacote |
 | Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
 | Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
+| Superfície de configuração npm | `defence:check-npmrc` | Validar chaves do `.npmrc` e rejeitar o mecanismo de extensão do npm v12 |
+| Ciclo de vida de engines | `defence:update-engines` | Updates/upgrades de engine Node.js gateados no índice dist oficial |
+| Varredura de código morto | `defence:check-dead-code` | Candidatos a código morto no toolset (consultivo) |
 
 ## Guias de Suporte
 
