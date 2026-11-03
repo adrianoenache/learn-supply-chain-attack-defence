@@ -8,7 +8,7 @@ O script npm `setup` instala as dependências e executa todas as camadas de segu
 "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare"
 ```
 
-O script começa com `npm run defence:check-engines` para falhar antecipadamente com uma mensagem amigável se o ambiente local não satisfizer o campo `engines` do `package.json` (Node.js >= 24.19.0 e npm >= 11.17.0). Isso evita falhas confusas mais adiante no fluxo de setup.
+O script começa com `npm run defence:check-engines` para falhar antecipadamente com uma mensagem amigável se o ambiente local não satisfizer o campo `engines` do `package.json` (Node.js >= 24.22.2 e npm >= 11.19.1). Isso evita falhas confusas mais adiante no fluxo de setup.
 
 1. `npm run defence:pkg-age-check` — garante que toda dependência direta tenha pelo menos 7 dias de idade.
 2. `npm ci` — instalação determinística a partir do `package-lock.json`.

@@ -1,7 +1,7 @@
 # Learn Supply Chain Attack Defence
 
-![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.19.0-339933?logo=node.js&logoColor=white)
-![npm](https://img.shields.io/badge/npm-%3E%3D%2011.17.0-CB3837?logo=npm&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.22.2-339933?logo=node.js&logoColor=white)
+![npm](https://img.shields.io/badge/npm-%3E%3D%2011.19.1-CB3837?logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Tests](https://img.shields.io/badge/Tests-859%2F859%20passing-brightgreen)
 ![CI](https://github.com/adrianoenache/learn-supply-chain-attack-defence/actions/workflows/ci.yml/badge.svg?branch=main)

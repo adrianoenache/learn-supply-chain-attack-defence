@@ -8,7 +8,7 @@ Quando um comando falhar, siga esta ordem:
 
 1. Leia a mensagem de erro com atenção. A maioria dos scripts imprime o arquivo, pacote ou comando que falhou.
 2. Execute o comando diretamente (sem os scripts npm) para ver a saída bruta.
-3. Verifique se seu ambiente satisfaz [os requisitos de engines](setup.md#o-que-ele-executa) (Node.js `>=24.19.0` e npm `>=11.17.0`).
+3. Verifique se seu ambiente satisfaz [os requisitos de engines](setup.md#o-que-ele-executa) (Node.js `>=24.22.2` e npm `>=11.19.1`).
 4. Execute `bash .husky/pre-commit` somente depois que o comando individual passar.
 
 ---
@@ -18,7 +18,7 @@ Quando um comando falhar, siga esta ordem:
 ### Sintoma
 
 ```text
-Error: Node.js >= 24.19.0 is required (found v22.0.0)
+Error: Node.js >= 24.22.2 is required (found v22.0.0)
 ```
 
 ### Causa
@@ -30,8 +30,8 @@ A versão ativa do Node.js ou do npm é inferior às versões declaradas em `pac
 Instale a versão necessária do Node.js com nvm e reinstale as dependências:
 
 ```bash
-nvm install 24.19.0
-nvm use 24.19.0
+nvm install 24.22.2
+nvm use 24.22.2
 npm run setup
 ```
 

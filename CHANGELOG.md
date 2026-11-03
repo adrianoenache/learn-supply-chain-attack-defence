@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security (Fase L.0 — engine update)
+
+- Updated the minimum Node.js from 24.19.0 to 24.22.2 and npm from 11.17.0 to
+  11.19.1 (the version bundled with Node 24.22.2). The previous pin predated
+  the 2026-10-21 Node.js security release, which fixed 8 CVEs (4 High,
+  including a Brotli out-of-bounds write with RCE potential via `node:zlib`)
+  across the 22.x/24.x/26.x lines. Updated `package.json`,
+  `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
+  bilingual requirement docs.
+
 ### Added
 
 - CI/CD optimization and hardening (Fase D):

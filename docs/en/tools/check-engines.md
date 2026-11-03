@@ -17,8 +17,8 @@ Configure minimum versions in `package.json`:
 ```json
 {
   "engines": {
-    "node": ">=24.19.0",
-    "npm": ">=11.17.0"
+    "node": ">=24.22.2",
+    "npm": ">=11.19.1"
   }
 }
 ```
@@ -32,8 +32,8 @@ npm run defence:check-engines
 ## Output example
 
 ```text
-Node.js: v24.19.0 >= >=24.19.0 ✓
-npm: 11.17.0 >= >=11.17.0 ✓
+Node.js: v24.22.2 >= >=24.22.2 ✓
+npm: 11.19.1 >= >=11.19.1 ✓
 ```
 
 ## Related defense layer

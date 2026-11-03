@@ -64,20 +64,33 @@ describe('check-engines', () => {
     const { satisfies } = readScriptExports()
     const nodeTarget = sampleNodeRange.replace(/^>=/, '')
     const npmTarget = sampleNpmRange.replace(/^>=/, '')
+
+    // Neighbor versions are derived from the live engine pins instead of
+    // hardcoded: fixtures tied to a specific pin silently break on every
+    // engine bump (this test failed on the 24.19.0 -> 24.22.2 update).
+    const [nodeMajor, nodeMinor] = nodeTarget.split('.').map(Number)
+    const [npmMajor, npmMinor, npmPatch] = npmTarget.split('.').map(Number)
+    const nodeBelow = `${nodeMajor}.${nodeMinor - 1}.0`
+    const nodeAbove = `${nodeMajor}.${nodeMinor + 1}.0`
+    const npmBelowMinor = `${npmMajor}.${npmMinor - 1}.0`
+    const npmAbovePatch = `${npmMajor}.${npmMinor}.${npmPatch + 1}`
+    const npmAboveMinor = `${npmMajor}.${npmMinor + 1}.0`
+    const npmAboveMajor = `${npmMajor + 1}.0.0`
+
     assert.equal(satisfies(nodeTarget, `>=${nodeTarget}`), true)
-    assert.equal(satisfies('24.18.9', `>=${nodeTarget}`), false)
-    assert.equal(satisfies('24.20.0', `>${nodeTarget}`), true)
+    assert.equal(satisfies(nodeBelow, `>=${nodeTarget}`), false)
+    assert.equal(satisfies(nodeAbove, `>${nodeTarget}`), true)
     assert.equal(satisfies(nodeTarget, `>${nodeTarget}`), false)
     assert.equal(satisfies(npmTarget, `=${npmTarget}`), true)
-    assert.equal(satisfies('11.17.1', `=${npmTarget}`), false)
-    assert.equal(satisfies('11.16.0', `<=${npmTarget}`), true)
-    assert.equal(satisfies('11.18.0', `<=${npmTarget}`), false)
-    assert.equal(satisfies('11.16.0', `<${npmTarget}`), true)
+    assert.equal(satisfies(npmAbovePatch, `=${npmTarget}`), false)
+    assert.equal(satisfies(npmBelowMinor, `<=${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMinor, `<=${npmTarget}`), false)
+    assert.equal(satisfies(npmBelowMinor, `<${npmTarget}`), true)
     assert.equal(satisfies(npmTarget, `<${npmTarget}`), false)
-    assert.equal(satisfies('11.17.5', `~${npmTarget}`), true)
-    assert.equal(satisfies('11.18.0', `~${npmTarget}`), false)
-    assert.equal(satisfies('11.17.5', `^${npmTarget}`), true)
-    assert.equal(satisfies('12.0.0', `^${npmTarget}`), false)
+    assert.equal(satisfies(npmAbovePatch, `~${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMinor, `~${npmTarget}`), false)
+    assert.equal(satisfies(npmAbovePatch, `^${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMajor, `^${npmTarget}`), false)
   })
 
   // Intentionally hardcoded boundary values: they exercise the range parser

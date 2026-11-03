@@ -86,7 +86,7 @@ audit-level=high
 npm-audit-fix-level=high
 ```
 
-`audit=true` executa um audit de vulnerabilidades durante a instalação. `audit-level=high` faz o comando falhar quando CVEs de alta ou crítica são encontradas. `npm-audit-fix-level=high` é uma configuração **prospectiva/lookahead**: ela restringe o `npm audit fix` para que aplique apenas correções de alta/crítica, mas ainda não é reconhecida pelo npm 11.17.0. A linha é mantida em `.npmrc` para que versões futuras do npm a apliquem automaticamente; até lá, qualquer comando `npm audit fix` ainda deve ser revisado manualmente.
+`audit=true` executa um audit de vulnerabilidades durante a instalação. `audit-level=high` faz o comando falhar quando CVEs de alta ou crítica são encontradas. `npm-audit-fix-level=high` é uma configuração **prospectiva/lookahead**: ela restringe o `npm audit fix` para que aplique apenas correções de alta/crítica, mas ainda não é reconhecida pelo npm 11.19.1. A linha é mantida em `.npmrc` para que versões futuras do npm a apliquem automaticamente; até lá, qualquer comando `npm audit fix` ainda deve ser revisado manualmente.
 
 ### Opt-out de telemetria
 
@@ -94,7 +94,7 @@ npm-audit-fix-level=high
 send-metrics=false
 ```
 
-Desabilita a coleta de métricas/telemetria do npm. Assim como `npm-audit-fix-level`, essa é uma configuração **prospectiva/lookahead** ainda não reconhecida pelo npm 11.17.0. Ela é mantida em `.npmrc` como um opt-in explícito a uma postura de privacidade determinística para releases futuros do npm.
+Desabilita a coleta de métricas/telemetria do npm. Assim como `npm-audit-fix-level`, essa é uma configuração **prospectiva/lookahead** ainda não reconhecida pelo npm 11.19.1. Ela é mantida em `.npmrc` como um opt-in explícito a uma postura de privacidade determinística para releases futuros do npm.
 
 ### Resiliência de rede
 
@@ -110,12 +110,12 @@ Essas configurações protegem o processo de instalação contra falhas transit�
 
 ## Configurações prospectivas / future-facing
 
-As configurações a seguir são mantidas intencionalmente em `.npmrc` mesmo que o npm 11.17.0 ainda não as reconheça. Elas preparam o projeto para releases futuros do npm sem exigir outra alteração de configuração.
+As configurações a seguir são mantidas intencionalmente em `.npmrc` mesmo que o npm 11.19.1 ainda não as reconheça. Elas preparam o projeto para releases futuros do npm sem exigir outra alteração de configuração.
 
 | Configuração | Efeito futuro | Comportamento atual |
 | --- | --- | --- |
-| `npm-audit-fix-level=high` | Restringe `npm audit fix` a CVEs de alta/crítica. | Ignorada pelo npm 11.17.0; emite um aviso, mas não causa mudança funcional. |
-| `send-metrics=false` | Desabilita explicitamente a telemetria/métricas do npm. | Ignorada pelo npm 11.17.0; emite um aviso, mas não causa mudança funcional. |
+| `npm-audit-fix-level=high` | Restringe `npm audit fix` a CVEs de alta/crítica. | Ignorada pelo npm 11.19.1; emite um aviso, mas não causa mudança funcional. |
+| `send-metrics=false` | Desabilita explicitamente a telemetria/métricas do npm. | Ignorada pelo npm 11.19.1; emite um aviso, mas não causa mudança funcional. |
 
 Esses avisos são esperados e seguros. Não remova as configurações a menos que prefira adotá-las apenas quando sua versão do npm as suportar explicitamente.
 

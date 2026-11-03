@@ -268,8 +268,10 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > `24.19.0` antecede os fixes. Detalhes e política npm-bundled no PLAN.md.
 > Executa antes da Fase I (decisão do mantenedor, 2026-11-03).
 
-- [ ] **L.0** Update imediato `24.19.0 → 24.22.2` (npm `>=11.19.1`):
+- [x] **L.0** Update imediato `24.19.0 → 24.22.2` (npm `>=11.19.1`):
   `package.json#engines` + `.nvmrc` + `nvm install/use` + gates + CI verde.
+  - Executado em 2026-11-03: 23 arquivos de requisito atualizados; gates
+    locais verdes sob Node 24.22.2 / npm 11.19.1; CI validada na PR.
 - [ ] **L.1** `tools/update-engines.js` + testes: modos update (in-major) e
   upgrade (major LTS); consulta `nodejs.org/dist/index.json`; npm = bundled;
   edição cirúrgica de `package.json`/`.nvmrc`; recusa alvo fora do dist;

@@ -5,7 +5,7 @@ Uma lista concisa de todos os comandos necessários para trabalhar com este proj
 ## Setup Inicial
 
 ```bash
-# Clone e instalação (requer Node.js >= 24.19.0 e npm >= 11.17.0)
+# Clone e instalação (requer Node.js >= 24.22.2 e npm >= 11.19.1)
 git clone git@github.com:adrianoenache/learn-supply-chain-attack-defence.git
 cd learn-supply-chain-attack-defence
 npm run setup

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T15:38:50.271Z",
+  "installedAt": "2026-11-03T15:48:00.860Z",
   "files": [
     {
       "path": ".npmrc",
@@ -40,7 +40,7 @@
     },
     {
       "path": "tools/check-engines.test.js",
-      "hash": "7a302eb1c3489d547bab3592a94374b6c18a0d1de39d44e0f002ee8b35ceb94a"
+      "hash": "7bd9b7a6b4886b8dd89ab63aeff093c8dfd12718a13c507c5a8c3f293089df64"
     },
     {
       "path": "tools/check-external-urls.js",
