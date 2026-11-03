@@ -176,9 +176,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     (F.4, migração de skills, stderr, reparo APPA, resequenciamento AI-3,
     data-free drift check); context-recovery lê DECISIONS no início e destila
     decisões/lições/plano no fim da sessão; referência no always-on.
-- [ ] **AI-3.1** (última; condicionada à medição) Otimizar o hook
+- [x] **AI-3.1** (última; condicionada à medição) Otimizar o hook
   `inject-context` (medir custo do session-start; cachear dados estáticos com
   invalidação por mtime).
+  - Concluído em 2026-11-03 como **"não fazer" documentado (ADR)**:
+    medição real — 143 bytes (~36 tokens) e ~96 ms, uma vez por sessão;
+    caching por mtime economizaria ~90 ms/sessão a custo de complexidade de
+    invalidação e risco de dados obsoletos. O canal `sessionStart` no
+    `measure-ai-context.js` torna a evidência reproduzível.
 - [x] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
   outputs em CI (fixtures com instruções maliciosas embutidas; validação de
   output de tools externas antes de admitir no contexto — segunda fase do

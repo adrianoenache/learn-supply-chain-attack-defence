@@ -33,6 +33,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-npmrc` and `update-engines`, and both documents state the
   organizational layer (branch protection + required checks + CODEOWNERS).
 
+### Added (Fase AI-3.1 — measured don't-do)
+
+- The `inject-context` optimization was evaluated and **rejected by
+  measurement** (ADR): the sessionStart payload is 143 bytes (~36 tokens) and
+  ~96 ms once per session, so mtime caching would buy ~90 ms at the cost of
+  invalidation complexity and stale-data risk. `measure-ai-context.js` gained
+  the `sessionStart` channel so the evidence is reproducible.
+
 ### Added (Fase AI-3.2 — injection hardening)
 
 - New `tools/lib/validate-external-content.js` — output validation before

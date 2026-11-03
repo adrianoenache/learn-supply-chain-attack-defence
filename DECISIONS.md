@@ -261,6 +261,22 @@ Keep entries concise; link to the phase/commit for detail.
   unlogged (documented limitation); hook tests redirect the log via
   `OBS_LOG_FILE` so suites never pollute the real file.
 
+### 2026-11-03 — AI-3.1: inject-context optimization is a documented don't-do
+
+- **Decision:** Do NOT add mtime-based caching to the `inject-context` hook.
+  The optimization stays unimplemented; this ADR is the deliverable.
+- **Context:** The hook was flagged as a possible per-request cost. Measured
+  (now reproducible via `defence:measure-ai-context`): the sessionStart
+  payload is 143 bytes (~36 tokens) once per session, and five runs take
+  ~480 ms total (~96 ms each, once per session start).
+- **Rejected alternative:** Cache engines/TODO/manifest counts by source-file
+  mtime — saves ~90 ms once per session and ~0 tokens, at the price of
+  invalidation complexity and a new stale-data failure mode (a cached TODO
+  count lying after a pull is worse than 90 ms).
+- **Consequences:** The hook stays simple and always-fresh; the measurement
+  channel in `measure-ai-context.js` lets any future re-evaluation compare
+  against today's numbers instead of re-arguing from estimates.
+
 ### 2026-11-03 — The model is not the security boundary; payloads are validated before trust
 
 - **Decision:** Two-layer defense against prompt injection and malicious
