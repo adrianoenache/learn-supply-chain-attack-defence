@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Repository-organization reviewer. Use this agent when adding, moving, or renaming
   files in tools/, tools/lib/, docs/, .github/, or when reviewing the adoption manifest,

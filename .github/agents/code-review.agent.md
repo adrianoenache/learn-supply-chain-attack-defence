@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Educational code-review agent. Use this agent when reviewing or editing tools/*.js,
   tools/lib/*.js, and tests for clarity, teaching value, header comments, error messages,

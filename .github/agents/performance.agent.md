@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Performance agent for network resilience, caching, retry logic, concurrency, and benchmarks.
   Use this agent when editing `tools/lib/registry-cache.js`, `tools/lib/retry-fetch.js`,
