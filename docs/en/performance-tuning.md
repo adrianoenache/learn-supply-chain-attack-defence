@@ -25,6 +25,15 @@ Current benchmark:
 npm run defence:perf
 ```
 
+Per-tool benchmarks (useful when a change touches one tool):
+
+```bash
+npm run defence:perf:check-package-age
+npm run defence:perf:check-updates
+```
+
+Results are compared against `tools/perf/baselines.json`; a regression beyond the threshold is reported by the benchmark.
+
 ## Interpreting results
 
 Compare the current run against the baseline. Watch for:
