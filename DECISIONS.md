@@ -261,6 +261,23 @@ Keep entries concise; link to the phase/commit for detail.
   unlogged (documented limitation); hook tests redirect the log via
   `OBS_LOG_FILE` so suites never pollute the real file.
 
+### 2026-11-03 — Non-registry dependencies are classified, never failed by registry gates
+
+- **Decision:** Git/file/URL dependencies are reported in their own
+  advisory sections by `check-package-age` (SKIP) and
+  `check-lockfile-integrity` (informational), instead of failing as
+  registry lookup errors or missing integrity.
+- **Context:** Fase M.1 dogfooding on a real project with a git-URL
+  dependency failed both gates with confusing messages. Git deps pin by
+  commit in the resolved URL — that IS their integrity mechanism; publish
+  dates do not exist for them.
+- **Rejected alternative:** Fail hard (previous behavior) — punishes
+  legitimate setups and teaches users to disable the gate.
+- **Consequences:** The gates remain strict for registry packages and honest
+  about what they cannot verify; the advisory text tells the user to verify
+  non-registry deps manually. npm v12's `allow-git=none` default is noted in
+  the npmrc-hardening guide as the stricter posture available.
+
 ### 2026-11-03 — AI-3.1: inject-context optimization is a documented don't-do
 
 - **Decision:** Do NOT add mtime-based caching to the `inject-context` hook.

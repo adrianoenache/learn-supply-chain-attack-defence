@@ -684,6 +684,10 @@ completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 > do próprio repositório. **M.1 executa antes da K** (valida o instalador num
 > projeto real e alimenta correções pré-release); **M.2/M.3 são pós-v1.0.0**
 > (alvo v1.1.0) para não inflar o escopo do release.
+>
+> **M.1 concluída em 2026-11-03** — dogfooding no projeto irmão com 8 gaps
+> corrigidos na raiz e suíte adotada 549/549 verde; relatório datado em
+> `docs/{en,pt-BR}/dogfooding-m1-report.md` e ADR para deps não-registry.
 
 - **M.1** Dogfooding (pré-release): executar `install-defences.js` em
   `../setup-webpack-stylus-liquid/` (projeto real, webpack/babel/postcss),
