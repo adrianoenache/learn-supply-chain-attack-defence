@@ -25,7 +25,7 @@ behavior with the header comment in the tool file.
 
 | Category | Scripts |
 |---|---|
-| Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall` |
+| Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall`, `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade` |
 | Dependency Management | `defence:add`, `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`, `defence:update-check`, `defence:update-check:force`, `defence:update-check:json`, `defence:update-check:offline`, `defence:analyze-lifecycle-scripts` |
 | Auditing & Verification | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-secrets`, `defence:generate-sbom` |
 | State & Synchronization | `defence:sync-check`, `defence:sync-check:fix`, `defence:verify-defences`, `defence:verify-defences:fix`, `defence:update-badge`, `defence:update-badge:dry-run` |
@@ -58,6 +58,17 @@ behavior with the header comment in the tool file.
 - **Tests:** `tools/check-engines.test.js`
 - **Notes:** read-only; used by `defence:reinstall` and CI.
 - **Docs:** [tools/check-engines.md](tools/check-engines.md)
+
+### update-engines.js
+
+- **Purpose:** reports and applies Node.js engine updates (in-major) and upgrades (latest LTS), pinning npm to the bundled version; targets are gated on the official `nodejs.org/dist` index so CI availability is guaranteed by construction.
+- **Scripts:** `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade`
+- **Flags:** `--update`, `--upgrade`, `--to <version>`, `--dry-run`, `--silent`, `--format json`.
+- **Silent/format modes:** `--silent` suppresses the human report; `--format json` prints a machine-readable report on stdout.
+- **Exit codes:** `0` report/up-to-date/applied; `1` network failure, target absent from the dist index, downgrade attempt, or unsafe file edit.
+- **Tests:** `tools/update-engines.test.js`
+- **Notes:** edits `package.json`, `package-lock.json` (root entry only), and `.nvmrc` surgically to preserve formatting; after applying, switch runtime with `nvm install <version> && nvm use` and re-run the gates.
+- **Docs:** [tools/update-engines.md](tools/update-engines.md)
 
 ### monitor-install.js
 
