@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T17:59:44.999Z",
+  "installedAt": "2026-11-03T19:47:55.670Z",
   "files": [
     {
       "path": ".npmrc",
@@ -20,7 +20,7 @@
     },
     {
       "path": "tools/add-package.js",
-      "hash": "727af40e3ca031fda1b54c949136dc3cffbb8e1f87b3b0122ebb717aa03a00da"
+      "hash": "4aad32e84cdeafca90ae54d09671ab3842dbe0e7f89e1039590339551f4fed42"
     },
     {
       "path": "tools/add-package.test.js",
@@ -28,7 +28,7 @@
     },
     {
       "path": "tools/analyze-lifecycle-scripts.js",
-      "hash": "70e96563374633de43c9bdeb2066ac515586428509cd165992a1c403e823139c"
+      "hash": "a6c9cfa8bdeb0d60130c44ea2a40bc13096c6cd784e23e5f92a48ecd24549892"
     },
     {
       "path": "tools/analyze-lifecycle-scripts.test.js",
@@ -52,7 +52,7 @@
     },
     {
       "path": "tools/check-hooks.js",
-      "hash": "1bdde4580aee73272fbd9d7e93374a2f44f3749ed8bdca6c2652958c65f5e019"
+      "hash": "2d07f064c813e33cd5b9af668a7ab3431e0c2b1fcc5c405fdc534c0ed681db41"
     },
     {
       "path": "tools/check-hooks.test.js",
@@ -68,7 +68,7 @@
     },
     {
       "path": "tools/check-lockfile-integrity.js",
-      "hash": "d1dd35c61d2f80c5cc8be90ebee2dc3dca5b327b9114cb2088ba392d3763981c"
+      "hash": "f50d733a77edebd8645887d5235ad487c8056f184699717c5108ab379268a729"
     },
     {
       "path": "tools/check-lockfile-integrity.test.js",
@@ -83,16 +83,24 @@
       "hash": "d7606786c31cb155aed68af0b2926fd881a70f96725c2edf305c65fd65131bf0"
     },
     {
+      "path": "tools/check-dead-code.js",
+      "hash": "cc3ac88e4485fe3bafbdd0bc7226f6ecf0c9235159f886335af2c93e0230449a"
+    },
+    {
+      "path": "tools/check-dead-code.test.js",
+      "hash": "bf88011e1e5025470267052a43b1e4c6879ed1b46204d4d2862c93e2bb5b8347"
+    },
+    {
       "path": "tools/check-npmrc.js",
       "hash": "41cf8418d86e3f57dac03e38220313e1006ec6be705b70ae54121802f3fe8bcb"
     },
     {
       "path": "tools/check-npmrc.test.js",
-      "hash": "dc71c10920f9e92eb99fa3a5ba398daff5985cb11c370fd58a2f142ba40c5aac"
+      "hash": "73fe3eb89b021402ddaa3708fabe5d3f7d5b58b1096872d2dc5acc47839eb245"
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "f8972fc48d869668b4bc9168baeded9b8a06caa05f7fdcb3997a9a1cd86383d4"
+      "hash": "3683d7f7ba9c723e87a576922e0360d52c70ee36557e1e73e0ce419faeb9cc37"
     },
     {
       "path": "tools/check-package-age.test.js",
@@ -100,7 +108,7 @@
     },
     {
       "path": "tools/check-secrets.js",
-      "hash": "e1d350a0f137953fbaa5a1a13dbec46a005222a5b3634a647b63c9124d76c4b3"
+      "hash": "b71c676b78371078aeabf5f24170c4f356b08b5140834b3cbf7ae273fdb8b2dd"
     },
     {
       "path": "tools/check-secrets.test.js",
@@ -116,7 +124,7 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "beca9736d79ce27c3f6b10d97f37281149da9be6c64d989cfc040d7ce94253a2"
+      "hash": "a66af2be5c99f324b10b67b94b7a73639f0bfaae816dcdcbaf3fc29ab725b4f8"
     },
     {
       "path": "tools/check-updates.test.js",
@@ -124,7 +132,7 @@
     },
     {
       "path": "tools/generate-sbom.js",
-      "hash": "b191e25839633803756af82490b86f91509131e11c4bdc7b51a7013db22afa1f"
+      "hash": "7a6fcaad9a694dd296c5b348f36b174610221130d5b49367dcaae375e8096561"
     },
     {
       "path": "tools/generate-sbom.test.js",
@@ -140,7 +148,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "44817e5214e9373eefd7b36cf65d4a0d50fd55eb810c79f33f6990b8c55c323e"
+      "hash": "d9e3b1239731f21d218188fc822bafe33c2a01507b4bc36b3f2e2f5a7bf5be81"
     },
     {
       "path": "tools/monitor-install.js",
@@ -160,7 +168,7 @@
     },
     {
       "path": "tools/run-audit-with-retry.js",
-      "hash": "dfa09e5ea34faf173ca7baca04d641a2d9d9e353977aab312e6d0d208f42930d"
+      "hash": "3babffb98e09e8bba859e92d2c1151b104ae94122bc35d1196d9d5efdcfa756d"
     },
     {
       "path": "tools/run-audit-with-retry.test.js",
@@ -176,7 +184,7 @@
     },
     {
       "path": "tools/update-badge.js",
-      "hash": "098b4733ecbfad70bf1244225a8639dc5db47f26c8e94a173d7a798c46a3eb6a"
+      "hash": "1f347eca8c45c5c78f49b9c52d93fdd6e126586e9f9937768b4d43986e2c5834"
     },
     {
       "path": "tools/update-badge.test.js",
@@ -188,11 +196,11 @@
     },
     {
       "path": "tools/update-engines.test.js",
-      "hash": "2c27e3d78e7e75d26b4ba13215f98d2508b1934314ebf729cf5f2aa3f9321045"
+      "hash": "52b1d0640635d38dbafb15d68c67ce83d5c6a8d8b2e332409404fb5753937c5c"
     },
     {
       "path": "tools/update-packages.js",
-      "hash": "e0a23b71f61b85d442f225950d8e4becf61fd16981f517457131dd5b0084646e"
+      "hash": "61315c30a98a97fce3e783e4cc63492279f1e263abd07535d695310268b86ee0"
     },
     {
       "path": "tools/update-packages.test.js",
@@ -200,7 +208,7 @@
     },
     {
       "path": "tools/verify-defences.js",
-      "hash": "5688a9830037295bf0a0735d98d8dd7c2f59f9b33f48c32dce6dd1cbf4de9005"
+      "hash": "d659cc11d1521cb49c17a2c5470aec5a9809b8badd1533882bc646971a8fed37"
     },
     {
       "path": "tools/verify-defences.test.js",
@@ -244,7 +252,7 @@
     },
     {
       "path": "tools/lib/registry-cache.js",
-      "hash": "0f37bbea37f1a1f1a0b6859e1a58cded593345e8ba180d5a66a96cfada51dfd6"
+      "hash": "c9c6ffd63df517758e5573def80a4155e3a5df33063ddc2db2a565d5df7472f2"
     },
     {
       "path": "tools/lib/semver.js",
@@ -252,7 +260,7 @@
     },
     {
       "path": "tools/lib/script-analyzer.js",
-      "hash": "d1d3b17c8a6784ae105b888235e21ea1324b9c6ca972d318085e5ea05d0aeb9e"
+      "hash": "d68e862a42b85aadf6c41a73c03d03df04b96e7dc211e06ae22ce9144bd4f5d5"
     },
     {
       "path": "tools/lib/script-analyzer.test.js",
@@ -260,7 +268,7 @@
     },
     {
       "path": "tools/lib/trust-engine.js",
-      "hash": "eb196838bb383e79c42964752d5263f1c1c63053d235ecf8e6b67e269cb8e245"
+      "hash": "994a97e7749304f53e5fa901b865dc6faae80e92ec6f82eafe820d54d4e604f8"
     },
     {
       "path": "tools/lib/trust-engine.test.js",
@@ -268,7 +276,7 @@
     },
     {
       "path": "tools/lib/process-monitor.js",
-      "hash": "b6364d82dc88ead01b4a02af0f9296796997ff770e826f523fe0dfeee23c0709"
+      "hash": "ad2d4cef0112fb0b954104e4e505dddc0dc403b19ac94460fb5408f5a9cd55ee"
     },
     {
       "path": "tools/lib/process-monitor.test.js",
@@ -276,7 +284,7 @@
     },
     {
       "path": "tools/lib/install-monitor-report.js",
-      "hash": "d98e4899d3b4006b2e2a075c9289a9da8163df51fe737048fac9383902026238"
+      "hash": "721d2ed69b0f98b867fc0a6df1fae611ce56fa027d55540b0fbe6860afaef5a7"
     },
     {
       "path": "tools/lib/install-monitor-report.test.js",
@@ -308,7 +316,7 @@
     },
     {
       "path": "tools/perf/benchmark.js",
-      "hash": "96d1f828ab411992c180fb6ec2f00fe25aef105363a8cc80025457c8877c1fff"
+      "hash": "94a4a082ec66c63c89ce249820feae922daa24f3beb9c3da2e73f22a16fe684f"
     },
     {
       "path": "tools/perf/benchmark.test.js",

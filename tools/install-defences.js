@@ -55,6 +55,8 @@ const FILES_TO_COPY = [
   'tools/check-lockfile-integrity.test.js',
   'tools/check-md-links.js',
   'tools/check-md-links.test.js',
+  'tools/check-dead-code.js',
+  'tools/check-dead-code.test.js',
   'tools/check-npmrc.js',
   'tools/check-npmrc.test.js',
   'tools/check-package-age.js',
@@ -146,6 +148,7 @@ const SCRIPTS_TO_ADD = {
   'defence:check-engines': 'node ./tools/check-engines.js',
   'defence:check-hooks': 'node ./tools/check-hooks.js',
   'defence:check-md-links': 'node ./tools/check-md-links.js',
+  'defence:check-dead-code': 'node ./tools/check-dead-code.js',
   'defence:check-npmrc': 'node ./tools/check-npmrc.js',
   'defence:check-external-urls': 'node ./tools/check-external-urls.js',
   'defence:check-external-urls:force':
@@ -425,12 +428,7 @@ if (require.main === module) {
 module.exports = {
   parseArgs,
   main,
-  sha256File,
-  verifySourceIntegrity,
-  buildManifest,
-  writeManifest,
   updateLocalManifest,
   FILES_TO_COPY,
   EXCLUDED_FROM_ADOPTION,
-  MANIFEST_NAME,
 }

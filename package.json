@@ -151,6 +151,7 @@
     "defence:check-hooks": "node ./tools/check-hooks.js",
     "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
+    "defence:check-dead-code": "node ./tools/check-dead-code.js",
     "defence:check-npmrc": "node ./tools/check-npmrc.js",
     "defence:check-external-urls": "node ./tools/check-external-urls.js",
     "defence:check-external-urls:force": "node ./tools/check-external-urls.js --force",
