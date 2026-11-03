@@ -19,11 +19,12 @@ Permission Model), **AI-4** (commits granulares com hook consultivo, code
 review em 4 eixos com `code-review-pass` + `check-dead-code`, adoção VS Code
 1.144) e **I** (documentação: architecture.md reescrito + camada de AI
 (AI-3.4), glossário +8 termos, CONTRIBUTING corrigido, README/SECURITY
-revisados) concluídas.
+revisados + revisão integral dos 69 pares EN/PT-BR), **AI-3.3**
+(observabilidade JSONL unificada dos hooks) e **J** (avaliação **10/10** com
+métricas medidas + `measure-ai-context.js`, zero P0) concluídas.
 
 Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**J** (avaliação 10/10) → **AI-3.2**
-(prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
+**AI-3.2** (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
 justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
 (release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding
 completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
@@ -641,7 +642,15 @@ completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 > mensagem de próximos passos do instalador omitia o `npm run prepare`
 > necessário com `ignore-scripts=true`.
 
-### Fase J — Avaliação do projeto
+### Fase J — Avaliação do projeto ✅
+
+> **Status (2026-11-03): concluída — nota 10/10 com métricas medidas, zero
+> P0.** Novo `PROJECT_STATUS_REPORT.md` (935 testes, 95,81% cobertura, 99
+> arquivos lintados, 194 md válidos, 81 entradas no manifesto, 0 vulns,
+> baseline de código morto zerado, pegada de AI medida). O item P4 foi
+> executado: `tools/measure-ai-context.js` — e servirá de base para a decisão
+> da AI-3.1. Problema central de 2026-08-20 (deriva do instalador) resolvido
+> na raiz pelo teste de completude da L.2.
 
 - Coletar métricas atuais e verificar problemas do `PROJECT_STATUS_REPORT.md` de 2026-08-20.
 - Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.

@@ -354,13 +354,18 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [x] **I.6** Validação final: 926/926 testes, lint 94 arquivos, 190 md,
   manifesto 81, paridade bilíngue mantida.
 
-## Fase J — Avaliação do projeto
+## Fase J — Avaliação do projeto ✅
 
-- [ ] Coletar métricas atuais e verificar problemas do
+> **Concluída em 2026-11-03.** `PROJECT_STATUS_REPORT.md` regenerado com
+> métricas medidas: **10/10** em todas as categorias, zero P0. A incluir o
+> item opcional P4: `tools/measure-ai-context.js` criado (pegada de contexto
+> AI medida, não estimada).
+
+- [x] Coletar métricas atuais e verificar problemas do
   `PROJECT_STATUS_REPORT.md` de 2026-08-20.
-- [ ] Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
-- [ ] Atualizar `TODO.md` com ações derivadas.
-- [ ] (Opcional, P4) Criar `tools/measure-ai-context.js` para medir bytes por
+- [x] Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
+- [x] Atualizar `TODO.md` com ações derivadas.
+- [x] (Opcional, P4) Criar `tools/measure-ai-context.js` para medir bytes por
   camada de customização AI e incluir o custo de tokens real no status report.
 
 ## Fase K — Planejamento do release v1.0.0
