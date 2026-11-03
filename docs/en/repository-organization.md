@@ -29,7 +29,7 @@ are domain-specific per tool (a license table is not an SBOM table), and
 `parseCliArgs` is a 3-line convention (`argv.includes('--flag')`) that a shared
 module would complicate, not simplify. The rule: extract only when the
 implementation is byte-identical in more than one file — as was the case for
-`tools/lib/concurrency.js`.
+`tools/lib/concurrency.js` and later `tools/lib/semver.js`.
 
 ## Audit results (2026-10-08)
 
@@ -77,21 +77,17 @@ From then on, any PR touching a protected path requests review from
 > trade-off — revisit it when the project gains additional maintainers or
 > reviewers. Recorded in [DECISIONS.md](../../DECISIONS.md).
 
-### Required status checks (recommended next step)
+### Required status checks (active since 2026-10-08)
 
-CODEOWNERS guarantees *human* review; it does not prevent merging a PR whose
-CI is red. Enabling **Require status checks to pass before merging** closes
-that gap — human approval only happens after the automated gates are green:
+CODEOWNERS guarantees *human* review; status checks prevent merging a PR whose
+CI is red. Both branches require the CI jobs from `.github/workflows/ci.yml`:
+`Build`, `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
+`License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
+`Defence Gates` — with "Require branches to be up to date before merging"
+enabled.
 
-1. In the same branch rule, enable **Require status checks to pass before
-   merging**.
-2. Enable **Require branches to be up to date before merging** (strict mode;
-   relax it first if the rebase friction becomes disproportionate for a
-   low-traffic repository).
-3. Add the CI job names from `.github/workflows/ci.yml` as required checks:
-   `Build`, `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
-   `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
-   `Defence Gates`.
+To reproduce this setup in another repository: enable **Require status checks
+to pass before merging** in the branch rule and add the job names above.
 
 The resulting merge chain is the project teaching its own model:
 
