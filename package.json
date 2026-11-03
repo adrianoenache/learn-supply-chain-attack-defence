@@ -189,7 +189,7 @@
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.3",
     "husky": "9.1.7"
   }
 }
