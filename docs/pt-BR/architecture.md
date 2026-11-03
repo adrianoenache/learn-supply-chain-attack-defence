@@ -126,6 +126,7 @@ Todo arquivo de produção tem um `<nome>.test.js` colocado ao lado; as suítes 
 | `tools/lib/script-analyzer.js` | Padrões de risco e agregação para análise de lifecycle scripts. |
 | `tools/lib/trust-engine.js` | Pesos, limites e cálculo do score de confiança de dependências. |
 | `tools/lib/typosquatting.js` | Helpers de detecção de typosquat (similaridade de nome, sinais de confusão). |
+| `tools/lib/validate-external-content.js` | Validação de payloads externos (packuments, índice dist) antes que conduzam decisões de segurança (APPA fase 2). |
 | `tools/lib/process-monitor.js` | Instrumentação injetável de processos filhos para installs monitorados. |
 | `tools/lib/install-monitor-report.js` | Construtores de relatório da saída do install monitorado. |
 | `tools/lib/profiler.js` | Wrapper `withProfile` alimentando os benchmarks de `tools/perf/`. |

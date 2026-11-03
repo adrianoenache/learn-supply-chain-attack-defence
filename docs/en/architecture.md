@@ -126,6 +126,7 @@ Every production file ships with a colocated `<name>.test.js`; the suites in
 | `tools/lib/script-analyzer.js` | Risk patterns and aggregation for lifecycle-script analysis. |
 | `tools/lib/trust-engine.js` | Weights, thresholds, and computation for dependency trust scoring. |
 | `tools/lib/typosquatting.js` | Typosquat detection helpers (name similarity, confusion signals). |
+| `tools/lib/validate-external-content.js` | Output validation for external payloads (packuments, dist index) before they drive security decisions (APPA phase 2). |
 | `tools/lib/process-monitor.js` | Injectable child-process instrumentation for monitored installs. |
 | `tools/lib/install-monitor-report.js` | Report builders for monitored install output. |
 | `tools/lib/profiler.js` | `withProfile` wrapper feeding `tools/perf/` benchmarks. |
