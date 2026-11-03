@@ -128,7 +128,11 @@ const FILES_TO_COPY = [
 // - tools/e2e/** exercises this repository's own test harness (fixtures and
 //   helpers reference the local registry cache); it is development-time
 //   tooling, not part of the adopted defence set.
-const EXCLUDED_FROM_ADOPTION = ['tools/e2e/']
+// - tools/measure-ai-context.js measures the .github/ AI customization
+//   layers; adopters receive no .github infrastructure until the AI
+//   scaffolding feature (Fase M.3, v1.1.0), so the tool would have nothing
+//   to measure there.
+const EXCLUDED_FROM_ADOPTION = ['tools/e2e/', 'tools/measure-ai-context']
 
 const MANIFEST_NAME = '.defence-manifest.json'
 

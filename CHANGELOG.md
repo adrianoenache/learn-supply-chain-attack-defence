@@ -33,6 +33,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-npmrc` and `update-engines`, and both documents state the
   organizational layer (branch protection + required checks + CODEOWNERS).
 
+### Added (Fase J — project evaluation)
+
+- `PROJECT_STATUS_REPORT.md` regenerated with measured metrics: **10/10** in
+  all five categories, zero open P0 items. The 2026-08-20 adoption-drift
+  problem is fixed at the root by the L.2 completeness test.
+- New `tools/measure-ai-context.js` (`defence:measure-ai-context`, optional
+  P4 item): measures bytes/tokens per AI customization layer from disk —
+  always-on 2,996 bytes (~749 tokens/request) at this writing — feeding this
+  report and the AI-3.1 optimization decision. Not adopted into other
+  projects (excluded with justification).
+
 ### Added (Fase AI-3.3 — hook observability)
 
 - Unified, local-only hook observability: every Copilot hook appends JSONL
