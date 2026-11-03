@@ -16,6 +16,9 @@ const { spawnSync } = require('node:child_process')
 const path = require('node:path')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { compareVersions, versionToParts } = require(
+  path.resolve(__dirname, './lib/semver.js'),
+)
 
 let loadConfigImpl = loadConfig
 let spawnSyncImpl = spawnSync
@@ -47,24 +50,6 @@ function parseVersionRange(range) {
     throw new Error(`Unsupported engine range: ${range}`)
   }
   return { operator: match[1] || '>=', version: match[2] }
-}
-
-function versionToParts(version) {
-  const [core] = version.split('-')
-  return core.split('.').map(Number)
-}
-
-function compareVersions(a, b) {
-  const partsA = versionToParts(a)
-  const partsB = versionToParts(b)
-  const len = Math.max(partsA.length, partsB.length)
-  for (let i = 0; i < len; i += 1) {
-    const pa = partsA[i] || 0
-    const pb = partsB[i] || 0
-    if (pa > pb) return 1
-    if (pa < pb) return -1
-  }
-  return 0
 }
 
 function satisfies(version, range) {

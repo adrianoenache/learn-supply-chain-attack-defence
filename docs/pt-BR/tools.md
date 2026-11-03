@@ -56,6 +56,7 @@ Todos os scripts customizados ficam em `tools/` e usam apenas módulos nativos d
 | `check-secrets.js` | Verifica arquivos em busca de possíveis segredos antes do commit. | [check-secrets](tools/check-secrets.md) |
 | `check-sync.js` | Comando standalone que verifica se `node_modules` corresponde ao `package-lock.json`. | [check-sync](tools/check-sync.md) |
 | `check-updates.js` | Auxiliar somente leitura para pré-commit que avisa sobre atualizações elegíveis e em quarentena. | [check-updates](tools/check-updates.md) |
+| `update-engines.js` | Reporta e aplica atualizações/upgrades de engine Node.js, gateando alvos no índice dist oficial (disponibilidade no CI por construção). | [update-engines](tools/update-engines.md) |
 | `generate-sbom.js` | Gera um SBOM CycloneDX 1.4 JSON a partir do `package-lock.json`. | [generate-sbom](tools/generate-sbom.md) |
 | `generate-trust-report.js` | CLI do dashboard de trust score; emite relatórios em tabela, JSON ou Markdown. | [generate-trust-report](tools/generate-trust-report.md) |
 | `install-defences.js` | Copia as defesas para outro projeto Node.js e escreve o manifesto. | [install-defences](tools/install-defences.md) |

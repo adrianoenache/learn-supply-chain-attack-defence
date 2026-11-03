@@ -217,6 +217,18 @@ function buildDefaults(pkg) {
     updatePackages: {
       promptTimeoutMs: pkg.updatePackages?.promptTimeoutMs ?? 30000,
     },
+    updateEngines: {
+      // Official Node.js release index — the same source actions/setup-node
+      // downloads from, so presence here doubles as the CI availability gate.
+      distIndexUrl:
+        pkg.updateEngines?.distIndexUrl ?? 'https://nodejs.org/dist/index.json',
+      timeoutMs: pkg.updateEngines?.timeoutMs ?? 10000,
+      maxResponseMB: pkg.updateEngines?.maxResponseMB ?? 5,
+      retryMaxAttempts: pkg.updateEngines?.retryMaxAttempts ?? 3,
+      retryInitialDelayMs: pkg.updateEngines?.retryInitialDelayMs ?? 1000,
+      retryBackoffMultiplier: pkg.updateEngines?.retryBackoffMultiplier ?? 2,
+      retryMaxDelayMs: pkg.updateEngines?.retryMaxDelayMs ?? 30000,
+    },
     checkMdLinks: {
       ignoredDirs: pkg.checkMdLinks?.ignoredDirs ?? ['node_modules', '.git'],
       cacheTtlHours: pkg.checkMdLinks?.cacheTtlHours ?? 24,

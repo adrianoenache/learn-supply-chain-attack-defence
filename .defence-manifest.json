@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T16:19:37.938Z",
+  "installedAt": "2026-11-03T17:26:03.653Z",
   "files": [
     {
       "path": ".npmrc",
@@ -36,7 +36,7 @@
     },
     {
       "path": "tools/check-engines.js",
-      "hash": "68c91ac2d246b67235beaa01adc4b34e67ddd3356b8f3408e1ae636ca213d54f"
+      "hash": "7bc2d70568155d38bae8e85d2721c3a929ebb4c455323214c35e4fe4157c9fd1"
     },
     {
       "path": "tools/check-engines.test.js",
@@ -192,7 +192,7 @@
     },
     {
       "path": "tools/lib/config.js",
-      "hash": "bcf815f7375c288cac9a20446d125aea22d166c320371afe608176fd47cdc57f"
+      "hash": "e6726168aa829c3228dde6c486d00fe998b83101b1ea307d7aac17d226d00fa8"
     },
     {
       "path": "tools/lib/config.test.js",

@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Added (Fase L.1 — engine lifecycle tooling)
+
+- New `tools/update-engines.js` with `defence:update-engines`,
+  `defence:update-engines:update`, and `defence:update-engines:upgrade`
+  scripts: reports and applies Node.js engine updates (in-major) and upgrades
+  (latest LTS), always pinning npm to the version bundled with the Node
+  release. Targets come from the official `nodejs.org/dist/index.json` — the
+  same source `actions/setup-node` uses, so CI availability is guaranteed by
+  construction; absent targets and downgrades are refused. Edits to
+  `package.json`, `package-lock.json` (root entry only), and `.nvmrc` are
+  surgical, preserving formatting.
+- New shared `tools/lib/semver.js` (extracted from `check-engines.js` under
+  the byte-identical-second-consumer rule).
+
 ### Added (Fase AI-4.1 — commit granularity)
 
 - New advisory Copilot hook `warn-oversized-commit` (preToolUse on

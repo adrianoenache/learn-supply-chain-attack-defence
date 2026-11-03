@@ -457,6 +457,14 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
     formatação — lição do `npm install` que reescreve JSON).
   - Recusa alvo ausente do dist (= indisponível no CI) com mensagem acionável.
   - Registrar `defence:engines:*` no `package.json` e no checklist de comandos.
+  - **Status (2026-11-03): concluído.** Modos report/`--update`/`--upgrade`/
+    `--to`; recusa de downgrade e de alvo fora do dist; edição cirúrgica de
+    `package.json`, lockfile (só entrada raiz) e `.nvmrc`; scripts
+    `defence:update-engines[:update|:upgrade]`; 14 testes com fetch/fs
+    injetados + smoke test contra o dist real. Bônus: helpers semver
+    byte-idênticos extraídos para `tools/lib/semver.js` (regra do 2º
+    consumidor). Smoke test real: linha v24 atualizada, upgrade v26.13.0
+    Lithium corretamente detectado como disponível.
 - **L.2** Higiene do `.npmrc` e blind spot `.npm-extension.mjs`:
   - **Achado de 2026-11-03:** npm ≥ 11.2 avisa `Unknown project config` para
     `npm-audit-fix-level` e `send-metrics` — chaves mortas cujos comentários

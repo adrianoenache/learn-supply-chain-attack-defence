@@ -26,7 +26,7 @@ cabeçalho no arquivo da ferramenta.
 
 | Categoria | Scripts |
 |---|---|
-| Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall` |
+| Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall`, `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade` |
 | Gerenciamento de Dependências | `defence:add`, `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`, `defence:update-check`, `defence:update-check:force`, `defence:update-check:json`, `defence:update-check:offline`, `defence:analyze-lifecycle-scripts` |
 | Auditoria & Verificação | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-secrets`, `defence:generate-sbom` |
 | Estado & Sincronização | `defence:sync-check`, `defence:sync-check:fix`, `defence:verify-defences`, `defence:verify-defences:fix`, `defence:update-badge`, `defence:update-badge:dry-run` |
@@ -59,6 +59,17 @@ cabeçalho no arquivo da ferramenta.
 - **Testes:** `tools/check-engines.test.js`
 - **Observações:** somente leitura; usado por `defence:reinstall` e pelo CI.
 - **Docs:** [tools/check-engines.md](tools/check-engines.md)
+
+### update-engines.js
+
+- **Propósito:** reporta e aplica atualizações de engine Node.js (dentro do major) e upgrades (LTS mais recente), fixando o npm na versão bundled; os alvos são gateados no índice oficial `nodejs.org/dist`, garantindo disponibilidade no CI por construção.
+- **Scripts:** `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade`
+- **Flags:** `--update`, `--upgrade`, `--to <versão>`, `--dry-run`, `--silent`, `--format json`.
+- **Modos silencioso/formato:** `--silent` suprime o relatório humano; `--format json` imprime o relatório legível por máquina no stdout.
+- **Códigos de saída:** `0` relatório/atualizado/aplicado; `1` falha de rede, alvo ausente do índice dist, tentativa de downgrade ou edição de arquivo insegura.
+- **Testes:** `tools/update-engines.test.js`
+- **Observações:** edita `package.json`, `package-lock.json` (apenas a entrada raiz) e `.nvmrc` de forma cirúrgica para preservar a formatação; após aplicar, troque o runtime com `nvm install <versão> && nvm use` e rode os gates.
+- **Docs:** [tools/update-engines.md](tools/update-engines.md)
 
 ### monitor-install.js
 

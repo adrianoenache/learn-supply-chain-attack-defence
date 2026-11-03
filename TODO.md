@@ -272,10 +272,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   `package.json#engines` + `.nvmrc` + `nvm install/use` + gates + CI verde.
   - Executado em 2026-11-03: 23 arquivos de requisito atualizados; gates
     locais verdes sob Node 24.22.2 / npm 11.19.1; CI validada na PR.
-- [ ] **L.1** `tools/update-engines.js` + testes: modos update (in-major) e
+- [x] **L.1** `tools/update-engines.js` + testes: modos update (in-major) e
   upgrade (major LTS); consulta `nodejs.org/dist/index.json`; npm = bundled;
   edição cirúrgica de `package.json`/`.nvmrc`; recusa alvo fora do dist;
   scripts `defence:engines:*` + checklist de comandos.
+  - Concluído em 2026-11-03 (scripts registrados como
+    `defence:update-engines[:update|:upgrade]`); 14 testes + smoke test real;
+    helpers semver extraídos para `tools/lib/semver.js`.
 - [ ] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
   `npm-audit-fix-level`/`send-metrics` + guarda de chaves conhecidas) e blind
   spot `.npm-extension.mjs` (npm v12): detecção nas ferramentas + docs
