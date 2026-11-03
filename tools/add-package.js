@@ -875,8 +875,6 @@ if (require.main === module) {
 
 // Exports utility functions for use by tests.
 module.exports = {
-  parsePackageArg,
-  VALID_PKG_SPECIFIER_RE,
   validateArgs,
   main,
   setSpawnSyncImpl,

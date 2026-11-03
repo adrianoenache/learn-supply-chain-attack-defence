@@ -77,7 +77,6 @@ module.exports = {
   setFsImpl,
   resetFsImpl,
   setLoadConfigImpl,
-  sha256File,
 }
 
 if (require.main === module) {

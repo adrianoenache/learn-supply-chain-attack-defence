@@ -132,5 +132,4 @@ module.exports = {
     impl.sleepSync = defaultSleepSync
   },
   MAX_ATTEMPTS,
-  RETRY_DELAY_MS,
 }

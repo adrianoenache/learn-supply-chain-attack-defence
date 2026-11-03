@@ -522,18 +522,10 @@ function buildJsonReport(report, generatedAt = new Date().toISOString()) {
 }
 
 module.exports = {
-  DEFAULT_WEIGHTS,
-  DEFAULT_THRESHOLDS,
   setImpls,
   resetImpls,
-  collectAge,
-  collectDownloads,
   collectMetadata,
   collectCadence,
-  collectProvenance,
-  collectTyposquatting,
-  collectLifecycleRisk,
-  collectLicense,
   scoreAge,
   scoreCadence,
   scoreDownloads,
@@ -541,7 +533,6 @@ module.exports = {
   scoreProvenance,
   scoreTyposquatting,
   scoreLifecycleRisk,
-  scoreLicense,
   analyzePackage,
   analyzePackages,
   calculateTrustScore,

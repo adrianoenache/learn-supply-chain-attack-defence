@@ -218,8 +218,6 @@ module.exports = {
   generateSbom,
   parseIntegrity,
   packageNameFromPath,
-  purlFor,
-  parseArgs,
   setFsImpl,
   resetFsImpl,
   setExitImpl,

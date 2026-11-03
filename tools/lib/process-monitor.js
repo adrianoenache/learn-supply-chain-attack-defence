@@ -412,6 +412,4 @@ module.exports = {
   setImpls,
   resetImpls,
   classifyCommand,
-  truncateArgs,
-  LIFECYCLE_EVENTS,
 }

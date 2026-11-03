@@ -156,11 +156,6 @@ function clearCache() {
 let cacheHits = 0
 let cacheMisses = 0
 
-function resetStats() {
-  cacheHits = 0
-  cacheMisses = 0
-}
-
 function getStats() {
   return { cacheHits, cacheMisses }
 }
@@ -172,6 +167,5 @@ module.exports = {
   isCacheDisabled,
   setImpls,
   resetImpls,
-  resetStats,
   getStats,
 }

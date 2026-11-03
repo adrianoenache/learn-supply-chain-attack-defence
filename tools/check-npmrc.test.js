@@ -85,6 +85,23 @@ describe('check-npmrc parsing', () => {
     )
     assert.equal(entries[0].line, 4)
   })
+
+  test('evaluate classifies unknown, lookahead, and forbidden keys', () => {
+    const entries = script.parseNpmrc(
+      'save-exact=true\nsend-metrics=false\nignore-scripts=false\n',
+    )
+    const { problems, lookahead } = script.evaluate(entries, [])
+    assert.deepEqual(
+      lookahead.map((l) => l.key),
+      ['send-metrics'],
+    )
+    assert.equal(problems.length, 1)
+    assert.ok(problems[0].reason.includes('lifecycle-script block'))
+    // The lookahead registry always carries a human-readable justification.
+    for (const justification of script.LOOKAHEAD_KEYS.values()) {
+      assert.ok(justification.length > 20)
+    }
+  })
 })
 
 describe('check-npmrc validation', () => {

@@ -162,7 +162,5 @@ function buildJsonReport(
 module.exports = {
   buildMarkdownReport,
   buildJsonReport,
-  buildSummary,
   formatDuration,
-  formatTimestamp,
 }

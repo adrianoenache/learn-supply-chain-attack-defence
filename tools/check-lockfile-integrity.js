@@ -199,7 +199,6 @@ module.exports = {
   parseCliArgs,
   isStrongIntegrity,
   checkLockfileIntegrity,
-  readLockfile,
   main,
   setFsImpl,
   resetFsImpl,

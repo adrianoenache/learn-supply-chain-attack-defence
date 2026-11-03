@@ -149,7 +149,6 @@ if (require.main === module) {
 module.exports = {
   main,
   verify,
-  sha256File,
   setFsImpl,
   resetFsImpl,
   setCryptoImpl,

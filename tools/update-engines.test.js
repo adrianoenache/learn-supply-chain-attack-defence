@@ -109,6 +109,12 @@ describe('update-engines CLI parsing', () => {
     assert.equal(args.format, 'text')
   })
 
+  test('parseEngineFloor extracts X.Y.Z from range strings', () => {
+    assert.equal(script.parseEngineFloor('>=24.22.2'), '24.22.2')
+    assert.equal(script.parseEngineFloor('26.13.0'), '26.13.0')
+    assert.throws(() => script.parseEngineFloor('latest'))
+  })
+
   test('rejects conflicting modes', () => {
     assert.throws(() => script.parseCliArgs(['--update', '--upgrade']))
     assert.throws(() => script.parseCliArgs(['--update', '--to', '26.13.0']))
