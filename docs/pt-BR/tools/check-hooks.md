@@ -17,16 +17,12 @@ Armazene o hash esperado no `package.json`:
 ```json
 {
   "defences": {
-    "huskyPreCommitHash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
+    "huskyPreCommitHash": "<sha256-do-arquivo-.husky/pre-commit>"
   }
 }
 ```
 
-Após uma alteração deliberada do hook, atualize o hash com:
-
-```bash
-npm run defence:verify-defences:fix
-```
+Após uma alteração deliberada do hook, siga a skill `pre-commit-hash-sync`: recalcule o SHA-256 do hook, atualize `defences.huskyPreCommitHash` no `package.json`, execute `npm run defence:verify-defences:fix` para atualizar o manifesto e commite os três arquivos juntos. Rodar `verify-defences:fix` sozinho não basta — ele atualiza apenas o manifesto, não o hash no `package.json`.
 
 ## Uso
 
@@ -37,8 +33,10 @@ npm run defence:check-hooks
 ## Exemplo de saída
 
 ```text
-✅ O hash de .husky/pre-commit corresponde ao package.json.
+✅ Pre-commit hook integrity verified.
 ```
+
+(A saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 
