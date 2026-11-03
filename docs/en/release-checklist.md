@@ -87,8 +87,8 @@ The project currently supports:
 
 | Runtime | Minimum Version |
 | --- | --- |
-| Node.js | `>= 24.19.0` |
-| npm | `>= 11.17.0` |
+| Node.js | `>= 24.22.2` |
+| npm | `>= 11.19.1` |
 
 CI runs on the exact versions declared in `engines`. When bumping the matrix, update:
 

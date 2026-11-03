@@ -444,6 +444,10 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
   confirmar CI verde. Execução manual e documentada — serve como especificação
   viva para a ferramenta da L.1. **Upgrade para v26 fica para depois da L.1**
   (decisão do mantenedor: primeiro só o update v24).
+  - **Status (2026-11-03): executado** — 23 arquivos de requisito atualizados
+    (engines, lockfile, `.nvmrc`, badges, CONTRIBUTING, docs bilíngues);
+    referências históricas preservadas. Validação local sob Node 24.22.2 /
+    npm 11.19.1; CI validada na PR.
 - **L.1** `tools/update-engines.js` + `update-engines.test.js`:
   - Modo *update* (patch/minor dentro do major atual) e modo *upgrade*
     (major LTS alvo), com `--dry-run`, `--format=json`, `--silent`.

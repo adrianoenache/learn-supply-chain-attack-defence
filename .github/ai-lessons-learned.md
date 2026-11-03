@@ -133,6 +133,24 @@ Each entry must be concise and actionable:
 - **Instruction/agent updated:** none — the fix is self-documenting in the
   generator comment and README note.
 
+### 2026-11-03 — Version-coupled test fixtures break on engine bumps
+
+- **Date:** 2026-11-03
+- **Rule violated:** Fixtures must be deterministic *and* stable across
+  intentional version bumps (educational-code-quality: document hardcoded
+  fixture values — these were documented but still coupled to the live pin).
+- **Affected files:** `tools/check-engines.test.js`
+- **What happened:** The `satisfies` test derived the target version from the
+  live `engines` field but hardcoded the neighbor versions (`24.20.0`,
+  `11.17.5`, …). Updating engines `24.19.0 → 24.22.2` (Fase L.0) turned a
+  `true` expectation into `false` — the first engine bump broke the suite.
+- **Correction applied:** Neighbor versions are now computed from the live
+  pin (minor/patch ±1), with a comment explaining why; the test survives any
+  future engine update/upgrade.
+- **Instruction/agent updated:** none — but Fase L.1 (`update-engines.js`)
+  must treat "tests with version-coupled fixtures" as a known failure class
+  and run the full suite as the final gate after any engine change.
+
 ### 2026-10-07 — `context: fork` has no observable effect in VS Code 1.141
 
 - **Date:** 2026-10-07

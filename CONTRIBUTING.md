@@ -4,8 +4,8 @@ Thank you for your interest in improving this project. This guide explains how t
 
 ## Development Environment
 
-- Node.js `>= 24.19.0`
-- npm `>= 11.17.0`
+- Node.js `>= 24.22.2`
+- npm `>= 11.19.1`
 - Git
 
 ## Workflow

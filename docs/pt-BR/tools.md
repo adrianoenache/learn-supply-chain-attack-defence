@@ -4,7 +4,7 @@ Este projeto depende de um pequeno conjunto de ferramentas cuidadosamente escolh
 
 ## Runtime
 
-### Node.js >= 24.19.0
+### Node.js >= 24.22.2
 
 O projeto utiliza uma versão recente da linha LTS do Node.js para garantir suporte a:
 
@@ -12,7 +12,7 @@ O projeto utiliza uma versão recente da linha LTS do Node.js para garantir supo
 - Aplicação do `min-release-age` no npm.
 - APIs modernas como `fetch` e `AbortController`, se necessário no futuro.
 
-### npm >= 11.17.0
+### npm >= 11.19.1
 
 O npm é o gerenciador de pacotes. O projeto o utiliza tanto para instalação quanto como primitivo de segurança por meio de comandos como `npm audit signatures` e `npm audit --audit-level=high`.
 

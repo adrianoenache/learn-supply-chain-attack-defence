@@ -4,7 +4,7 @@ This project relies on a small set of carefully chosen tools. Every tool is nati
 
 ## Runtime
 
-### Node.js >= 24.19.0
+### Node.js >= 24.22.2
 
 The project targets a recent Node.js LTS line to guarantee support for:
 
@@ -12,7 +12,7 @@ The project targets a recent Node.js LTS line to guarantee support for:
 - `min-release-age` enforcement in npm.
 - Modern `fetch` and `AbortController` APIs if needed in the future.
 
-### npm >= 11.17.0
+### npm >= 11.19.1
 
 npm is the package manager. The project uses it both for installation and as a security primitive through commands like `npm audit signatures` and `npm audit --audit-level=high`.
 

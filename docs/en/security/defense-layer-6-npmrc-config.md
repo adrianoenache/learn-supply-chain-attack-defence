@@ -25,7 +25,7 @@ The `.npmrc` file configures npm with safer defaults. It applies to every npm co
 - `npm-audit-fix-level=high` — restricts `npm audit fix` to high/critical CVEs, preventing low/moderate advisories from silently changing the lock file.
 - `send-metrics=false` — disables npm telemetry/metrics collection for deterministic privacy, especially useful in CI or air-gapped environments.
 
-> **Lookahead / future-facing:** `npm-audit-fix-level` and `send-metrics` are not recognised by npm 11.17.0, which will emit "Unknown project config" warnings. They are kept in `.npmrc` so future npm versions enforce them automatically; until then the warnings are expected and harmless.
+> **Lookahead / future-facing:** `npm-audit-fix-level` and `send-metrics` are not recognised by npm 11.19.1, which will emit "Unknown project config" warnings. They are kept in `.npmrc` so future npm versions enforce them automatically; until then the warnings are expected and harmless.
 
 See the [`.npmrc` hardening guide](../npmrc-hardening.md) for a detailed explanation of every setting, the rationale behind each choice, options that were considered but not adopted, and guidance for private registries and emergency patches.
 

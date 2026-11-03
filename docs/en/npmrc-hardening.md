@@ -86,7 +86,7 @@ audit-level=high
 npm-audit-fix-level=high
 ```
 
-`audit=true` runs a vulnerability audit during install. `audit-level=high` makes the command fail when high or critical CVEs are found. `npm-audit-fix-level=high` is a **lookahead setting**: it restricts `npm audit fix` so it only applies high/critical fixes, but it is not yet recognised by npm 11.17.0. The line is kept in `.npmrc` so future npm versions will enforce it automatically; until then, any `npm audit fix` command should still be reviewed manually.
+`audit=true` runs a vulnerability audit during install. `audit-level=high` makes the command fail when high or critical CVEs are found. `npm-audit-fix-level=high` is a **lookahead setting**: it restricts `npm audit fix` so it only applies high/critical fixes, but it is not yet recognised by npm 11.19.1. The line is kept in `.npmrc` so future npm versions will enforce it automatically; until then, any `npm audit fix` command should still be reviewed manually.
 
 ### Telemetry opt-out
 
@@ -94,7 +94,7 @@ npm-audit-fix-level=high
 send-metrics=false
 ```
 
-Disables npm metrics/telemetry collection. Like `npm-audit-fix-level`, this is a **lookahead setting** that is not yet recognised by npm 11.17.0. It is kept in `.npmrc` as an explicit opt-in to a deterministic privacy posture for future npm releases.
+Disables npm metrics/telemetry collection. Like `npm-audit-fix-level`, this is a **lookahead setting** that is not yet recognised by npm 11.19.1. It is kept in `.npmrc` as an explicit opt-in to a deterministic privacy posture for future npm releases.
 
 ### Network resilience
 
@@ -110,12 +110,12 @@ These settings protect the install process against transient registry failures w
 
 ## Lookahead / future-facing settings
 
-The following settings are intentionally kept in `.npmrc` even though npm 11.17.0 does not recognise them yet. They prepare the project for future npm releases without requiring another configuration change.
+The following settings are intentionally kept in `.npmrc` even though npm 11.19.1 does not recognise them yet. They prepare the project for future npm releases without requiring another configuration change.
 
 | Setting | Future effect | Current behaviour |
 | --- | --- | --- |
-| `npm-audit-fix-level=high` | Restricts `npm audit fix` to high/critical CVEs. | Ignored by npm 11.17.0; emits a warning but causes no functional change. |
-| `send-metrics=false` | Explicitly disables npm telemetry/metrics collection. | Ignored by npm 11.17.0; emits a warning but causes no functional change. |
+| `npm-audit-fix-level=high` | Restricts `npm audit fix` to high/critical CVEs. | Ignored by npm 11.19.1; emits a warning but causes no functional change. |
+| `send-metrics=false` | Explicitly disables npm telemetry/metrics collection. | Ignored by npm 11.19.1; emits a warning but causes no functional change. |
 
 These warnings are expected and safe. Do not remove the settings unless you prefer to adopt them only when your npm version explicitly supports them.
 
