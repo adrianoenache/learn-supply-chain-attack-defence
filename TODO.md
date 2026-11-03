@@ -311,9 +311,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     (consultivo, nunca bloqueia) com 9 testes E2E em repos temporários;
     limites 8 arquivos / 400 linhas / 2 domínios (par bilíngue = 1 domínio)
     justificados em ADR.
-- [ ] **AI-4.2** Processo de code review em 4 eixos (qualidade, segurança,
+- [x] **AI-4.2** Processo de code review em 4 eixos (qualidade, segurança,
   código morto, docs relacionadas): skill orquestradora + avaliar ferramenta
   leve de dead-code sem deps novas.
+  - Concluído em 2026-11-03: skill `code-review-pass` + ferramenta consultiva
+    `check-dead-code.js` (ADR: nunca gate rígido); triagem inicial com 41
+    unexports + 2 deleções + 4 keeps-com-teste; baseline zero; lição
+    "suíte como árbitra" registrada.
 - [ ] **AI-4.3** Adoção VS Code 1.144: re-teste de `context: fork`; `target`
   explícito nos `.agent.md`; política Copilot Memory × memória em arquivos;
   interação Assisted Permissions × hooks; deep links de customização (opcional).

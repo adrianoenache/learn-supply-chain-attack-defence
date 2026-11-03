@@ -27,7 +27,7 @@ behavior with the header comment in the tool file.
 |---|---|
 | Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall`, `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade` |
 | Dependency Management | `defence:add`, `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`, `defence:update-check`, `defence:update-check:force`, `defence:update-check:json`, `defence:update-check:offline`, `defence:analyze-lifecycle-scripts` |
-| Auditing & Verification | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-npmrc`, `defence:check-secrets`, `defence:generate-sbom` |
+| Auditing & Verification | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-npmrc`, `defence:check-dead-code`, `defence:check-secrets`, `defence:generate-sbom` |
 | State & Synchronization | `defence:sync-check`, `defence:sync-check:fix`, `defence:verify-defences`, `defence:verify-defences:fix`, `defence:update-badge`, `defence:update-badge:dry-run` |
 | Documentation & Compliance | `defence:check-md-links`, `defence:check-external-urls`, `defence:check-external-urls:force` |
 | Performance & Monitoring | `defence:perf`, `defence:perf:baseline`, `defence:perf:check-package-age`, `defence:perf:check-updates` |
@@ -210,6 +210,17 @@ behavior with the header comment in the tool file.
 - **Tests:** `tools/check-npmrc.test.js`
 - **Notes:** runs in `.husky/pre-commit` and the CI `defence-gates` job; new documented keys are added via `KNOWN_KEYS`, intentional not-yet-recognized keys via `LOOKAHEAD_KEYS` with justification.
 - **Docs:** [tools/check-npmrc.md](tools/check-npmrc.md)
+
+### check-dead-code.js
+
+- **Purpose:** advisory dead-code candidate finder — unreferenced exports and orphaned files under `tools/`, aware of the codebase's require idioms (destructured, namespace, inline `require().member()`, alias-indirected test harnesses).
+- **Scripts:** `defence:check-dead-code`
+- **Flags:** `--silent`, `--format json`.
+- **Silent/format modes:** `--silent` suppresses the report; `--format json` prints machine-readable candidates.
+- **Exit codes:** always `0` (advisory by design — ADR in `DECISIONS.md`).
+- **Tests:** `tools/check-dead-code.test.js`
+- **Notes:** candidate list, never a delete list — triage rules live in the `code-review-pass` skill (axis 3); the full test suite arbitrates any removal.
+- **Docs:** [tools/check-dead-code.md](tools/check-dead-code.md)
 
 ### check-secrets.js
 

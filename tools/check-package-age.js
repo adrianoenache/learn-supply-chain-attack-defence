@@ -358,10 +358,8 @@ if (require.main === module) {
 module.exports = {
   fetchPackageAge,
   resolveExactVersion,
-  MAX_RESPONSE_BYTES,
   main,
   buildDeps,
-  resolveMode,
   setNowImpl,
   resetNowImpl,
   runForBenchmark,

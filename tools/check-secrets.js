@@ -201,7 +201,6 @@ module.exports = {
   main,
   setFsImpl,
   resetFsImpl,
-  PATTERNS,
 }
 
 if (require.main === module) {

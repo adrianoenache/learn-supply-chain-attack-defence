@@ -17,6 +17,27 @@ Each entry must be concise and actionable:
 
 ## Entries
 
+### 2026-11-03 — Never act on analyzer output before validating pattern coverage
+
+- **Date:** 2026-11-03
+- **Rule violated:** Verify changes actually work before declaring done —
+  and a linter/analyzer you just wrote is itself unproven code.
+- **Affected files:** `tools/check-dead-code.js`, 11 files touched by a
+  scripted unexport pass
+- **What happened:** The first version of the dead-code scanner missed two
+  real consumption patterns (`require(...).member()` inline access and
+  alias-indirected test harnesses). Acting on its candidate list with a
+  scripted unexport pass broke **35 tests**; recovery required reverting the
+  pass and teaching the analyzer both patterns.
+- **Correction applied:** The scanner learned inline member access (any
+  layout), alias constants with first-declaration-wins, and textual fallback
+  for harness indirection. A triage rule was added to the
+  `code-review-pass` skill: after acting on any dead-code candidate, the
+  full `npm test` suite is the arbiter and must stay green.
+- **Instruction/agent updated:** `.github/skills/code-review-pass/SKILL.md`
+  (axis 3 triage rules). Rule of thumb: analyzer output is a *candidate
+  list*, never a delete list — the test suite arbitrates.
+
 ### 2026-09-03 — Session memory loss
 
 - **Date:** 2026-09-03

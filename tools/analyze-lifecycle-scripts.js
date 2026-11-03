@@ -163,7 +163,6 @@ if (require.main === module) {
 
 module.exports = {
   parseCliArgs,
-  fetchVersionManifest,
   formatReport,
   main,
   setImpls,

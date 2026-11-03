@@ -427,12 +427,9 @@ if (require.main === module) {
 
 module.exports = {
   main,
-  parseCliArgs,
   loadEligibleUpdates,
   getActionableQuarantine,
-  loadActionableUpdates,
   resolveTargetVersion,
-  promptForSelections,
   saveDecisions,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,

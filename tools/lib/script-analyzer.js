@@ -214,12 +214,10 @@ function buildSummaryTable(results) {
 
 module.exports = {
   LIFECYCLE_SCRIPT_NAMES,
-  RISK_PATTERNS,
   extractScripts,
   analyzeScript,
   analyzeManifest,
   computeRiskLevel,
-  compareRiskLevel,
   aggregateResults,
   buildFindingsTable,
   buildSummaryTable,

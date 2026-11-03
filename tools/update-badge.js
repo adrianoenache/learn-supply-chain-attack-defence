@@ -218,7 +218,6 @@ module.exports = {
   countAllTests,
   buildBadgeLine,
   updateBadgeLine,
-  parseCliArgs,
   countTestsDynamically,
   setImpls,
   resetImpls,

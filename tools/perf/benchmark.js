@@ -336,5 +336,4 @@ module.exports = {
   saveBaselines,
   setImpls,
   resetImpls,
-  REGRESSION_THRESHOLD,
 }

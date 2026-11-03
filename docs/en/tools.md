@@ -57,6 +57,7 @@ All custom scripts live in `tools/` and use only native Node.js modules. Each to
 | `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. | [check-sync](tools/check-sync.md) |
 | `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. | [check-updates](tools/check-updates.md) |
 | `check-npmrc.js` | Validates the npm configuration surface: known keys, lookahead registry, defensive values, and the npm v12 extension mechanism. | [check-npmrc](tools/check-npmrc.md) |
+| `check-dead-code.js` | Advisory dead-code candidate finder (unreferenced exports and orphaned files) for the toolset. | [check-dead-code](tools/check-dead-code.md) |
 | `update-engines.js` | Reports and applies Node.js engine updates/upgrades, gating targets on the official dist index (CI availability by construction). | [update-engines](tools/update-engines.md) |
 | `generate-sbom.js` | Generates a CycloneDX 1.4 JSON SBOM from `package-lock.json`. | [generate-sbom](tools/generate-sbom.md) |
 | `generate-trust-report.js` | CLI for the trust score dashboard; emits table, JSON, or Markdown reports. | [generate-trust-report](tools/generate-trust-report.md) |

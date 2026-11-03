@@ -479,13 +479,6 @@ function appendHistory(state) {
   return state
 }
 
-function countPackageOccurrences(history, name, status) {
-  return history.reduce((count, entry) => {
-    const list = entry[status] ?? []
-    return count + (list.some((item) => item.name === name) ? 1 : 0)
-  }, 0)
-}
-
 function isStuckInQuarantine(history, name) {
   let consecutive = 0
   for (const entry of history.slice().reverse()) {
@@ -933,15 +926,10 @@ module.exports = {
   setImpls,
   resetImpls,
   appendHistory,
-  buildHistoryEntry,
-  countPackageOccurrences,
   isStuckInQuarantine,
   calculateReleaseCadence,
   calculateConfidence,
-  enrichEligibleWithConfidence,
-  findStuckInQuarantine,
   fetchRegistryInfo,
   classifyUpdate,
   findIntermediateEligibleVersions,
-  compareVersions,
 }
