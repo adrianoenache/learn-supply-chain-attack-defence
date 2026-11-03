@@ -74,6 +74,10 @@ Defenses are grouped by adoption stage. See the [security overview](docs/en/secu
 | Trust score dashboard | `npm run defence:trust-report` | Aggregate supply-chain signals into a per-package 0–100 score |
 | SBOM generation | `npm run defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
 | Adoption integrity | `npm run defence:verify-defences` | Verify files copied by `install-defences.js` |
+| npm configuration surface | `npm run defence:check-npmrc` | Guard `.npmrc` keys (known/lookahead lists) and reject the npm v12 extension mechanism |
+| Engine lifecycle | `npm run defence:update-engines` | Node.js engine updates/upgrades gated on the official dist index (CI availability by construction) |
+
+Beyond the twelve technical layers, the repository applies an **organizational layer** to itself: branch protection on `main` and `dev` with required status checks and code-owner review of critical paths ([CODEOWNERS](.github/CODEOWNERS)) — the defense model protecting the project that teaches it.
 
 ## CI/CD
 
