@@ -12,17 +12,20 @@ Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
 (quarentena acionável), AI-2 (governança/ergonomia das customizações AI), G
 (code review educacional + cobertura 94,70% → 95,94%), AI-3.5 (DECISIONS.md +
-destilação) e H (organização: Biome, helpers, CODEOWNERS, badge) concluídas.
+destilação), H (organização: Biome, helpers, CODEOWNERS, badge) e **L**
+(gestão de engines: update 24.19.0 → 24.22.2 por CVEs, ferramenta
+`update-engines.js`, guarda `check-npmrc`, ADRs de min-release-age e
+Permission Model) concluídas. Da AI-4, o bloco AI-4.1 (commits granulares)
+também está concluído.
 
 Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**L** (gestão de engines — update v24 imediato por CVEs + ferramenta
-update/upgrade) → **AI-4** (processos de AI: commits granulares, code review,
-adoção VS Code 1.144) → **I** (+ AI-3.4: mapa de arquitetura de AI) →
-**AI-3.3** (observabilidade JSONL) → **J** (avaliação 10/10) → **AI-3.2**
-(prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
-justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
-(release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding completo
-e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
+**AI-4.2–AI-4.4** (code review em 4 eixos + adoção VS Code 1.144) →
+**I** (+ AI-3.4: mapa de arquitetura de AI) → **AI-3.3** (observabilidade
+JSONL) → **J** (avaliação 10/10) → **AI-3.2** (prompt-injection/sanitização)
+→ **AI-3.1** (inject-context, se a medição justificar) → **M.1** (dogfooding
+do instalador no projeto irmão) → **K** (release v1.0.0, com aprovação
+explícita) → **M.2/M.3** (scaffolding completo e scaffolding de infra AI —
+pós-v1.0.0, alvo v1.1.0).
 
 ## Fases
 
@@ -499,8 +502,17 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
     **não** é sandbox de install para código não-confiável (docs oficiais +
     2 CVEs de bypass corrigidos em out/2026); posicioná-lo, se adotado, como
     hardening de runtime de código já vetado.
+  - **Status (2026-11-03): concluído.** Dois ADRs em `DECISIONS.md`
+    (min-release-age formalizado retroativamente com o comportamento
+    fail-closed documentado; `--permission` rejeitado como sandbox de
+    install — P3 sandbox futuro deve usar isolamento de SO). Docs:
+    `npmrc-hardening.md` (tradeoff fail-closed) e
+    `security/lifecycle-script-analysis.md` (limitações), ambos os idiomas.
 - **L.4** Validação final: gates completos + `nvm use` limpo + CI verde +
   entradas no CHANGELOG/TODO/DECISIONS.
+  - **Status (2026-11-03): concluído.** Gates locais verdes sob Node
+    24.22.2 / npm 11.19.1 (902/902 testes, lint 92 arquivos, 187 md);
+    CI validada nas PRs da fase.
 
 ### Fase AI-4 — Processos de AI: granularidade de commits e code review
 
