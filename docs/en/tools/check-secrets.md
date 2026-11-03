@@ -7,6 +7,7 @@
 - Accepts a list of file paths as arguments, typically from `git diff --cached --name-only`.
 - Scans for patterns matching AWS keys, GitHub tokens, npm tokens, and other common secret formats.
 - Reports findings with file path, line number, and matched pattern.
+- Supports false-positive suppression via `.check-secrets-ignore` (one pattern per line, `#` for comments).
 
 Implemented in [tools/check-secrets.js](../../../tools/check-secrets.js).
 
