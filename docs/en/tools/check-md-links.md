@@ -38,8 +38,10 @@ npm run defence:check-md-links -- --force
 ## Output example
 
 ```text
-128 markdown files checked, 0 broken links.
+Checked 190 markdown file(s). All local links are valid. (190 from cache)
 ```
+
+(The counts reflect the live repository and change as pages are added.)
 
 ## Related defense layer
 
