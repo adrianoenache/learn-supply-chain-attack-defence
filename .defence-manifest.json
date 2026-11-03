@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T22:28:55.403Z",
+  "installedAt": "2026-11-03T22:53:28.027Z",
   "files": [
     {
       "path": ".npmrc",
@@ -100,11 +100,11 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "3683d7f7ba9c723e87a576922e0360d52c70ee36557e1e73e0ce419faeb9cc37"
+      "hash": "cd2c296e4c592328d0aea63bdb58658b814b2ddce941e6a527c9498ff5abe044"
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "aa48256e94c993bfe1492d70f20242213e74751c512c83e53d1e3a85be5b6f5e"
+      "hash": "4409ae29724255f63b6d21d53f51afd62aa7044b239aa7cd7b75e7d364e1dff2"
     },
     {
       "path": "tools/check-secrets.js",
@@ -124,11 +124,11 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "a66af2be5c99f324b10b67b94b7a73639f0bfaae816dcdcbaf3fc29ab725b4f8"
+      "hash": "0d19f90c1404110a516398e240739f7bcaf6bd28acefd8f21aeaa5b36e7fbcb6"
     },
     {
       "path": "tools/check-updates.test.js",
-      "hash": "473f51029d98661019458520395ae37d8f2369437d2d239bfea66528c9a04608"
+      "hash": "dc8d9674f3448cdafeb824f189e7e62d58d964b4972afecbde84b979692fb62a"
     },
     {
       "path": "tools/generate-sbom.js",
@@ -148,7 +148,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "f8fa7b0ae833cff38183fba95444a5134ae8370de093be7e2bba3957ab2c2d8e"
+      "hash": "f885007a8467d44f410e4da038f14b5264fe7b6958493ae5b201568f65707c77"
     },
     {
       "path": "tools/monitor-install.js",
@@ -192,7 +192,7 @@
     },
     {
       "path": "tools/update-engines.js",
-      "hash": "78d76de1f23eaedc5021568a8e38e1a74fb5f71b78034707438d602bec7a744e"
+      "hash": "5e375eccbd92e150da544b733a47e09d83a719cb6aa8f667bec3f6990ea188c1"
     },
     {
       "path": "tools/update-engines.test.js",
@@ -275,6 +275,14 @@
       "hash": "85015f6018464b9f5b1b5153d0eafacea8483be344edf5e3918f38aca8ab6329"
     },
     {
+      "path": "tools/lib/validate-external-content.js",
+      "hash": "967718140d0941932a68aeba43197171b37e3f2622cdc2e0b26e69efac05dde7"
+    },
+    {
+      "path": "tools/lib/validate-external-content.test.js",
+      "hash": "0f290d4451a5191dd8276de2a614070538a08e1752ac413cebfbc447f8b2b6bf"
+    },
+    {
       "path": "tools/lib/process-monitor.js",
       "hash": "ad2d4cef0112fb0b954104e4e505dddc0dc403b19ac94460fb5408f5a9cd55ee"
     },
@@ -316,7 +324,7 @@
     },
     {
       "path": "tools/perf/benchmark.js",
-      "hash": "94a4a082ec66c63c89ce249820feae922daa24f3beb9c3da2e73f22a16fe684f"
+      "hash": "da42ad8ff141e66bea83bbcaea83d96c8f226fe447dcb38e81b526c5469c2c2c"
     },
     {
       "path": "tools/perf/benchmark.test.js",

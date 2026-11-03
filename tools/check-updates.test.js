@@ -85,7 +85,22 @@ function makeMockFetchRegistryJson(registryResponses) {
       err.statusCode = response.statusCode
       throw err
     }
-    return response.body
+    const body = response.body
+    // Since Fase AI-3.2 the tools validate the packument shape before
+    // trusting it, so fixtures must look like real registry documents:
+    // fill in `name` and a `versions` map (derived from `time`) when the
+    // test only cares about other fields.
+    if (body && typeof body === 'object' && !body.error) {
+      if (body.time && body.name === undefined) body.name = name
+      if (body.time && body.versions === undefined) {
+        body.versions = Object.fromEntries(
+          Object.keys(body.time)
+            .filter((k) => k !== 'created' && k !== 'modified')
+            .map((v) => [v, {}]),
+        )
+      }
+    }
+    return body
   }
 }
 
@@ -973,10 +988,41 @@ describe('check-updates', () => {
     assert.equal(result.status, 0)
   })
 
+  test('fetchRegistryInfo self-heals a poisoned cache entry via forced re-fetch', async () => {
+    const mod = readScriptExports()
+    let fetchCount = 0
+    mod.setImpls({
+      fetchRegistryJson: async (_name, _version, options) => {
+        fetchCount += 1
+        if (fetchCount === 1) return { time: {} } // poisoned: no name/versions
+        assert.equal(options.force, true, 'second fetch must bypass the cache')
+        return {
+          name: 'healed-pkg',
+          versions: { '1.0.0': {} },
+          time: { '1.0.0': '2026-08-01T00:00:00.000Z' },
+        }
+      },
+      now: () => baseTime,
+    })
+
+    try {
+      const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
+      const info = await mod.fetchRegistryInfo('healed-pkg', new Map(), metrics)
+      assert.equal(info.name, 'healed-pkg')
+      assert.equal(fetchCount, 2)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
   test('deduplicates registry fetches across dependency lookups', async () => {
     const mod = readScriptExports()
     let fetchCount = 0
     const sharedRegistryBody = {
+      // Realistic packument: since Fase AI-3.2 fetchRegistryInfo validates
+      // the response shape (name match, versions map, parseable dates).
+      name: 'shared-pkg',
+      versions: { '2.6.0': {} },
       time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
       repository: { url: 'git+https://github.com/biomejs/biome.git' },
     }

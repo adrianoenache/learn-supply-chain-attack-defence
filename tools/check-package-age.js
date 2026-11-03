@@ -28,6 +28,9 @@ const { fetchRegistryJson } = require(
   path.resolve(__dirname, './lib/registry-cache.js'),
 )
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { validatePackument, validatePublishDate } = require(
+  path.resolve(__dirname, './lib/validate-external-content.js'),
+)
 
 // Reads the declared dependencies from the project's package.json.
 // Only native modules are used here — this script must not depend on installable
@@ -158,7 +161,7 @@ function resolveExactVersion(version) {
 // does not include the `time` field, so the full document is required.
 async function fetchPackageAge(name, version) {
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-  const info = await fetchRegistryJson(name, version, {
+  const fetchOptions = {
     url,
     cacheTtlHours: config.updateCheck.cacheTtlHours,
     maxResponseBytes: MAX_RESPONSE_BYTES,
@@ -168,17 +171,31 @@ async function fetchPackageAge(name, version) {
     retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
     retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
     acceptGzip: true,
-  })
+  }
+  let info = await fetchRegistryJson(name, version, fetchOptions)
+
+  // Output validation (Fase AI-3.2): the packument drives the age gate, so
+  // its shape is verified before any field is trusted — including a name
+  // match against the request (content confusion) and well-formed dates.
+  // A validation failure may come from a poisoned/stale cache entry, so the
+  // first failure triggers one forced re-fetch (cache bypass) before giving up.
+  try {
+    validatePackument(info, name)
+  } catch {
+    info = await fetchRegistryJson(name, version, {
+      ...fetchOptions,
+      force: true,
+    })
+    validatePackument(info, name)
+  }
 
   if (!info.time?.[version]) {
     throw new Error(`No publish date found for ${name}@${version} in registry`)
   }
 
-  const published = new Date(info.time[version])
-
-  if (Number.isNaN(published.getTime())) {
-    throw new Error(`Could not parse publish date for ${name}@${version}`)
-  }
+  const published = new Date(
+    validatePublishDate(info.time[version], `${name}@${version}`, nowImpl()),
+  )
 
   // Converts the difference between now and the publication date from milliseconds to days.
   const MS_PER_DAY = config.pkgAgeCheck.msPerDay

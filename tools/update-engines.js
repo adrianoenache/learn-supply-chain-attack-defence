@@ -38,6 +38,9 @@ const path = require('node:path')
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
 const { compareVersions } = require(path.resolve(__dirname, './lib/semver.js'))
+const { validateDistIndex } = require(
+  path.resolve(__dirname, './lib/validate-external-content.js'),
+)
 
 const REPO_ROOT = path.resolve(__dirname, '..')
 const PACKAGE_JSON = path.join(REPO_ROOT, 'package.json')
@@ -218,11 +221,14 @@ async function main(argv = process.argv.slice(2)) {
       retryBackoffMultiplier: engineConfig.retryBackoffMultiplier,
       retryMaxDelayMs: engineConfig.retryMaxDelayMs,
     })
+    // Output validation (Fase AI-3.2): entries are written into engines, so
+    // malformed versions/npm fields are rejected before any edit.
+    validateDistIndex(distIndex)
   } catch (err) {
     errorImpl(
-      `Could not fetch ${engineConfig.distIndexUrl}: ${err.message}\n` +
+      `Could not fetch or trust ${engineConfig.distIndexUrl}: ${err.message}\n` +
         'The official index is the availability gate for CI (actions/setup-node downloads from it). ' +
-        'Check the network connection and retry.',
+        'Check the network connection and retry; if the index itself is malformed, do not proceed.',
     )
     return exitImpl(1)
   }

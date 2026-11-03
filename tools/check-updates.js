@@ -48,6 +48,9 @@ const { runWithConcurrencyLimit } = require(
   path.resolve(__dirname, './lib/concurrency.js'),
 )
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { validatePackument } = require(
+  path.resolve(__dirname, './lib/validate-external-content.js'),
+)
 
 const config = loadConfig()
 const updateConfig = config.updateCheck
@@ -280,7 +283,7 @@ async function fetchRegistryInfo(name, inMemoryCache, metrics) {
   }
 
   const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-  const info = await fetchRegistryJsonImpl(name, null, {
+  const fetchOptions = {
     url,
     cacheTtlHours: CACHE_TTL_HOURS,
     maxResponseBytes: MAX_RESPONSE_BYTES,
@@ -290,7 +293,24 @@ async function fetchRegistryInfo(name, inMemoryCache, metrics) {
     retryBackoffMultiplier: updateConfig.retryBackoffMultiplier,
     retryMaxDelayMs: updateConfig.retryMaxDelayMs,
     acceptGzip: true,
-  })
+  }
+  let info = await fetchRegistryJsonImpl(name, null, fetchOptions)
+
+  // Output validation (Fase AI-3.2): verify the packument shape before
+  // trusting or caching it — a malformed/manipulated response must never
+  // drive update classification. A validation failure may come from a
+  // poisoned/stale cache entry, so the first failure triggers one forced
+  // re-fetch (cache bypass) before giving up.
+  try {
+    validatePackument(info, name)
+  } catch {
+    metrics.registryCacheMisses++
+    info = await fetchRegistryJsonImpl(name, null, {
+      ...fetchOptions,
+      force: true,
+    })
+    validatePackument(info, name)
+  }
 
   metrics.registryCacheMisses++
   if (inMemoryCache) {
