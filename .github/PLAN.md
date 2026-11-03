@@ -553,6 +553,15 @@ pós-v1.0.0, alvo v1.1.0).
   - Criar skill orquestradora (ex.: `code-review-pass`) que encadeia os eixos
     e produz relatório único; avaliar ferramenta leve de dead-code sem deps
     novas (exports/CLI flags não referenciados) ou manter análise 100% agente.
+  - **Status (2026-11-03): concluído.** Skill `code-review-pass` (manual,
+    4 eixos, relatório único) + ferramenta `tools/check-dead-code.js`
+    **consultiva** (exit 0 sempre — ADR; análise estática não prova
+    inalcançabilidade com os idiomas CJS da base: DI, harnesses por alias,
+    `require().member()` inline). Primeira triagem executada: 41 exports
+    desexportados, 2 funções mortas deletadas, 4 exports mantidos com novos
+    testes diretos; baseline zerado (915/915 testes). Incidente registrado:
+    agir sobre a lista de candidatos imatura quebrou 35 testes — regra
+    "a suíte é a árbitra" agora na skill e no lessons-learned.
 - **AI-4.3** Adoção VS Code 1.144:
   - Re-teste empírico de `context: fork` nas 6 skills forkadas (procedimento
     da AI-2.1); atualizar `ai-lessons-learned.md` com o resultado.

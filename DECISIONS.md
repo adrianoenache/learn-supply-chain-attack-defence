@@ -241,3 +241,21 @@ Keep entries concise; link to the phase/commit for detail.
   isolation (containers, namespaces, bubblewrap); the permission model may
   only ever be a complementary layer for running vetted code, and this ADR is
   the reference when the topic resurfaces.
+
+### 2026-11-03 — Dead-code detection is an advisory tool, never a hard gate
+
+- **Decision:** `check-dead-code.js` always exits 0 and reports *candidates*
+  with triage rules (unexport-if-internal, keep-with-test for extension
+  points, full suite as arbiter). It is not wired as a blocking gate.
+- **Context:** Static analysis of this codebase's CommonJS idioms (DI
+  contracts, alias-indirected test harnesses, inline `require().member()`
+  access) cannot prove unreachability; the first scanner version produced
+  false positives that broke 35 tests when acted on mechanically.
+- **Rejected alternative:** A `--fail` gate in CI — would either block
+  legitimate DI-contract exports or force annotations everywhere, adding
+  noise to a learning resource.
+- **Consequences:** The baseline is zero candidates (2026-11-03 cleanup:
+  41 unexports of internal-only symbols, 2 full deletions, 4 exports kept
+  with new direct tests); the scanner runs on demand via the
+  `code-review-pass` skill, and its parser is hardened against the
+  codebase's real consumption patterns.

@@ -16,6 +16,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Added (Fase AI-4.2 — 4-axis AI code review)
+
+- New `code-review-pass` skill (manual): chains the four review axes —
+  quality (`educational-code-review`), security (`security-audit`), dead code
+  (`check-dead-code` triage), and related documentation (`docs-completeness`)
+  — into one consolidated report.
+- New advisory `tools/check-dead-code.js` (`defence:check-dead-code`):
+  dead-export/orphan-file candidate finder aware of the codebase's require
+  idioms (DI contracts, alias-indirected test harnesses, inline
+  `require().member()` access). Always exits 0 — the test suite arbitrates
+  removals (ADR).
+- Baseline cleanup: 41 internal-only symbols unexported, 2 fully dead
+  functions deleted, 4 exports kept with new direct unit tests.
+  `tools/check-updates.js` keeps its stricter `compareVersions` (pre-release
+  rejection for untrusted registry data), unexported but not merged into
+  `lib/semver.js` per the byte-identical extraction rule.
+
 ### Added (Fase L.3 — documented evaluations)
 
 - Two ADRs in `DECISIONS.md`: the retroactive formalization of
