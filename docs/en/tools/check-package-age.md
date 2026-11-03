@@ -45,7 +45,11 @@ npm run defence:pkg-age-check -- --pkg lodash@4.17.21
 ## Output example
 
 ```text
-lodash@4.17.21: published 30 days ago ✓
+Checking publish age for 2 direct package(s) (minimum: 7 days)...
+
+  OK       lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+
+All packages passed the minimum age check.
 ```
 
 ## Related defense layer
