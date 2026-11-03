@@ -12,6 +12,7 @@ npm ci
 
 - `npm run setup`
 - `npm run defence:reinstall`
+- O job `build` do CI (que então compartilha a árvore exata com todos os outros jobs como artefato)
 
 ## Benefícios
 
