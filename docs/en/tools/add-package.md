@@ -6,11 +6,15 @@
 
 - Parses the package specifier and validates it is in `name@version` form.
 - Enforces the minimum package-age check.
+- Verifies npm provenance / SLSA attestation when configured (`defences.provenanceMode`).
+- Runs typosquatting / dependency-confusion detection against existing names.
+- Performs static lifecycle-script analysis on the package (pre-install dry-run).
+- Pins the tarball integrity from the registry manifest (TOCTOU protection).
+- Installs with `--save-exact --ignore-scripts` under the process monitor.
 - Verifies npm signatures with `npm audit signatures`.
 - Runs a vulnerability audit.
-- Performs static lifecycle-script analysis on the package and its transitive dependencies.
-- Checks license compatibility.
-- Reports a summary and asks for confirmation unless `--dry-run` is used.
+- Runs transitive package-age and license checks.
+- Reports a summary; there is no confirmation prompt — use `--dry-run` to inspect the checks without installing.
 
 Implemented in [tools/add-package.js](../../../tools/add-package.js).
 
@@ -39,7 +43,6 @@ Running vulnerability audit ... ok
 Analyzing lifecycle scripts ... ok
 License MIT is allowed.
 Summary: lodash@4.17.21 passed all defense gates.
-Proceed with install? (y/n)
 ```
 
 ## Related defense layers
@@ -49,3 +52,4 @@ Proceed with install? (y/n)
 - [Defense Layer 3 — Vulnerability audit](../security/defense-layer-3-vulnerabilities.md)
 - [Defense Layer 9 — License check](../security/defense-layer-9-license-check.md)
 - [Defense Layer 10 — Typosquatting & dependency confusion](../security/defense-layer-10-typosquatting.md)
+- [Defense Layer 11 — Provenance & SLSA attestation](../security/defense-layer-11-provenance.md)
