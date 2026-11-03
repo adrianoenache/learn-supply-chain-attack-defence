@@ -23,8 +23,10 @@ npm run defence:update-badge:dry-run
 ## Output example
 
 ```text
-Updated test badge to 441/441 in README.md
+Updated test badge to N/N in README.md
 ```
+
+(The real output shows the live count, which changes as tests are added.)
 
 ## Related defense layer
 

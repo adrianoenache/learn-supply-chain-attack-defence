@@ -37,7 +37,10 @@ node ./tools/install-defences.js /path/to/target-project --force
    - The installer itself and its test suite.
 
    The authoritative list is `FILES_TO_COPY` in
-   [`tools/install-defences.js`](../../tools/install-defences.js).
+   [`tools/install-defences.js`](../../tools/install-defences.js), and a
+   completeness test fails the suite whenever a file under `tools/` is
+   neither on that list nor explicitly excluded — the adopted toolset can
+   never silently drift from this repository.
 
    It also writes `.defence-manifest.json` in the target project with SHA-256
    hashes of the copied files.

@@ -23,8 +23,10 @@ npm run defence:update-badge:dry-run
 ## Exemplo de saída
 
 ```text
-Badge de testes atualizado para 441/441 em README.md
+Badge de testes atualizado para N/N em README.md
 ```
+
+(A saída real mostra a contagem viva, que muda conforme testes são adicionados.)
 
 ## Camada de defesa relacionada
 

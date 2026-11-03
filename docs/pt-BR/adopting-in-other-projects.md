@@ -37,7 +37,10 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --force
    - O próprio instalador e sua suíte de testes.
 
    A lista autoritativa está em `FILES_TO_COPY` no
-   [`tools/install-defences.js`](../../tools/install-defences.js).
+   [`tools/install-defences.js`](../../tools/install-defences.js), e um teste
+   de completude falha a suíte sempre que um arquivo em `tools/` não estiver
+   nem na lista nem explicitamente excluído — o toolset adotado nunca pode
+   divergir silenciosamente deste repositório.
 
    Ele também escreve `.defence-manifest.json` no projeto destino com hashes
    SHA-256 dos arquivos copiados.
