@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Documentation agent for bilingual synchronization, link validation, glossary consistency,
   and markdown quality. Use this agent when editing `docs/**`, `README.md`, `SECURITY.md`,

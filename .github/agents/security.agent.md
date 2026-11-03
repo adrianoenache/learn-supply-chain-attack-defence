@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Security-focused agent for supply-chain defense reviews in Node.js/npm projects.
   Use this agent when editing or reviewing files that affect dependencies, install behavior,

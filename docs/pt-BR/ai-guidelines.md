@@ -108,6 +108,12 @@ Skills que leem muitos arquivos ou produzem raciocínio intermediário longo rod
 > background, sem indicação visível de subagente. O campo é mantido porque é
 > inócuo quando não suportado e pode ser ativado em versões futuras; revalidar
 > após atualizações do VS Code.
+>
+> **Re-testado (2026-11-03, VS Code 1.144.1):** mesmo resultado — uma skill
+> forkada (`context-recovery`) carregou inline no início da sessão, sem
+> indicação de fork. As notas da 1.144 nem mencionam `context: fork`, então
+> mudança de comportamento não era esperada nem foi observada. O campo
+> permanece mantido por ser inócuo.
 
 ### Matriz de visibilidade das skills
 
@@ -116,7 +122,7 @@ Cada skill tem exatamente um modo de invocação, declarado no frontmatter:
 | Modo | Frontmatter | No menu `/` | Carregada automaticamente pelo modelo | Skills |
 | --- | --- | --- | --- | --- |
 | **Automática** (padrão) | nenhuma flag | ✅ Sim | ✅ Sim, quando relevante | `dependency-review`, `docs-completeness`, `docs-update`, `educational-code-review`, `pre-commit-hash-sync`, `release-checklist`, `repository-organization-audit`, `script-contract-verification`, `security-audit`, `self-review`, `shell-script-review`, `validate-urls` |
-| **Manual** | `disable-model-invocation: true` | ✅ Sim | ❌ Não | `check-hardcoded-values`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
+| **Manual** | `disable-model-invocation: true` | ✅ Sim | ❌ Não | `check-hardcoded-values`, `code-review-pass`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
 | **Background** | `user-invocable: false` | ❌ Não | ✅ Sim, quando relevante | `context-recovery`, `subagent-invocation` |
 
 Convenções (estabelecidas em 2026-10-07, Fase AI-2.2):
@@ -186,3 +192,11 @@ Os hooks acima são a **camada de política determinística** — viajam com o r
 A suíte `agents.sanity.test.js` também garante que todo agente com `run_in_terminal` declare um escopo `applyTo` restrito, para que o poder de terminal esteja sempre associado a um raio de impacto visível.
 
 As configurações dos hooks são validadas por `.github/hooks/hooks.sanity.test.js` (registrado no `npm test`): falha ruidosamente quando um JSON de hook está malformado, usa um evento não documentado, referencia um script inexistente, ou quando um script de hook menciona uma skill que não existe — o loader de hooks do Copilot descarta itens malformados silenciosamente, então essas checagens são o único alerta antecipado. Hooks de pós-edição escopam suas sugestões por caminho de arquivo dentro dos scripts (lint para `tools/**`, testes para qualquer `*.test.js`, verificação de links para docs), mantendo edições não relacionadas livres de ruído.
+
+### VS Code 1.144: schema de harness, permissões assistidas e memória em nuvem
+
+Três adições da 1.144 interagem com a estrutura de AI deste repositório:
+
+- **`target` explícito nos arquivos de agente.** Os nove `.github/agents/*.agent.md` declaram `target: github-copilot`, então o editor os interpreta com o schema Copilot (completions, hovers, validação) independentemente do harness ativo na sessão. O campo muda a *interpretação* do arquivo, nunca qual harness executa a sessão.
+- **Permissões assistidas (GA).** O VS Code agora pode fazer triagem de chamadas de ferramenta por LLM e auto-aprovar as de baixo risco *antes* dos nossos hooks rodarem. Isso não enfraquece nada: os hooks `preToolUse` acima continuam sendo a última palavra determinística, e a ordem em camadas é triagem do cliente → hooks do projeto → aprovação humana. Settings gerenciadas pela organização (`permissions.defaultMode`) podem desabilitar a triagem; o projeto não exige nem proíbe.
+- **Copilot Memory (nuvem, ligado por padrão).** O harness Copilot pode gravar fatos do repositório e preferências do usuário na memória em nuvem do GitHub. Política: **os arquivos versionados continuam sendo a fonte da verdade** — `DECISIONS.md`, `PLAN.md`/`TODO.md` e `.github/ai-lessons-learned.md` são auditáveis, revisáveis em PR e compartilhados por todos os contribuidores; a memória em nuvem é tratada como cache volátil de conveniência, nunca como único registro de uma decisão. Se as duas divergirem, o repositório vence (e a divergência deve ser destilada para os arquivos ao fim da sessão, conforme a skill `context-recovery`).

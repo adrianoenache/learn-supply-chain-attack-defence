@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Project-evaluation reviewer. Use this agent when assessing release readiness,
   updating PROJECT_STATUS_REPORT.md, reviewing TODO.md/.github/PLAN.md, or evaluating

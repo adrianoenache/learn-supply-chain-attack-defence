@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Compliance agent for licenses, SBOM, adoption manifest integrity, engines, and release
   readiness. Use this agent when editing `tools/check-licenses.js`, `tools/generate-sbom.js`,

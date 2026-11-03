@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Command-execution reviewer for defense scripts. Use this agent when editing or
   reviewing code that runs subprocesses, executes npm commands, parses CLI arguments,

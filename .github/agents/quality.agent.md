@@ -1,4 +1,5 @@
 ---
+target: github-copilot
 description: |
   Code quality agent for Node.js native tests, lint/format gates, hardcoded-value audits,
   and test coverage. Use this agent when editing `tools/**/*.js`, `tools/**/*.test.js`,
