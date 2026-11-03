@@ -23,6 +23,7 @@ Execute estes comandos localmente e confirme que passam:
 - [ ] `npm test`
 - [ ] `npm run test:coverage`
 - [ ] `npm run defence:check-md-links`
+- [ ] `npm run defence:check-external-urls`
 - [ ] `npm run defence:license-check:fail`
 - [ ] `npm run defence:check-engines`
 - [ ] `npm run defence:sync-check`
@@ -33,6 +34,7 @@ Execute estes comandos localmente e confirme que passam:
 - [ ] `npm audit --audit-level=high`
 - [ ] `npm run defence:pkg-age-check -- --transitive`
 - [ ] `npm run defence:check-hooks`
+- [ ] `npm run defence:check-npmrc`
 - [ ] `npm run defence:generate-sbom -- --output=/tmp/sbom.json`
 - [ ] `npm run defence:verify-defences`
 
@@ -90,7 +92,7 @@ O projeto atualmente suporta:
 | Node.js | `>= 24.22.2` |
 | npm | `>= 11.19.1` |
 
-O CI executa nas versões exatas declaradas em `engines`. Ao atualizar a matriz, altere:
+O CI executa nas versões exatas declaradas em `engines`. Ao atualizar a matriz, use `npm run defence:update-engines` (ou suas variantes `:update`/`:upgrade`), que atualiza os arquivos abaixo de forma cirúrgica, e verifique a documentação:
 
 - `package.json` `engines`
 - `.github/workflows/ci.yml` (usa `engines` dinamicamente)
