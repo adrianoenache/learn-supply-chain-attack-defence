@@ -36,7 +36,7 @@ Use `install-defences.js` para copiar os scripts de defesa, hooks, configuraçã
 node /caminho/para/este/repo/tools/install-defences.js /caminho/para/projeto-alvo
 ```
 
-Depois execute `npm install` no projeto alvo, verifique o hook com `bash .husky/pre-commit` e commite as alterações.
+Depois execute `npm install` seguido de `npm run prepare` no projeto alvo (o `.npmrc` adotado define `ignore-scripts=true`, que bloqueia a execução automática do `prepare` que registra os git hooks do husky), verifique o hook com `bash .husky/pre-commit` e commite as alterações.
 
 Veja [Adotando em outros projetos](adopting-in-other-projects.md).
 
