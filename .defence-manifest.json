@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T23:48:43.066Z",
+  "installedAt": "2026-11-03T23:51:09.772Z",
   "files": [
     {
       "path": ".npmrc",
@@ -136,7 +136,7 @@
     },
     {
       "path": "tools/generate-sbom.test.js",
-      "hash": "c60f39cab20937246130d9bc29645b35f7785006da5f0c32719c9b563c9753bc"
+      "hash": "4fe8ca6723e97f71f960b70a6f7809d8ec653057aa6dacc8b441a3a3e1599574"
     },
     {
       "path": "tools/generate-trust-report.js",
@@ -220,7 +220,7 @@
     },
     {
       "path": "tools/lib/config.test.js",
-      "hash": "7466de01e4f0c0ea99363443a5e0759b0169dc26a4e743a6f4832230682848fc"
+      "hash": "da22f0facec5c8fa2d09ef19c24125a5c3f47ccb3d753fea6b1444f9ed081bf3"
     },
     {
       "path": "tools/lib/concurrency.js",
