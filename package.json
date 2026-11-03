@@ -136,7 +136,7 @@
     "typosquattingThreshold": 2,
     "internalPackageNames": [],
     "provenanceMode": "warn",
-    "huskyPreCommitHash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
+    "huskyPreCommitHash": "2a0015316f304b6b5d5c97dfe8aa7839de4410c209ef10cee47c4623267d087c"
   },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
@@ -151,6 +151,7 @@
     "defence:check-hooks": "node ./tools/check-hooks.js",
     "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
+    "defence:check-npmrc": "node ./tools/check-npmrc.js",
     "defence:check-external-urls": "node ./tools/check-external-urls.js",
     "defence:check-external-urls:force": "node ./tools/check-external-urls.js --force",
     "defence:license-check": "node ./tools/check-licenses.js",

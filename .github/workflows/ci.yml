@@ -349,6 +349,9 @@ jobs:
       - name: Check hook integrity
         run: npm run defence:check-hooks
 
+      - name: Check npm configuration surface
+        run: npm run defence:check-npmrc
+
       - name: Pre-commit gate
         run: |
           npm audit signatures

@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T17:26:03.653Z",
+  "installedAt": "2026-11-03T17:45:13.447Z",
   "files": [
     {
       "path": ".npmrc",
-      "hash": "11fb2c99c9b08f99c557f0098de3eed6f82be6284f46ec099b373a344b512942"
+      "hash": "e8c212a6367340bf8859e0ca079103baa8a0866b579bdac94741b1a16196bce1"
     },
     {
       "path": ".husky/pre-commit",
-      "hash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
+      "hash": "2a0015316f304b6b5d5c97dfe8aa7839de4410c209ef10cee47c4623267d087c"
     },
     {
       "path": ".husky/post-merge",
@@ -83,6 +83,14 @@
       "hash": "d7606786c31cb155aed68af0b2926fd881a70f96725c2edf305c65fd65131bf0"
     },
     {
+      "path": "tools/check-npmrc.js",
+      "hash": "41cf8418d86e3f57dac03e38220313e1006ec6be705b70ae54121802f3fe8bcb"
+    },
+    {
+      "path": "tools/check-npmrc.test.js",
+      "hash": "dc71c10920f9e92eb99fa3a5ba398daff5985cb11c370fd58a2f142ba40c5aac"
+    },
+    {
       "path": "tools/check-package-age.js",
       "hash": "f8972fc48d869668b4bc9168baeded9b8a06caa05f7fdcb3997a9a1cd86383d4"
     },
@@ -132,7 +140,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "8aa4f76b5eaffa995ecf91f7a5a7d9fbc0b055fc5879776420f018813cf88722"
+      "hash": "44817e5214e9373eefd7b36cf65d4a0d50fd55eb810c79f33f6990b8c55c323e"
     },
     {
       "path": "tools/monitor-install.js",
@@ -144,7 +152,7 @@
     },
     {
       "path": "tools/install-defences.test.js",
-      "hash": "51784d396e05723a818ab470ebcb3e3265f38e33a58a3dd6fdbbf1310e756bd2"
+      "hash": "16dab48412d95394d7ae6c152d32e1acba4f5c1372514972720b91e552bcedfd"
     },
     {
       "path": "tools/integration.test.js",
@@ -175,6 +183,14 @@
       "hash": "ee192a08645e985e8cb6bed21c30e960846bbf2f471a3e1cce739aeaa72d7795"
     },
     {
+      "path": "tools/update-engines.js",
+      "hash": "78d76de1f23eaedc5021568a8e38e1a74fb5f71b78034707438d602bec7a744e"
+    },
+    {
+      "path": "tools/update-engines.test.js",
+      "hash": "2c27e3d78e7e75d26b4ba13215f98d2508b1934314ebf729cf5f2aa3f9321045"
+    },
+    {
       "path": "tools/update-packages.js",
       "hash": "e0a23b71f61b85d442f225950d8e4becf61fd16981f517457131dd5b0084646e"
     },
@@ -199,6 +215,14 @@
       "hash": "7466de01e4f0c0ea99363443a5e0759b0169dc26a4e743a6f4832230682848fc"
     },
     {
+      "path": "tools/lib/concurrency.js",
+      "hash": "ba6c6d5a7b39833ba69ccd9a6d7894b0d2e5ef709ff8bb902f644d3605f2d4d9"
+    },
+    {
+      "path": "tools/lib/concurrency.test.js",
+      "hash": "640d1b034fe1e8ac62964733c3dab31623b32312b30eee4b321894af3efc0bac"
+    },
+    {
       "path": "tools/lib/package-utils.js",
       "hash": "7115579da57129b60ed6b4174626d323a0b68dce4cc189291f8f0f962a601a52"
     },
@@ -221,6 +245,10 @@
     {
       "path": "tools/lib/registry-cache.js",
       "hash": "0f37bbea37f1a1f1a0b6859e1a58cded593345e8ba180d5a66a96cfada51dfd6"
+    },
+    {
+      "path": "tools/lib/semver.js",
+      "hash": "2146eacdf902267d5f411adba87b5e59bcba0788249beb7dceec0bd0ebcf0c87"
     },
     {
       "path": "tools/lib/script-analyzer.js",
