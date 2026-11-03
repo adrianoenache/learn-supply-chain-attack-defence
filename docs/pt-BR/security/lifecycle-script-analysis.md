@@ -84,3 +84,4 @@ Installation aborted — review the package scripts or adjust lifecycleScriptAna
 - O analisador inspeciona apenas o **pacote direto** sendo adicionado. Dependências transitivas não são escaneadas nesta primeira versão.
 - Análise por expressões regulares pode perder código ofuscado e pode produzir falsos positivos. É uma ferramenta de triagem, não um substituto para revisão manual.
 - Addons nativos são sinalizados como risco médio porque compilam código específico de plataforma, mesmo que muitos pacotes populares façam isso de forma legítima.
+- O Permission Model do Node (`--permission`) **não** é sandbox para scripts de install não confiáveis: a documentação oficial afirma que ele não protege contra código malicioso, e o release de segurança de outubro de 2026 corrigiu duas CVEs de bypass nele. Qualquer futuro "modo sandbox" deve usar isolamento em nível de SO — ver o ADR em `DECISIONS.md` (2026-11-03).

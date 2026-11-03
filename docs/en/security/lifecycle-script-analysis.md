@@ -84,3 +84,4 @@ Installation aborted — review the package scripts or adjust lifecycleScriptAna
 - The analyzer only inspects the **direct package** being added. Transitive dependencies are not scanned in this first version.
 - Regular-expression analysis can miss obfuscated code and may produce false positives. It is a triage tool, not a substitute for manual review.
 - Native addons are flagged as medium risk because they compile platform-specific code, even though many popular packages do this legitimately.
+- Node's Permission Model (`--permission`) is **not** a sandbox for untrusted install scripts: the official documentation states it does not protect against malicious code, and the October 2026 security release patched two bypass CVEs in it. Any future "sandbox mode" must rely on OS-level isolation instead — see the ADR in `DECISIONS.md` (2026-11-03).

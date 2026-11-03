@@ -202,3 +202,42 @@ Keep entries concise; link to the phase/commit for detail.
   (repair-oriented); thresholds are env-overridable mainly so tests stay
   small; the rule applies equally to humans (CONTRIBUTING) and AI
   (copilot-instructions).
+
+### 2026-11-03 — min-release-age=7: native npm age gate, formalized retroactively
+
+- **Decision:** Keep `min-release-age=7` in `.npmrc` as a native npm layer
+  alongside the custom `check-package-age.js`, and document the tradeoff
+  explicitly: when the age window blocks a security patch, npm fails
+  **closed** — it keeps the old (vulnerable) version, warns, and exits
+  non-zero. Emergency escape: temporary `min-release-age-exclude[]=<pkg>`.
+- **Context:** The setting was already adopted before this ADR existed
+  (retroactive formalization, Fase L.3). The 7-day value matches the custom
+  age gate so both layers agree; the custom tool still adds what npm cannot:
+  reporting, intermediate-version discovery, and quarantine classification.
+- **Rejected alternative:** Rely only on the custom tool (single point of
+  failure) or only on npm's setting (no reporting, no intermediates, and the
+  fail-closed behavior is invisible without docs).
+- **Consequences:** Two independent age gates enforced at different layers
+  (config and tooling); the tradeoff "wait out the compromise window × patch
+  fast" is a documented teaching point in `npmrc-hardening.md` with the
+  exclusion escape hatch.
+
+### 2026-11-03 — Node --permission is not an install-time sandbox
+
+- **Decision:** Do not adopt Node's Permission Model (`--permission`, stable
+  since v22.13/v23.5) as a sandbox for untrusted `npm install` lifecycle
+  scripts. If ever used, position it as runtime hardening for already-vetted
+  code, paired with OS-level isolation.
+- **Context:** Node's own documentation states the feature "does not protect
+  against malicious code"; it has symlink-escape and file-descriptor
+  limitations, worker threads do not inherit it reliably, and the October
+  2026 security release patched two permission-model bypass CVEs
+  (CVE-2026-106071 wildcard over-grant, CVE-2026-106073 realpathSync gap).
+- **Rejected alternative:** Wrap `npm install`/`npm update` in `--permission`
+  as the sandbox called for by the P3 "optional sandbox mode" idea — that
+  would teach a control its own vendor disclaims, right after it was
+  exploited twice.
+- **Consequences:** The P3 sandbox idea, if pursued, must use OS-level
+  isolation (containers, namespaces, bubblewrap); the permission model may
+  only ever be a complementary layer for running vetted code, and this ADR is
+  the reference when the topic resurfaces.
