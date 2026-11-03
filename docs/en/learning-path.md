@@ -77,7 +77,7 @@ See [SBOM and compliance](sbom-and-compliance.md), [Trust scoring](trust-scoring
    - Age check must report the package is at least 7 days old.
    - Signature verification must pass.
    - Lifecycle script analysis must not flag high-risk patterns.
-4. If all checks pass, confirm the install when prompted.
+4. The install runs automatically once every check passes (there is no confirmation prompt; use `--dry-run` first if you want to inspect the checks without installing).
 5. Inspect the changes in `package.json` and `package-lock.json` before committing.
 
 ### Tutorial B — Generate an SBOM

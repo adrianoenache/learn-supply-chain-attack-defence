@@ -77,7 +77,7 @@ Veja [SBOM e conformidade](sbom-and-compliance.md), [Pontuação de confiança](
    - A verificação de idade deve informar que o pacote tem pelo menos 7 dias.
    - A verificação de assinatura deve passar.
    - A análise de scripts de lifecycle não deve sinalizar padrões de alto risco.
-4. Se todos os controles passarem, confirme a instalação quando solicitado.
+4. A instalação roda automaticamente quando todos os controles passam (não há prompt de confirmação; use `--dry-run` antes se quiser inspecionar as verificações sem instalar).
 5. Inspecione as alterações em `package.json` e `package-lock.json` antes de commitar.
 
 ### Tutorial B — Gere um SBOM
