@@ -208,6 +208,10 @@ Each entry must be concise and actionable:
 - **Correction applied:** kept the field (harmless when unsupported, may
   activate in future releases) and documented the observed behavior plus the
   re-validation trigger (VS Code updates) in the bilingual ai-guidelines.
+- **Update (2026-11-03, VS Code 1.144.1):** re-tested as scheduled — a forked
+  skill (`context-recovery`) loaded inline at session start with no fork
+  indication; the 1.144 release notes don't mention `context: fork` at all.
+  Same conclusion: field kept, re-validate on the next VS Code update.
 - **Instruction/agent updated:** `docs/en/ai-guidelines.md`,
   `docs/pt-BR/ai-guidelines.md`.
 

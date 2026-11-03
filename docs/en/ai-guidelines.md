@@ -108,6 +108,11 @@ Skills that read many files or produce long intermediate reasoning run in a **fo
 > with no visible subagent indication. The field is kept because it is harmless
 > when unsupported and may activate in future releases; re-validate after VS
 > Code updates.
+>
+> **Re-tested (2026-11-03, VS Code 1.144.1):** same result — a forked skill
+> (`context-recovery`) loaded inline at session start with no fork indication.
+> The 1.144 release notes don't mention `context: fork` at all, so behavior
+> change was neither expected nor observed. Field remains kept-as-harmless.
 
 ### Skill visibility matrix
 
@@ -116,7 +121,7 @@ Each skill has exactly one invocation mode, declared in its frontmatter:
 | Mode | Frontmatter | In `/` menu | Auto-loaded by the model | Skills |
 | --- | --- | --- | --- | --- |
 | **Automatic** (default) | neither flag | ✅ Yes | ✅ Yes, when relevant | `dependency-review`, `docs-completeness`, `docs-update`, `educational-code-review`, `pre-commit-hash-sync`, `release-checklist`, `repository-organization-audit`, `script-contract-verification`, `security-audit`, `self-review`, `shell-script-review`, `validate-urls` |
-| **Manual** | `disable-model-invocation: true` | ✅ Yes | ❌ No | `check-hardcoded-values`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
+| **Manual** | `disable-model-invocation: true` | ✅ Yes | ❌ No | `check-hardcoded-values`, `code-review-pass`, `generate-test`, `project-status-evaluation`, `validate-architecture` |
 | **Background** | `user-invocable: false` | ❌ No | ✅ Yes, when relevant | `context-recovery`, `subagent-invocation` |
 
 Conventions (established 2026-10-07, Phase AI-2.2):
@@ -185,3 +190,11 @@ The hooks above are the **deterministic policy layer** — they travel with the 
 The `agents.sanity.test.js` suite also enforces that any agent with `run_in_terminal` declares a restricted `applyTo` scope, so terminal power is always paired with a visible blast radius.
 
 Hook configs are validated by `.github/hooks/hooks.sanity.test.js` (registered in `npm test`): it fails loudly when a hook JSON is malformed, uses an undocumented event, references a missing script, or when a hook script mentions a skill that does not exist — the Copilot hooks loader drops malformed items silently, so these checks are the only early warning. Post-edit hooks scope their suggestions by file path inside the scripts (lint for `tools/**`, tests for any `*.test.js`, link checks for docs), keeping unrelated edits free of noise.
+
+### VS Code 1.144: harness schema, assisted permissions, and cloud memory
+
+Three 1.144 additions interact with this repository's AI structure:
+
+- **Explicit `target` in agent files.** All nine `.github/agents/*.agent.md` declare `target: github-copilot`, so the editor interprets them with the Copilot schema (completions, hovers, validation) regardless of the active session harness. The field changes file *interpretation*, never which harness runs the session.
+- **Assisted permissions (GA).** VS Code can now LLM-triage tool calls and auto-approve low-risk ones *before* our hooks run. This does not weaken anything: the `preToolUse` hooks above remain the deterministic last word, and the layered order is client triage → project hooks → human approval. Organization-managed settings (`permissions.defaultMode`) can disable the triage; the project neither requires nor forbids it.
+- **Copilot Memory (cloud, on by default).** The Copilot harness may store repo facts and user preferences in GitHub's cloud memory. Policy: **the versioned files remain the source of truth** — `DECISIONS.md`, `PLAN.md`/`TODO.md`, and `.github/ai-lessons-learned.md` are auditable, reviewable in PRs, and shared by every contributor; cloud memory is treated as a volatile convenience cache, never as the only record of a decision. If the two ever disagree, the repository wins (and the divergence should be distilled into the files at session end, per the `context-recovery` skill).
