@@ -153,10 +153,10 @@ Se você se encontrar reconstruindo com frequência, considere essas alternativa
 ## E Se a Reconstrução Falhar?
 
 1. Verifique a mensagem de erro em busca de bibliotecas de sistema ausentes e instale-as.
-2. Delete o diretório do pacote e reinstale deterministicamente:
+2. Delete o diretório do pacote e reinstale deterministicamente (mantenha o `package-lock.json` — removê-lo faria a próxima instalação resolver ranges novamente):
 
 ```bash
-rm -rf node_modules/<package-name> package-lock.json
+rm -rf node_modules/<package-name>
 npm run defence:add -- <package-name>@<version>
 npm rebuild <package-name>
 ```

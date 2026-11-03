@@ -32,10 +32,12 @@ npm run defence:check-engines
 ## Exemplo de saída
 
 ```text
-Node.js: v24.22.2 >= >=24.22.2 ✓
-npm: 11.19.1 >= >=11.19.1 ✓
+Node.js 24.22.2 (required >=24.22.2)
+npm 11.19.1 (required >=11.19.1)
+Engine requirements satisfied.
 ```
 
 ## Camada de defesa relacionada
 
 - Parte do fluxo de [configuração segura](../setup.md).
+- Mantido atual pelo [update-engines](update-engines.md), que gerencia o piso que esta ferramenta valida.

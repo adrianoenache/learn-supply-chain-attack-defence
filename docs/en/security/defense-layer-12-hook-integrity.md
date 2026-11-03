@@ -13,10 +13,12 @@ Store the expected hash in `package.json`:
 ```json
 {
   "defences": {
-    "huskyPreCommitHash": "ed257733d0d82c772241a6f180865547fabccb03d72e0fbcfd2f3694a9311991"
+    "huskyPreCommitHash": "<sha256-of-.husky/pre-commit>"
   }
 }
 ```
+
+(The hash changes with every legitimate hook edit — run `node ./tools/check-hooks.js` for the current value; the `pre-commit-hash-sync` skill describes the update procedure.)
 
 The legacy top-level `huskyPreCommitHash` field is also supported for backwards compatibility.
 

@@ -17,16 +17,12 @@ Store the expected hash in `package.json`:
 ```json
 {
   "defences": {
-    "huskyPreCommitHash": "d1856544ae825229b0098409dac911aa10e766a34fdeb6274f7eef0d4cc2e281"
+    "huskyPreCommitHash": "<sha256-of-.husky/pre-commit>"
   }
 }
 ```
 
-After a deliberate hook change, update the hash with:
-
-```bash
-npm run defence:verify-defences:fix
-```
+After a deliberate hook change, follow the `pre-commit-hash-sync` skill: recompute the SHA-256 of the hook, update `defences.huskyPreCommitHash` in `package.json`, run `npm run defence:verify-defences:fix` to refresh the manifest, and commit all three files together. Running `verify-defences:fix` alone is not enough — it only updates the manifest, not the `package.json` hash.
 
 ## Usage
 
@@ -37,7 +33,7 @@ npm run defence:check-hooks
 ## Output example
 
 ```text
-✅ .husky/pre-commit hash matches package.json.
+✅ Pre-commit hook integrity verified.
 ```
 
 ## Related defense layer

@@ -27,7 +27,7 @@ npm run defence:bootstrap
 
 O script de bootstrap:
 
-1. Executa `npm install --ignore-scripts --save-exact` para gerar o primeiro lock file sem executar scripts de lifecycle.
+1. Executa `npm install --ignore-scripts --save-exact` para gerar o primeiro lock file sem executar scripts de lifecycle — sob o monitor de processos (veja [monitoramento de lifecycle](lifecycle-monitoring.md)), porque um clone fresco sem lock file é um dos momentos mais arriscados do ciclo de vida de dependências.
 2. Executa `npm run defence:pkg-age-check`.
 3. Executa `npm audit signatures`.
 4. Executa `npm audit --audit-level=high`.
@@ -52,7 +52,7 @@ Para atualizar dependências existentes de forma controlada, use o script dedica
 npm run defence:update
 ```
 
-O script `defence:update` executa `npm update` e depois reexecuta a verificação transitiva de idade dos pacotes, a verificação de assinaturas e o audit de vulnerabilidades.
+O script `defence:update` prefere a maior versão intermediária elegível por idade descoberta pelo `defence:update-check` (nunca uma `latest` em quarentena), aplica com instalação fixada e depois reexecuta a verificação transitiva de idade, a verificação de assinaturas, o audit de vulnerabilidades e a checagem de licenças.
 
 ## Quando Executar
 

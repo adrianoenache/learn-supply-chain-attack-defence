@@ -7,6 +7,7 @@
 - Aceita uma lista de caminhos de arquivo como argumentos, tipicamente provenientes de `git diff --cached --name-only`.
 - Varre padrões correspondentes a chaves AWS, tokens GitHub, tokens npm e outros formatos comuns de segredo.
 - Relata os achados com caminho do arquivo, número da linha e padrão correspondido.
+- Suporta supressão de falsos positivos via `.check-secrets-ignore` (um padrão por linha, `#` para comentários).
 
 Implementado em [tools/check-secrets.js](../../../tools/check-secrets.js).
 

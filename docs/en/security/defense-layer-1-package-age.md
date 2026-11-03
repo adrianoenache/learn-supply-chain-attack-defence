@@ -37,3 +37,7 @@ npm run defence:pkg-age-check -- --transitive
 ## Why 7 Days?
 
 Most malicious releases are detected within hours or days. A 7-day cooling-off period dramatically reduces the chance of installing a freshly published malicious package without significantly slowing down normal work.
+
+## Native npm reinforcement
+
+The same 7-day window is also enforced by npm itself via `min-release-age=7` in `.npmrc` — two independent gates for the same policy (fail-closed tradeoff and the `min-release-age-exclude` emergency escape are documented in the [`.npmrc` hardening guide](../npmrc-hardening.md) and the ADR in `DECISIONS.md`).

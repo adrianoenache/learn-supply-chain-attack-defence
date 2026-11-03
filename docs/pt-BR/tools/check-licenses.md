@@ -40,6 +40,15 @@ npm run defence:license-check -- --fail
 
 # Saída JSON
 npm run defence:license-check -- --format=json
+
+# Saída em Markdown (PRs/issues)
+npm run defence:license-check -- --format=markdown
+
+# Suprimir saída (CI)
+npm run defence:license-check -- --silent
+
+# Verificar um único pacote por nome e versão exatos
+npm run defence:license-check -- --pkg=lodash@4.17.21
 ```
 
 ## Exemplo de saída

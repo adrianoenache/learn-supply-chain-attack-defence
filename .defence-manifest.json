@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-03T20:16:29.996Z",
+  "installedAt": "2026-11-03T21:48:20.573Z",
   "files": [
     {
       "path": ".npmrc",
@@ -148,7 +148,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "d9e3b1239731f21d218188fc822bafe33c2a01507b4bc36b3f2e2f5a7bf5be81"
+      "hash": "91bec3312f95b7baf91b97bad6521c9c7bfaef35648493ad61224e0f10308cf5"
     },
     {
       "path": "tools/monitor-install.js",

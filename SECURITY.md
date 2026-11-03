@@ -18,7 +18,7 @@ After the vulnerability is confirmed and a fix is released, a public advisory wi
 
 ## Security Design
 
-This project applies defense in depth against npm supply-chain attacks through twelve complementary layers, organized into three adoption groups:
+This project applies defense in depth against npm supply-chain attacks through twelve complementary technical layers, organized into three adoption groups — plus an organizational layer (branch protection with required status checks and code-owner review) guarding the project itself:
 
 ### Core — Minimum Necessary
 

@@ -30,7 +30,7 @@ tabela de SBOM), e `parseCliArgs` é uma convenção de 3 linhas
 (`argv.includes('--flag')`) que um módulo compartilhado complicaria, não
 simplificaria. A regra: extrair apenas quando a implementação é
 byte-idêntica em mais de um arquivo — como foi o caso de
-`tools/lib/concurrency.js`.
+`tools/lib/concurrency.js` e, depois, de `tools/lib/semver.js`.
 
 ## Resultados da auditoria (2026-10-08)
 
@@ -81,22 +81,18 @@ A partir daí, qualquer PR que toque um caminho protegido solicita revisão de
 > **temporária e documentada** — revisite quando o projeto ganhar mantenedores
 > ou revisores adicionais. Registrado em [DECISIONS.md](../../DECISIONS.md).
 
-### Status checks obrigatórios (próximo passo recomendado)
+### Status checks obrigatórios (ativos desde 2026-10-08)
 
-O CODEOWNERS garante revisão *humana*; ele não impede o merge de uma PR com o
-CI vermelho. Habilitar **Require status checks to pass before merging** fecha
-essa lacuna — a aprovação humana só acontece depois dos portões automáticos
-estarem verdes:
+O CODEOWNERS garante revisão *humana*; os status checks impedem o merge de uma
+PR com o CI vermelho. Ambas as branches exigem os jobs de CI de
+`.github/workflows/ci.yml`: `Build`, `Test`, `Coverage`, `Lint`, `Format`,
+`Documentation Links`, `License Check`, `Lockfile Integrity`, `Secret Scan`,
+`Installer Dry-Run`, `Defence Gates` — com "Require branches to be up to date
+before merging" habilitado.
 
-1. Na mesma regra de branch, habilite **Require status checks to pass before
-   merging**.
-2. Habilite **Require branches to be up to date before merging** (modo
-   estrito; relaxe-o primeiro se o atrito de rebase se tornar desproporcional
-   em um repositório de baixo tráfego).
-3. Adicione os nomes dos jobs de `.github/workflows/ci.yml` como checks
-   obrigatórios: `Build`, `Test`, `Coverage`, `Lint`, `Format`,
-   `Documentation Links`, `License Check`, `Lockfile Integrity`,
-   `Secret Scan`, `Installer Dry-Run`, `Defence Gates`.
+Para reproduzir essa configuração em outro repositório: habilite **Require
+status checks to pass before merging** na regra da branch e adicione os nomes
+dos jobs acima.
 
 A cadeia de merge resultante é o projeto ensinando o próprio modelo:
 

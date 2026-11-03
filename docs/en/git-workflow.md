@@ -7,16 +7,17 @@ This project uses a small, branch-based workflow that keeps `main` always deploy
 | Branch | Purpose |
 |---|---|
 | `main` | Production-ready code. Direct pushes are blocked. |
-| `dev` | Integration branch for the next release. Pushes are allowed, but CI must pass. |
+| `dev` | Integration branch for the next release. Direct pushes are blocked as well (PR required). |
 | `feature/*` or `fix/*` | Short-lived branches for individual changes. |
 
 Open a feature branch from `dev`, push your commits, and open a pull request back to `dev`. When the release is ready, merge `dev` into `main` through a pull request.
 
-## Branch protection for `main`
+## Branch protection (`main` and `dev`)
 
-- **Push restriction:** code reaches `main` only through a pull request.
-- **Required checks:** the full CI workflow defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) must pass.
-- **Up-to-date branch:** PRs should be rebased on the latest `main` or `dev` before merging.
+- **Push restriction:** code reaches either branch only through a pull request.
+- **Required checks:** the 11 CI jobs defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) must pass, and branches must be up to date before merging.
+- **Code-owner review:** [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the maintainer's review for critical paths (defence tools, hooks, workflows, npm configuration, AI customizations).
+- **Solo-maintainer note:** the minimum *approving review count* is temporarily 0 (a solo maintainer cannot approve their own PRs); the CODEOWNERS path requirement and all status checks remain active. Recorded as an ADR in `DECISIONS.md`.
 
 See [ci-cd-overview.md](ci-cd-overview.md) for the list of checks.
 

@@ -47,9 +47,16 @@ As respostas do registry são cacheadas em `tools/e2e/.cache/` por 24 horas para
   detecção de conflitos, criação de backups e regeneração do manifesto
   (`tools/install-defences.js`).
 - Fluxo controlado de atualização de dependências em `update-packages.js`.
+- Gestão do ciclo de vida de engines (`tools/update-engines.js`) com fixtures
+  injetadas do índice dist.
+- Guarda da superfície de configuração do npm (`tools/check-npmrc.js`).
+- Scanner consultivo de código morto (`tools/check-dead-code.js`).
 - Bibliotecas compartilhadas de cache de registry, retry-fetch, provenance,
-  typosquatting e profiler em `tools/lib/`.
+  typosquatting, trust-engine, semver, concurrency e profiler em `tools/lib/`.
 - Testes de regressão de performance em `tools/perf/`.
+- A própria superfície de customização de AI: `agents.sanity.test.js`,
+  `skills.sanity.test.js`, `hooks.sanity.test.js` e as suítes dos scripts de
+  hook em `.github/` (rodam no `npm test`).
 
 ## Verificações de Lint, Formatação e Links
 
@@ -64,15 +71,15 @@ npm run defence:check-md-links  # valida links locais de markdown
 
 ## Escrevendo Novos Testes
 
-Os testes ficam em arquivos nomeados `*.test.js`. Use o runner nativo:
+Os testes ficam em arquivos nomeados `*.test.js`. Use o runner nativo — a base de código é CommonJS:
 
 ```javascript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
 
 test('description', () => {
-  assert.equal(1 + 1, 2);
-});
+  assert.equal(1 + 1, 2)
+})
 ```
 
 ## Convenções de Design de Testes
@@ -82,15 +89,15 @@ test('description', () => {
 Os módulos de produção expõem funções setter como `setSpawnSyncImpl`, `setImpls`, `setNowImpl` e `resetNowImpl`. Prefira-as em vez de monkey-patching de globais. Isso torna os testes determinísticos e evita iniciar subprocessos reais.
 
 ```javascript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import * as myTool from './my-tool.js';
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const myTool = require('./my-tool.js')
 
 test('subprocesso mockado', () => {
-  myTool.setSpawnSyncImpl((cmd, args) => ({ status: 0, stdout: '', stderr: '' }));
+  myTool.setSpawnSyncImpl((cmd, args) => ({ status: 0, stdout: '', stderr: '' }))
   // exercita myTool
-  myTool.resetSpawnSyncImpl();
-});
+  myTool.resetSpawnSyncImpl()
+})
 ```
 
 ### Testes de Subprocesso

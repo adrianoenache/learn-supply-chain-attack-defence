@@ -11,10 +11,11 @@ Quando você executa `npm run defence:update-check` (ou faz commit, o que dispar
 1. **Verificação de sincronia local**: verifica se `node_modules` está em sincronia com `package-lock.json`.
 2. **Scan de desatualizados**: executa `npm outdated --json` para descobrir atualizações disponíveis.
 3. **Consulta de idade no registry**: consulta o registry do npm pela data de publicação de cada versão `latest` através das camadas compartilhadas [`registry-cache.js`](../../../tools/lib/registry-cache.js) e [`retry-fetch.js`](../../../tools/lib/retry-fetch.js).
-4. **Classificação**:
+4. **Descoberta de intermediárias**: para cada pacote desatualizado, o packument é varrido em busca de versões entre a instalada e a `latest` que já satisfaçam o portão de idade (`intermediateEligible`, em ordem crescente; versões depreciadas são excluídas) — assim uma `latest` em quarentena não bloqueia o progresso seguro.
+5. **Classificação**:
    - **Elegível** — a nova versão tem pelo menos `minAgeDays` de idade, então já teve tempo de ser revisada pela comunidade.
-   - **Quarentena** — a nova versão é muito recente, ou a consulta ao registry falhou. Essas atualizações são mostradas apenas para fins de conscientização, ainda não sendo recomendadas.
-5. **Lembrete**: imprime um aviso apenas se existirem atualizações e o intervalo de lembrete configurado já tiver passado.
+   - **Quarentena** — a nova versão é muito recente, ou a consulta ao registry falhou. Entradas com intermediárias elegíveis são *quarentena acionável*: o `defence:update` pode avançar para a intermediária aprovada por idade mais recente enquanto a `latest` permanece bloqueada. Falhas de consulta ao registry nunca são acionáveis.
+6. **Lembrete**: imprime um aviso apenas se existirem atualizações e o intervalo de lembrete configurado já tiver passado.
 
 Se as dependências locais estiverem desatualizadas (por exemplo, após fazer pull das alterações de um colega), o script recomenda executar `npm ci` primeiro. Isso evita que você avalie atualizações sobre uma árvore instalada desatualizada.
 
@@ -24,7 +25,7 @@ As chamadas ao registry reutilizam a mesma camada de cache, gzip e retry da veri
 DEFENCE_NO_CACHE=1 npm run defence:update-check
 ```
 
-## Metadata Risk Scoring
+## Pontuação de Risco de Metadados (Metadata Risk Scoring)
 
 Atualizações elegíveis recebem um score de confiança que combina vários sinais de risco. O score ajuda a decidir quais atualizações podem ser aplicadas rapidamente e quais merecem revisão extra.
 
@@ -122,6 +123,7 @@ npm run defence:update-check:offline
 
    In quarantine (too recent or unsafe to update):
      husky  9.1.7 → 9.2.0 [minor] (released 2 days ago)
+       eligible versions: 9.1.8, 9.1.9
        npm:     https://www.npmjs.com/package/husky/v/9.2.0
        release: https://github.com/typicode/husky/releases/tag/v9.2.0
 

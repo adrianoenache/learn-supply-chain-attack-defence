@@ -32,13 +32,13 @@ The GitHub Actions workflow in `.github/workflows/ci.yml` is documented in [docs
 - **test** — runs `npm test` against the downloaded artifact.
 - **coverage** — measures test coverage against the downloaded artifact.
 - **lint** — runs `npm run lint`.
-- **format** — checks formatting with `npx biome format tools/ --check`.
+- **format** — checks formatting with `npm run format:check`.
 - **docs** — runs `npm run defence:check-md-links`.
 - **license** — runs `npm run defence:license-check:fail`.
 - **lockfile-integrity** — runs `npm run defence:check-lockfile-integrity`.
 - **secrets** — scans all tracked files with `npm run defence:check-secrets`.
 - **install-defences-dry-run** — verifies `.defence-manifest.json` and dry-runs the installer.
-- **defence-gates** — runs engine, sync, package-age, hook, signature, audit, and update checks; generates and uploads an SBOM artifact.
+- **defence-gates** — runs engine, sync, package-age, hook integrity, npm configuration surface (`defence:check-npmrc`), signature, audit, and update checks; generates and uploads an SBOM artifact.
 
 ## Adding Dependencies
 

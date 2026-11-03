@@ -44,9 +44,16 @@ Registry responses are cached in `tools/e2e/.cache/` for 24 hours to speed up re
   detection, backup creation, and manifest regeneration
   (`tools/install-defences.js`).
 - Controlled dependency update flow in `update-packages.js`.
-- Shared registry cache, retry-fetch, provenance, typosquatting, and profiler
-  libraries under `tools/lib/`.
+- Engine lifecycle management (`tools/update-engines.js`) with injected
+  dist-index fixtures.
+- npm configuration surface guard (`tools/check-npmrc.js`).
+- Advisory dead-code scanner (`tools/check-dead-code.js`).
+- Shared registry cache, retry-fetch, provenance, typosquatting, trust-engine,
+  semver, concurrency, and profiler libraries under `tools/lib/`.
 - Performance benchmark regression tests under `tools/perf/`.
+- The AI customization surface itself: `agents.sanity.test.js`,
+  `skills.sanity.test.js`, `hooks.sanity.test.js`, and the hook script suites
+  under `.github/` (they run in `npm test`).
 
 ## Lint, Format and Link Checks
 
@@ -61,15 +68,15 @@ npm run defence:check-md-links  # validate local markdown links
 
 ## Writing New Tests
 
-Tests live in files named `*.test.js`. Use the native runner:
+Tests live in files named `*.test.js`. Use the native runner — the codebase is CommonJS:
 
 ```javascript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
 
 test('description', () => {
-  assert.equal(1 + 1, 2);
-});
+  assert.equal(1 + 1, 2)
+})
 ```
 
 ## Test Design Conventions
@@ -79,15 +86,15 @@ test('description', () => {
 Production modules expose setter functions such as `setSpawnSyncImpl`, `setImpls`, `setNowImpl`, and `resetNowImpl`. Prefer these over monkey-patching globals. This makes tests deterministic and avoids spawning real subprocesses.
 
 ```javascript
-import { test } from 'node:test';
-import assert from 'node:assert/strict';
-import * as myTool from './my-tool.js';
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const myTool = require('./my-tool.js')
 
 test('mocked subprocess', () => {
-  myTool.setSpawnSyncImpl((cmd, args) => ({ status: 0, stdout: '', stderr: '' }));
+  myTool.setSpawnSyncImpl((cmd, args) => ({ status: 0, stdout: '', stderr: '' }))
   // exercise myTool
-  myTool.resetSpawnSyncImpl();
-});
+  myTool.resetSpawnSyncImpl()
+})
 ```
 
 ### Subprocess Tests

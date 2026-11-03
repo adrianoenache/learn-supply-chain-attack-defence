@@ -55,11 +55,24 @@ npm run defence:update-check -- --silent
 
 ## Exemplo de saída
 
+> As versões abaixo são ilustrativas; o formato corresponde à saída real (em inglês).
+
 ```text
-Pacote       Atual   Mais recente  Status
-lodash       4.17.20 4.17.21       elegível
-sharp        0.33.4  0.33.5        em quarentena (2 dias)
+⚠️  Dependency updates available:
+   (This script never modifies dependencies automatically.)
+
+   Eligible for update (age >= 7 days):
+     lodash  4.17.20 → 4.17.21 [patch] (released 30 days ago)
+
+   In quarantine (too recent or unsafe to update):
+     sharp  0.33.4 → 0.34.2 [minor] (released 2 days ago)
+       eligible versions: 0.34.0, 0.34.1
+
+   Run the command below to review and apply updates safely:
+     npm run defence:update
 ```
+
+Entradas em quarentena com uma linha `eligible versions` são *acionáveis*: o `defence:update` pode avançar para a intermediária aprovada por idade mais recente enquanto a `latest` permanece bloqueada.
 
 ## Camada de defesa relacionada
 

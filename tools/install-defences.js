@@ -405,7 +405,7 @@ function main(argv) {
   } else {
     console.log('Next steps in the target project:')
     console.log(
-      '  1. Run npm install to install husky and generate the lock file.',
+      '  1. Run `npm install` to install husky and generate the lock file, then `npm run prepare` — the adopted .npmrc sets ignore-scripts=true, which also blocks the automatic prepare run that wires the git hooks.',
     )
     console.log('  2. Run bash .husky/pre-commit to verify the hook.')
     console.log(

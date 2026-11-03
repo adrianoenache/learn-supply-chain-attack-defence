@@ -1,20 +1,26 @@
 # Defense Layer 5 — Pre-commit Hook
 
-Husky runs a pre-commit hook on every `git commit`. It executes the same checks used during setup and dependency addition, plus a transitive package-age check. It also refreshes the test-count badge in `README.md` so the badge stays in sync with the test suite.
+Husky runs a pre-commit hook on every `git commit`. It executes the same checks used during setup and dependency addition, plus a transitive package-age check, a transitive license check, a secrets scan, hook-integrity verification, the npm configuration surface check, external-URL validation, and the adoption-manifest and test-badge refreshes.
 
 ## Hook File
 
 [.husky/pre-commit](../../../.husky/pre-commit)
 
 ```bash
-# Husky pre-commit hook: runs lint, refreshes the test badge, runs the project
-# pre-commit script (signatures + CVE audit), and a transitive package-age check
-# to catch manual edits to package.json/package-lock.json.
+git diff --cached --name-only -z | xargs -0 -r npm run defence:check-secrets --
+npm run defence:check-hooks
+npm run defence:check-npmrc
 npm run lint
+npm run defence:check-external-urls
+npm run defence:verify-defences:fix && git add .defence-manifest.json
 npm run defence:update-badge && git add README.md
 npm run defence:pre-commit
 npm run defence:pkg-age-check -- --transitive
+npm run defence:license-check:fail
 ```
+
+> Readable summary — the hash-verified hook file is authoritative. The full
+> step-by-step breakdown lives in [Git hooks](../git-hooks.md).
 
 ## Why Transitive?
 

@@ -17,7 +17,7 @@ Implementado em [tools/check-sync.js](../../../tools/check-sync.js). A lógica c
 # Verificar status de sincronização
 npm run defence:sync-check
 
-# Corrigir automaticamente executando npm ci (use com cuidado)
+# Imprimir o comando de correção recomendado (npm ci) — nunca o executa
 npm run defence:sync-check -- --fix
 
 # Modo silencioso

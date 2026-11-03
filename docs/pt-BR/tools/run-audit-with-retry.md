@@ -4,7 +4,7 @@
 
 ## O que faz
 
-- Executa `npm audit` com os argumentos padrão.
+- Executa `npm audit --audit-level=high` (o piso de severidade do projeto).
 - Repete até 3 vezes quando o npm sai com erros transitórios de registro.
 - Não repete quando vulnerabilidades são de fato reportadas.
 
@@ -19,8 +19,10 @@ npm run defence:audit
 ## Exemplo de saída
 
 ```text
-npm audit concluído sem vulnerabilidades encontradas.
+found 0 vulnerabilities
 ```
+
+(em falhas transitórias de registry, o wrapper reporta `Audit attempt N/3 failed ... Retrying` e tenta novamente com backoff; a saída final é do próprio npm, em inglês)
 
 ## Camada de defesa relacionada
 

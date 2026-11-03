@@ -12,6 +12,7 @@ O GitHub Copilot foi usado como um assistente de pair programming ao longo do pr
 - Criação da documentação multilíngue (`docs/en/` e `docs/pt-BR/`).
 - Refatoração para testabilidade, como o padrão de injeção de `spawnSync`.
 - Avaliação de escolhas de ferramentas, incluindo a decisão de adotar o Biome em vez do ESLint.
+- A própria superfície de customização de AI (instructions, agents, skills e hooks em `.github/`), governada por suas próprias suítes de sanidade.
 
 ## O Que Foi Revisado por um Humano
 
@@ -19,7 +20,7 @@ Toda sugestão gerada pela IA foi revisada, validada e ajustada pelo autor do pr
 
 - Limiares de segurança (por exemplo, `min-release-age=7`, `audit-level=high`).
 - Versões exatas de dependências, verificadas contra as datas de publicação no npm.
-- A escolha do Biome 2.5.8 baseada na política de idade do projeto.
+- A escolha do Biome 2.5.8 baseada na política de idade do projeto (mantida atual pelo fluxo de atualização com gates — ver `defence:update`).
 - A sequência de verificações em cada script de defesa.
 - Toda a documentação de arquitetura e modelo de ameaças.
 

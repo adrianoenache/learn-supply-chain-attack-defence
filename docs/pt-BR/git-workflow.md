@@ -7,16 +7,17 @@ Este projeto usa um fluxo baseado em branches que mantém a `main` sempre pronta
 | Branch | Objetivo |
 |---|---|
 | `main` | Código pronto para produção. Push direto é bloqueado. |
-| `dev` | Branch de integração para a próxima release. Push é permitido, mas o CI deve passar. |
+| `dev` | Branch de integração para a próxima release. Push direto também é bloqueado (PR obrigatória). |
 | `feature/*` ou `fix/*` | Branches de curta duração para mudanças individuais. |
 
 Abra uma branch de feature a partir de `dev`, envie seus commits e abra um pull request de volta para `dev`. Quando a release estiver pronta, faça merge de `dev` para `main` através de um pull request.
 
-## Proteção da branch `main`
+## Proteção de branches (`main` e `dev`)
 
-- **Restrição de push:** código só chega à `main` por meio de um pull request.
-- **Checks obrigatórios:** o workflow completo de CI definido em [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) deve passar.
-- **Branch atualizada:** PRs devem ser rebased sobre a `main` ou `dev` mais recentes antes do merge.
+- **Restrição de push:** código só chega a qualquer uma das branches por meio de pull request.
+- **Checks obrigatórios:** os 11 jobs de CI definidos em [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) devem passar, e as branches precisam estar atualizadas antes do merge.
+- **Revisão de code owner:** o [`.github/CODEOWNERS`](../../.github/CODEOWNERS) exige a revisão do mantenedor para paths críticos (ferramentas de defesa, hooks, workflows, configuração npm, customizações de AI).
+- **Nota de mantenedor solo:** o número mínimo de *aprovações* está temporariamente em 0 (um mantenedor solo não pode aprovar as próprias PRs); a exigência de CODEOWNERS por path e todos os status checks permanecem ativos. Registrado como ADR em `DECISIONS.md`.
 
 Consulte [ci-cd-overview.md](ci-cd-overview.md) para a lista de verificações.
 

@@ -4,7 +4,7 @@
 
 ## What it does
 
-- Runs `npm audit` with the default audit arguments.
+- Runs `npm audit --audit-level=high` (the project's severity floor).
 - Retries up to 3 times when npm exits with transient registry errors.
 - Does not retry when vulnerabilities are actually reported.
 
@@ -19,8 +19,10 @@ npm run defence:audit
 ## Output example
 
 ```text
-npm audit completed with no findings.
+found 0 vulnerabilities
 ```
+
+(on transient registry failures, the wrapper reports `Audit attempt N/3 failed ... Retrying` and tries again with backoff)
 
 ## Related defense layer
 

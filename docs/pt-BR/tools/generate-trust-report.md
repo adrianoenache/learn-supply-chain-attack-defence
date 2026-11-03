@@ -46,6 +46,9 @@ npm run defence:trust-report -- --format=json
 # Falhar se algum pacote estiver abaixo de minScore
 npm run defence:trust-report -- --fail
 
+# Apenas dependências diretas
+npm run defence:trust-report -- --direct
+
 # Pacote único
 npm run defence:trust-report -- --pkg=lodash@4.17.21
 ```

@@ -16,7 +16,13 @@ Este projeto gera SBOMs no formato CycloneDX 1.4:
 npm run defence:generate-sbom
 ```
 
-A saída é escrita em `/tmp/sbom.json` e inclui metadados dos componentes, dependências e hashes.
+Sem `--output`, o SBOM é impresso no stdout; grave em um arquivo com:
+
+```bash
+npm run defence:generate-sbom -- --output=/tmp/sbom.json
+```
+
+O documento inclui metadados dos componentes, dependências e hashes.
 
 ## Consumindo o `sbom.json`
 

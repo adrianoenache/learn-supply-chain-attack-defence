@@ -30,8 +30,11 @@ npm run defence:verify-defences:fix
 ## Output example
 
 ```text
-✅ All 71 files match .defence-manifest.json.
+Verified <N> defence file(s).
+All defence files match the manifest.
 ```
+
+(`<N>` is the live manifest entry count, which grows as defence files are added.)
 
 ## Related defense layer
 

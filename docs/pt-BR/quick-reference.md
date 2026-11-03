@@ -52,6 +52,10 @@ npm run setup
 
 | Comando | O que faz |
 | --- | --- |
+| `npm run defence:update-engines` | Reporta updates (dentro do major) e upgrades (LTS mais recente) de engine Node.js, gateados no índice dist oficial. |
+| `npm run defence:update-engines:update` | Aplica o update de engine mais recente dentro do major em `package.json`, lockfile e `.nvmrc`. |
+| `npm run defence:check-npmrc` | Valida as chaves do `.npmrc` e rejeita o mecanismo de extensão do npm v12. |
+| `npm run defence:check-dead-code` | Lista candidatos a código morto (consultivo; nunca bloqueia). |
 | `npm run defence:pkg-age-check` | Verifica dependências diretas contra a idade mínima de 7 dias. |
 | `npm run defence:pkg-age-check -- --transitive` | Verifica todos os pacotes resolvidos no `package-lock.json`. |
 | `npm run defence:bootstrap` | Helper de primeira instalação quando `package-lock.json` está ausente. |

@@ -6,8 +6,9 @@
 
 - Verifica compatibilidade das versões do Node.js e npm.
 - Confirma que não existe `package-lock.json`.
-- Executa `npm install` com configurações endurecidas.
-- Solicita ao contribuidor que revise o lockfile gerado antes de commitar.
+- Executa `npm install --ignore-scripts --save-exact` (configurações endurecidas, sem lifecycle scripts) sob o monitor de processos.
+- Executa a verificação de idade, `npm audit signatures` e `npm audit --audit-level=high`.
+- Imprime o caminho do relatório de monitoramento e lembra o contribuidor de revisar o lockfile gerado antes de commitar.
 
 Implementado em [tools/setup-bootstrap.js](../../../tools/setup-bootstrap.js).
 

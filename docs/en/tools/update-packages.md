@@ -29,12 +29,15 @@ npm run defence:update -- --interactive --dry-run
 
 ## Output example
 
+Real dry-run output (captured 2026-11-03):
+
 ```text
-Eligible updates: lodash 4.17.20 -> 4.17.21
-Running npm update ...
-Signature check: ok
-License check: ok
-Age check: ok
+[dry-run] Would update dependencies with:
+  - pinned quarantine intermediate: @biomejs/biome@2.6.3 (latest 2.6.4 still in quarantine)
+  - npm run defence:pkg-age-check -- --transitive
+  - npm audit signatures
+  - npm audit --audit-level=high
+  - npm run defence:license-check:fail
 ```
 
 ## Related defense layers

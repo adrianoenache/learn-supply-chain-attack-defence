@@ -38,8 +38,10 @@ npm run defence:check-md-links -- --force
 ## Exemplo de saída
 
 ```text
-128 arquivos markdown verificados, 0 links quebrados.
+Checked 190 markdown file(s). All local links are valid. (190 from cache)
 ```
+
+(A saída da ferramenta é em inglês; os contadores refletem o repositório vivo e mudam conforme páginas são adicionadas.)
 
 ## Camada de defesa relacionada
 

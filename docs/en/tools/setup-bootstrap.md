@@ -6,8 +6,9 @@
 
 - Checks Node.js and npm engine compatibility.
 - Verifies there is no existing `package-lock.json`.
-- Runs `npm install` with hardened settings.
-- Prompts the contributor to review the generated lockfile before committing.
+- Runs `npm install --ignore-scripts --save-exact` (hardened settings, no lifecycle scripts) under the process monitor.
+- Runs the package-age check, `npm audit signatures`, and `npm audit --audit-level=high`.
+- Prints the install-monitoring report path and reminds the contributor to review the generated lockfile before committing.
 
 Implemented in [tools/setup-bootstrap.js](../../../tools/setup-bootstrap.js).
 
