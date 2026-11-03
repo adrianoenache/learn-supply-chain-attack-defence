@@ -27,3 +27,5 @@ Se o `npm audit` falhar:
 1. Atualize a dependência afetada para uma versão corrigida.
 2. Execute novamente `npm run defence:add -- <pkg>@<versão>`.
 3. Se o advisory for um falso positivo para o seu caso de uso, documente explicitamente a exceção em vez de abaixar o nível de auditoria.
+
+> **Interação com a janela de idade:** quando o patch foi publicado há menos de 7 dias, o `min-release-age=7` faz o npm falhar fechado — ele mantém a versão vulnerável, avisa e sai com código não-zero. Para um patch de emergência verificado, use um `min-release-age-exclude[]=<pkg>` temporário, conforme o [guia de hardening do `.npmrc`](../npmrc-hardening.md).
