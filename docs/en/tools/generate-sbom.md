@@ -13,8 +13,11 @@ Implemented in [tools/generate-sbom.js](../../../tools/generate-sbom.js).
 ## Usage
 
 ```bash
-# Generate sbom.json
+# Print the SBOM to stdout
 npm run defence:generate-sbom
+
+# Write to sbom.json
+npm run defence:generate-sbom -- --output=sbom.json
 
 # Custom output path
 node ./tools/generate-sbom.js --output=dist/sbom.json
@@ -25,6 +28,8 @@ node ./tools/generate-sbom.js --output=dist/sbom.json
 ```text
 SBOM written to sbom.json
 ```
+
+(without `--output`, the JSON is printed to stdout instead)
 
 The generated `sbom.json` contains a `components` array with each dependency's name, version, purl, and hashes.
 
