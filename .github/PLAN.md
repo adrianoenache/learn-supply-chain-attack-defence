@@ -625,6 +625,18 @@ completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
 > índices consistentes), I.6 (926/926 testes, lint 94 arquivos, 190 md,
 > manifesto 81). Bônus: removido o diretório vazio `.github/prompts/`
 > (resíduo da AI-1).
+>
+> **Revisão integral (2026-11-03, decisão do mantenedor):** todos os 69 pares
+> EN/PT-BR de `docs/` foram lidos integralmente e verificados contra o código,
+> com um commit por par. Correções aplicadas em 24 pares (destaques: fluxo
+> completo do `defence:add` sem prompt inexistente; saída real do SBOM
+> (stdout vs `--output`); procedimento completo do pre-commit-hash-sync;
+> `defence:update` com intermediárias; quarentena acionável na camada 8;
+> camada 5 e git-hooks com o hook real; exemplos de saída com formato real;
+> `prepare`/husky na adoção; seção npmrc no troubleshooting). 45 pares
+> verificados sem divergências. Um bug de código encontrado e corrigido: a
+> mensagem de próximos passos do instalador omitia o `npm run prepare`
+> necessário com `ignore-scripts=true`.
 
 ### Fase J — Avaliação do projeto
 
