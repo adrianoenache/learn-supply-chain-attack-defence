@@ -153,10 +153,10 @@ If you find yourself rebuilding frequently, consider these safer alternatives:
 ## What If a Rebuild Fails?
 
 1. Check the error message for missing system libraries and install them.
-2. Delete the package directory and reinstall deterministically:
+2. Delete the package directory and reinstall deterministically (keep `package-lock.json` — removing it would make the next install resolve ranges again):
 
 ```bash
-rm -rf node_modules/<package-name> package-lock.json
+rm -rf node_modules/<package-name>
 npm run defence:add -- <package-name>@<version>
 npm rebuild <package-name>
 ```
