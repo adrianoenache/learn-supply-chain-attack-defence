@@ -30,8 +30,11 @@ npm run defence:verify-defences:fix
 ## Exemplo de saída
 
 ```text
-✅ Todos os 71 arquivos correspondem a .defence-manifest.json.
+Verified <N> defence file(s).
+All defence files match the manifest.
 ```
+
+(`<N>` é a contagem viva de entradas do manifesto, que cresce conforme arquivos de defesa são adicionados; a saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 
