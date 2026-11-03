@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|powershell",
+        "bash": "bash .github/hooks/scripts/warn-oversized-commit.sh",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}
