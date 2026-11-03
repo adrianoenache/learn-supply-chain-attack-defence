@@ -12,14 +12,14 @@ Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
 (verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
 (quarentena acionável), AI-2 (governança/ergonomia das customizações AI), G
 (code review educacional + cobertura 94,70% → 95,94%), AI-3.5 (DECISIONS.md +
-destilação), H (organização: Biome, helpers, CODEOWNERS, badge) e **L**
+destilação), H (organização: Biome, helpers, CODEOWNERS, badge), **L**
 (gestão de engines: update 24.19.0 → 24.22.2 por CVEs, ferramenta
 `update-engines.js`, guarda `check-npmrc`, ADRs de min-release-age e
-Permission Model) concluídas. Da AI-4, o bloco AI-4.1 (commits granulares)
-também está concluído.
+Permission Model) e **AI-4** (commits granulares com hook consultivo, code
+review em 4 eixos com `code-review-pass` + `check-dead-code`, adoção VS Code
+1.144) concluídas.
 
 Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**AI-4.2–AI-4.4** (code review em 4 eixos + adoção VS Code 1.144) →
 **I** (+ AI-3.4: mapa de arquitetura de AI) → **AI-3.3** (observabilidade
 JSONL) → **J** (avaliação 10/10) → **AI-3.2** (prompt-injection/sanitização)
 → **AI-3.1** (inject-context, se a medição justificar) → **M.1** (dogfooding
@@ -574,7 +574,17 @@ pós-v1.0.0, alvo v1.1.0).
     (nossos hooks continuam sendo a última palavra).
   - Avaliar deep links `vscode://chat-customizations/open?page=...` nos docs
     de onboarding (opcional, baixo custo).
+  - **Status (2026-11-03): concluído.** Fork re-testado no 1.144.1 — mesmo
+    resultado (inline, sem indicação de fork; release notes nem mencionam o
+    campo); `target: github-copilot` declarado nos 9 agents (sanity 100/100);
+    seção "VS Code 1.144" nos ai-guidelines (EN/PT) cobrindo target,
+    Assisted Permissions (hooks continuam a última palavra) e a política
+    Copilot Memory (arquivos versionados vencem; nuvem é cache volátil).
+    Deep links não adotados: valor marginal para onboarding local — pode ser
+    reavaliado na Fase M (distribuição).
 - **AI-4.4** Validação final: gates completos + docs bilíngues + sanity suites.
+  - **Status (2026-11-03): concluído.** 926/926 testes, lint 94 arquivos,
+    190 md, sanity de skills/agents/hooks verdes, manifesto íntegro (81).
 
 ### Fase I — Revisão total da documentação
 

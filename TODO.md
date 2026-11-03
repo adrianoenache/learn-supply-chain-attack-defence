@@ -318,10 +318,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     `check-dead-code.js` (ADR: nunca gate rígido); triagem inicial com 41
     unexports + 2 deleções + 4 keeps-com-teste; baseline zero; lição
     "suíte como árbitra" registrada.
-- [ ] **AI-4.3** Adoção VS Code 1.144: re-teste de `context: fork`; `target`
+- [x] **AI-4.3** Adoção VS Code 1.144: re-teste de `context: fork`; `target`
   explícito nos `.agent.md`; política Copilot Memory × memória em arquivos;
   interação Assisted Permissions × hooks; deep links de customização (opcional).
-- [ ] **AI-4.4** Validação final (gates + sanity suites + docs bilíngues).
+  - Concluído em 2026-11-03: fork sem efeito observável no 1.144.1 (mantido,
+    revalidar no próximo update); `target: github-copilot` nos 9 agents; seção
+    "VS Code 1.144" nos ai-guidelines EN/PT; deep links adiados para a Fase M.
+- [x] **AI-4.4** Validação final (gates + sanity suites + docs bilíngues).
+  - Concluído em 2026-11-03: 926/926 testes, lint 94, 190 md, manifesto 81.
 
 ## Fase I — Revisão total da documentação
 

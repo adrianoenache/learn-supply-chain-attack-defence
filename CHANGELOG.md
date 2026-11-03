@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
   bilingual requirement docs.
 
+### Added (Fase AI-4.3 — VS Code 1.144 adoption)
+
+- All nine `.github/agents/*.agent.md` now declare `target: github-copilot`,
+  making editor completion/validation deterministic regardless of the active
+  session harness.
+- New "VS Code 1.144" section in the bilingual AI guidelines: Assisted
+  Permissions documented as pre-hook triage (project `preToolUse` hooks remain
+  the deterministic last word), and the Copilot Memory policy — versioned
+  files (DECISIONS/PLAN/lessons) are the source of truth, cloud memory is a
+  volatile cache, the repository wins on divergence.
+- `context: fork` re-tested on 1.144.1: still no observable effect; field
+  kept as harmless and scheduled for re-validation on the next VS Code update.
+
 ### Added (Fase AI-4.2 — 4-axis AI code review)
 
 - New `code-review-pass` skill (manual): chains the four review axes —
