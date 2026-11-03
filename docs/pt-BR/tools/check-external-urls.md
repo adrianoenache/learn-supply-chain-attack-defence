@@ -19,8 +19,11 @@ As configurações ficam no `package.json` sob `checkExternalUrls`:
 {
   "checkExternalUrls": {
     "ignoredDirs": ["node_modules", ".git", "coverage", ".cache", "tmp"],
+    "ignoredFiles": [".external-urls-cache.json", ".defence-profile.json"],
     "cacheTtlHours": 24,
+    "cacheFile": ".external-urls-cache.json",
     "timeoutMs": 15000,
+    "retryMaxAttempts": 2,
     "concurrency": 10
   }
 }
@@ -41,8 +44,12 @@ npm run defence:check-external-urls -- --force
 ## Exemplo de saída
 
 ```text
-95 URLs verificadas, 0 inacessíveis, 2 mortas conhecidas ignoradas.
+⚠️  5 known-dead URL(s) skipped:
+  ...
+✅ Checked 101 external URL(s). All reachable. (2 from cache)
 ```
+
+(A saída da ferramenta é em inglês; os contadores variam conforme o conteúdo.)
 
 ## Camada de defesa relacionada
 
