@@ -340,3 +340,51 @@ describe('install-defences', () => {
     }
   })
 })
+
+describe('adoption completeness (anti-drift)', () => {
+  // Walks the real tools/ tree: every JavaScript/JSON file must be either in
+  // FILES_TO_COPY or under an EXCLUDED_FROM_ADOPTION prefix. A file matching
+  // neither means someone added a tool without updating the installer — the
+  // incident that removed concurrency.js/semver.js/update-engines.js from
+  // the adopted toolset until 2026-11-03.
+  test('every tools/ file is adopted or explicitly excluded', () => {
+    const { FILES_TO_COPY, EXCLUDED_FROM_ADOPTION } = require(SCRIPT_PATH)
+    const toolsRoot = path.resolve(__dirname)
+    const repoRoot = path.resolve(__dirname, '..')
+    const onDisk = []
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        // Relative to the repo root, never to process.cwd(), so the test
+        // behaves identically under npm test and direct node invocation.
+        else onDisk.push(path.relative(repoRoot, full))
+      }
+    }
+    walk(toolsRoot)
+
+    const candidates = onDisk.filter(
+      (p) => p.endsWith('.js') || p.endsWith('.json'),
+    )
+    const uncovered = candidates.filter(
+      (p) =>
+        !FILES_TO_COPY.includes(p) &&
+        !EXCLUDED_FROM_ADOPTION.some((prefix) => p.startsWith(prefix)),
+    )
+    assert.deepEqual(
+      uncovered,
+      [],
+      `Files missing from FILES_TO_COPY (or EXCLUDED_FROM_ADOPTION): ${uncovered.join(', ')}`,
+    )
+  })
+
+  test('FILES_TO_COPY contains no ghosts', () => {
+    const { FILES_TO_COPY } = require(SCRIPT_PATH)
+    const ghosts = FILES_TO_COPY.filter((p) => !fs.existsSync(p))
+    assert.deepEqual(
+      ghosts,
+      [],
+      `Listed files that do not exist: ${ghosts.join(', ')}`,
+    )
+  })
+})

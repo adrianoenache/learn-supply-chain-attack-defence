@@ -119,6 +119,15 @@ The following settings are intentionally kept in `.npmrc` even though npm 11.19.
 
 These warnings are expected and safe. Do not remove the settings unless you prefer to adopt them only when your npm version explicitly supports them.
 
+Two guardrails keep this strategy honest:
+
+- `npm run defence:check-npmrc` (Fase L.2) validates every `.npmrc` key against a curated list of documented npm keys plus this registered lookahead pair — a typo'd or invented key now fails the pre-commit hook and CI instead of silently warning forever.
+- npm v12 offers `strict-npmrc=true`, which turns unknown keys into hard errors. It is **incompatible with lookahead settings**: adopting it requires removing both keys above first.
+
+## The npm v12 extension mechanism (a blind spot to watch)
+
+npm v12 can auto-discover and execute a project-root `.npm-extension.mjs` or `.npm-extension.cjs` file during install (or one referenced by the `extension-file` key). This is install-time code execution that predates most lifecycle-script detectors: tooling that only inspects `preinstall`/`install`/`postinstall` fields does not see it. `ignore-scripts=true` implies `ignore-extension`, so this project is protected by configuration — and `defence:check-npmrc` additionally fails if an extension file or the `extension-file` key ever appears, so the protection does not depend on anyone remembering the implication.
+
 ## Options considered but not adopted
 
 | Option | Why it was not adopted |

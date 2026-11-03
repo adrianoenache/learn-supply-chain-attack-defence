@@ -475,6 +475,21 @@ e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
     flagar `.npm-extension.mjs` (extensão root-owned do npm v12); documentar
     que `ignore-scripts` implica `ignore-extension`; atualizar a página da
     camada afetada em ambos os idiomas.
+  - **Status (2026-11-03): concluído.** Investigação revelou que as chaves
+    eram **lookahead intencional já documentado** (npmrc-hardening.md) —
+    decisão do mantenedor: manter, alinhar os comentários inline do `.npmrc`
+    (que afirmavam o comportamento como vigente) e criar a guarda. Nova
+    ferramenta `tools/check-npmrc.js` (11 testes): chaves conhecidas curadas +
+    registro lookahead com justificativa + valores defensivos proibidos +
+    rejeição do mecanismo de extensão do npm v12 (chave `extension-file` e
+    arquivos auto-descobertos). Gate real: pre-commit (hashes ressincronizados)
+    + job `defence-gates` do CI. **Bug de adoção encontrado e corrigido:**
+    `FILES_TO_COPY` do instalador havia driftado (faltavam concurrency.js,
+    semver.js, update-engines.js, check-npmrc.js — o toolset adotado quebraria
+    no `require`); corrigido + teste de completude anti-drift (todo arquivo de
+    `tools/` é adotado ou explicitamente excluído) + scripts
+    `defence:check-npmrc`/`defence:update-engines*` registrados para
+    adotantes. Manifesto: 72 → 79 arquivos.
 - **L.3** Avaliações documentadas (ADRs + docs):
   - `min-release-age=7` **já está adotado** no `.npmrc` (verificado em
     2026-11-03): falta o ADR formalizando a adoção e docs bilíngues do

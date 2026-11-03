@@ -28,7 +28,7 @@ cabeçalho no arquivo da ferramenta.
 |---|---|
 | Setup & Bootstrap | `defence:bootstrap`, `defence:check-engines`, `defence:install-monitored`, `defence:reinstall`, `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade` |
 | Gerenciamento de Dependências | `defence:add`, `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`, `defence:update-check`, `defence:update-check:force`, `defence:update-check:json`, `defence:update-check:offline`, `defence:analyze-lifecycle-scripts` |
-| Auditoria & Verificação | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-secrets`, `defence:generate-sbom` |
+| Auditoria & Verificação | `defence:pkg-age-check`, `defence:audit`, `defence:license-check`, `defence:license-check:fail`, `defence:license-check:json`, `defence:trust-report`, `defence:trust-report:json`, `defence:trust-report:fail`, `defence:check-lockfile-integrity`, `defence:check-hooks`, `defence:check-npmrc`, `defence:check-secrets`, `defence:generate-sbom` |
 | Estado & Sincronização | `defence:sync-check`, `defence:sync-check:fix`, `defence:verify-defences`, `defence:verify-defences:fix`, `defence:update-badge`, `defence:update-badge:dry-run` |
 | Documentação & Compliance | `defence:check-md-links`, `defence:check-external-urls`, `defence:check-external-urls:force` |
 | Performance & Monitoramento | `defence:perf`, `defence:perf:baseline`, `defence:perf:check-package-age`, `defence:perf:check-updates` |
@@ -200,6 +200,17 @@ cabeçalho no arquivo da ferramenta.
 - **Testes:** `tools/check-hooks.test.js`
 - **Observações:** após editar intencionalmente `.husky/pre-commit`, siga a skill `pre-commit-hash-sync`.
 - **Docs:** [tools/check-hooks.md](tools/check-hooks.md)
+
+### check-npmrc.js
+
+- **Propósito:** valida a superfície de configuração do npm — chaves do `.npmrc` contra uma lista curada de chaves conhecidas mais um registro lookahead documentado, valores defensivos que não podem ser enfraquecidos, e o mecanismo de extensão do npm v12 (chave `extension-file`, arquivos `.npm-extension.mjs`/`.cjs`).
+- **Scripts:** `defence:check-npmrc`
+- **Flags:** `--silent`, `--format json`.
+- **Modos silencioso/formato:** `--silent` suprime o relatório (problemas ainda vão para stderr); `--format json` imprime relatório legível por máquina.
+- **Códigos de saída:** `0` superfície válida; `1` chave desconhecida/insegura, arquivo de extensão proibido ou `.npmrc` ausente.
+- **Testes:** `tools/check-npmrc.test.js`
+- **Observações:** roda no `.husky/pre-commit` e no job `defence-gates` do CI; novas chaves documentadas entram via `KNOWN_KEYS`, chaves intencionalmente ainda não reconhecidas via `LOOKAHEAD_KEYS` com justificativa.
+- **Docs:** [tools/check-npmrc.md](tools/check-npmrc.md)
 
 ### check-secrets.js
 

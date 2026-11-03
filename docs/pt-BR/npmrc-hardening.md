@@ -119,6 +119,15 @@ As configurações a seguir são mantidas intencionalmente em `.npmrc` mesmo que
 
 Esses avisos são esperados e seguros. Não remova as configurações a menos que prefira adotá-las apenas quando sua versão do npm as suportar explicitamente.
 
+Duas salvaguardas mantêm essa estratégia honesta:
+
+- `npm run defence:check-npmrc` (Fase L.2) valida cada chave do `.npmrc` contra uma lista curada de chaves documentadas do npm mais este par lookahead registrado — uma chave inventada ou com typo agora falha o pre-commit e o CI em vez de apenas avisar para sempre.
+- O npm v12 oferece `strict-npmrc=true`, que transforma chaves desconhecidas em erro fatal. É **incompatível com configurações lookahead**: adotá-lo exige remover primeiro as duas chaves acima.
+
+## O mecanismo de extensão do npm v12 (um blind spot a observar)
+
+O npm v12 pode descobrir e executar automaticamente um arquivo `.npm-extension.mjs` ou `.npm-extension.cjs` na raiz do projeto durante o install (ou um referenciado pela chave `extension-file`). É execução de código em install-time anterior à maioria dos detectores de lifecycle scripts: ferramentas que só inspecionam os campos `preinstall`/`install`/`postinstall` não o veem. `ignore-scripts=true` implica `ignore-extension`, portanto este projeto está protegido por configuração — e o `defence:check-npmrc` adicionalmente falha se um arquivo de extensão ou a chave `extension-file` aparecer, de modo que a proteção não depende de alguém lembrar da implicação.
+
 ## Opções consideradas mas não adotadas
 
 | Opção | Por que não foi adotada |
