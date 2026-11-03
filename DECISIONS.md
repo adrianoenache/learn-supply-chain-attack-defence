@@ -180,3 +180,25 @@ Keep entries concise; link to the phase/commit for detail.
 - **Consequences:** v1.0.0 keeps a bounded scope; the VS Code 1.144
   marketplace/Browse channel is evaluated later as a distribution option for
   the scaffolding features.
+
+### 2026-11-03 — Commit granularity is advisory-only, with fixed thresholds
+
+- **Decision:** The one-commit-one-intent rule is normative (always-on
+  instructions + CONTRIBUTING) and is reinforced by the
+  `warn-oversized-commit` hook, which **warns but never blocks**. Thresholds:
+  8 staged files, 400 changed lines (added + deleted), 2 path domains
+  (`docs/en` + `docs/pt-BR` count as one domain, since a bilingual pair is a
+  single intent).
+- **Context:** The maintainer observed AI commits accumulating multiple
+  features/fixes, hurting reviewability and revertability. Thresholds need
+  concrete numbers to be enforceable; the chosen values tolerate typical
+  single-intent changes (a tool + its tests + its two doc pages ≈ 4–6 files)
+  while catching accumulation. Mechanical bumps that legitimately span files
+  (engine updates) stay possible because nothing is blocked.
+- **Rejected alternative:** Hard blocking above the thresholds — a version
+  bump touching `package.json` + lockfile + 20 doc files is one legitimate
+  intent, and a blocking gate would force artificial splits or bypasses.
+- **Consequences:** The hook output always includes the split procedure
+  (repair-oriented); thresholds are env-overridable mainly so tests stay
+  small; the rule applies equally to humans (CONTRIBUTING) and AI
+  (copilot-instructions).
