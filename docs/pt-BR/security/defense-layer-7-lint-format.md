@@ -4,7 +4,7 @@ O Biome impõe um estilo de código consistente e detecta erros comuns antes que
 
 ## O Que Ele Verifica
 
-O projeto usa [Biome](https://biomejs.dev/) tanto como linter quanto como formatter:
+O projeto usa [Biome](https://biomejs.dev/) tanto como linter quanto como formatter, cobrindo `tools/`, `.github/**/*.js` (scripts de hooks, suítes de sanidade, geradores) e `*.js` da raiz:
 
 - **Formatter**: indentação, aspas, pontos-e-vírgulas e quebras de linha consistentes.
 - **Linter**: regras recomendadas mais verificações estritas para imports e variáveis não utilizadas.
