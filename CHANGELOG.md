@@ -33,6 +33,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-npmrc` and `update-engines`, and both documents state the
   organizational layer (branch protection + required checks + CODEOWNERS).
 
+### Added (Fase AI-3.3 — hook observability)
+
+- Unified, local-only hook observability: every Copilot hook appends JSONL
+  events (`at`/`hook`/`event`/`action`/`reason`/`snippet`) to the gitignored
+  `.github/hooks/scripts/observability.jsonl` via the shared
+  `log-hook-event.js` (never fails the caller, capped at 5,000 entries).
+  The legacy `security-blocks.log` was migrated into it.
+- New `observability-summary.js`: counts by hook and action, with the
+  "defenses blocked N dangerous calls" payoff line, in text and
+  `--format json`.
+- New bilingual page `docs/{en,pt-BR}/ai-observability.md` (format, reading
+  recipes, properties), linked from the indexes and ai-guidelines.
+
 ### Added (Fase AI-4.3 — VS Code 1.144 adoption)
 
 - All nine `.github/agents/*.agent.md` now declare `target: github-copilot`,

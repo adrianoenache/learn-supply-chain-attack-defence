@@ -183,9 +183,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   outputs em CI (fixtures com instruções maliciosas embutidas; validação de
   output de tools externas antes de admitir no contexto — segunda fase do
   monitor, APPA).
-- [ ] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
+- [x] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
   unificado de hooks, skills e bloqueios + página de docs bilíngue explicando
   a leitura.
+  - Concluído em 2026-11-03: `log-hook-event.js` + `observability-summary.js`;
+    9 hooks fiados; `security-blocks.log` migrado; log limitado (5.000) e
+    à prova de falhas; `ai-observability.md` EN/PT; ADR registrado.
+    Limitação documentada: invocações de skills pelo modelo não são
+    observáveis por hooks.
 - [ ] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
   `docs/{en,pt-BR}/architecture.md` (as 5 camadas e onde posicionar regras
   novas).
