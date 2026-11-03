@@ -37,3 +37,7 @@ npm run defence:pkg-age-check -- --transitive
 ## Por Que 7 Dias?
 
 A maioria dos lançamentos maliciosos é detectada em poucas horas ou dias. Um período de resfriamento de 7 dias reduz drasticamente a chance de instalar um pacote malicioso recém-publicado, sem atrasar significativamente o trabalho normal.
+
+## Reforço nativo do npm
+
+A mesma janela de 7 dias também é imposta pelo próprio npm via `min-release-age=7` no `.npmrc` — dois gates independentes para a mesma política (o tradeoff fail-closed e o escape de emergência `min-release-age-exclude` estão documentados no [guia de hardening do `.npmrc`](../npmrc-hardening.md) e no ADR em `DECISIONS.md`).
