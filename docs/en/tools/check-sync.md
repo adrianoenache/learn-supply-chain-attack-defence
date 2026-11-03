@@ -17,7 +17,7 @@ Implemented in [tools/check-sync.js](../../../tools/check-sync.js). Shared logic
 # Check sync status
 npm run defence:sync-check
 
-# Auto-fix by running npm ci (use with care)
+# Print the recommended fix command (npm ci) — never runs it
 npm run defence:sync-check -- --fix
 
 # Silent mode
