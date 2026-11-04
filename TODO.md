@@ -201,7 +201,7 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
     à prova de falhas; `ai-observability.md` EN/PT; ADR registrado.
     Limitação documentada: invocações de skills pelo modelo não são
     observáveis por hooks.
-- [ ] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
+- [x] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
   `docs/{en,pt-BR}/architecture.md` (as 5 camadas e onde posicionar regras
   novas).
 
@@ -378,10 +378,14 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [x] (Opcional, P4) Criar `tools/measure-ai-context.js` para medir bytes por
   camada de customização AI e incluir o custo de tokens real no status report.
 
-## Fase K — Planejamento do release v1.0.0
+## Fase K — Planejamento do release v1.0.0 ✅
 
-- [ ] Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
-- [ ] Planejar tag, GitHub Release com SBOM e comunicação.
+- [x] Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
+  (Aprovada pelo mantenedor em 2026-11-04.)
+- [x] Planejar tag, GitHub Release com SBOM e comunicação.
+  (Executado em 2026-11-04: checklist da skill `release-checklist`, gates
+  completos verdes — incluindo a captura e correção da regressão do portão
+  de idade transitivo.)
 
 ## Fase M — Adoção e scaffolding
 
