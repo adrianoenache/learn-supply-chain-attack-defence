@@ -14,8 +14,8 @@ Isso limita as execuções automáticas na branch protegida `main` apenas a pull
 ```mermaid
 graph TD
   A[Gatilho: push para dev<br/>ou PR para main/dev] --> B[build]
-  B --> C[test]
-  B --> C2[test-latest-lts]
+  B --> C["test (piso de engines)"]
+  B --> C2["test-latest-lts (Node LTS latest)"]
   B --> D[coverage]
   B --> E[lint]
   B --> F[format]
