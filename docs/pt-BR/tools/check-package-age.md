@@ -57,3 +57,7 @@ All packages passed the minimum age check.
 ## Camada de defesa relacionada
 
 - [Camada de Defesa 1 — Verificação de idade do pacote](../security/defense-layer-1-package-age.md)
+
+## Dependências fora do registry
+
+URLs git, specs `file:`/`link:`/`workspace:` e URLs de tarball não podem ser verificadas por idade contra o registry — são fixadas por commit ou caminho, não por data de publicação. A ferramenta as reporta como `SKIP` com um aviso (verifique-as manualmente) em vez de falhar com um erro de consulta ao registry.

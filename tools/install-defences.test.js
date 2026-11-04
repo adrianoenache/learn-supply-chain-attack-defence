@@ -3,6 +3,7 @@
 
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
+const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
@@ -226,8 +227,27 @@ describe('install-defences', () => {
       for (const [name, value] of Object.entries(expectedScripts)) {
         assert.equal(pkg.scripts[name], value, `unexpected script ${name}`)
       }
-      assert.equal(pkg.devDependencies.husky, '9.1.7')
-      assert.equal(pkg.devDependencies['@biomejs/biome'], '2.5.8')
+      // Since Fase M.1 the installer tracks the source project's current
+      // devDependency pins instead of a hardcoded pair.
+      const sourcePkg = require(path.resolve(__dirname, '..', 'package.json'))
+      assert.equal(pkg.devDependencies.husky, sourcePkg.devDependencies.husky)
+      assert.equal(
+        pkg.devDependencies['@biomejs/biome'],
+        sourcePkg.devDependencies['@biomejs/biome'],
+      )
+      // Config blocks and the hook hash land in the target package.json.
+      assert.ok(pkg.pkgAgeCheck, 'pkgAgeCheck merged')
+      assert.equal(
+        pkg.defences?.huskyPreCommitHash,
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(target, '.husky', 'pre-commit')))
+          .digest('hex'),
+      )
+      // Local defence state is gitignored in the target.
+      const gitignore = fs.readFileSync(path.join(target, '.gitignore'), 'utf8')
+      assert.ok(gitignore.includes('.defence-update-check.json'))
+      assert.ok(gitignore.includes('.cache/'))
     } finally {
       cleanup(target)
     }

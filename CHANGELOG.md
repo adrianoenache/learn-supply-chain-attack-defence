@@ -33,6 +33,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `check-npmrc` and `update-engines`, and both documents state the
   organizational layer (branch protection + required checks + CODEOWNERS).
 
+### Added (Fase M.1 — dogfooding on a real project)
+
+- `install-defences.js` was run against the real `setup-webpack-stylus-liquid`
+  project; the dated bilingual report lives in
+  `docs/{en,pt-BR}/dogfooding-m1-report.md`. Eight adoption gaps were found
+  and fixed at the root, and the adopted suite passes 549/549 there.
+- `check-package-age.js` and `check-lockfile-integrity.js` now classify
+  git/file/URL dependencies in advisory sections instead of failing them
+  (they pin by commit, not by registry publish date) — ADR recorded.
+- `sync-check` compares installed versions against the lockfile's resolved
+  version, never against the `package.json` range (false drift on `^x.y.z`).
+- `install-defences.js`: devDependency pins track the source project at
+  install time; defence config blocks merge when absent (adopter's blocks
+  win); the pre-commit hook hash is written so `check-hooks` passes from day
+  one; defence state entries merge into the target `.gitignore`.
+
+### Fixed (Fase M.1 — test portability)
+
+- `config.test.js` no longer asserts this repository's directory name; the
+  `generate-sbom` CLI test writes to a temp file via `--output` instead of
+  parsing stdout under a 1 MB buffer (a real lockfile overflows it).
+
 ### Added (Fase AI-3.1 — measured don't-do)
 
 - The `inject-context` optimization was evaluated and **rejected by

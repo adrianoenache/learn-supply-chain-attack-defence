@@ -530,6 +530,40 @@ describe('Integration — check-package-age dependency modes', () => {
     }
   })
 
+  test('git dependencies are skipped with an advisory, not a failure', async () => {
+    const restore = mockRegistry({
+      prod: { '1.0.0': 10 },
+    })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: {
+            prod: '1.0.0',
+            // Fase M.1 dogfooding finding: git-URL deps are pinned by commit,
+            // not published to the registry — skip with advisory, never fail.
+            'my-loader':
+              'git+ssh://git@github.com:example/my-loader.git#abc123',
+          },
+        },
+      })
+      // Success path completes main without exitFn(1) and reports the skip.
+      assert.ok(
+        logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
+        'expected the git dependency to be reported as skipped',
+      )
+      assert.ok(logs.some((l) => l.includes('All packages passed')))
+    } finally {
+      console.log = origLog
+      restore()
+    }
+  })
+
   test('--transitive mode reads resolved versions from package-lock.json', async () => {
     const restore = mockRegistry({
       lodash: { '4.17.21': 10 },

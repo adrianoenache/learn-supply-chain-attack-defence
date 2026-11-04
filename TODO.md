@@ -388,9 +388,13 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 > M.1 executa antes da K (validação pré-release do instalador); M.2/M.3 são
 > pós-v1.0.0, alvo v1.1.0 (decisão do mantenedor, 2026-11-03).
 
-- [ ] **M.1** Dogfooding: `install-defences.js` em
+- [x] **M.1** Dogfooding: `install-defences.js` em
   `../setup-webpack-stylus-liquid/`; documentar gaps; iterar até instalação
   limpa; relatório bilíngue.
+  - Concluído em 2026-11-03: instalação limpa, suíte adotada 549/549, 8 gaps
+    corrigidos na raiz (relatório em `docs/{en,pt-BR}/dogfooding-m1-report.md`,
+    ADR para deps não-registry). O projeto irmão segue na branch
+    `chore/adopt-defences` para revisão do mantenedor (29 vulns a triangular).
 - [ ] **M.2** (v1.1.0) `tools/create-defended-project.js`: scaffolding de
   projeto zerado com defesas completas, com opção de infra de AI incluída.
 - [ ] **M.3** (v1.1.0) Scaffolding exclusivo da infra de AI (`.github/`) para

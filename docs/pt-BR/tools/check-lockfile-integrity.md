@@ -36,3 +36,7 @@ npm run defence:check-lockfile-integrity -- --silent
 ## Camada de defesa relacionada
 
 - [Camada de Defesa 4 — Instalação determinística](../security/defense-layer-4-deterministic-install.md)
+
+## Dependências git/file
+
+Entradas resolvidas de URLs git ou caminhos `file:`/`link:` nunca carregam hash de integridade de tarball — são fixadas por commit na URL resolvida. São reportadas numa seção informativa própria e não falham a verificação; entradas do registry ainda precisam de SHA-512.

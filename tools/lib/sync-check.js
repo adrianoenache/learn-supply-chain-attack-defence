@@ -103,16 +103,23 @@ function checkInstalledVersions() {
       ...pkg.peerDependencies,
       ...pkg.optionalDependencies,
     }
+    // The deterministic reference is the LOCKFILE's resolved version, never
+    // the package.json specifier: ranges like ^8.0.1 and git URLs are valid
+    // declarations that never equal an installed version string. (Dogfooding
+    // finding, Fase M.1 — the previous comparison broke adopters with ranges.)
+    const lockfile = readJsonSafe(LOCK_FILE)
 
     for (const [name, declaredVersion] of Object.entries(declared)) {
       const installed = ls.dependencies?.[name]
       if (!installed?.version) {
         return { inSync: false, reason: `${name} is not installed` }
       }
-      if (installed.version !== declaredVersion) {
+      const expected =
+        lockfile?.packages?.[`node_modules/${name}`]?.version ?? declaredVersion
+      if (installed.version !== expected) {
         return {
           inSync: false,
-          reason: `${name} is ${installed.version}, expected ${declaredVersion}`,
+          reason: `${name} is ${installed.version}, expected ${expected}`,
         }
       }
     }

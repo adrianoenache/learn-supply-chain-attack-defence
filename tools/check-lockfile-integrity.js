@@ -5,6 +5,10 @@
 // integrity field (SHA-512 or better). This catches tampering or incomplete
 // lockfile entries before installation.
 //
+// Git/file dependencies are the documented exception: they never carry a
+// tarball hash and pin by commit in the resolved URL, so they are reported
+// in their own informational section instead of failing the check.
+//
 // Usage:
 //   npm run defence:check-lockfile-integrity              — table report, exits 0
 //   npm run defence:check-lockfile-integrity -- --silent  — exit only
@@ -12,7 +16,7 @@
 //   npm run defence:check-lockfile-integrity -- --format=markdown
 //
 // Exit codes:
-//   0 — all entries have SHA-512 integrity.
+//   0 — all registry entries have SHA-512 integrity (git/file deps reported).
 //   1 — missing or weak integrity detected.
 
 const fs = require('node:fs')
@@ -67,6 +71,7 @@ function checkLockfileIntegrity(lock) {
   const packages = lock.packages || {}
   const missing = []
   const weak = []
+  const gitDeps = []
 
   for (const [pkgPath, pkg] of Object.entries(packages)) {
     // The root project entry ("") does not need an integrity field.
@@ -75,6 +80,19 @@ function checkLockfileIntegrity(lock) {
 
     const integrity = pkg.integrity
     if (integrity === undefined || integrity === null || integrity === '') {
+      // Git/file dependencies never carry a tarball integrity hash — they
+      // pin by commit in the resolved URL instead. They are reported
+      // separately (they bypass the registry trust chain by design) instead
+      // of failing the check. (Dogfooding finding, Fase M.1.)
+      const resolved = typeof pkg.resolved === 'string' ? pkg.resolved : ''
+      if (
+        /^(git(\+[^:]+)?:|git@|file:|link:)/.test(resolved) ||
+        resolved.includes('.git#') ||
+        resolved.endsWith('.git')
+      ) {
+        gitDeps.push(pkgPath)
+        continue
+      }
       missing.push(pkgPath)
       continue
     }
@@ -83,12 +101,22 @@ function checkLockfileIntegrity(lock) {
     }
   }
 
-  return { missing, weak }
+  return { missing, weak, gitDeps }
 }
 
 function formatTable(result) {
   const lines = []
   const total = result.missing.length + result.weak.length
+
+  if (result.gitDeps.length > 0) {
+    lines.push(
+      `ℹ️  ${result.gitDeps.length} git/file dependenc(ies) without tarball integrity (pinned by commit in the resolved URL):`,
+    )
+    for (const pkgPath of result.gitDeps) {
+      lines.push(`  - ${pkgPath}`)
+    }
+    lines.push('')
+  }
 
   if (total === 0) {
     lines.push('✅ All lockfile entries have SHA-512 integrity.')

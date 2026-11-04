@@ -7,6 +7,8 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const fs = require('node:fs')
+const os = require('node:os')
 const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'generate-sbom.js')
@@ -174,13 +176,23 @@ describe('generate-sbom', () => {
   })
 
   test('CLI generates SBOM', () => {
-    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
-      encoding: 'utf8',
-      maxBuffer: 1024 * 1024,
-    })
-    assert.equal(result.status, 0)
-    const bom = JSON.parse(result.stdout)
-    assert.equal(bom.bomFormat, 'CycloneDX')
-    assert.ok(Array.isArray(bom.components))
+    // Write to a temp file instead of parsing stdout: a real adopter project
+    // (766 lockfile entries in the Fase M.1 dogfood) overflows the default
+    // 1 MB spawn buffer, truncating the JSON mid-stream.
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sbom-cli-'))
+    const out = path.join(tmpDir, 'sbom.json')
+    try {
+      const result = spawnSync(
+        process.execPath,
+        [SCRIPT_PATH, `--output=${out}`],
+        { encoding: 'utf8' },
+      )
+      assert.equal(result.status, 0)
+      const bom = JSON.parse(fs.readFileSync(out, 'utf8'))
+      assert.equal(bom.bomFormat, 'CycloneDX')
+      assert.ok(Array.isArray(bom.components))
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true })
+    }
   })
 })

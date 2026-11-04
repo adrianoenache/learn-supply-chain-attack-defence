@@ -107,9 +107,9 @@ describe('config loader', () => {
   test('exposes resolved filesystem paths', () => {
     setImpls({ fs: buildFs({}) })
     const config = loadConfig()
-    assert.ok(
-      config.paths.repoRoot.endsWith('learn-supply-chain-attack-defence'),
-    )
+    // No coupling to the repository directory name — the same suite runs
+    // inside adopter projects (Fase M.1 dogfooding).
+    assert.ok(path.isAbsolute(config.paths.repoRoot))
     assert.ok(config.paths.packageJson.endsWith('package.json'))
     assert.ok(config.paths.packageLockJson.endsWith('package-lock.json'))
   })
