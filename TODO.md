@@ -420,6 +420,11 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.
+- [ ] Deduplicate CI runs on dev→main PRs — pushing to `dev` fires both the
+  `push` run and the `pull_request` run, so release PRs show 24 checks (two
+  identical sets of 12, both green on v1.0.0). Options: gate the
+  `pull_request` trigger when the head branch is `dev`, or accept the noise
+  as extra evidence.
 - [ ] Add deep performance profiling dashboard.
 - [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
 - [ ] Run the ninth project status analysis as a pre-release step and decide
