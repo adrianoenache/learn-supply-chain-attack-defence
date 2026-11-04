@@ -569,6 +569,9 @@ describe('Integration — check-package-age dependency modes', () => {
       lodash: { '4.17.21': 10 },
       'is-odd': { '3.0.1': 10 },
     })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
 
     try {
       await main({
@@ -584,12 +587,83 @@ describe('Integration — check-package-age dependency modes', () => {
               version: '1.0.0',
               dependencies: { lodash: '4.17.21' },
             },
-            'node_modules/lodash': { version: '4.17.21' },
-            'node_modules/is-odd': { version: '3.0.1' },
+            // Real lockfiles always carry a `resolved` tarball URL — and the
+            // registry one MUST NOT classify the entry as non-registry.
+            // Regression found by the v1.0.0 release checklist: the gate
+            // silently SKIPped the entire tree ("No dependencies to check").
+            'node_modules/lodash': {
+              version: '4.17.21',
+              resolved:
+                'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+            },
+            'node_modules/is-odd': {
+              version: '3.0.1',
+              resolved: 'https://registry.npmjs.org/is-odd/-/is-odd-3.0.1.tgz',
+            },
           },
         },
       })
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('lodash@4.17.21')),
+        'registry-resolved packages must still be age-checked',
+      )
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('is-odd@3.0.1')),
+        'registry-resolved packages must still be age-checked',
+      )
+      assert.ok(
+        !logs.some((l) => l.includes('No dependencies to check')),
+        'the transitive gate must never no-op on a registry-only tree',
+      )
     } finally {
+      console.log = origLog
+      restore()
+    }
+  })
+
+  test('--transitive skips only entries resolved outside the registry', async () => {
+    const restore = mockRegistry({
+      lodash: { '4.17.21': 10 },
+    })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      await main({
+        argv: ['--transitive'],
+        pkg: { name: 'test-project', version: '1.0.0' },
+        lock: {
+          name: 'test-project',
+          lockfileVersion: 3,
+          requires: true,
+          packages: {
+            '': { name: 'test-project', version: '1.0.0' },
+            'node_modules/lodash': {
+              version: '4.17.21',
+              resolved:
+                'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+            },
+            // Fase M.1 dogfooding fixture: git deps are pinned by commit and
+            // have no publish date — skipped with an advisory, never failed.
+            'node_modules/my-loader': {
+              version: '1.0.0',
+              resolved: 'git+ssh://git@github.com/example/my-loader.git#abc123',
+            },
+          },
+        },
+      })
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('lodash@4.17.21')),
+        'registry entries must be checked even when a sibling is a git dep',
+      )
+      assert.ok(
+        logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
+        'git-resolved entries must be skipped with an advisory',
+      )
+      assert.ok(logs.some((l) => l.includes('All packages passed')))
+    } finally {
+      console.log = origLog
       restore()
     }
   })
