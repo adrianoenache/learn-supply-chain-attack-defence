@@ -201,6 +201,17 @@ Three 1.144 additions interact with this repository's AI structure:
 - **Assisted permissions (GA).** VS Code can now LLM-triage tool calls and auto-approve low-risk ones *before* our hooks run. This does not weaken anything: the `preToolUse` hooks above remain the deterministic last word, and the layered order is client triage → project hooks → human approval. Organization-managed settings (`permissions.defaultMode`) can disable the triage; the project neither requires nor forbids it.
 - **Copilot Memory (cloud, on by default).** The Copilot harness may store repo facts and user preferences in GitHub's cloud memory. Policy: **the versioned files remain the source of truth** — `DECISIONS.md`, `PLAN.md`/`TODO.md`, and `.github/ai-lessons-learned.md` are auditable, reviewable in PRs, and shared by every contributor; cloud memory is treated as a volatile convenience cache, never as the only record of a decision. If the two ever disagree, the repository wins (and the divergence should be distilled into the files at session end, per the `context-recovery` skill).
 
+### VS Code 1.145: harness mixing, local automations, and managed plugins
+
+Verified against the 1.145.0 release notes (2026-11-04): **no deprecation affects this repository** — the only removal is the `#installExtension` agent tool from the Local harness, which this project never used. Agent, skill, hook, and instruction file formats are unchanged, and `target: github-copilot` remains valid. The Copilot harness is now the default for new sessions, and Microsoft published a [Local-to-Copilot harness transition guide](https://code.visualstudio.com/docs/agents/run/move-to-copilot) that external adopters can follow.
+
+Four additions are relevant here; none requires changes:
+
+- **Mixed harnesses in nested sessions (Preview).** With `chat.agentHost.multipleChatProviders.enabled`, a nested chat can run on a different harness than its parent — for example, a second-opinion review of a plan or diff without losing the session grouping. It complements the `code-review-pass` skill and is tracked as a post-v1.0.0 evaluation item in `TODO.md`.
+- **Local automations with cron and workspace custom agents.** Local automations now accept five-field cron schedules and can run with this repository's custom agents (for example, an unattended weekly `defence:update` scan via the `security` agent). Also tracked as a post-v1.0.0 evaluation item.
+- **Organization-required plugins cannot be uninstalled.** The managed `enabledPlugins` setting now disables the Uninstall action for required plugins and their contributed agents, skills, and hooks. This is a distribution signal for the Fase M.3 marketplace evaluation: an organization can enforce a plugin that carries defences and AI customizations.
+- **Sandboxing guidance and chat attachments.** When required sandboxing is unavailable, VS Code now explains why terminal commands are blocked and how to fix it; and files attached to a chat become readable by the agent for the rest of the session (read-only, never persisted to settings). Neither changes the model above: the deterministic hooks remain the project boundary.
+
 ### Prompt-injection defense model (AI-3.2)
 
 The threat: a malicious document, registry payload, or tool output convinces the model to run a dangerous action ("ignore previous instructions and …"). The project assumes the model *can* be fully compromised and places the boundary elsewhere:

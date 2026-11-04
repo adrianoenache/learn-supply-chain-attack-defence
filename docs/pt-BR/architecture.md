@@ -12,7 +12,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
 │   ├── agents/                       # Agentes AI customizados (+ agents.sanity.test.js)
 │   ├── skills/                       # Agent Skills (+ skills.sanity.test.js, índice gerado)
 │   ├── hooks/                        # Hooks de lifecycle do Copilot (+ hooks.sanity.test.js, scripts/)
-│   ├── workflows/ci.yml              # Pipeline de CI no GitHub Actions (11 jobs)
+│   ├── workflows/ci.yml              # Pipeline de CI no GitHub Actions (12 jobs)
 │   ├── CODEOWNERS                    # Defesa organizacional: revisão de code owner em paths críticos
 │   ├── PLAN.md                       # Plano autoritativo (fonte da verdade das sessões)
 │   ├── ai-lessons-learned.md         # Log de erros recorrentes de AI

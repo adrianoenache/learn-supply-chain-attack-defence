@@ -20,7 +20,7 @@ Medida de quantas edições de caractere único são necessárias para transform
 
 ## Fork
 
-Campo opcional do frontmatter de skills (`context: fork`, especificação Agent Skills do VS Code, experimental) destinado a executar a skill num contexto dedicado de subagente, de modo que apenas o resultado final retorne à conversa principal. Até o VS Code 1.144.1 não tem efeito observado; o projeto o mantém por ser inócuo e revalida a cada atualização do editor.
+Campo opcional do frontmatter de skills (`context: fork`, especificação Agent Skills do VS Code, experimental) destinado a executar a skill num contexto dedicado de subagente, de modo que apenas o resultado final retorne à conversa principal. Até o VS Code 1.144.1 não tem efeito observado, e as notas da 1.145 não mencionam o campo; o projeto o mantém por ser inócuo e revalida a cada atualização do editor.
 
 ## Hook
 

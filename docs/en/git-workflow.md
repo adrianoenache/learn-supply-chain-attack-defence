@@ -15,7 +15,7 @@ Open a feature branch from `dev`, push your commits, and open a pull request bac
 ## Branch protection (`main` and `dev`)
 
 - **Push restriction:** code reaches either branch only through a pull request.
-- **Required checks:** the 11 CI jobs defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) must pass, and branches must be up to date before merging.
+- **Required checks:** the 12 CI jobs defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) must pass, and branches must be up to date before merging.
 - **Code-owner review:** [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the maintainer's review for critical paths (defence tools, hooks, workflows, npm configuration, AI customizations).
 - **Solo-maintainer note:** the minimum *approving review count* is temporarily 0 (a solo maintainer cannot approve their own PRs); the CODEOWNERS path requirement and all status checks remain active. Recorded as an ADR in `DECISIONS.md`.
 

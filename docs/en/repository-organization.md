@@ -81,7 +81,7 @@ From then on, any PR touching a protected path requests review from
 
 CODEOWNERS guarantees *human* review; status checks prevent merging a PR whose
 CI is red. Both branches require the CI jobs from `.github/workflows/ci.yml`:
-`Build`, `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
+`Build`, `Test`, `Test (Node LTS latest)`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
 `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
 `Defence Gates` — with "Require branches to be up to date before merging"
 enabled.

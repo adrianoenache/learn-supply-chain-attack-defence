@@ -20,6 +20,11 @@ comunicação), que exige aprovação explícita do mantenedor. Pré-requisitos 
 gate já atingidos: nota 10/10 (2026-11-03) e zero itens P0. Pós-release:
 M.2/M.3 (scaffolding, alvo v1.1.0).
 
+Em 2026-11-04: VS Code 1.145 verificado (zero deprecations relevantes; novos
+itens P3 de automações cron e harnesses mistos) e suíte validada em Node
+26.13.0 LTS (959/959) — o CI ganhou o job `test-latest-lts` (12 jobs),
+mantendo o piso de engines em 24.22.2.
+
 ## Fases
 
 ### Fase prévia — Alinhamento de nomenclatura e baseline

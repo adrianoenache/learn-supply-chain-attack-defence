@@ -20,7 +20,7 @@ An install process that produces the exact same dependency tree every time it ru
 
 ## Fork
 
-An optional skill frontmatter field (`context: fork`, VS Code Agent Skills spec, experimental) intended to run a skill in a dedicated subagent context so only its final result returns to the parent conversation. As of VS Code 1.144.1 it has no observed effect; the project keeps it as harmless and re-validates on editor updates.
+An optional skill frontmatter field (`context: fork`, VS Code Agent Skills spec, experimental) intended to run a skill in a dedicated subagent context so only its final result returns to the parent conversation. As of VS Code 1.144.1 it has no observed effect, and the 1.145 release notes do not mention the field; the project keeps it as harmless and re-validates on editor updates.
 
 ## Hook
 

@@ -15,7 +15,7 @@ Abra uma branch de feature a partir de `dev`, envie seus commits e abra um pull 
 ## Proteção de branches (`main` e `dev`)
 
 - **Restrição de push:** código só chega a qualquer uma das branches por meio de pull request.
-- **Checks obrigatórios:** os 11 jobs de CI definidos em [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) devem passar, e as branches precisam estar atualizadas antes do merge.
+- **Checks obrigatórios:** os 12 jobs de CI definidos em [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) devem passar, e as branches precisam estar atualizadas antes do merge.
 - **Revisão de code owner:** o [`.github/CODEOWNERS`](../../.github/CODEOWNERS) exige a revisão do mantenedor para paths críticos (ferramentas de defesa, hooks, workflows, configuração npm, customizações de AI).
 - **Nota de mantenedor solo:** o número mínimo de *aprovações* está temporariamente em 0 (um mantenedor solo não pode aprovar as próprias PRs); a exigência de CODEOWNERS por path e todos os status checks permanecem ativos. Registrado como ADR em `DECISIONS.md`.
 
