@@ -8,26 +8,17 @@
 
 ## TL;DR
 
-Fases prévia, AI-0, Pre-Fase E, E, AI-1 (migração VS Code 1.140), F
-(verificação de comandos, com `intermediateEligible` de ponta a ponta), F.4
-(quarentena acionável), AI-2 (governança/ergonomia das customizações AI), G
-(code review educacional + cobertura 94,70% → 95,94%), AI-3.5 (DECISIONS.md +
-destilação), H (organização: Biome, helpers, CODEOWNERS, badge), **L**
-(gestão de engines: update 24.19.0 → 24.22.2 por CVEs, ferramenta
-`update-engines.js`, guarda `check-npmrc`, ADRs de min-release-age e
-Permission Model), **AI-4** (commits granulares com hook consultivo, code
-review em 4 eixos com `code-review-pass` + `check-dead-code`, adoção VS Code
-1.144) e **I** (documentação: architecture.md reescrito + camada de AI
-(AI-3.4), glossário +8 termos, CONTRIBUTING corrigido, README/SECURITY
-revisados + revisão integral dos 69 pares EN/PT-BR), **AI-3.3**
-(observabilidade JSONL unificada dos hooks) e **J** (avaliação **10/10** com
-métricas medidas + `measure-ai-context.js`, zero P0) concluídas.
+**Todas as fases concluídas exceto o release.** prévia, AI-0, Pre-E, E, AI-1
+(migração VS Code 1.140), F/F.4, AI-2, G, AI-3.5, H, L (engines), AI-4
+(processos de AI), I (docs completas + revisão integral dos 69 pares EN/PT),
+AI-3.3 (observabilidade JSONL), J (**10/10 medido**, zero P0), AI-3.2
+(injection hardening), AI-3.1 ("não fazer" medido) e M.1 (dogfooding
+validado — 549/549 no projeto irmão) — todas concluídas.
 
-Sequência restante (ressequenciada em 2026-11-03, decisão do mantenedor):
-**AI-3.2** (prompt-injection/sanitização) → **AI-3.1** (inject-context, se a medição
-justificar) → **M.1** (dogfooding do instalador no projeto irmão) → **K**
-(release v1.0.0, com aprovação explícita) → **M.2/M.3** (scaffolding
-completo e scaffolding de infra AI — pós-v1.0.0, alvo v1.1.0).
+Resta apenas: **K** (release v1.0.0 — tag, GitHub Release com SBOM,
+comunicação), que exige aprovação explícita do mantenedor. Pré-requisitos de
+gate já atingidos: nota 10/10 (2026-11-03) e zero itens P0. Pós-release:
+M.2/M.3 (scaffolding, alvo v1.1.0).
 
 ## Fases
 

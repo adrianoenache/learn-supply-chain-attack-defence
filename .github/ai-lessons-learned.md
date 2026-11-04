@@ -17,6 +17,35 @@ Each entry must be concise and actionable:
 
 ## Entries
 
+### 2026-11-03 — The security hook scans ALL tool-call fields, including descriptions
+
+- **Date:** 2026-11-03
+- **Rule violated:** (variant of the 2026-10-05 commit-message block)
+- **Affected files:** `.github/hooks/scripts/enforce-security.sh`
+- **What happened:** During the M.1 dogfooding, four bash calls were denied
+  even though the *command* was legal — the dangerous literal appeared in the
+  tool call's `description` field, which the hook scans as part of the
+  combined toolArgs. The unified observability log (AI-3.3) diagnosed it in
+  one query — its first real-world payoff, the same day it shipped.
+- **Correction applied:** none needed in the hook (conservative scanning is
+  intended); the practice rule is: keep dangerous command literals out of
+  descriptions and messages, or document the sanctioned path explicitly.
+- **Instruction/agent updated:** none — recorded here for future sessions.
+
+### 2026-11-03 — New files fail Biome formatting on the first commit attempt
+
+- **Date:** 2026-11-03
+- **Rule violated:** Required Validation Commands (lint before declaring done)
+- **Affected files:** several new files across the L.1/L.2/AI-4.2/AI-3.3/J
+  commits
+- **What happened:** Four times today, the first commit of a freshly written
+  file failed the pre-commit because the new code had not been through
+  `biome check --write` (line wrapping, spacing). Every time the fix was
+  `lint:fix` + recommit — pure friction.
+- **Correction applied:** run `npm run lint:fix` (or `lint`) on new files
+  *before* the first commit attempt, not after the failure.
+- **Instruction/agent updated:** none — practice rule recorded here.
+
 ### 2026-11-03 — Never act on analyzer output before validating pattern coverage
 
 - **Date:** 2026-11-03
