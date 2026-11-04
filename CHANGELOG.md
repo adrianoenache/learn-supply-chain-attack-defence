@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (Fase K — release gate catch)
+
+- `check-package-age.js --transitive` no longer no-ops: the M.1 git-dep fix
+  classified any lockfile entry whose `resolved` field is a URL as
+  non-registry — but real lockfiles store a registry tarball URL for every
+  package, so the transitive age gate silently SKIPped the entire tree
+  ("No dependencies to check"). The gate now compares the `resolved` origin
+  against the configured registry host and only bypasses entries resolved
+  outside it (git hosts, arbitrary tarballs, unparsable link paths).
+  Regression tests pin both directions with realistic lockfile fixtures, and
+  the tool docs (EN/PT) clarify the SKIP scope.
+
 ### Added (CI — dual Node.js line validation)
 
 - New `test-latest-lts` job in `ci.yml`: resolves the newest Node.js LTS from
