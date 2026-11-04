@@ -399,7 +399,9 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   projeto zerado com defesas completas, com opção de infra de AI incluída.
 - [ ] **M.3** (v1.1.0) Scaffolding exclusivo da infra de AI (`.github/`) para
   projetos zerados ou em andamento; avaliar marketplace do VS Code 1.144 como
-  canal de distribuição.
+  canal de distribuição. Nota 1.145: a setting gerenciada `enabledPlugins`
+  impede a desinstalação de plugins exigidos pela organização — reforça o
+  marketplace como canal de distribuição impositiva.
 
 ---
 
@@ -408,6 +410,12 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
 - [ ] Automate changelog generation from conventional commits or tags.
 - [ ] Add optional sandbox mode for npm commands.
+- [ ] Evaluate VS Code 1.145 local automations (cron + workspace custom
+  agents) for recurring defence tasks — e.g., an unattended weekly
+  `defence:update` scan or docs link check via the `security`/`docs` agents.
+- [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
+  `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
+  for the `code-review-pass` skill.
 - [ ] Add deep performance profiling dashboard.
 - [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
 - [ ] Run the ninth project status analysis as a pre-release step and decide
