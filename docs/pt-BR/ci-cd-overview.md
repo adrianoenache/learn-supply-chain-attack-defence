@@ -15,6 +15,7 @@ Isso limita as execuções automáticas na branch protegida `main` apenas a pull
 graph TD
   A[Gatilho: push para dev<br/>ou PR para main/dev] --> B[build]
   B --> C[test]
+  B --> C2[test-latest-lts]
   B --> D[coverage]
   B --> E[lint]
   B --> F[format]
@@ -32,7 +33,8 @@ graph TD
 | Job | Objetivo | Etapa principal |
 |---|---|---|
 | `build` | Preparar um ambiente reprodutível | `npm ci` + envio do artefato `node_modules` |
-| `test` | Executar a suíte de testes | Baixar artefato, `npm test` |
+| `test` | Executar a suíte de testes no piso de engines | Baixar artefato, `npm test` |
+| `test-latest-lts` | Executar a suíte de testes no Node.js LTS mais recente | Resolver o LTS mais recente no índice dist oficial, baixar artefato, `npm test` |
 | `coverage` | Medir a cobertura de testes | Baixar artefato, comando de cobertura |
 | `lint` | Verificar a qualidade do código | `npm run lint` |
 | `format` | Verificar a formatação | `npm run format:check` |
@@ -44,6 +46,15 @@ graph TD
 | `defence-gates` | Executar as defesas e produzir um SBOM | Enviar `/tmp/sbom.json` como `sbom-${{ github.run_id }}` |
 
 Cada job possui `timeout-minutes: 15` para evitar workers descontrolados.
+
+A suíte roda em **duas linhas do Node.js**: `test` fixa o piso de engines
+derivado do `package.json` (o runtime mínimo suportado), enquanto
+`test-latest-lts` resolve o release LTS mais recente no
+[índice dist oficial](https://nodejs.org/dist/index.json) em tempo de execução
+e testa contra ele. Quando ambos resolvem para a mesma versão, o segundo job é
+uma duplicata inofensiva; assim que uma linha LTS mais nova aparece, o CI passa
+a cobri-la automaticamente. Isso mantém o piso de engines honesto (sem bump
+não testado) sem abandonar adotantes em linhas mais antigas ainda suportadas.
 
 ## Ações fixadas por SHA
 

@@ -15,6 +15,7 @@ This limits automatic runs on the protected `main` branch to pull requests only.
 graph TD
   A[Trigger: push to dev<br/>or PR to main/dev] --> B[build]
   B --> C[test]
+  B --> C2[test-latest-lts]
   B --> D[coverage]
   B --> E[lint]
   B --> F[format]
@@ -32,7 +33,8 @@ graph TD
 | Job | Purpose | Key step |
 |---|---|---|
 | `build` | Prepare a reproducible environment | `npm ci` + upload `node_modules` artifact |
-| `test` | Run the test suite | Download artifact, `npm test` |
+| `test` | Run the test suite on the engines floor | Download artifact, `npm test` |
+| `test-latest-lts` | Run the test suite on the newest Node.js LTS | Resolve the latest LTS from the official dist index, download artifact, `npm test` |
 | `coverage` | Measure test coverage | Download artifact, coverage command |
 | `lint` | Check code quality | `npm run lint` |
 | `format` | Check formatting | `npm run format:check` |
@@ -44,6 +46,15 @@ graph TD
 | `defence-gates` | Run defence gates and produce an SBOM | Upload `/tmp/sbom.json` as `sbom-${{ github.run_id }}` |
 
 Every job has `timeout-minutes: 15` to prevent runaway workers.
+
+The suite runs on **two Node.js lines**: `test` pins the engines floor derived
+from `package.json` (the minimum supported runtime), while `test-latest-lts`
+resolves the newest LTS release from the official
+[dist index](https://nodejs.org/dist/index.json) at run time and tests against
+it. When both resolve to the same version the second job is a harmless
+duplicate; as soon as a newer LTS line appears, CI starts covering it
+automatically. This keeps the engines floor honest (no untested bump) without
+dropping adopters on older still-supported lines.
 
 ## Pinned actions
 
