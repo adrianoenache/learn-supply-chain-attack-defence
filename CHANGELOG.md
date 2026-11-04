@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (CI — descriptive test job names)
+
+- The `test` job now displays as `Test (engines floor)`, making the pair with
+  `Test (Node LTS latest)` self-explanatory in the Checks UI. The job id is
+  unchanged; the required status check name changes accordingly (branch
+  protection must list the new name).
+
 ### Fixed (Fase K — release gate catch)
 
 - `check-package-age.js --transitive` no longer no-ops: the M.1 git-dep fix
