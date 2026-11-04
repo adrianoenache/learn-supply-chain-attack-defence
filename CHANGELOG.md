@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-04
+
 ### Changed (CI — descriptive test job names)
 
 - The `test` job now displays as `Test (engines floor)`, making the pair with
