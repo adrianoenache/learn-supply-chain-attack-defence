@@ -17,6 +17,27 @@ Each entry must be concise and actionable:
 
 ## Entries
 
+### 2026-11-04 — A gate that exits 0 can still be a no-op: read gate output, not just exit codes
+
+- **Date:** 2026-11-04
+- **Rule violated:** Project Evaluation ("every category must have concrete
+  evidence") — variant: evidence means reading WHAT the gate verified.
+- **Affected files:** `tools/check-package-age.js`
+- **What happened:** The M.1 git-dep fix classified any lockfile entry whose
+  `resolved` field is a URL as non-registry — but real lockfiles store a
+  registry tarball URL for every package, so
+  `defence:pkg-age-check --transitive` exited 0 printing "No dependencies to
+  check": green while verifying nothing. It surfaced only because the v1.0.0
+  release checklist run READ the output instead of trusting the exit code.
+  The existing transitive test stayed green because its fixture omitted the
+  `resolved` field that real lockfiles always have.
+- **Correction applied:** the transitive classifier now compares the
+  `resolved` origin against the configured registry host and only bypasses
+  entries resolved outside it; regression tests use realistic lockfile
+  fixtures with `resolved` URLs in both directions.
+- **Instruction/agent updated:** none — fixtures for lockfile-driven tools
+  must include the `resolved` field from now on; recorded here.
+
 ### 2026-11-03 — The security hook scans ALL tool-call fields, including descriptions
 
 - **Date:** 2026-11-03
