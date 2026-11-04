@@ -60,4 +60,4 @@ All packages passed the minimum age check.
 
 ## Dependências fora do registry
 
-URLs git, specs `file:`/`link:`/`workspace:` e URLs de tarball não podem ser verificadas por idade contra o registry — são fixadas por commit ou caminho, não por data de publicação. A ferramenta as reporta como `SKIP` com um aviso (verifique-as manualmente) em vez de falhar com um erro de consulta ao registry.
+URLs git, specs `file:`/`link:`/`workspace:` e URLs de tarball hospedadas fora do registry configurado não podem ser verificadas por idade contra o registry — são fixadas por commit ou caminho, não por data de publicação. A ferramenta as reporta como `SKIP` com um aviso (verifique-as manualmente) em vez de falhar com um erro de consulta ao registry. No modo `--transitive`, a URL `resolved` do lockfile é comparada ao host do registry configurado, então tarballs do próprio registry continuam sendo verificados normalmente.

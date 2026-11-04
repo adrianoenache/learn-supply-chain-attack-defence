@@ -58,4 +58,4 @@ All packages passed the minimum age check.
 
 ## Non-registry dependencies
 
-Git URLs, `file:`/`link:`/`workspace:` specs, and tarball URLs cannot be age-checked against the registry — they pin by commit or path, not by publish date. The tool reports them as `SKIP` with an advisory (verify them manually) instead of failing with a registry-lookup error.
+Git URLs, `file:`/`link:`/`workspace:` specs, and tarball URLs hosted outside the configured registry cannot be age-checked against the registry — they pin by commit or path, not by publish date. The tool reports them as `SKIP` with an advisory (verify them manually) instead of failing with a registry-lookup error. In `--transitive` mode the lockfile's `resolved` URL is compared against the configured registry host, so registry tarballs are still checked normally.

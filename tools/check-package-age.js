@@ -244,13 +244,35 @@ async function main(options = {}) {
   const nonRegistry = entries.filter(([, spec]) => isNonRegistrySpec(spec))
   entries = entries.filter(([, spec]) => !isNonRegistrySpec(spec))
 
-  // In transitive mode the value is the resolved version; a git dependency
-  // reveals itself through the lockfile's resolved URL instead.
+  // In transitive mode the value is the resolved version; a git or URL
+  // dependency reveals itself through the lockfile's resolved URL instead.
   if (mode.transitive && lock?.packages) {
+    // Regression caught by the v1.0.0 release checklist: `resolved` is a URL
+    // for EVERY lockfile entry — registry tarballs included
+    // (https://<registry>/<name>/-/<file>.tgz) — so the generic spec test
+    // alone classified the whole tree as non-registry and the gate silently
+    // became a no-op ("No dependencies to check"). A resolved URL bypasses
+    // the age check only when it points OUTSIDE the configured registry.
+    const registryOrigin = new URL(
+      // npm's default registry host; npm itself exports npm_config_registry
+      // to scripts, so custom registries are honored without extra config.
+      process.env.npm_config_registry ?? 'https://registry.npmjs.org',
+    ).origin
     const stillRegistry = []
     for (const [name, version] of entries) {
       const resolved = lock.packages[`node_modules/${name}`]?.resolved ?? ''
+      let bypass = false
       if (isNonRegistrySpec(resolved)) {
+        try {
+          bypass = new URL(resolved).origin !== registryOrigin
+        } catch {
+          // Unparsable resolved URL (e.g. a link dep's relative path):
+          // surface it in the SKIP list for manual verification instead of
+          // failing the run (non-registry ADR: classify, never fail).
+          bypass = true
+        }
+      }
+      if (bypass) {
         nonRegistry.push([name, resolved])
       } else {
         stillRegistry.push([name, version])

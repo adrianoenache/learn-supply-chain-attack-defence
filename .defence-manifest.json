@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-04T15:45:47.028Z",
+  "installedAt": "2026-11-04T17:41:19.367Z",
   "files": [
     {
       "path": ".npmrc",
@@ -100,11 +100,11 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "cae05f67ea3cf34fefc7cf974fece12e493037f54d6599be5f1e23cdd2e27ab8"
+      "hash": "50e7e4bd93711e83476733de3efa50439be2427c84022b8121f7708e68cc2cc1"
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "d639801b769bb4c560b73c3bdea437b5e72bb9e2fecb5a179e94b7f08dae6891"
+      "hash": "2d14e75d1190c41b25b24b40524d864ae6d209bedf498db35d8f12e8f5ee3c36"
     },
     {
       "path": "tools/check-secrets.js",
