@@ -86,6 +86,24 @@ CI is red. Both branches require the CI jobs from `.github/workflows/ci.yml`:
 `Defence Gates` — with "Require branches to be up to date before merging"
 enabled.
 
+The full branch ruleset, identical for `main` and `dev` (aligned on
+2026-11-04):
+
+- **Restrict deletions**
+- **Require a pull request before merging** — required approvals **0**
+  (solo-maintainer ADR), dismiss stale approvals on new commits, require
+  review from Code Owners, require conversation resolution, and require an
+  additional approval for unattributed Copilot pull requests
+- **Require status checks to pass** — the 12 CI jobs listed above, with
+  "Require branches to be up to date before merging"
+- **Block force pushes**
+
+> **Caution:** do **not** enable "Restrict updates" on `main` or `dev`. That
+> rule blocks PR merges entirely ("Cannot update this protected ref") unless
+> the maintainer is on the ruleset's bypass list — it is designed for frozen
+> refs (tags, archived branches), not for branches that receive merges. It
+> blocked the v1.0.0 release PR (#27) until it was removed from `main`.
+
 To reproduce this setup in another repository: enable **Require status checks
 to pass before merging** in the branch rule and add the job names above.
 

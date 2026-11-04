@@ -91,6 +91,25 @@ PR com o CI vermelho. Ambas as branches exigem os jobs de CI de
 `Installer Dry-Run`, `Defence Gates` — com "Require branches to be up to date
 before merging" habilitado.
 
+O ruleset completo das branches, idêntico para `main` e `dev` (alinhado em
+2026-11-04):
+
+- **Restrict deletions**
+- **Require a pull request before merging** — aprovações obrigatórias **0**
+  (ADR de mantenedor solo), descartar aprovações obsoletas em novos commits,
+  exigir revisão de Code Owners, exigir resolução de conversas e exigir
+  aprovação adicional para PRs de Copilot não atribuídas
+- **Require status checks to pass** — os 12 jobs de CI listados acima, com
+  "Require branches to be up to date before merging"
+- **Block force pushes**
+
+> **Atenção:** **não** habilite "Restrict updates" em `main` ou `dev`. Essa
+> regra bloqueia merges de PR por completo ("Cannot update this protected
+> ref") a menos que o mantenedor esteja na lista de bypass do ruleset — ela
+> existe para refs congelados (tags, branches arquivadas), não para branches
+> que recebem merges. Ela bloqueou a PR de release v1.0.0 (#27) até ser
+> removida do `main`.
+
 Para reproduzir essa configuração em outro repositório: habilite **Require
 status checks to pass before merging** na regra da branch e adicione os nomes
 dos jobs acima.

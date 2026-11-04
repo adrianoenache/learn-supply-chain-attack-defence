@@ -8,22 +8,26 @@
 
 ## TL;DR
 
-**Todas as fases concluídas exceto o release.** prévia, AI-0, Pre-E, E, AI-1
+**v1.0.0 released em 2026-11-04** (PR #27 dev→main, tag `v1.0.0`, GitHub
+Release publicado). Todas as fases concluídas: prévia, AI-0, Pre-E, E, AI-1
 (migração VS Code 1.140), F/F.4, AI-2, G, AI-3.5, H, L (engines), AI-4
 (processos de AI), I (docs completas + revisão integral dos 69 pares EN/PT),
 AI-3.3 (observabilidade JSONL), J (**10/10 medido**, zero P0), AI-3.2
-(injection hardening), AI-3.1 ("não fazer" medido) e M.1 (dogfooding
-validado — 549/549 no projeto irmão) — todas concluídas.
+(injection hardening), AI-3.1 ("não fazer" medido), M.1 (dogfooding validado
+— 549/549 no projeto irmão) e **K** (release).
 
-Resta apenas: **K** (release v1.0.0 — tag, GitHub Release com SBOM,
-comunicação), que exige aprovação explícita do mantenedor. Pré-requisitos de
-gate já atingidos: nota 10/10 (2026-11-03) e zero itens P0. Pós-release:
-M.2/M.3 (scaffolding, alvo v1.1.0).
+No dia do release (2026-11-04): VS Code 1.145 verificado (zero deprecations
+relevantes; novos itens P3 de automações cron e harnesses mistos); suíte
+validada em Node 26.13.0 LTS — o CI roda dual-line com 12 jobs
+(`Test (engines floor)` + `Test (Node LTS latest)`), mantendo o piso em
+24.22.2; e o checklist de release **capturou e corrigiu na raiz** uma
+regressão que tornava o portão de idade transitivo um no-op silencioso
+(regressão da M.1; ver CHANGELOG `[1.0.0]`).
 
-Em 2026-11-04: VS Code 1.145 verificado (zero deprecations relevantes; novos
-itens P3 de automações cron e harnesses mistos) e suíte validada em Node
-26.13.0 LTS (959/959) — o CI ganhou o job `test-latest-lts` (12 jobs),
-mantendo o piso de engines em 24.22.2.
+Pós-release (v1.1.0): **M.2** (scaffolding completo) e **M.3** (scaffolding
+de infra AI + avaliação de marketplace), além do backlog P3. Pendência do
+mantenedor no projeto irmão: revisar `chore/adopt-defences` e triangular as
+29 vulnerabilidades (2 críticas) que a defesa adotada revelou.
 
 ## Fases
 
