@@ -98,6 +98,53 @@ jobs:
       - name: Run tests
         run: npm test
 
+  test-latest-lts:
+    # Complement to the `test` job: `test` pins the engines floor (minimum
+    # supported runtime, derived from package.json), while this job proves the
+    # suite also stays green on the newest Node.js LTS line. When both resolve
+    # to the same version the job is a harmless duplicate and self-adjusts as
+    # soon as a newer LTS line appears.
+    name: Test (Node LTS latest)
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Resolve latest Node.js LTS from the official dist index
+        id: lts
+        run: |
+          # The dist index is sorted newest-first, so the first entry with an
+          # LTS codename is the newest LTS release. We resolve an exact
+          # version instead of a floating 'lts/*' label so every run log
+          # records precisely what was validated.
+          curl -fsSL --max-time 30 -o dist-index.json https://nodejs.org/dist/index.json
+          node -e "
+            const idx = require('./dist-index.json');
+            const lts = idx.find((r) => r.lts);
+            if (!lts || !lts.npm) throw new Error('No LTS entry with a bundled npm found in the Node.js dist index.');
+            console.log('node=' + lts.version.replace(/^v/, ''));
+            console.log('npm=' + lts.npm);
+          " >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js (latest LTS)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ steps.lts.outputs.node }}
+          npm-version: ${{ steps.lts.outputs.npm }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run tests
+        run: npm test
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
