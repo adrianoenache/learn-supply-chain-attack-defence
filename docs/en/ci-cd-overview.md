@@ -14,8 +14,8 @@ This limits automatic runs on the protected `main` branch to pull requests only.
 ```mermaid
 graph TD
   A[Trigger: push to dev<br/>or PR to main/dev] --> B[build]
-  B --> C[test]
-  B --> C2[test-latest-lts]
+  B --> C["test (engines floor)"]
+  B --> C2["test-latest-lts (Node LTS latest)"]
   B --> D[coverage]
   B --> E[lint]
   B --> F[format]

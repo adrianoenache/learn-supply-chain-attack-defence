@@ -85,7 +85,7 @@ A partir daí, qualquer PR que toque um caminho protegido solicita revisão de
 
 O CODEOWNERS garante revisão *humana*; os status checks impedem o merge de uma
 PR com o CI vermelho. Ambas as branches exigem os jobs de CI de
-`.github/workflows/ci.yml`: `Build`, `Test`, `Test (Node LTS latest)`,
+`.github/workflows/ci.yml`: `Build`, `Test (engines floor)`, `Test (Node LTS latest)`,
 `Coverage`, `Lint`, `Format`,
 `Documentation Links`, `License Check`, `Lockfile Integrity`, `Secret Scan`,
 `Installer Dry-Run`, `Defence Gates` — com "Require branches to be up to date
