@@ -7,12 +7,572 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-04
+
+### Changed (CI — descriptive test job names)
+
+- The `test` job now displays as `Test (engines floor)`, making the pair with
+  `Test (Node LTS latest)` self-explanatory in the Checks UI. The job id is
+  unchanged; the required status check name changes accordingly (branch
+  protection must list the new name).
+
+### Fixed (Fase K — release gate catch)
+
+- `check-package-age.js --transitive` no longer no-ops: the M.1 git-dep fix
+  classified any lockfile entry whose `resolved` field is a URL as
+  non-registry — but real lockfiles store a registry tarball URL for every
+  package, so the transitive age gate silently SKIPped the entire tree
+  ("No dependencies to check"). The gate now compares the `resolved` origin
+  against the configured registry host and only bypasses entries resolved
+  outside it (git hosts, arbitrary tarballs, unparsable link paths).
+  Regression tests pin both directions with realistic lockfile fixtures, and
+  the tool docs (EN/PT) clarify the SKIP scope.
+
+### Added (CI — dual Node.js line validation)
+
+- New `test-latest-lts` job in `ci.yml`: resolves the newest Node.js LTS from
+  the official dist index at run time and runs the full test suite on it,
+  alongside the engines-floor `test` job. The engines floor stays at Node
+  24.22.2 / npm 11.19.1 (already the v24 line tip); the suite was verified
+  green locally (959/959) on Node 26.13.0 LTS (npm 11.20.0).
+
+### Added (VS Code 1.145 compatibility review)
+
+- New "VS Code 1.145" section in the bilingual AI guidelines: zero relevant
+  deprecations (only the unused `#installExtension` tool was removed from the
+  Local harness), Copilot harness default plus the official transition guide
+  link, and four relevant additions (mixed harnesses in nested sessions, cron
+  local automations with workspace custom agents, organization-enforced
+  plugins, sandboxing guidance/attachments) — two of them tracked as
+  post-v1.0.0 backlog items in `TODO.md`.
+- CI job-count references updated (11 → 12) in the architecture,
+  git-workflow, repository-organization, and CI/CD overview pages (EN/PT).
+
+### Security (Fase L.0 — engine update)
+- Updated the minimum Node.js from 24.19.0 to 24.22.2 and npm from 11.17.0 to
+  11.19.1 (the version bundled with Node 24.22.2). The previous pin predated
+  the 2026-10-21 Node.js security release, which fixed 8 CVEs (4 High,
+  including a Brotli out-of-bounds write with RCE potential via `node:zlib`)
+  across the 22.x/24.x/26.x lines. Updated `package.json`,
+  `package-lock.json`, `.nvmrc`, README badges, CONTRIBUTING, and the
+  bilingual requirement docs.
+
+### Changed (Fase I — documentation overhaul)
+
+- `docs/{en,pt-BR}/architecture.md` rewritten from the live filesystem: full
+  annotated tree (root, `.github/`, `tools/`, `tools/lib/`), a complete
+  components table, and the new **AI Customization Layer** section (AI-3.4)
+  mapping the five layers with the guideline/procedure/reviewer/guarantee
+  placement rule. Design Decisions now record the advisory-vs-gate split,
+  manifest-driven adoption, and the extraction rule.
+- `docs/{en,pt-BR}/glossary.md` gains 8 terms: agent, CODEOWNERS, fork, hook,
+  intermediateEligible, quarantine, schemaVersion, skill.
+- `CONTRIBUTING.md`: the CI table now references `npm run format:check`
+  (instead of the removed direct biome call) and the current defence-gates
+  contents.
+- `README.md`/`SECURITY.md`: supporting capabilities now include
+  `check-npmrc` and `update-engines`, and both documents state the
+  organizational layer (branch protection + required checks + CODEOWNERS).
+
+### Added (Fase M.1 — dogfooding on a real project)
+
+- `install-defences.js` was run against the real `setup-webpack-stylus-liquid`
+  project; the dated bilingual report lives in
+  `docs/{en,pt-BR}/dogfooding-m1-report.md`. Eight adoption gaps were found
+  and fixed at the root, and the adopted suite passes 549/549 there.
+- `check-package-age.js` and `check-lockfile-integrity.js` now classify
+  git/file/URL dependencies in advisory sections instead of failing them
+  (they pin by commit, not by registry publish date) — ADR recorded.
+- `sync-check` compares installed versions against the lockfile's resolved
+  version, never against the `package.json` range (false drift on `^x.y.z`).
+- `install-defences.js`: devDependency pins track the source project at
+  install time; defence config blocks merge when absent (adopter's blocks
+  win); the pre-commit hook hash is written so `check-hooks` passes from day
+  one; defence state entries merge into the target `.gitignore`.
+
+### Fixed (Fase M.1 — test portability)
+
+- `config.test.js` no longer asserts this repository's directory name; the
+  `generate-sbom` CLI test writes to a temp file via `--output` instead of
+  parsing stdout under a 1 MB buffer (a real lockfile overflows it).
+
+### Added (Fase AI-3.1 — measured don't-do)
+
+- The `inject-context` optimization was evaluated and **rejected by
+  measurement** (ADR): the sessionStart payload is 143 bytes (~36 tokens) and
+  ~96 ms once per session, so mtime caching would buy ~90 ms at the cost of
+  invalidation complexity and stale-data risk. `measure-ai-context.js` gained
+  the `sessionStart` channel so the evidence is reproducible.
+
+### Added (Fase AI-3.2 — injection hardening)
+
+- New `tools/lib/validate-external-content.js` — output validation before
+  trust (APPA phase 2): packument shape (name match, versions/time maps,
+  parseable dates), publish-date plausibility (24h clock-skew tolerance), and
+  Node.js dist-index entry shapes. Wired into `check-package-age.js`,
+  `check-updates.js`, and `update-engines.js`; both registry consumers
+  self-heal poisoned cache entries with one forced re-fetch.
+- New prompt-injection smoke suite (`.github/test-fixtures/`): fixtures
+  simulate a fully compromised model demanding dangerous actions; the real
+  hook scripts deny every one. A containment suite asserts no shipped AI file
+  carries injection phrases. The defense model (rules are guidance, hooks are
+  the boundary, payloads are validated) is documented in the bilingual
+  ai-guidelines.
+
+### Added (Fase J — project evaluation)
+
+- `PROJECT_STATUS_REPORT.md` regenerated with measured metrics: **10/10** in
+  all five categories, zero open P0 items. The 2026-08-20 adoption-drift
+  problem is fixed at the root by the L.2 completeness test.
+- New `tools/measure-ai-context.js` (`defence:measure-ai-context`, optional
+  P4 item): measures bytes/tokens per AI customization layer from disk —
+  always-on 2,996 bytes (~749 tokens/request) at this writing — feeding this
+  report and the AI-3.1 optimization decision. Not adopted into other
+  projects (excluded with justification).
+
+### Added (Fase AI-3.3 — hook observability)
+
+- Unified, local-only hook observability: every Copilot hook appends JSONL
+  events (`at`/`hook`/`event`/`action`/`reason`/`snippet`) to the gitignored
+  `.github/hooks/scripts/observability.jsonl` via the shared
+  `log-hook-event.js` (never fails the caller, capped at 5,000 entries).
+  The legacy `security-blocks.log` was migrated into it.
+- New `observability-summary.js`: counts by hook and action, with the
+  "defenses blocked N dangerous calls" payoff line, in text and
+  `--format json`.
+- New bilingual page `docs/{en,pt-BR}/ai-observability.md` (format, reading
+  recipes, properties), linked from the indexes and ai-guidelines.
+
+### Added (Fase AI-4.3 — VS Code 1.144 adoption)
+
+- All nine `.github/agents/*.agent.md` now declare `target: github-copilot`,
+  making editor completion/validation deterministic regardless of the active
+  session harness.
+- New "VS Code 1.144" section in the bilingual AI guidelines: Assisted
+  Permissions documented as pre-hook triage (project `preToolUse` hooks remain
+  the deterministic last word), and the Copilot Memory policy — versioned
+  files (DECISIONS/PLAN/lessons) are the source of truth, cloud memory is a
+  volatile cache, the repository wins on divergence.
+- `context: fork` re-tested on 1.144.1: still no observable effect; field
+  kept as harmless and scheduled for re-validation on the next VS Code update.
+
+### Added (Fase AI-4.2 — 4-axis AI code review)
+
+- New `code-review-pass` skill (manual): chains the four review axes —
+  quality (`educational-code-review`), security (`security-audit`), dead code
+  (`check-dead-code` triage), and related documentation (`docs-completeness`)
+  — into one consolidated report.
+- New advisory `tools/check-dead-code.js` (`defence:check-dead-code`):
+  dead-export/orphan-file candidate finder aware of the codebase's require
+  idioms (DI contracts, alias-indirected test harnesses, inline
+  `require().member()` access). Always exits 0 — the test suite arbitrates
+  removals (ADR).
+- Baseline cleanup: 41 internal-only symbols unexported, 2 fully dead
+  functions deleted, 4 exports kept with new direct unit tests.
+  `tools/check-updates.js` keeps its stricter `compareVersions` (pre-release
+  rejection for untrusted registry data), unexported but not merged into
+  `lib/semver.js` per the byte-identical extraction rule.
+
+### Added (Fase L.3 — documented evaluations)
+
+- Two ADRs in `DECISIONS.md`: the retroactive formalization of
+  `min-release-age=7` (including the fail-closed tradeoff — npm keeps the
+  vulnerable version and warns when the age window blocks a patch, with
+  `min-release-age-exclude` as the documented emergency escape) and the
+  rejection of Node's Permission Model as an install-time sandbox (vendor
+  disclaimer + two bypass CVEs in the 2026-10-21 security release; any future
+  sandbox must use OS-level isolation). Reflected in `npmrc-hardening.md` and
+  `security/lifecycle-script-analysis.md`, both languages.
+
+### Added (Fase L.2 — npm configuration surface guard)
+
+- New `tools/check-npmrc.js` with `defence:check-npmrc`, wired into the
+  pre-commit hook and the CI `defence-gates` job: validates `.npmrc` keys
+  against a curated known list plus a justified lookahead registry
+  (`npm-audit-fix-level`, `send-metrics`), rejects weakened defensive values
+  (`ignore-scripts=false`, `strict-ssl=false`, …), and rejects the npm v12
+  extension mechanism (`extension-file` key and auto-discovered
+  `.npm-extension.mjs`/`.cjs` files — install-time code execution invisible
+  to lifecycle-script detectors).
+- The `.npmrc` inline comments now declare the lookahead status of
+  `npm-audit-fix-level`/`send-metrics` explicitly (kept per maintainer
+  decision; incompatible with npm v12 `strict-npmrc`).
+
+### Fixed (Fase L.2 — adoption manifest drift)
+
+- `FILES_TO_COPY` in `install-defences.js` had drifted from the tree:
+  `concurrency.js` (H.1), `semver.js` and `update-engines.js` (L.1), and
+  `check-npmrc.js` (L.2) were missing, so an adopted toolset would break at
+  require time. Added, plus `defence:check-npmrc` and
+  `defence:update-engines*` in `SCRIPTS_TO_ADD`, an explicit
+  `EXCLUDED_FROM_ADOPTION` list (`tools/e2e/**`), and a completeness test
+  requiring every `tools/` file to be adopted or excluded (manifest 72 → 79
+  files).
+
+### Added (Fase L.1 — engine lifecycle tooling)
+
+- New `tools/update-engines.js` with `defence:update-engines`,
+  `defence:update-engines:update`, and `defence:update-engines:upgrade`
+  scripts: reports and applies Node.js engine updates (in-major) and upgrades
+  (latest LTS), always pinning npm to the version bundled with the Node
+  release. Targets come from the official `nodejs.org/dist/index.json` — the
+  same source `actions/setup-node` uses, so CI availability is guaranteed by
+  construction; absent targets and downgrades are refused. Edits to
+  `package.json`, `package-lock.json` (root entry only), and `.nvmrc` are
+  surgical, preserving formatting.
+- New shared `tools/lib/semver.js` (extracted from `check-engines.js` under
+  the byte-identical-second-consumer rule).
+
+### Added (Fase AI-4.1 — commit granularity)
+
+- New advisory Copilot hook `warn-oversized-commit` (preToolUse on
+  `bash`/`powershell`): when a `git commit` stages more than 8 files, 400
+  changed lines, or 2 path domains, it advises splitting into per-intent
+  commits with the exact procedure — it never blocks (ADR in
+  `DECISIONS.md`). Ships with 9 end-to-end tests running against throwaway
+  git repositories.
+- The one-commit-one-intent rule is now normative in
+  `.github/copilot-instructions.md` (AI) and `CONTRIBUTING.md` (humans).
+
+### Added
+
+- CI/CD optimization and hardening (Fase D):
+  - Rewrote `.github/workflows/ci.yml` with all actions pinned by SHA and
+    semantic-version comments (`actions/checkout`, `actions/setup-node`,
+    `actions/upload-artifact`, `actions/download-artifact`).
+  - Added `.github/dependabot.yml` for weekly GitHub Actions updates with
+    `chore(deps)` commit prefix.
+  - Applied minimal `GITHUB_TOKEN` permissions (`contents: read`,
+    `actions: write`) at workflow level.
+  - Added `timeout-minutes: 15` to every job to prevent runaway workers.
+  - Changed CI triggers to push only on `dev` and pull requests on `main`
+    and `dev`, protecting `main` from direct pushes.
+  - Replaced the `setup` job with `build`, which runs `npm ci` once and
+    uploads `node_modules` as a run-scoped artifact; all downstream jobs
+    download the artifact instead of reinstalling.
+  - Split the former `lint-format` job into separate `lint` and `format`
+    jobs for clearer failure diagnosis.
+  - Added SBOM artifact upload in `defence-gates` with `retention-days: 30`
+    and `archive: false`.
+  - Added `install-defences-dry-run` job that verifies
+    `.defence-manifest.json` and runs `install-defences.js --dry-run` to
+    detect installer drift.
+  - Added `actionlint` validation in CI using a pinned binary (v1.7.4) with
+    SHA-256 checksum verification, and optional local enforcement in
+    `.husky/pre-commit`.
+  - New documentation: `docs/en/ci-cd-overview.md`,
+    `docs/pt-BR/ci-cd-overview.md`, `docs/en/git-workflow.md`,
+    `docs/pt-BR/git-workflow.md`, `docs/en/sbom-and-compliance.md`,
+    `docs/pt-BR/sbom-and-compliance.md`, `docs/en/performance-tuning.md`,
+    `docs/pt-BR/performance-tuning.md`.
+  - Updated `README.md`, `CONTRIBUTING.md`, `docs/en/index.md`,
+    `docs/pt-BR/index.md`, `docs/en/tools.md`, and `docs/pt-BR/tools.md`
+    with CI/CD cross-references.
+
+- Trust score dashboard (`defence:trust-report`):
+  - New `tools/lib/trust-engine.js` engine that aggregates age, cadence,
+    deprecation, maintainer count, weekly downloads, provenance, typosquatting,
+    lifecycle script risk, and license signals into a single 0–100 score per
+    package.
+  - New `tools/generate-trust-report.js` CLI and `defence:trust-report`,
+    `defence:trust-report:json`, and `defence:trust-report:fail` npm scripts
+    with table, JSON, and Markdown output.
+  - Integration into `tools/add-package.js` after lifecycle script analysis,
+    controlled by `trustReport` in `package.json` (`enabled`, `failOnMinScore`,
+    `minScore`, `concurrency`, `registryTimeoutMs`, `cacheTtlHours`,
+    `outputFile`, and `scoringWeights`).
+  - Full test coverage in `tools/lib/trust-engine.test.js`,
+    `tools/generate-trust-report.test.js`, and extended
+    `tools/add-package.test.js` scenarios.
+  - Documentation in `docs/en/trust-scoring.md` and
+    `docs/pt-BR/trust-scoring.md`, plus updates to README, tools pages,
+    quick-reference, and security index.
+
+- Lifecycle script analysis (pre-install dry-run):
+  - New `tools/lib/script-analyzer.js` engine that scans npm lifecycle scripts
+    for risky patterns (child process execution, dynamic evaluation, outbound
+    network calls, filesystem writes, environment access, permission changes,
+    native addon builds, and potentially obfuscated payloads).
+  - New `tools/analyze-lifecycle-scripts.js` CLI and
+    `defence:analyze-lifecycle-scripts` npm script with table, JSON, and
+    Markdown output and a `--fail` flag.
+  - Integration into `tools/add-package.js` after the provenance check and
+    before `npm install`, controlled by `lifecycleScriptAnalysis` in
+    `package.json` (`enabled` and `failOn` settings).
+  - Full test coverage in `tools/lib/script-analyzer.test.js`,
+    `tools/analyze-lifecycle-scripts.test.js`, and extended
+    `tools/add-package.test.js` scenarios.
+  - Documentation in `docs/en/security/lifecycle-script-analysis.md` and
+    `docs/pt-BR/security/lifecycle-script-analysis.md`, plus updates to README,
+    tools pages, quick-reference, and security index.
+- Process monitoring for lifecycle scripts during `npm install`:
+  - New `tools/lib/process-monitor.js` native Node.js hook for `spawn`,
+    `spawnSync`, `exec`, and `execSync` with risk classification labels
+    (`lifecycle`, `shell`, `network`, `permission`, `filesystem-write`,
+    `native-build`, `unknown`).
+  - New `tools/lib/install-monitor-report.js` formatter for Markdown and JSON
+    reports summarising monitored events.
+  - New `tools/monitor-install.js` CLI and `defence:install-monitored` npm script
+    with `--output`, `--format`, `--silent`, and `--fail-on-lifecycle` options.
+  - Integration into `tools/add-package.js` and `tools/setup-bootstrap.js` so
+    every install is monitored and a report is written to
+    `lifecycleMonitoring.reportFile` (default `lifecycle-monitor-report.md`).
+  - New `lifecycleMonitoring` configuration block in `package.json` with
+    `enabled`, `reportFile`, `failOnLifecycle`, and `maxArgsLength` settings.
+  - Full test coverage in `tools/lib/process-monitor.test.js`,
+    `tools/lib/install-monitor-report.test.js`,
+    `tools/monitor-install.test.js`, and extended
+    `tools/add-package.test.js` and `tools/setup-bootstrap.test.js` scenarios.
+
+- `.npmrc` hardening (Fase C.4):
+  - Added `npm-audit-fix-level=high` so `npm audit fix` only applies
+    high/critical CVE fixes.
+  - Added `send-metrics=false` to opt out of npm telemetry/metrics collection.
+  - New `docs/en/npmrc-hardening.md` and `docs/pt-BR/npmrc-hardening.md`
+    explaining every setting, rationale, rejected alternatives, and special
+    scenarios such as private registries and emergency patches.
+  - Updated `docs/en/security/defense-layer-6-npmrc-config.md` and
+    `docs/pt-BR/security/defense-layer-6-npmrc-config.md` with cross-references.
+  - Updated README, indexes, and tools pages to link the new guide.
+
+- Authoritative project plan in `.github/PLAN.md` to survive session-memory loss,
+  plus a context-recovery skill (`.github/skills/context-recovery/SKILL.md`)
+  and an updated `.github/copilot-instructions.md` rule requiring the plan to be
+  read at the start of every session.
+- `/memories/` and `.defence-profile.json` added to `.gitignore` to prevent
+  per-session or per-run state from being committed.
+
+### Changed
+
+- Migrated one-shot prompts to skills after VS Code 1.140 removed support for
+  `.github/prompts/*.prompt.md`. The nine former prompts now live as on-demand
+  skills under `.github/skills/` (`generate-test`, `review-security`,
+  `update-docs`, `check-hardcoded-values`, `review-ai-output`,
+  `code-review-for-learning`, `verify-command-contract`,
+  `validate-architecture`, `project-status-evaluation`), each with
+  `disable-model-invocation: true` so they run only via explicit `/` invocation.
+  Skill frontmatter follows the Agent Skills specification: kebab-case `name`
+  matching the folder, a descriptive `description`, and `argument-hint` where
+  the skill accepts input. References in `docs/en/ai-guidelines.md`,
+  `docs/pt-BR/ai-guidelines.md`,
+  `.github/instructions/file-organization.instructions.md`,
+  `.github/agents/repository-organization.agent.md`, and
+  `.github/skills/self-review/SKILL.md` were updated accordingly.
+
+### Changed (skills normalization)
+
+- Normalized every skill in `.github/skills/` to the Agent Skills specification
+  (VS Code 1.140): kebab-case `name` matching the folder, required
+  `description` stating what the skill does and when to use it, and removal of
+  the legacy `applyTo`/`tools` fields, which are not part of the spec and
+  caused skills to fail loading silently.
+- Merged five overlapping prompt/skill pairs into single skills:
+  `review-security` into `security-audit`, `update-docs` into `docs-update`,
+  `review-ai-output` into `self-review`, `verify-command-contract` into
+  `script-contract-verification`, and `code-review-for-learning` into
+  `educational-code-review`.
+- Added `.github/skills/skills.sanity.test.js`, a sanity suite that validates
+  every skill frontmatter against the Agent Skills specification (folder/name
+  match, description presence and limits, no legacy fields), registered in the
+  `test` and `test:coverage` scripts.
+
+### Changed (Fase F.0 — update-check contract)
+
+- `tools/check-updates.js` now always prints safety messages even with
+  `--silent`: the out-of-sync warning (recommending `npm ci`) and the offline
+  fallback notices can no longer be hidden, since suppressing them would look
+  like a false negative.
+- `tools/check-updates.js` now discovers `intermediateEligible` for every
+  outdated package: versions strictly newer than `wanted` and at most `latest`
+  that already satisfy the `minAgeDays` gate, sorted by semver (pre-releases
+  and packument metadata keys excluded). The list appears in table, JSON, and
+  Markdown reports and is persisted in `.defence-update-check.json`, preparing
+  the ground for `defence:update` to prefer the highest eligible intermediate
+  (Fase F.1).
+- New `updateCheck.maxIntermediateEligible` setting (default 10) caps the
+  per-package intermediate list so long release histories stay readable.
+
+### Changed (Fase F.1 — update applies eligible intermediates)
+
+- `tools/update-packages.js` now loads `.defence-update-check.json` and, for
+  each eligible package, installs the highest `intermediateEligible` version
+  with `npm install --save-exact --ignore-scripts <pkg>@<target>` instead of
+  jumping straight to `latest`. When no scan state exists, it falls back to
+  the generic in-range `npm update`.
+- Interactive mode shows the resolved target (with an explicit note when
+  `latest` is still in quarantine) and records the `target` version in
+  `.defence-update-decisions.json`.
+- Post-update verification layers now include the license check
+  (`defence:license-check:fail`) in addition to age, signatures, and
+  vulnerability audit.
+
+### Added (Fase F.2 — command verification checklist)
+
+- `docs/en/command-verification-checklist.md` and
+  `docs/pt-BR/command-verification-checklist.md`: the CLI contract of every
+  `defence:*` script (purpose, flags, silent/format modes, exit codes, test
+  file, observations), organized in seven categories and linked from
+  `docs/{en,pt-BR}/index.md` and `docs/{en,pt-BR}/tools.md`.
+- AI agent security references section in `docs/{en,pt-BR}/references.md`,
+  starting with APPA (arXiv:2607.24625), which informed the AI-2.7.5
+  repair-oriented blocking and the AI-3.2 output-sanitization items.
+- Bundled skill resources (Fase AI-2.3):
+  `.github/skills/release-checklist/checklist-template.md` and
+  `.github/skills/generate-test/test-template.js`, both referenced from their
+  `SKILL.md` so the Agent Skills loader picks them up;
+  `skills.sanity.test.js` now fails when a `SKILL.md` links a resource that
+  does not exist in the skill directory.
+- `user-invocable: false` on `context-recovery` and `subagent-invocation`
+  (Fase AI-2.2), with the skill visibility matrix (automatic / manual /
+  background) documented in the bilingual AI guidelines.
+- `.github/hooks/hooks.sanity.test.js` (Fase AI-2.4): validates every hook
+  JSON (schema fields, documented events, referenced scripts) and every skill
+  path mentioned by hook scripts; registered in `test`/`test:coverage`.
+- `.github/hooks/scripts/suggest-validation.test.js`: first test coverage for
+  the post-edit suggestion hook, including a regression guard against
+  hardcoded test counts (the script used to embed "432/432 expected").
+- `.github/skills/scripts/generate-skills-index.js` and the generated
+  `.github/skills/README.md` (Fase AI-2.5): human-facing skills index
+  (invocation mode, fork status, description) regenerated from frontmatters;
+  a drift check in `skills.sanity.test.js` fails `npm test` when the
+  committed index is stale.
+- Size budgets in `skills.sanity.test.js` (Fase AI-2.6): `SKILL.md` ≤ 10 KB
+  and `copilot-instructions.md` ≤ 3 KB, so context growth fails loudly
+  instead of taxing every chat request.
+- `docs/{en,pt-BR}/code-review-improvements.md` (Fase G): educational audit
+  of all 34 production files — header standard formalized, zero P0, one P1
+  (trust-engine scoring constants) fixed with inline justification.
+
+### Fixed (Fase G — coverage)
+
+- **Production bug found by the coverage push:** the `exec`/`execSync`
+  wrappers in `tools/lib/process-monitor.js` called the original
+  `child_process` functions instead of the injectable `childProcessImpl`,
+  breaking the monitor's DI contract (and silently executing real commands in
+  tests). Both wrappers now route through the injected implementation.
+- Line coverage raised from 94.70% to 95.94% with 14 new tests on the four
+  biggest hotspots (`update-badge.js` 83→98%, `process-monitor.js` 87→96%,
+  `run-audit-with-retry.js` 86→93%, `check-external-urls.js` 86→95%).
+- `.github/hooks/enforce-write-paths.json` + script (Fase AI-2.7.1): denies
+  agent writes to `.env*`, `.git/`, and paths escaping the workspace; warns
+  deliberately on `.husky/` and `package.json` edits. Covered by
+  `enforce-write-paths.test.js` (E2E via subprocess, AI-2.7.6).
+- `enforce-security.sh` now appends every blocked call to the gitignored
+  JSONL audit log `.github/hooks/scripts/security-blocks.log` (AI-2.7.2) and
+  is covered by `enforce-security.test.js`, which also enforces the
+  repair-oriented message rule (AI-2.7.5): every block names the sanctioned
+  alternative.
+- `agents.sanity.test.js` invariant (AI-2.7.3): agents with `run_in_terminal`
+  must declare a restricted `applyTo` scope.
+- `schemaVersion` on `.defence-update-check.json` and
+  `.defence-update-decisions.json` (AI-2.7.4): writers stamp it, readers warn
+  when the file is newer than they understand.
+- Bilingual AI guidelines document the new hook, the audit log, the agent
+  execution security layers (hooks + VS Code 1.141 sandboxing), and the
+  terminal-scope invariant.
+- `DECISIONS.md` (Fase AI-3.5): lightweight ADRs recording *why* key choices
+  were made, seeded with the seven decisions from Fases F.4–AI-3; the
+  `context-recovery` skill now reads it at session start and distills
+  decisions/lessons/plan-state at session end. Linked from the bilingual
+  documentation indexes and referenced by the always-on instructions.
+- `tools/lib/concurrency.js` (Fase H.1): the bounded-concurrency runner
+  previously copied byte-identically into `check-updates.js` and
+  `check-package-age.js` (and referenced by `trust-engine.js`) is now a single
+  shared module with its own tests; the legacy re-export and duplicated tests
+  in `check-package-age` were removed.
+- `.github/CODEOWNERS` (Fase H.3): the organizational defense layer — changes
+  to the defense tools, supply-chain policy files (`.npmrc`, `package.json`,
+  lockfile, manifest), git hooks, CI workflows, and the AI customization
+  surface now require code-owner review once branch protection is enabled;
+  `docs/{en,pt-BR}/repository-organization.md` documents the setup, and the
+  security index notes the human layer alongside the twelve technical ones.
+- `docs/{en,pt-BR}/repository-organization.md` completed (Fase H.5): layout
+  conventions, the "deliberately not extracted" rule (formatters/cli), the
+  2026-10-08 audit results (zero orphaned files, clean applyTo hygiene), and
+  the CODEOWNERS + required-status-checks setup.
+- README test badge counts the full suite again (Fase H.4):
+  `tools/update-badge.js` `TEST_GLOBS` now mirror the `package.json` test
+  script (859/859, previously 487/487), with a regression test locking the
+  two together.
+- Branch protection is active on `main` and `dev` (H.3.1): PR required,
+  code-owner review, and the 11 CI status checks. The minimum approving
+  review count is temporarily 0 while the project has a single maintainer
+  (ADR in `DECISIONS.md`).
+
+### Changed (Fase H.2)
+
+- Biome lint/format now covers `.github/**/*.js` in addition to `tools/`
+  (86 files, up from 71): `biome.json` `files.includes` and the
+  `lint`/`format`/`lint:fix`/`format:check` scripts were extended, and the
+  newly covered files were brought into compliance (template `test-template.js`
+  keeps an intentional `assert` import behind a justified biome-ignore).
+
+### Changed (Fase AI-2.6)
+
+- `.github/copilot-instructions.md` compacted from 3,5 KB to ~2,4 KB (−32%)
+  without losing any normative rule; the hardcoded-values rule now lives
+  canonically there and is referenced (not repeated) by the
+  educational-code-quality instructions and the check-hardcoded-values skill.
+- The session-continuity rule no longer references the non-existent
+  `/memories/session/plan.md` path; it describes the harness-provided session
+  files directory instead (M1).
+
+### Fixed (Fase AI-2.4)
+
+- `suggest-validation.sh` no longer embeds the stale `432/432 expected` test
+  count and now suggests `npm test` for any `*.test.js` (the sanity suites in
+  `.github/` are part of the suite since Fase AI-1).
+
+### Changed (Fase F.4 — actionable quarantine intermediates)
+
+- `tools/check-updates.js` now excludes **deprecated versions** from
+  `intermediateEligible` — a deprecated release is never a recommended target,
+  regardless of age.
+- `tools/update-packages.js` now treats age-quarantined packages
+  (`reason: "too recent"`) with age-gated intermediates as **actionable**: both
+  interactive and non-interactive flows offer/apply the highest eligible
+  intermediate while keeping `latest` blocked until it passes the age gate.
+  Quarantine entries caused by registry lookup failures are never actionable.
+  Decisions recorded in `.defence-update-decisions.json` now carry
+  `source: "eligible" | "quarantine"`.
+
+### Fixed
+
+- Synchronized the cross-project installer (`tools/install-defences.js`) and its
+  tests with the current source tree: it now copies all defence scripts,
+  libraries, benchmarks, and hooks, and registers every `defence:*` script in
+  the target `package.json`, including `defence:check-engines`,
+  `defence:update-check`, `defence:license-check`, `defence:sync-check`,
+  `defence:audit`, `defence:generate-sbom`, and `defence:perf`.
+- Regenerated `.defence-manifest.json` with 59 file hashes to match the updated
+  installer.
+- Fixed Mermaid block closing in `docs/en/security/index.md` and
+  `docs/pt-BR/security/index.md`.
+- Updated `docs/en/adopting-in-other-projects.md`,
+  `docs/pt-BR/adopting-in-other-projects.md`, `docs/en/testing.md`, and
+  `docs/pt-BR/testing.md` to reflect the current tool set and test suites.
+- Reorganized `TODO.md` into Open Items, Phase Summary, and completed sections,
+  and moved the v1.0.0 release to a future action.
+- Aligned CI with the local pre-commit by using `npm run defence:audit` in the
+  `defence-gates` job, so the retry wrapper also protects CI runs.
+
+### Added
+
+- Fase 7.5 — P1 technical debt documentation:
+  - New `docs/en/troubleshooting.md` and `docs/pt-BR/troubleshooting.md` with common failures, manual remediation steps, and how to run each defense manually.
+  - New `docs/en/security/rebuilding-lifecycle-packages.md` and `docs/pt-BR/security/rebuilding-lifecycle-packages.md` explaining how to safely rebuild native packages such as `esbuild`, `sharp`, and `canvas` after `ignore-scripts`.
+  - Updated `docs/en/index.md`, `docs/pt-BR/index.md`, `docs/en/security/index.md`, and `docs/pt-BR/security/index.md` to link the new support guides.
+
 ### Fixed
 
 - Fixed `defence:update-check` missing recently published updates in quarantine.
   `npm outdated` now runs with `--min-release-age=0` so the script's own age-based
   classification controls what appears as eligible vs. quarantined, instead of
   the `.npmrc` setting hiding updates before they can be reported.
+- Fixed CI failure in `defence:license-check:fail` by removing the `c8`
+  devDependency. `c8@12.0.0` transitively pulled in `glob`, `lru-cache`,
+  `minimatch`, `minipass`, and `path-scurry`, all licensed under
+  `BlueOak-1.0.0`, which is not approved by the project's license policy.
 
 ### Added
 
@@ -52,6 +612,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Single-package mode via `--pkg=name@version` for quick triage.
   - Table, JSON, and Markdown output formatters.
   - Native Node.js implementation in `tools/check-licenses.js` with full test coverage in `tools/check-licenses.test.js`.
+  - `defence:add` now runs `defence:license-check:fail` after the transitive package-age gate so incompatible licenses are caught before a dependency is committed.
+  - Pre-commit hook now includes `defence:license-check:fail` for the same reason.
+- Adoption integrity verification:
+  - New `tools/verify-defences.js` and `tools/verify-defences.test.js`.
+  - New `defence:verify-defences` npm script.
+  - `tools/install-defences.js` now writes `.defence-manifest.json` with SHA-256 hashes of copied files.
+  - `verify-defences.js` checks the target project against the manifest and reports missing or changed files.
+- SBOM generation:
+  - New `tools/generate-sbom.js` and `tools/generate-sbom.test.js`.
+  - New `defence:generate-sbom` npm script.
+  - Generates CycloneDX 1.4 JSON from `package-lock.json` v3 for compliance and incident response.
+- Integration tests:
+  - New `tools/integration.test.js` with cross-tool scenarios covering `add-package.js`, `check-package-age.js`, and `check-updates.js`.
+  - Uses centralized mock of the HTTPS registry layer (`tools/lib/retry-fetch.js`) and in-memory file-system fixtures.
+  - Every test has an explicit timeout to prevent hangs.
+- Native test coverage:
+  - Removed `c8` from `devDependencies` and switched `test:coverage` to `node --experimental-test-coverage`.
+  - Avoids a transitive dependency tree licensed under `BlueOak-1.0.0` while maintaining ≥ 95% line coverage.
+- Pre-commit hook integrity:
+  - New `tools/check-hooks.js` and `defence:check-hooks` script.
+  - `.husky/pre-commit` now starts with a hook integrity check before running other gates.
+- Documentation reorganization for release readiness:
+  - Reorganized the twelve defense layers into Core, Recommended, and Advanced adoption groups.
+  - New `docs/en/project-overview.md` and `docs/pt-BR/project-overview.md`.
+  - New `docs/en/glossary.md` and `docs/pt-BR/glossary.md`.
+  - Expanded `docs/en/testing.md` and `docs/pt-BR/testing.md` with DI, subprocess, integration, coverage, hardcode, and anti-loop conventions.
+  - Updated `docs/en/tools.md`, `docs/pt-BR/tools.md`, `docs/en/architecture.md`, `docs/pt-BR/architecture.md`, `docs/en/quick-reference.md`, and `docs/pt-BR/quick-reference.md` to list all current tools and commands.
+  - Updated `docs/en/git-hooks.md` and `docs/pt-BR/git-hooks.md` to reflect the current pre-commit sequence and the new post-merge hook.
+  - Updated `SECURITY.md` to describe the twelve defense layers and adoption groups.
+  - Updated `CONTRIBUTING.md` with the hardcoded-values rule and AI-assisted contribution guidelines.
+- AI customization (Fases 6 e 7):
+  - New `.github/copilot-instructions.md` with project-wide security, validation, and anti-loop rules.
+  - New `.github/instructions/security.instructions.md`, `.github/instructions/testing.instructions.md`, and `.github/instructions/docs.instructions.md`.
+  - New specialized agents in `.github/agents/`: `security`, `quality`, `performance`, `docs`, and `compliance`.
+  - New reusable skills in `.github/skills/`: `security-audit`, `dependency-review`, `docs-update`, `release-checklist`, and `self-review`.
+  - New one-shot prompts in `.github/prompts/`: `generate-test`, `review-security`, `update-docs`, `check-hardcoded-values`, and `review-ai-output`.
+  - New lifecycle hooks in `.github/hooks/`: `enforce-security`, `auto-lint-test`, and `inject-context`.
+  - New `.github/ai-lessons-learned.md` log for continuous improvement of AI instructions.
+  - New `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` explaining AI collaboration and the feedback loop.
+  - Updated `docs/en/ai-guidelines.md` and `docs/pt-BR/ai-guidelines.md` to describe the full AI customization stack.
+- CI/CD and release readiness:
+  - Added `cache: 'npm'` to all `actions/setup-node` steps in `.github/workflows/ci.yml`.
+  - Added a dedicated `coverage` job running `npm run test:coverage`.
+  - Added `defence:generate-sbom` and `defence:verify-defences` steps to the `defence-gates` job.
+  - Committed `.defence-manifest.json` so `defence:verify-defences` validates this repository's own defence files in CI.
+  - New `docs/en/release-checklist.md` and `docs/pt-BR/release-checklist.md` with pre-release, tagging, and post-release verification steps.
 - GitHub issue and PR templates:
   - `.github/ISSUE_TEMPLATE/bug_report.yml` bug report form.
   - `.github/ISSUE_TEMPLATE/feature_request.yml` feature request form.
@@ -62,6 +668,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `docs/pt-BR/security/defense-layer-9-license-check.md`
 - Security overview, indexes, README, tools page and quick reference updated to list Layer 9 and the new license-check commands.
 - README test badge updated from `83/83` to `122/122`.
+- Removed `c8` devDependency and switched `test:coverage` to Node.js native
+  `--experimental-test-coverage`. This eliminates the BlueOak-licensed
+  transitive dependency tree introduced by `c8@12.0.0` and keeps the project
+  aligned with its minimal-dependency security goals.
 - Offline mode for `defence:update-check`:
   - `--offline` flag in `tools/check-updates.js` skips `npm outdated` and registry calls; uses cached state even if TTL expired.
   - New `defence:update-check:offline` npm script.

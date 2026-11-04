@@ -13,7 +13,7 @@ Novas dependências devem ser adicionadas pelo script controlado `npm run defenc
 npm run defence:add -- lodash@4.17.21
 
 # Adicionar uma dependência de desenvolvimento
-npm run defence:add -- --dev @biomejs/biome@2.5.8
+npm run defence:add -- --dev alguma-ferramenta-dev@1.0.0
 
 # Adicionar uma dependência peer
 npm run defence:add -- --peer some-pkg@1.0.0
@@ -26,10 +26,15 @@ npm run defence:add -- lodash@4.17.21 --dry-run
 
 1. Faz o parse do especificador do pacote e rejeita metacaracteres de shell.
 2. Verifica se o pacote solicitado tem pelo menos 7 dias de idade.
-3. Instala a dependência (`npm install <pkg> --save-prod|save-dev|save-peer`).
-4. Executa `npm audit signatures`.
-5. Executa `npm audit --audit-level=high`.
-6. Executa uma verificação transitiva de idade dos pacotes.
+3. Verifica provenance npm / atestação SLSA quando configurado.
+4. Executa detecção de typosquatting/confusão de dependências contra nomes existentes.
+5. Executa análise estática dos lifecycle scripts do pacote (dry-run pré-install).
+6. Fixa a integridade do tarball a partir do manifesto do registry (proteção TOCTOU — os metadados são re-verificados após a instalação).
+7. Instala a dependência (`npm install <pkg> --save-prod|save-dev|save-peer`).
+8. Executa `npm audit signatures`.
+9. Executa `npm audit --audit-level=high`.
+10. Executa uma verificação transitiva de idade dos pacotes.
+11. Executa uma verificação transitiva de licenças das dependências (`npm run defence:license-check:fail`).
 
 ## Atualizando Dependências Existentes
 
@@ -39,7 +44,7 @@ Para atualizar dependências já declaradas no `package.json`, use o script de a
 npm run defence:update
 ```
 
-Ele executa `npm update` e depois reexecuta a verificação de idade dos pacotes (`--transitive`), a verificação de assinaturas e o audit de vulnerabilidades. Respeita as mesmas restrições do `.npmrc` usadas no restante do projeto.
+Ele prefere a maior **versão intermediária elegível por idade** descoberta pelo `defence:update-check` em vez de pular cegamente para a `latest` (que pode ainda estar em quarentena), aplica com instalação fixada `--save-exact --ignore-scripts` e depois reexecuta a verificação transitiva de idade, a verificação de assinaturas, o audit de vulnerabilidades e a checagem de licenças. Respeita as mesmas restrições do `.npmrc` usadas no restante do projeto.
 
 ## Edições Manuais
 

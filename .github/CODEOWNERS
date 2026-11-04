@@ -1,0 +1,33 @@
+# CODEOWNERS — Organizational defense layer (Fase H.3).
+#
+# The twelve technical defense layers verify code automatically; this file is
+# the human layer. Every path below can weaken a security gate or the supply
+# chain itself, so changes to them require review by the listed owner.
+#
+# Enable "Require review from Code Owners" in the repository's branch
+# protection rules for `main` (and `dev`) for this file to take effect; see
+# docs/en/repository-organization.md for the walkthrough.
+#
+# Pattern syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for the entire repository.
+* @adrianoenache
+
+# Defense tooling and supply-chain policy.
+/tools/ @adrianoenache
+/.npmrc @adrianoenache
+/package.json @adrianoenache
+/package-lock.json @adrianoenache
+/.defence-manifest.json @adrianoenache
+
+# Git hooks and AI execution guards (they gate every commit and AI session).
+/.husky/ @adrianoenache
+/.github/hooks/ @adrianoenache
+/.github/workflows/ @adrianoenache
+
+# AI customization surface (instructions, agents, skills) — a malicious edit
+# here steers every future AI session in this repository.
+/.github/copilot-instructions.md @adrianoenache
+/.github/instructions/ @adrianoenache
+/.github/agents/ @adrianoenache
+/.github/skills/ @adrianoenache

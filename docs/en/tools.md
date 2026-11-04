@@ -4,7 +4,7 @@ This project relies on a small set of carefully chosen tools. Every tool is nati
 
 ## Runtime
 
-### Node.js >= 24.19.0
+### Node.js >= 24.22.2
 
 The project targets a recent Node.js LTS line to guarantee support for:
 
@@ -12,7 +12,7 @@ The project targets a recent Node.js LTS line to guarantee support for:
 - `min-release-age` enforcement in npm.
 - Modern `fetch` and `AbortController` APIs if needed in the future.
 
-### npm >= 11.17.0
+### npm >= 11.19.1
 
 npm is the package manager. The project uses it both for installation and as a security primitive through commands like `npm audit signatures` and `npm audit --audit-level=high`.
 
@@ -40,22 +40,107 @@ npm is the package manager. The project uses it both for installation and as a s
 
 ## Custom Scripts
 
-All custom scripts live in `tools/` and use only native Node.js modules.
+All custom scripts live in `tools/` and use only native Node.js modules. Each tool has a dedicated page with usage examples and related defense layers; see the [tool reference index](tools/). For the CLI contract of every `defence:*` script (flags, exit codes, silent/format modes), see the [command verification checklist](command-verification-checklist.md).
+
+| Script | Purpose | Page |
+| --- | --- | --- |
+| `add-package.js` | Safely adds a dependency with age, signature, audit, lifecycle-script analysis, and transitive checks. | [add-package](tools/add-package.md) |
+| `analyze-lifecycle-scripts.js` | Static, read-only analysis of npm package lifecycle scripts before install. | [analyze-lifecycle-scripts](tools/analyze-lifecycle-scripts.md) |
+| `check-engines.js` | Validates that the active Node.js and npm satisfy `engines` in package.json. | [check-engines](tools/check-engines.md) |
+| `check-external-urls.js` | Validates reachability of external URLs in documentation and source files. | [check-external-urls](tools/check-external-urls.md) |
+| `check-hooks.js` | Verifies that `.husky/pre-commit` matches the known hash in `package.json`. | [check-hooks](tools/check-hooks.md) |
+| `check-licenses.js` | Read-only dependency license scanner with allow-list / deny-list classification. | [check-licenses](tools/check-licenses.md) |
+| `check-lockfile-integrity.js` | Verifies that every lockfile entry has a SHA-512 integrity field. | [check-lockfile-integrity](tools/check-lockfile-integrity.md) |
+| `check-md-links.js` | Validates internal links in markdown documentation. | [check-md-links](tools/check-md-links.md) |
+| `check-package-age.js` | Enforces minimum package age for direct or transitive dependencies. | [check-package-age](tools/check-package-age.md) |
+| `check-secrets.js` | Scans files for likely secrets before they are committed. | [check-secrets](tools/check-secrets.md) |
+| `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. | [check-sync](tools/check-sync.md) |
+| `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. | [check-updates](tools/check-updates.md) |
+| `check-npmrc.js` | Validates the npm configuration surface: known keys, lookahead registry, defensive values, and the npm v12 extension mechanism. | [check-npmrc](tools/check-npmrc.md) |
+| `check-dead-code.js` | Advisory dead-code candidate finder (unreferenced exports and orphaned files) for the toolset. | [check-dead-code](tools/check-dead-code.md) |
+| `measure-ai-context.js` | Measures bytes/tokens per AI customization layer (always-on, instructions, agents, skills, hooks) from disk. | [measure-ai-context](tools/measure-ai-context.md) |
+| `update-engines.js` | Reports and applies Node.js engine updates/upgrades, gating targets on the official dist index (CI availability by construction). | [update-engines](tools/update-engines.md) |
+| `generate-sbom.js` | Generates a CycloneDX 1.4 JSON SBOM from `package-lock.json`. | [generate-sbom](tools/generate-sbom.md) |
+| `generate-trust-report.js` | CLI for the trust score dashboard; emits table, JSON, or Markdown reports. | [generate-trust-report](tools/generate-trust-report.md) |
+| `install-defences.js` | Copies the defences into another Node.js project and writes the manifest. | [install-defences](tools/install-defences.md) |
+| `monitor-install.js` | CLI wrapper to run any `npm install`/`ci` command under process monitoring. | [monitor-install](tools/monitor-install.md) |
+| `run-audit-with-retry.js` | Wrapper for `npm audit` with retry on transient registry errors. | [run-audit-with-retry](tools/run-audit-with-retry.md) |
+| `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. | [setup-bootstrap](tools/setup-bootstrap.md) |
+| `update-badge.js` | Refreshes the test-count badge in `README.md` from `tools/*.test.js`. | [update-badge](tools/update-badge.md) |
+| `update-packages.js` | Controlled wrapper for `npm update` with post-update checks and optional interactive approval. | [update-packages](tools/update-packages.md) |
+| `verify-defences.js` | Verifies files copied by `install-defences.js` against `.defence-manifest.json`. | [verify-defences](tools/verify-defences.md) |
+
+### Shared libraries
+
+| Library | Purpose |
+| --- | --- |
+| `lib/config.js` | Centralized configuration loader used across the defence tools. |
+| `lib/install-monitor-report.js` | Markdown/JSON report formatter for process-monitor output. |
+| `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
+| `lib/process-monitor.js` | Native Node.js hook for `spawn`, `spawnSync`, `exec`, and `execSync` with risk classification. |
+| `lib/provenance.js` | Helpers for verifying npm package provenance and SLSA attestations. |
+| `lib/profiler.js` | Lightweight profiler used by tools with `withProfile` instrumentation. |
+| `lib/registry-cache.js` | Disk-backed registry cache with TTL used by registry-dependent tools. |
+| `lib/retry-fetch.js` | Shared registry fetch layer with retry, gzip, and size limits. |
+| `lib/script-analyzer.js` | Shared lifecycle-script analysis engine used by `analyze-lifecycle-scripts.js` and `add-package.js`. |
+| `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
+| `lib/trust-engine.js` | Aggregates existing supply-chain signals into a 0–100 trust score per package. |
+| `lib/typosquatting.js` | Levenshtein-distance typosquatting and dependency-confusion detection. |
+
+## `.npmrc` Hardening
+
+The project keeps a hardened [.npmrc](../../.npmrc) at the root. It is copied to adopted projects by `install-defences.js`. See the [`.npmrc` hardening guide](npmrc-hardening.md) for the rationale behind each setting, options that were considered but not adopted, and guidance for private registries and emergency patches.
+
+## Performance Benchmarks
+
+The `tools/perf/benchmark.js` suite measures how the registry-dependent tools behave under controlled conditions:
+
+| npm script | Purpose |
+| --- | --- |
+| `npm run defence:perf` | Runs the full benchmark suite and compares results to `tools/perf/baselines.json`. |
+| `npm run defence:perf:baseline` | Re-saves current results as the baseline. Run this after deliberate performance improvements. |
+| `npm run defence:perf:check-package-age` | Runs only the `check-package-age` benchmark. |
+| `npm run defence:perf:check-updates` | Runs only the `check-updates` benchmark. |
+
+A regression is flagged when a metric is worse than the baseline by more than 20%. Keep the baseline committed so CI can catch unintended slowdowns or extra network calls.
+
+## Trust Score Dashboard
+
+| npm script | Purpose |
+| --- | --- |
+| `npm run defence:trust-report` | Generates a Markdown trust score report for all dependencies. |
+| `npm run defence:trust-report:json` | Generates JSON output for programmatic consumption. |
+| `npm run defence:trust-report:fail` | Fails (exit code 1) if any package is below the configured minimum. |
+
+See [Trust scoring](trust-scoring.md) for signal details, configuration, and integration with `defence:add`.
+
+## Adoption Manifest
+
+When `install-defences.js` copies defences into another project, it writes `.defence-manifest.json` with SHA-256 hashes of every copied file. The source project keeps its own manifest committed so that `npm run defence:verify-defences` can detect drift in CI.
+
+Because legitimate edits to copied files naturally change their hashes, the pre-commit hook regenerates the manifest automatically. You can also update it manually:
+
+| npm script | Purpose |
+| --- | --- |
+| `npm run defence:verify-defences` | Compares current files against `.defence-manifest.json` and reports mismatches. |
+| `npm run defence:verify-defences:fix` | Recomputes hashes from the current source tree and overwrites `.defence-manifest.json`. |
+
+Run the fix script after any deliberate change to the files listed in `install-defences.js`, then commit the updated manifest.
+
+## CI/CD Integration
+
+The tools integrate with the GitHub Actions workflow described in [CI/CD Overview](ci-cd-overview.md). Key integrations include:
+
+- `generate-sbom.js` produces the SBOM artifact uploaded by the `defence-gates` job (see [SBOM and Compliance](sbom-and-compliance.md)).
+- `verify-defences.js` and `install-defences.js --dry-run` run in the `install-defences-dry-run` job to catch manifest drift.
+- `perf/benchmark.js` supports performance regression checks in CI (see [Performance Tuning](performance-tuning.md)).
+
+## Tests
 
 | Script | Purpose |
 | --- | --- |
-| `check-engines.js` | Validates that the active Node.js and npm satisfy `engines` in package.json. |
-| `check-package-age.js` | Enforces minimum package age for direct or transitive dependencies. |
-| `add-package.js` | Safely adds a dependency with age, signature, audit, and transitive checks. |
-| `setup-bootstrap.js` | Performs a controlled first install when `package-lock.json` is missing. |
-| `update-packages.js` | Controlled wrapper for `npm update` with post-update checks and optional interactive approval. |
-| `check-updates.js` | Read-only pre-commit helper that warns about eligible and quarantined updates. |
-| `check-licenses.js` | Read-only dependency license scanner with allow-list / deny-list classification. |
-| `check-sync.js` | Standalone command that verifies `node_modules` matches `package-lock.json`. |
-| `lib/sync-check.js` | Shared sync-check logic used by `check-updates.js` and `check-sync.js`. |
-| `update-badge.js` | Refreshes the test-count badge in `README.md` from `tools/*.test.js`. |
-| `install-defences.js` | Copies the defences into another Node.js project. |
-| `lib/package-utils.js` | Shared utilities for parsing and validating package specifiers. |
+| `integration.test.js` | Cross-tool integration tests with mocked registry and in-memory fixtures. |
+| `e2e/e2e.test.js` | Opt-in end-to-end tests against the real npm registry. |
 
 ## Why No Third-Party Test Framework?
 

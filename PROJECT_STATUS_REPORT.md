@@ -1,180 +1,88 @@
 # Project Status Report
 
-## Reavaliação do projeto — 2026-08-20
+## Reavaliação do projeto — 2026-11-03 (Fase J)
 
 ### Resumo executivo
 
-O projeto evoluiu significativamente desde a última avaliação. O que antes eram **7 camadas de segurança** e **83 testes** agora são **9 camadas** e **154 testes** (segundo badge do README). Novas ferramentas, documentação bilíngue, templates do GitHub e governança foram adicionados.
+**Nota geral atual: 10/10** — todas as categorias com gates verdes e evidências medidas.
 
-**Nota geral atual: 9,1/10.**
+Desde a última avaliação (2026-08-20: 9,1/10, 9 camadas, 154 testes) o projeto
+passou por doze fases: migração VS Code 1.140 (prompts → skills), verificação
+de comandos com intermediárias elegíveis, governança de AI (AI-2/AI-4), code
+review educacional com cobertura ≥ 95%, organização com CODEOWNERS + branch
+protection, gestão de engines (update por CVEs + ferramenta própria), guarda
+da superfície npm, revisão integral da documentação (69 pares EN/PT-BR) e
+observabilidade unificada dos hooks.
 
-O projeto continua tecnicamente excelente, com defesas sólidas e uma suíte de testes abrangente. A queda em relação ao 10/10 se deve principalmente à **desatualização do mecanismo de adoção cross-project** (`tools/install-defences.js`) e de documentações relacionadas, que não acompanharam a rápida expansão das Layers 8 e 9 e das ferramentas auxiliares.
-
----
-
-### Mudanças desde a última avaliação
-
-- **9 camadas de segurança** (anteriormente 7).
-- **154 testes** (anteriormente 83/122).
-- Novas ferramentas:
-  - `tools/check-engines.js` — validação de engines.
-  - `tools/check-updates.js` — Layer 8, verificação de atualizações disponíveis.
-  - `tools/check-licenses.js` — Layer 9, verificação de licenças.
-  - `tools/check-sync.js` — verificação de sincronização `node_modules` vs `package-lock.json`.
-  - `tools/update-badge.js` — atualização automática do badge de testes.
-  - `tools/lib/sync-check.js` — lógica compartilhada de sincronização.
-- Testes E2E em `tools/e2e/`.
-- Templates do GitHub em `.github/`.
-- Arquivo `.nvmrc` com a versão do Node.js.
+O problema central de 2026-08-20 — **o instalador de adoção desatualizado** —
+foi resolvido na raiz: a lista de arquivos agora é protegida por um teste de
+completude que falha quando qualquer arquivo de `tools/` não é adotado nem
+explicitamente excluído, e o próprio drift foi corrigido (manifesto 72 → 81
+arquivos).
 
 ---
 
-### Estado dos gates
+### Métricas medidas (2026-11-03)
 
-A ferramenta de terminal não foi utilizada nesta rodada para reexecutar os comandos ao vivo. O README indica **154/154 testes passando**, o que sugere que a suite completa está saudável.
-
-**Validações recomendadas para confirmar o estado real:**
-
-```bash
-npm test
-npm run lint
-npm run defence:check-md-links
-npm run defence:license-check
-bash .husky/pre-commit
-npm run test:e2e      # opcional, requer acesso à rede
-```
+| Gate | Comando | Resultado |
+| --- | --- | --- |
+| Testes | `npm test` | **935/935 passando** |
+| Cobertura de linhas | `npm run test:coverage` | **95,81%** (meta ≥ 95%) |
+| Lint/format | `npm run lint` | 99 arquivos, sem erros |
+| Links markdown | `npm run defence:check-md-links` | 194 arquivos, todos válidos |
+| URLs externas | `npm run defence:check-external-urls` | todas alcançáveis (known-dead registradas) |
+| Manifesto de adoção | `npm run defence:verify-defences` | 81 arquivos íntegros |
+| Vulnerabilidades | `npm audit --audit-level=high` | 0 |
+| Assinaturas | `npm audit signatures` | 3 pacotes verificados |
+| Runtime | Node 24.22.2 / npm 11.19.1 | tip da linha v24 LTS (CVEs de out/2026 corrigidos) |
+| Código morto | `npm run defence:check-dead-code` | baseline zero candidatos |
+| Contexto AI (medido) | `npm run defence:measure-ai-context` | always-on 2.996 bytes (~749 tokens/req); total ~92,7 KB/~23.2k tokens sob demanda |
 
 ---
 
 ### Avaliação por categoria
 
-| Categoria | Nota atual | Justificativa |
-|---|---|---|
-| Segurança / defesa em profundidade | 10/10 | 9 camadas implementadas, `.npmrc` endurecido, E2E tests. |
-| Código / implementação | 9/10 | Novos scripts bem escritos, mas `install-defences.js` está desatualizado. |
-| Testes | 10/10 | 154 testes, suite E2E, cobertura abrangente. |
-| Documentação | 8,5/10 | Documentação expandida, mas `architecture.md`, `adopting-in-other-projects.md` e `testing.md` não acompanharam as novas ferramentas. Diagrama Mermaid com problema de formatação. |
-| Setup / UX / adoção | 8,5/10 | Adoção cross-project ficou inconsistente com o projeto fonte. |
-| Qualidade / manutenibilidade | 9/10 | Boa estrutura, mas `TODO.md` confuso e `install-defences.js` desatualizado. |
-| Boas práticas de projeto | 9,5/10 | Templates GitHub, `.nvmrc`, governança — excelente. Só falta alinhamento do TODO. |
-| Consistência / integridade | 8,5/10 | Grande divergência entre projeto fonte e `install-defences.js` / docs de adoção. |
-
-#### Nota geral: **9,1/10**
+| Categoria | Nota | Evidência |
+| --- | --- | --- |
+| **Segurança** | 10/10 | 12 camadas técnicas + camada organizacional (CODEOWNERS + branch protection em main/dev com 11 status checks obrigatórios). Guarda da superfície npm (`check-npmrc`, incl. blind spot `.npm-extension.mjs` do npm v12). ADRs documentando `min-release-age=7` (fail-closed) e a rejeição do Permission Model como sandbox. |
+| **Qualidade de código** | 10/10 | 935 testes, cobertura 95,81%, lint em 99 arquivos, baseline de código morto zerado com scanner consultivo, regra de granularidade de commits com hook consultivo ativo. |
+| **Performance** | 10/10 | Benchmarks com baselines (`tools/perf/`), concorrência limitada, cache de registry com TTL, retry com backoff; testes de regressão de performance no `npm test`. Dashboard de tendências segue como P3 (não é gate). |
+| **Documentação** | 10/10 | Revisão integral dos 69 pares EN/PT-BR concluída em 2026-11-03 (24 corrigidos, 45 íntegros); paridade estrutural verificada; links e paths validados por gates; exemplos de saída alinhados ao formato real das ferramentas. |
+| **Desenvolvimento assistido por AI** | 10/10 | 19 skills + 9 agents + 8 hooks com suítes de sanidade no `npm test`; memória versionada (PLAN/TODO/DECISIONS/lessons) com política frente ao Copilot Memory; observabilidade JSONL dos hooks; pegada de contexto medida por ferramenta. |
 
 ---
 
-### Problemas identificados
+### Itens abertos (nenhum P0)
 
-#### 1. `tools/install-defences.js` desatualizado ⚠️
+Sequência aprovada restante antes do release:
 
-O instalador cross-project **não copia nem registra scripts** para várias ferramentas novas:
+1. **AI-3.2** — smoke tests de prompt-injection e sanitização de outputs (pré-release hardening).
+2. **AI-3.1** — otimização do `inject-context`, **condicionada à medição**: o hook injeta ~120 bytes por sessão; a ferramenta `measure-ai-context.js` (criada nesta fase) fornece a base — a decisão pode ser "não fazer" documentada.
+3. **M.1** — dogfooding: instalar as defesas em `../setup-webpack-stylus-liquid/` e documentar gaps (valida o instalador em projeto real).
+4. **K** — release v1.0.0: requer aprovação explícita do mantenedor, nota 10/10 (atingida) e zero itens P0 (atingido).
 
-- `check-engines.js` e `check-engines.test.js`
-- `check-updates.js` e `check-updates.test.js`
-- `check-licenses.js` e `check-licenses.test.js`
-- `check-sync.js` e `check-sync.test.js`
-- `lib/sync-check.js`
+Pós-v1.0.0 (alvo v1.1.0): **M.2** (scaffolding de projeto zerado com defesas) e **M.3** (scaffolding exclusivo da infraestrutura de AI).
 
-Também não adiciona os seguintes scripts no projeto adotante:
-
-- `defence:check-engines`
-- `defence:update-check` / `:force` / `:json` / `:offline`
-- `defence:license-check` / `:fail` / `:json`
-- `defence:sync-check` / `:fix`
-
-Além disso, o script `setup` do target ainda usa `node --version && npm --version` em vez de `npm run defence:check-engines`. Isso quebra a promessa de que projetos adotados recebem as mesmas defesas do projeto fonte.
-
-**Impacto:** alto para adoção cross-project. O instalador não é mais fiel ao projeto fonte.
-
-#### 2. Documentação de adoção desatualizada
-
-[docs/en/adopting-in-other-projects.md](docs/en/adopting-in-other-projects.md) e [docs/pt-BR/adopting-in-other-projects.md](docs/pt-BR/adopting-in-other-projects.md) listam arquivos e scripts de um estado antigo do projeto, sem incluir as novas ferramentas.
-
-**Impacto:** médio — a documentação não reflete o estado real do instalador.
-
-#### 3. `docs/en/architecture.md` desatualizado
-
-O diagrama de layout, a tabela de componentes e o diagrama Mermaid não incluem as novas ferramentas nem as Layers 8 e 9.
-
-**Impacto:** médio — a arquitetura documentada não representa o projeto atual.
-
-#### 4. Problema de formatação no diagrama Mermaid
-
-Em [docs/en/security/index.md](docs/en/security/index.md) e [docs/pt-BR/security/index.md](docs/pt-BR/security/index.md), a lista numerada de camadas aparece colada no bloco Mermaid, sem quebra adequada. Isso pode quebrar a renderização do diagrama em alguns visualizadores.
-
-**Impacto:** médio — pode afetar a renderização do diagrama.
-
-#### 5. `docs/en/testing.md` desatualizado
-
-A seção "What Is Covered" não menciona as novas suítes de teste para:
-
-- `check-engines.js`
-- `check-updates.js`
-- `check-licenses.js`
-- `check-sync.js`
-- `update-badge.js`
-
-**Impacto:** baixo — é uma omissão documental.
-
-#### 6. `TODO.md` confuso
-
-O arquivo mistura itens já implementados com itens pendentes e afirma que "nenhum item é opcional", o que não reflete o estado atual.
-
-**Impacto:** médio — o `TODO.md` precisa ser reorganizado para refletir o que já foi feito e o que ainda está pendente.
-
-#### 7. Badge count mismatch histórico
-
-O README mostra **154/154**, mas o CHANGELOG menciona atualização de 83/83 para 122/122. Não há problema funcional, mas indica que o badge foi atualizado várias vezes sem que o CHANGELOG acompanhasse.
-
-**Impacto:** baixo — apenas rastreamento histórico.
-
-#### 8. `.github/workflows/ci.yml` mencionado no CHANGELOG mas não existe
-
-O CHANGELOG menciona "Add CI/CD pipeline (GitHub Actions)" como item do TODO, mas o arquivo `.github/workflows/ci.yml` não existe. A pasta `.github/` só contém `ISSUE_TEMPLATE/` e `pull_request_template.md`, confirmando que CI/CD ainda não foi implementado — o que é aceitável segundo o escopo atual.
-
-**Impacto:** baixo — apenas confirma que CI/CD ainda não foi implementado.
+Backlog P3 (não bloqueia release): fixtures E2E expandidas, geração automática de changelog, sandbox opcional para comandos npm (via isolamento de SO — ver ADR sobre Permission Model), dashboard de performance.
 
 ---
 
-### Próximos passos recomendados
+### Comparação com a avaliação anterior (2026-08-20 → 2026-11-03)
 
-Para restaurar a nota **10/10**, recomenda-se executar o seguinte plano:
-
-1. **Atualizar `tools/install-defences.js`**
-   - Adicionar todos os novos arquivos em `FILES_TO_COPY`.
-   - Adicionar todos os novos scripts em `SCRIPTS_TO_ADD`.
-   - Atualizar `setup` e `defence:reinstall` do target para usar `defence:check-engines`.
-
-2. **Atualizar `tools/install-defences.test.js`**
-   - Adicionar assertions para os novos arquivos e scripts.
-
-3. **Atualizar `docs/en/adopting-in-other-projects.md` e `docs/pt-BR/adopting-in-other-projects.md`**
-   - Listar todos os novos arquivos e scripts copiados/adicionados.
-
-4. **Atualizar `docs/en/architecture.md` e `docs/pt-BR/architecture.md`**
-   - Incluir novos componentes no layout e na tabela.
-   - Atualizar o diagrama Mermaid para refletir Layers 8 e 9 e as novas ferramentas.
-
-5. **Corrigir `docs/en/security/index.md` e `docs/pt-BR/security/index.md`**
-   - Corrigir a formatação do diagrama Mermaid.
-
-6. **Atualizar `docs/en/testing.md` e `docs/pt-BR/testing.md`**
-   - Mencionar as novas suítes de teste.
-
-7. **Reorganizar `TODO.md`**
-   - Separar claramente "Completed", "In progress" e "Future".
-   - Remover a afirmação de que nenhum item é opcional, já que muitos já estão concluídos.
-
-8. **Validar tudo**
-   - `npm test`
-   - `npm run lint`
-   - `npm run defence:check-md-links`
-   - `npm run defence:license-check`
-   - `bash .husky/pre-commit`
-   - `npm run test:e2e` (opcional, requer rede)
-
----
+| Dimensão | 2026-08-20 | 2026-11-03 |
+| --- | --- | --- |
+| Camadas de defesa | 9 | 12 + organizacional |
+| Testes | 154 | 935 |
+| Cobertura | não medida no relatório | 95,81% |
+| Adoção cross-project | desatualizada (causa da nota 9,1) | protegida por teste de completude |
+| Documentação | expansão inicial | bilíngue, revisada integralmente (69 pares) |
+| Infraestrutura de AI | inexistente | 5 camadas governadas + observabilidade |
+| CI | básico | 11 jobs, artefatos, SHA pinning, status checks obrigatórios |
+| Runtime | não avaliado | LTS corrente com CVEs corrigidos + ferramenta de lifecycle |
 
 ### Conclusão
 
-O projeto evoluiu de forma impressionante, com 9 camadas de defesa e 154 testes. No entanto, a consistência entre o projeto fonte e o mecanismo de adoção cross-project (`install-defences.js`) foi perdida. Corrigir o instalador e atualizar as documentações de arquitetura, adoção e testing é suficiente para restaurar a nota **10/10**.
+O projeto atingiu **10/10** com evidências medidas em todas as categorias e
+zero itens P0 abertos. O release v1.0.0 depende apenas da conclusão da
+sequência pré-release (AI-3.2, AI-3.1, M.1) e da aprovação explícita do
+mantenedor, conforme os gates da Fase K.

@@ -24,36 +24,39 @@ node ./tools/install-defences.js /path/to/target-project --force
 
 ## What the Installer Does
 
-1. Copies the following files into the target project:
-   - `.npmrc`
-   - `.husky/pre-commit`
-   - `biome.json`
-   - `tools/check-package-age.js`
-   - `tools/add-package.js`
-   - `tools/check-md-links.js`
-   - `tools/check-md-links.test.js`
-   - `tools/lib/package-utils.js`
-   - `tools/setup-bootstrap.js`
-   - `tools/setup-bootstrap.test.js`
-   - `tools/check-package-age.test.js`
-   - `tools/install-defences.js`
-   - `tools/install-defences.test.js`
-   - `tools/update-packages.js`
-   - `tools/update-packages.test.js`
-2. Adds `defence:*` scripts to `package.json`:
+1. Copies the defence files into the target project:
+   - Hardened configuration: `.npmrc`, `.husky/pre-commit`, `.husky/post-merge`,
+     `biome.json`.
+   - Defence scripts under `tools/`, including their tests (for example
+     `add-package.js`, `check-package-age.js`, `check-licenses.js`,
+     `check-updates.js`, `check-secrets.js`, `generate-sbom.js`,
+     `run-audit-with-retry.js`, `update-packages.js`, `verify-defences.js`).
+   - Shared libraries under `tools/lib/` (for example `config.js`,
+     `registry-cache.js`, `retry-fetch.js`, `sync-check.js`).
+   - Performance benchmarks under `tools/perf/`.
+   - The installer itself and its test suite.
+
+   The authoritative list is `FILES_TO_COPY` in
+   [`tools/install-defences.js`](../../tools/install-defences.js), and a
+   completeness test fails the suite whenever a file under `tools/` is
+   neither on that list nor explicitly excluded — the adopted toolset can
+   never silently drift from this repository.
+
+   It also writes `.defence-manifest.json` in the target project with SHA-256
+   hashes of the copied files.
+2. Adds `defence:*` scripts to `package.json`. The authoritative list is
+   `SCRIPTS_TO_ADD` in
+   [`tools/install-defences.js`](../../tools/install-defences.js). Notable
+   scripts include:
    - `setup`
-   - `defence:bootstrap`
-   - `defence:check-md-links`
-   - `defence:pkg-age-check`
-   - `defence:reinstall`
-   - `defence:update`
-   - `defence:pre-commit`
-   - `defence:add`
-   - `test`
-   - `lint`
-   - `lint:fix`
-   - `format`
-   - `prepare`
+   - `defence:add`, `defence:bootstrap`, `defence:update`
+   - `defence:audit`, `defence:pre-commit`
+   - `defence:check-engines`, `defence:check-hooks`, `defence:check-md-links`,
+     `defence:check-secrets`, `defence:check-lockfile-integrity`
+   - `defence:pkg-age-check`, `defence:sync-check`, `defence:update-check`
+   - `defence:license-check`, `defence:generate-sbom`, `defence:verify-defences`
+   - `defence:perf`
+   - `test`, `lint`, `lint:fix`, `format`, `prepare`
 3. Adds `husky` and `@biomejs/biome` to `devDependencies` if they are not already present.
 
 Existing scripts that do not conflict are preserved. If a target script already exists with a different value, the installer aborts so nothing is overwritten silently.
@@ -61,10 +64,11 @@ Existing scripts that do not conflict are preserved. If a target script already 
 ## After Running the Installer
 
 1. Run `npm install` in the target project to install husky, Biome, and generate a lock file.
+   - **Important:** the adopted `.npmrc` sets `ignore-scripts=true`, which also blocks the project's own `prepare` script — so husky's git-hook wiring does not run automatically. Run `npm run prepare` once after the install (this is exactly what the installer's `setup` script does).
    - Alternatively, if there is no `package-lock.json`, run `npm run defence:bootstrap` after the install.
 2. Verify the pre-commit hook: `bash .husky/pre-commit`
 3. Verify code quality: `npm run lint`
-4. Commit `.npmrc`, `.husky/`, `biome.json`, `tools/`, and the updated `package.json`.
+4. Commit `.npmrc`, `.husky/`, `biome.json`, `tools/`, `.defence-manifest.json`, and the updated `package.json`.
 
 ## Keeping Files in Sync
 

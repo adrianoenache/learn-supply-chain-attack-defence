@@ -1,13 +1,14 @@
 # Learn Supply Chain Attack Defence
 
-![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.19.0-339933?logo=node.js&logoColor=white)
-![npm](https://img.shields.io/badge/npm-%3E%3D%2011.17.0-CB3837?logo=npm&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.22.2-339933?logo=node.js&logoColor=white)
+![npm](https://img.shields.io/badge/npm-%3E%3D%2011.19.1-CB3837?logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-154%2F154%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-960%2F960%20passing-brightgreen)
+![CI](https://github.com/adrianoenache/learn-supply-chain-attack-defence/actions/workflows/ci.yml/badge.svg?branch=main)
 
 A hands-on project for learning how to defend Node.js/npm projects against supply-chain attacks.
 
-> 🛡️ **Defense in depth**: package-age checks, signature verification, vulnerability audits, deterministic installs, pre-commit hooks, hardened npm configuration, Biome lint/format gates, update availability checks, and dependency license checks.
+> 🛡️ **Defense in depth**: twelve layered defenses for Node.js/npm supply chains, organized into Core, Recommended, and Advanced adoption groups.
 
 ## Quick Start
 
@@ -24,12 +25,19 @@ npm run setup
 
 ### Quick Links
 
+- [Project overview](docs/en/project-overview.md)
 - [Architecture](docs/en/architecture.md)
 - [Tools](docs/en/tools.md)
 - [Quick reference](docs/en/quick-reference.md)
-- [Built with GitHub Copilot & Kimi K2.7 Code](docs/en/copilot.md)
+- [Glossary](docs/en/glossary.md)
+- [AI guidelines](docs/en/ai-guidelines.md)
+- [Built with GitHub Copilot & Kimi Code](docs/en/copilot.md)
 
 ## Security Layers at a Glance
+
+Defenses are grouped by adoption stage. See the [security overview](docs/en/security/index.md) for the full threat model.
+
+### Core — Minimum Necessary
 
 | Layer | Protection | Trigger |
 | --- | --- | --- |
@@ -39,9 +47,41 @@ npm run setup
 | 4 | [Deterministic install](docs/en/security/defense-layer-4-deterministic-install.md) | `npm ci` in `setup` / `defence:reinstall` |
 | 5 | [Pre-commit hook](docs/en/security/defense-layer-5-precommit-hook.md) | Every `git commit` |
 | 6 | [Hardened `.npmrc`](docs/en/security/defense-layer-6-npmrc-config.md) | Every npm command |
+
+### Recommended — Production & Team Use
+
+| Layer | Protection | Trigger |
+| --- | --- | --- |
 | 7 | [Lint / format gate](docs/en/security/defense-layer-7-lint-format.md) | `npm run lint`, `npm run lint:fix`, `npm run format` |
 | 8 | [Update availability check](docs/en/security/defense-layer-8-update-check.md) | `npm run defence:update-check`, pre-commit hook |
-| 9 | [License check](docs/en/security/defense-layer-9-license-check.md) | `npm run defence:license-check` |
+| 9 | [License check](docs/en/security/defense-layer-9-license-check.md) | `npm run defence:license-check`, `npm run defence:add`, pre-commit hook |
+| 12 | [Pre-commit hook integrity](docs/en/security/defense-layer-12-hook-integrity.md) | `npm run setup`, `npm run defence:check-hooks` |
+
+### Advanced / Desirable — Compliance & Mature Security
+
+| Layer | Protection | Trigger |
+| --- | --- | --- |
+| 10 | [Typosquatting & dependency confusion](docs/en/security/defense-layer-10-typosquatting.md) | `npm run defence:add` |
+| 11 | [Provenance & SLSA attestation](docs/en/security/defense-layer-11-provenance.md) | `npm run defence:add` |
+
+### Supporting Capabilities
+
+| Capability | Tool | Purpose |
+| --- | --- | --- |
+| Lifecycle script analysis | `npm run defence:analyze-lifecycle-scripts` | Static, read-only scan of package lifecycle scripts before install |
+| Lifecycle process monitoring | `npm run defence:install-monitored` | Runtime observation of every subprocess spawned during `npm install` |
+| `.npmrc` hardening | [`.npmrc`](.npmrc) + [guide](docs/en/npmrc-hardening.md) | Hardened npm defaults for pinning, scripts, audit, TLS, and telemetry |
+| Trust score dashboard | `npm run defence:trust-report` | Aggregate supply-chain signals into a per-package 0–100 score |
+| SBOM generation | `npm run defence:generate-sbom` | CycloneDX 1.4 JSON for compliance and incident response |
+| Adoption integrity | `npm run defence:verify-defences` | Verify files copied by `install-defences.js` |
+| npm configuration surface | `npm run defence:check-npmrc` | Guard `.npmrc` keys (known/lookahead lists) and reject the npm v12 extension mechanism |
+| Engine lifecycle | `npm run defence:update-engines` | Node.js engine updates/upgrades gated on the official dist index (CI availability by construction) |
+
+Beyond the twelve technical layers, the repository applies an **organizational layer** to itself: branch protection on `main` and `dev` with required status checks and code-owner review of critical paths ([CODEOWNERS](.github/CODEOWNERS)) — the defense model protecting the project that teaches it.
+
+## CI/CD
+
+This repository uses a hardened GitHub Actions workflow with pinned actions by SHA, minimal `GITHUB_TOKEN` permissions, artifact-based `node_modules` caching, separated lint/format jobs, `actionlint` validation, and SBOM generation. For details, see [docs/en/ci-cd-overview.md](docs/en/ci-cd-overview.md) and [docs/en/git-workflow.md](docs/en/git-workflow.md).
 
 ## Security
 

@@ -1,6 +1,72 @@
 # Visão Geral de Segurança
 
-Este projeto protege a árvore de dependências usando nove camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
+Este projeto protege a árvore de dependências usando doze camadas complementares. Cada camada endereça um vetor de ataque diferente e, juntas, tornam muito mais difícil a entrada de um pacote malicioso ou comprometido no projeto.
+
+> **A camada organizacional.** As doze camadas são técnicas e automáticas.
+> O [.github/CODEOWNERS](../../../.github/CODEOWNERS) adiciona a camada humana:
+> caminhos que podem enfraquecer um portão (as ferramentas de defesa, o
+> `.npmrc`, os hooks, a superfície de customização de AI) exigem revisão do
+> code owner listado. Veja
+> [Organização do repositório](../repository-organization.md#codeowners) para
+> como habilitar.
+
+## Grupos de Defesa
+
+As doze defesas estão organizadas em três grupos de adoção. Comece pelo grupo **Core** e adicione os demais conforme o projeto amadurece.
+
+### Core — Mínimo Necessário
+
+Essas defesas são essenciais para qualquer projeto Node.js/npm que adote este toolkit.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 1 | [Verificação de idade dos pacotes](defense-layer-1-package-age.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:reinstall`, `npm run defence:bootstrap` |
+| 2 | [Verificação de assinaturas](defense-layer-2-signatures.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:bootstrap`, hook de pré-commit |
+| 3 | [Auditoria de vulnerabilidades](defense-layer-3-vulnerabilities.md) | `npm run setup`, `npm run defence:add`, `npm run defence:update`, `npm run defence:bootstrap`, hook de pré-commit |
+| 4 | [Instalação determinística](defense-layer-4-deterministic-install.md) | `npm ci` no `setup` / `defence:reinstall` |
+| 5 | [Hook de pré-commit](defense-layer-5-precommit-hook.md) | Todo `git commit` |
+| 6 | [`.npmrc` endurecido](defense-layer-6-npmrc-config.md) | Todo comando npm |
+
+### Recomendado — Produção e Times
+
+Adicione essas defesas quando o projeto estiver em produção ou tiver múltiplos contribuidores.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 7 | [Gate de lint / formatação](defense-layer-7-lint-format.md) | `npm run lint`, hook de pré-commit |
+| 8 | [Verificação de atualizações disponíveis](defense-layer-8-update-check.md) | `npm run defence:update-check`, hook de pré-commit |
+| 9 | [Verificação de licenças](defense-layer-9-license-check.md) | `npm run defence:license-check`, `npm run defence:add`, hook de pré-commit |
+| 12 | [Integridade do hook de pré-commit](defense-layer-12-hook-integrity.md) | `npm run setup`, `npm run defence:check-hooks` |
+
+### Avançado / Desejável — Compliance e Segurança Madura
+
+Essas defesas oferecem garantia extra para times com requisitos de segurança mais rigorosos.
+
+| Camada | Defesa | Gatilho |
+| --- | --- | --- |
+| 10 | [Typosquatting e confusão de dependências](defense-layer-10-typosquatting.md) | `npm run defence:add` |
+| 11 | [Provenance e atestado SLSA](defense-layer-11-provenance.md) | `npm run defence:add` |
+
+Além disso, o toolkit fornece capacidades de suporte que não se encaixam em uma única camada:
+
+| Capacidade | Ferramenta | Propósito |
+| --- | --- | --- |
+| Análise de scripts de lifecycle | `defence:analyze-lifecycle-scripts` | Varredura estática e somente leitura dos scripts de lifecycle antes da instalação |
+| Monitoramento de processos de lifecycle | `defence:install-monitored` | Observação em tempo de execução de todo subprocesso gerado durante `npm install` |
+| Dashboard de trust score | `defence:trust-report` | Agrega sinais de supply chain em uma pontuação de 0 a 100 por pacote |
+| Geração de SBOM | `defence:generate-sbom` | CycloneDX 1.4 JSON para compliance e resposta a incidentes |
+| Integridade da adoção | `defence:verify-defences` | Verificar arquivos copiados pelo `install-defences.js` |
+| Superfície de configuração npm | `defence:check-npmrc` | Validar chaves do `.npmrc` e rejeitar o mecanismo de extensão do npm v12 |
+| Ciclo de vida de engines | `defence:update-engines` | Updates/upgrades de engine Node.js gateados no índice dist oficial |
+| Varredura de código morto | `defence:check-dead-code` | Candidatos a código morto no toolset (consultivo) |
+
+## Guias de Suporte
+
+Algumas escolhas defensivas exigem caminhos de exceção documentados:
+
+- [Troubleshooting](../troubleshooting.md) — falhas comuns e como executar cada defesa manualmente.
+- [Monitoramento de processos de lifecycle](../lifecycle-monitoring.md) — observação em tempo de execução de todo subprocesso gerado durante `npm install`.
+- [Reconstrução de pacotes com lifecycle scripts](rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
 
 ## Diagrama das Camadas de Defesa
 
@@ -61,10 +127,29 @@ flowchart TD
     W[ler lock file] --> X[permitida / proibida / sinalizada]
   end
 
+  subgraph Layer10["Camada 10: verificação de typosquatting"]
+    AA[nome solicitado] --> AB{similar ao existente?}
+  end
+
+  subgraph Layer11["Camada 11: verificação de provenance"]
+    AC[atestado no registry] --> AD[válido / ausente]
+  end
+
+  subgraph Layer12["Camada 12: integridade do hook"]
+    AE[arquivo pre-commit] --> AF{hash corresponde?}
+  end
+
   O --> P[Árvore de dependências segura]
   R --> P
   V --> P
   X --> P
+  AB --> P
+  AD --> P
+  AF --> P
+```
+
+## Referência Completa das Camadas
+
 1. [Verificação de idade dos pacotes](defense-layer-1-package-age.md)
 2. [Verificação de assinaturas](defense-layer-2-signatures.md)
 3. [Auditoria de vulnerabilidades](defense-layer-3-vulnerabilities.md)
@@ -74,6 +159,9 @@ flowchart TD
 7. [Gate de lint / formatação](defense-layer-7-lint-format.md)
 8. [Verificação de atualizações disponíveis](defense-layer-8-update-check.md)
 9. [Verificação de licenças](defense-layer-9-license-check.md)
+10. [Typosquatting e confusão de dependências](defense-layer-10-typosquatting.md)
+11. [Provenance e atestado SLSA](defense-layer-11-provenance.md)
+12. [Integridade do hook de pré-commit](defense-layer-12-hook-integrity.md)
 
 ## Modelo de Ameaça em Resumo
 
@@ -85,3 +173,6 @@ flowchart TD
 - **Código de baixa qualidade ou inconsistente entrando no repositório** → bloqueado pelo gate de lint / formatação do Biome no hook de pré-commit.
 - **Dependências ficando desatualizadas sem aviso** → destacado pela verificação de atualizações disponíveis no hook de pré-commit.
 - **Incompatibilidade legal devido a licenças de dependências** → destacado pela verificação de licenças.
+- **Typosquatting e confusão de dependências** → bloqueado pela verificação de typosquatting no `add-package.js`.
+- **Pacotes construídos a partir de fontes não confiáveis** → destacado pela verificação de provenance.
+- **Hook de pré-commit adulterado** → bloqueado pela verificação de integridade do hook.

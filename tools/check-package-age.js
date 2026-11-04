@@ -15,11 +15,21 @@
 // directly with --transitive (npm-reinstall post-install),
 // and internally by add-package.js with --pkg before any installation.
 
-const https = require('node:https')
 const path = require('node:path')
 
 const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
+)
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { runWithConcurrencyLimit } = require(
+  path.resolve(__dirname, './lib/concurrency.js'),
+)
+const { fetchRegistryJson } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { validatePackument, validatePublishDate } = require(
+  path.resolve(__dirname, './lib/validate-external-content.js'),
 )
 
 // Reads the declared dependencies from the project's package.json.
@@ -27,22 +37,36 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
 // packages because it runs before installation itself.
 const pkg = require(path.resolve(__dirname, '../package.json'))
 
+const config = loadConfig()
+
 // Minimum number of days since publication for a package to be accepted.
 // Aligned with min-release-age=7 in .npmrc (npm's native defense layer).
 // Configurable via package.json: "pkgAgeCheck": { "minAgeDays": 7 }
-const MIN_AGE_DAYS = pkg.pkgAgeCheck?.minAgeDays ?? 7
+const MIN_AGE_DAYS = config.pkgAgeCheck.minAgeDays
 
 // Maximum response size per registry call (default: 20 MB).
 // Full package documents with long history can be large, but no known real package
 // exceeds 20 MB. The cap protects against pathological scenarios (malformed response,
 // data injection in transit, infinite chunk loops).
 // Override via package.json: "pkgAgeCheck": { "minAgeDays": 7, "maxResponseMB": 50 }
-const MAX_RESPONSE_BYTES = (pkg.pkgAgeCheck?.maxResponseMB ?? 20) * 1024 * 1024
+// 1024 * 1024 is the fixed bytes-per-MB conversion factor; kept inline
+// because it is a mathematical constant, not a project-specific threshold.
+const MAX_RESPONSE_BYTES = config.pkgAgeCheck.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries (default: 10).
 // Avoids rate-limiting in projects with many dependencies.
 // Configurable via package.json: "pkgAgeCheck": { "concurrency": 5 }
-const CONCURRENCY = pkg.pkgAgeCheck?.concurrency ?? 10
+const CONCURRENCY = config.pkgAgeCheck.concurrency
+
+// Dependency injection hook for the current timestamp.
+// Allows integration tests to freeze time so age calculations are deterministic.
+let nowImpl = () => Date.now()
+function setNowImpl(fn) {
+  nowImpl = fn
+}
+function resetNowImpl() {
+  nowImpl = () => Date.now()
+}
 
 // Resolves the operation mode from command-line arguments.
 // Returns an object with { transitive, pkgArg } or exits on invalid input.
@@ -78,13 +102,19 @@ function resolveMode(argv) {
 // - default: merges all dependency types from package.json
 function buildDeps({ transitive, pkgArg, pkg: pkgInput, lock }) {
   if (transitive) {
-    // lockfileVersion 3 stores each installed package under the "node_modules/<name>" key
+    // lockfileVersion 3 stores each installed package under a "node_modules/<name>" key
     // in the `packages` object. The "" key represents the root project and is filtered out.
-    // The `version` field always contains the resolved exact version.
+    // Nested dependencies appear as "node_modules/<parent>/node_modules/<name>";
+    // the package name is the segment after the last "node_modules/".
     return Object.fromEntries(
       Object.entries(lock.packages)
         .filter(([key]) => key.startsWith('node_modules/'))
-        .map(([key, val]) => [key.replace(/^node_modules\//, ''), val.version]),
+        .map(([key, val]) => {
+          const packageName = key.slice(
+            key.lastIndexOf('node_modules/') + 'node_modules/'.length,
+          )
+          return [packageName, val.version]
+        }),
     )
   }
 
@@ -129,110 +159,48 @@ function resolveExactVersion(version) {
 // because only the full package document contains the `time` map with the publication
 // date of each individual version. The abbreviated packument (vnd.npm.install-v1+json)
 // does not include the `time` field, so the full document is required.
-function fetchPackageAge(name, version) {
-  return new Promise((resolve, reject) => {
-    // Guard against double resolve/reject calls: in socket error scenarios,
-    // `res.on('error')` and `res.on('end')` may fire in sequence in the same tick.
-    // Promises silently ignore the second call, but the flag makes it explicit.
-    let settled = false
-    const safeResolve = (val) => {
-      if (!settled) {
-        settled = true
-        resolve(val)
-      }
-    }
-    const safeReject = (err) => {
-      if (!settled) {
-        settled = true
-        reject(err)
-      }
-    }
+async function fetchPackageAge(name, version) {
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  const fetchOptions = {
+    url,
+    cacheTtlHours: config.updateCheck.cacheTtlHours,
+    maxResponseBytes: MAX_RESPONSE_BYTES,
+    timeoutMs: config.pkgAgeCheck.registryTimeoutMs,
+    retryMaxAttempts: config.updateCheck.retryMaxAttempts,
+    retryInitialDelayMs: config.updateCheck.retryInitialDelayMs,
+    retryBackoffMultiplier: config.updateCheck.retryBackoffMultiplier,
+    retryMaxDelayMs: config.updateCheck.retryMaxDelayMs,
+    acceptGzip: true,
+  }
+  let info = await fetchRegistryJson(name, version, fetchOptions)
 
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
-
-    const req = https.get(
-      url,
-      { headers: { Accept: 'application/json' }, timeout: 10000 },
-      (res) => {
-        let data = ''
-
-        // Accumulates HTTP response chunks into a string.
-        // Stops the transfer if the accumulated size exceeds MAX_RESPONSE_BYTES.
-        res.on('data', (chunk) => {
-          data += chunk
-          if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
-            res.destroy()
-            const limitMB = MAX_RESPONSE_BYTES / (1024 * 1024)
-            safeReject(
-              new Error(
-                `Response for ${name} exceeds ${limitMB} MB limit. ` +
-                  `Set "pkgAgeCheck": { "maxResponseMB": <value> } in package.json to increase the limit.`,
-              ),
-            )
-          }
-        })
-
-        // Mid-stream errors (connection lost after response started) fire on `res`,
-        // not on `req` — they need their own handler.
-        res.on('error', (err) => {
-          safeReject(new Error(`Stream error for ${name}: ${err.message}`))
-        })
-
-        res.on('end', () => {
-          if (res.statusCode !== 200) {
-            safeReject(
-              new Error(`Registry returned HTTP ${res.statusCode} for ${name}`),
-            )
-            return
-          }
-
-          try {
-            const info = JSON.parse(data)
-
-            // The `time` field is an object where each key is a published version
-            // and the value is the ISO 8601 publication timestamp.
-            // Example: { "1.0.0": "2024-01-15T10:00:00.000Z", ... }
-            if (!info.time?.[version]) {
-              safeReject(
-                new Error(
-                  `No publish date found for ${name}@${version} in registry`,
-                ),
-              )
-              return
-            }
-
-            const published = new Date(info.time[version])
-
-            if (Number.isNaN(published.getTime())) {
-              safeReject(
-                new Error(
-                  `Could not parse publish date for ${name}@${version}`,
-                ),
-              )
-              return
-            }
-
-            // Converts the difference between now and the publication date from milliseconds to days.
-            const ageDays =
-              (Date.now() - published.getTime()) / (1000 * 60 * 60 * 24)
-            safeResolve({ name, version, ageDays, published })
-          } catch (err) {
-            safeReject(
-              new Error(`Failed to parse response for ${name}: ${err.message}`),
-            )
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy()
-      safeReject(new Error(`Timeout fetching registry data for ${name}`))
+  // Output validation (Fase AI-3.2): the packument drives the age gate, so
+  // its shape is verified before any field is trusted — including a name
+  // match against the request (content confusion) and well-formed dates.
+  // A validation failure may come from a poisoned/stale cache entry, so the
+  // first failure triggers one forced re-fetch (cache bypass) before giving up.
+  try {
+    validatePackument(info, name)
+  } catch {
+    info = await fetchRegistryJson(name, version, {
+      ...fetchOptions,
+      force: true,
     })
-    req.on('error', (err) => {
-      safeReject(new Error(`Network error for ${name}: ${err.message}`))
-    })
-  })
+    validatePackument(info, name)
+  }
+
+  if (!info.time?.[version]) {
+    throw new Error(`No publish date found for ${name}@${version} in registry`)
+  }
+
+  const published = new Date(
+    validatePublishDate(info.time[version], `${name}@${version}`, nowImpl()),
+  )
+
+  // Converts the difference between now and the publication date from milliseconds to days.
+  const MS_PER_DAY = config.pkgAgeCheck.msPerDay
+  const ageDays = (nowImpl() - published.getTime()) / MS_PER_DAY
+  return { name, version, ageDays, published }
 }
 
 // Runs an array of async functions with at most `limit` running concurrently.
@@ -240,43 +208,6 @@ function fetchPackageAge(name, version) {
 // this ensures the HTTP request is only started when a slot becomes available.
 // Returns an array in the same shape as Promise.allSettled.
 // Empty list resolves immediately with [].
-function runWithConcurrencyLimit(tasks, limit) {
-  return new Promise((resolve) => {
-    if (tasks.length === 0) return resolve([])
-    const results = new Array(tasks.length)
-    let started = 0
-    let completed = 0
-
-    function runNext() {
-      if (started >= tasks.length) return
-      const index = started++
-      Promise.resolve()
-        .then(() => tasks[index]())
-        .then(
-          (value) => {
-            results[index] = { status: 'fulfilled', value }
-            onDone()
-          },
-          (reason) => {
-            results[index] = { status: 'rejected', reason }
-            onDone()
-          },
-        )
-    }
-
-    function onDone() {
-      completed++
-      if (completed === tasks.length) {
-        resolve(results)
-        return
-      }
-      runNext()
-    }
-
-    const initial = Math.min(limit, tasks.length)
-    for (let i = 0; i < initial; i++) runNext()
-  })
-}
 
 async function main(options = {}) {
   // In test mode, allow injecting a custom package manifest, lockfile, argv, and exit function.
@@ -299,7 +230,66 @@ async function main(options = {}) {
   })
   const minAgeDays = options.minAgeDays ?? MIN_AGE_DAYS
 
-  const entries = Object.entries(deps)
+  // Non-registry specs (git URLs, file:/link:, workspace:, tarball URLs)
+  // cannot be age-checked against the registry — they pin by commit/URL.
+  // They are reported as an advisory instead of failing the lookup.
+  // (Dogfooding finding, Fase M.1: a git dependency failed the gate with a
+  // confusing "no publish date in registry" error.)
+  const isNonRegistrySpec = (spec) =>
+    /^(git(\+[^:]+)?:|git@|https?:\/\/|file:|link:|workspace:)/.test(
+      String(spec),
+    ) || String(spec).includes('.git#')
+
+  let entries = Object.entries(deps)
+  const nonRegistry = entries.filter(([, spec]) => isNonRegistrySpec(spec))
+  entries = entries.filter(([, spec]) => !isNonRegistrySpec(spec))
+
+  // In transitive mode the value is the resolved version; a git or URL
+  // dependency reveals itself through the lockfile's resolved URL instead.
+  if (mode.transitive && lock?.packages) {
+    // Regression caught by the v1.0.0 release checklist: `resolved` is a URL
+    // for EVERY lockfile entry — registry tarballs included
+    // (https://<registry>/<name>/-/<file>.tgz) — so the generic spec test
+    // alone classified the whole tree as non-registry and the gate silently
+    // became a no-op ("No dependencies to check"). A resolved URL bypasses
+    // the age check only when it points OUTSIDE the configured registry.
+    const registryOrigin = new URL(
+      // npm's default registry host; npm itself exports npm_config_registry
+      // to scripts, so custom registries are honored without extra config.
+      process.env.npm_config_registry ?? 'https://registry.npmjs.org',
+    ).origin
+    const stillRegistry = []
+    for (const [name, version] of entries) {
+      const resolved = lock.packages[`node_modules/${name}`]?.resolved ?? ''
+      let bypass = false
+      if (isNonRegistrySpec(resolved)) {
+        try {
+          bypass = new URL(resolved).origin !== registryOrigin
+        } catch {
+          // Unparsable resolved URL (e.g. a link dep's relative path):
+          // surface it in the SKIP list for manual verification instead of
+          // failing the run (non-registry ADR: classify, never fail).
+          bypass = true
+        }
+      }
+      if (bypass) {
+        nonRegistry.push([name, resolved])
+      } else {
+        stillRegistry.push([name, version])
+      }
+    }
+    entries = stillRegistry
+  }
+
+  if (nonRegistry.length > 0) {
+    console.log(
+      `Non-registry dependencies (age gate not applicable — pinned by commit/URL, verify them manually):`,
+    )
+    for (const [name, spec] of nonRegistry) {
+      console.log(`  SKIP     ${name} — ${String(spec).slice(0, 80)}`)
+    }
+    console.log('')
+  }
 
   if (entries.length === 0) {
     console.log('No dependencies to check.')
@@ -314,19 +304,107 @@ async function main(options = {}) {
     `Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${minAgeDays} days)...\n`,
   )
 
-  // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
-  // runWithConcurrencyLimit ensures all queries finish before evaluating results,
-  // even if some fail — enabling a complete report.
-  // Versions with range operators (^, ~, >=, etc.) are normalized to an exact version
-  // before querying; unresolvable ranges (*, latest) are rejected.
+  const profileName = mode.transitive
+    ? 'check-package-age-transitive'
+    : 'check-package-age'
+
+  await withProfile(
+    profileName,
+    async (metrics) => {
+      // Queries all packages with concurrency limited to CONCURRENCY simultaneous requests.
+      // runWithConcurrencyLimit ensures all queries finish before evaluating results,
+      // even if some fail — enabling a complete report.
+      // Versions with range operators (^, ~, >=, etc.) are normalized to an exact version
+      // before querying; unresolvable ranges (*, latest) are rejected.
+      const results = await runWithConcurrencyLimit(
+        entries.map(([name, rawVersion]) => () => {
+          const version = resolveExactVersion(rawVersion)
+          if (!version) {
+            return Promise.reject(
+              new Error(
+                `Cannot determine exact version for ${name}@${rawVersion} — pin to an exact version to allow age check`,
+              ),
+            )
+          }
+          return fetchPackageAge(name, version)
+        }),
+        CONCURRENCY,
+      )
+
+      const stats = require(
+        path.resolve(__dirname, './lib/registry-cache.js'),
+      ).getStats()
+      metrics.networkCalls = stats.cacheMisses
+      metrics.cacheHits = stats.cacheHits
+
+      // Splits packages into two lists: blocked (too new) and lookup errors.
+      // Both result in failure — a package whose age cannot be confirmed must not be installed.
+      const blocked = []
+      const errors = []
+
+      results.forEach((result) => {
+        if (result.status === 'rejected') {
+          errors.push(result.reason.message)
+          return
+        }
+
+        const { name, version, ageDays, published } = result.value
+        const age = ageDays.toFixed(1)
+        const publishedStr = published.toISOString().slice(0, 10)
+
+        if (ageDays < minAgeDays) {
+          blocked.push(
+            `  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`,
+          )
+        } else {
+          console.log(
+            `  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`,
+          )
+        }
+      })
+
+      if (errors.length > 0) {
+        console.error(
+          '\nErrors during registry lookup (cannot confirm package age):',
+        )
+        errors.forEach((msg) => {
+          console.error(`  ${msg}`)
+        })
+      }
+
+      if (blocked.length > 0) {
+        console.error(
+          `\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${minAgeDays} days:`,
+        )
+        blocked.forEach((msg) => {
+          console.error(msg)
+        })
+      }
+
+      // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
+      // Either case prevents installation.
+      if (blocked.length > 0 || errors.length > 0) {
+        exitFn(1)
+        return
+      }
+
+      console.log(`\nAll packages passed the minimum age check.`)
+    },
+    { profilePath: path.resolve(__dirname, '..', '.defence-profile.json') },
+  )
+}
+
+// Benchmark entry point: checks the age of an arbitrary dependency map.
+// This avoids touching the real package.json/package-lock.json during perf
+// measurements and keeps the benchmark deterministic.
+async function runForBenchmark(deps) {
+  const entries = Object.entries(deps)
   const results = await runWithConcurrencyLimit(
     entries.map(([name, rawVersion]) => () => {
       const version = resolveExactVersion(rawVersion)
       if (!version) {
         return Promise.reject(
-          new Error(
-            `Cannot determine exact version for ${name}@${rawVersion} — pin to an exact version to allow age check`,
-          ),
+          new Error(`Cannot determine exact version for ${name}@${rawVersion}`),
         )
       }
       return fetchPackageAge(name, version)
@@ -334,58 +412,11 @@ async function main(options = {}) {
     CONCURRENCY,
   )
 
-  // Splits packages into two lists: blocked (too new) and lookup errors.
-  // Both result in failure — a package whose age cannot be confirmed must not be installed.
-  const blocked = []
-  const errors = []
-
-  results.forEach((result) => {
+  for (const result of results) {
     if (result.status === 'rejected') {
-      errors.push(result.reason.message)
-      return
+      throw new Error(result.reason.message)
     }
-
-    const { name, version, ageDays, published } = result.value
-    const age = ageDays.toFixed(1)
-    const publishedStr = published.toISOString().slice(0, 10)
-
-    if (ageDays < minAgeDays) {
-      blocked.push(
-        `  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`,
-      )
-    } else {
-      console.log(
-        `  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`,
-      )
-    }
-  })
-
-  if (errors.length > 0) {
-    console.error(
-      '\nErrors during registry lookup (cannot confirm package age):',
-    )
-    errors.forEach((msg) => {
-      console.error(`  ${msg}`)
-    })
   }
-
-  if (blocked.length > 0) {
-    console.error(
-      `\nPackage age check FAILED — ${blocked.length} package(s) below minimum age of ${minAgeDays} days:`,
-    )
-    blocked.forEach((msg) => {
-      console.error(msg)
-    })
-  }
-
-  // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
-  // Either case prevents installation.
-  if (blocked.length > 0 || errors.length > 0) {
-    exitFn(1)
-    return
-  }
-
-  console.log(`\nAll packages passed the minimum age check.`)
 }
 
 // Runs main() only when the script is invoked directly from the CLI.
@@ -403,9 +434,9 @@ if (require.main === module) {
 module.exports = {
   fetchPackageAge,
   resolveExactVersion,
-  runWithConcurrencyLimit,
-  MAX_RESPONSE_BYTES,
   main,
   buildDeps,
-  resolveMode,
+  setNowImpl,
+  resetNowImpl,
+  runForBenchmark,
 }

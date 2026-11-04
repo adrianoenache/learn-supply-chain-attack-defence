@@ -6,10 +6,19 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 
 ## Índice da Documentação
 
+### Sobre Este Projeto
+
+- [Visão geral do projeto](project-overview.md) — propósito, público-alvo e como usar este repositório.
+- [Glossário](glossary.md) — definições de termos de segurança de supply chain.
+- [Diretrizes de AI](ai-guidelines.md) — como este projeto usa GitHub Copilot / Kimi Code.
+- [Observabilidade de AI](ai-observability.md) — como ler o log unificado de eventos dos hooks.
+
 ### Primeiros Passos
 
+- [Roteiro de Aprendizado](learning-path.md) — trilhas sequenciais e tutoriais práticos.
 - [Primeiros Passos](getting-started.md) — pré-requisitos e configuração inicial.
 - [Setup](setup.md) — como funciona o `npm run setup` e o que ele protege.
+- [FAQ](faq.md) — perguntas conceituais frequentes.
 
 ### Camadas de Segurança
 
@@ -24,21 +33,46 @@ Este repositório é um ambiente prático de aprendizado para entender e aplicar
 - Camada 7: [Gate de lint / formatação](security/defense-layer-7-lint-format.md)
 - Camada 8: [Verificação de atualizações disponíveis](security/defense-layer-8-update-check.md)
 - Camada 9: [Verificação de licenças](security/defense-layer-9-license-check.md)
+- Camada 10: [Typosquatting e confusão de dependências](security/defense-layer-10-typosquatting.md)
+- Camada 11: [Provenance e atestado SLSA](security/defense-layer-11-provenance.md)
+- Camada 12: [Integridade do hook de pré-commit](security/defense-layer-12-hook-integrity.md)
+
+### Guias de Suporte
+
+- [Troubleshooting](troubleshooting.md) — falhas comuns, correções e como executar cada defesa manualmente.
+- [Análise de scripts de lifecycle](security/lifecycle-script-analysis.md) — varredura estática e somente leitura dos scripts de lifecycle antes da instalação.
+- [Monitoramento de processos de lifecycle](lifecycle-monitoring.md) — observação em tempo de execução de todo subprocesso gerado durante `npm install`.
+- [Hardening do `.npmrc`](npmrc-hardening.md) — guia detalhado de cada configuração do npm que endurece as instalações.
+- [Reconstrução de pacotes com lifecycle scripts](security/rebuilding-lifecycle-packages.md) — reconstrua pacotes nativos com segurança após `ignore-scripts`.
+- [Trust scoring](trust-scoring.md) — agregue sinais de supply chain em uma pontuação de confiança por pacote.
 
 ### Projeto
 
 - [Arquitetura](architecture.md)
+- [Organização do repositório](repository-organization.md) — convenções de layout e a camada organizacional de defesa CODEOWNERS.
 - [Ferramentas](tools.md)
+- [Checklist de verificação de comandos](command-verification-checklist.md) — contrato CLI (flags, códigos de saída, formatos) de cada script `defence:*`.
+- [Decisões](../../DECISIONS.md) — ADRs leves registrando *por que* as escolhas-chave foram feitas.
 - [Referência rápida](quick-reference.md)
-- [GitHub Copilot e Kimi K2.7 Code](copilot.md)
+- [GitHub Copilot e Kimi Code](copilot.md)
+
+### CI/CD e Operações
+
+- [Visão geral de CI/CD](ci-cd-overview.md)
+- [Fluxo de trabalho Git](git-workflow.md)
+- [SBOM e Conformidade](sbom-and-compliance.md)
+- [Ajuste de Performance](performance-tuning.md)
 
 ### Desenvolvimento
 
 - [Git hooks](git-hooks.md)
 - [Adicionando dependências](dependencies.md)
 - [Testes](testing.md)
+- [Melhorias de code review](code-review-improvements.md) — auditoria educacional da Fase G: padrão de cabeçalho, achados de mensagens de erro e hardcodes.
+- [Checklist de release](release-checklist.md)
 - [Referências](references.md)
 - [Adotando em outros projetos](adopting-in-other-projects.md)
+- [Relatório de dogfooding (Fase M.1)](dogfooding-m1-report.md) — o que a instalação num projeto real pré-existente revelou e as correções que gerou.
 
 ## Outros Idiomas
 

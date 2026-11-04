@@ -24,36 +24,39 @@ node ./tools/install-defences.js /caminho/do/projeto-destino --force
 
 ## O Que o Instalador Faz
 
-1. Copia os seguintes arquivos para o projeto de destino:
-   - `.npmrc`
-   - `.husky/pre-commit`
-   - `biome.json`
-   - `tools/check-package-age.js`
-   - `tools/add-package.js`
-   - `tools/check-md-links.js`
-   - `tools/check-md-links.test.js`
-   - `tools/lib/package-utils.js`
-   - `tools/setup-bootstrap.js`
-   - `tools/setup-bootstrap.test.js`
-   - `tools/check-package-age.test.js`
-   - `tools/install-defences.js`
-   - `tools/install-defences.test.js`
-   - `tools/update-packages.js`
-   - `tools/update-packages.test.js`
-2. Adiciona scripts com prefixo `defence:*` ao `package.json`:
+1. Copia os arquivos de defesa para o projeto de destino:
+   - Configurações endurecidas: `.npmrc`, `.husky/pre-commit`, `.husky/post-merge`,
+     `biome.json`.
+   - Scripts de defesa em `tools/`, incluindo seus testes (por exemplo
+     `add-package.js`, `check-package-age.js`, `check-licenses.js`,
+     `check-updates.js`, `check-secrets.js`, `generate-sbom.js`,
+     `run-audit-with-retry.js`, `update-packages.js`, `verify-defences.js`).
+   - Bibliotecas compartilhadas em `tools/lib/` (por exemplo `config.js`,
+     `registry-cache.js`, `retry-fetch.js`, `sync-check.js`).
+   - Benchmarks de performance em `tools/perf/`.
+   - O próprio instalador e sua suíte de testes.
+
+   A lista autoritativa está em `FILES_TO_COPY` no
+   [`tools/install-defences.js`](../../tools/install-defences.js), e um teste
+   de completude falha a suíte sempre que um arquivo em `tools/` não estiver
+   nem na lista nem explicitamente excluído — o toolset adotado nunca pode
+   divergir silenciosamente deste repositório.
+
+   Ele também escreve `.defence-manifest.json` no projeto destino com hashes
+   SHA-256 dos arquivos copiados.
+2. Adiciona scripts com prefixo `defence:*` ao `package.json`. A lista
+   autoritativa está em `SCRIPTS_TO_ADD` no
+   [`tools/install-defences.js`](../../tools/install-defences.js). Scripts
+   notáveis incluem:
    - `setup`
-   - `defence:bootstrap`
-   - `defence:check-md-links`
-   - `defence:pkg-age-check`
-   - `defence:reinstall`
-   - `defence:update`
-   - `defence:pre-commit`
-   - `defence:add`
-   - `test`
-   - `lint`
-   - `lint:fix`
-   - `format`
-   - `prepare`
+   - `defence:add`, `defence:bootstrap`, `defence:update`
+   - `defence:audit`, `defence:pre-commit`
+   - `defence:check-engines`, `defence:check-hooks`, `defence:check-md-links`,
+     `defence:check-secrets`, `defence:check-lockfile-integrity`
+   - `defence:pkg-age-check`, `defence:sync-check`, `defence:update-check`
+   - `defence:license-check`, `defence:generate-sbom`, `defence:verify-defences`
+   - `defence:perf`
+   - `test`, `lint`, `lint:fix`, `format`, `prepare`
 3. Adiciona `husky` e `@biomejs/biome` em `devDependencies` se ainda não estiverem presentes.
 
 Scripts existentes que não entram em conflito são preservados. Se um script de destino já existir com um valor diferente, o instalador aborta para que nada seja sobrescrito silenciosamente.
@@ -61,10 +64,11 @@ Scripts existentes que não entram em conflito são preservados. Se um script de
 ## Depois de Executar o Instalador
 
 1. Execute `npm install` no projeto de destino para instalar o husky, o Biome e gerar o lock file.
+   - **Importante:** o `.npmrc` adotado define `ignore-scripts=true`, que também bloqueia o script `prepare` do próprio projeto — então o registro dos git hooks do husky não roda automaticamente. Execute `npm run prepare` uma vez após a instalação (é exatamente o que o script `setup` do instalador faz).
    - Alternativamente, se não houver `package-lock.json`, execute `npm run defence:bootstrap` após a instalação.
 2. Verifique o hook de pré-commit: `bash .husky/pre-commit`
 3. Verifique a qualidade do código: `npm run lint`
-4. Faça commit de `.npmrc`, `.husky/`, `biome.json`, `tools/` e do `package.json` atualizado.
+4. Faça commit de `.npmrc`, `.husky/`, `biome.json`, `tools/`, `.defence-manifest.json` e do `package.json` atualizado.
 
 ## Mantendo os Arquivos em Sincronia
 

@@ -9,8 +9,15 @@
 // Usage:
 //   npm run defence:update-check            — run the check
 //   npm run defence:update-check -- --force — ignore cache and rescan
-//   npm run defence:update-check -- --silent — suppress non-error output
+//   npm run defence:update-check -- --silent — suppress reports (safety
+//     warnings about unsynced node_modules and offline fallback are still
+//     shown, because silently skipping them would hide real risk)
 //   npm run defence:update-check -- --offline — rely only on local cache, no network calls
+//
+// Each package entry lists `intermediateEligible`: versions newer than
+// `wanted` and at most `latest` that already satisfy the minimum-age gate,
+// sorted ascending. defence:update (Fase F.1) uses the last element as the
+// preferred target instead of blindly jumping to `latest`.
 //
 // Before scanning the registry, the script verifies that node_modules is in
 // sync with package-lock.json. If it is not, it recommends `npm ci` first.
@@ -18,9 +25,13 @@
 // stale packages (e.g. after pulling another collaborator's changes).
 
 const fs = require('node:fs')
-const https = require('node:https')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
+
+// Hardcoded time-unit conversion: 1000 ms/s * 60 s/min * 60 min/h * 24 h/day.
+// This is a mathematical constant, not a project-specific threshold, so it
+// intentionally stays inline rather than moving to configuration.
+const MS_PER_DAY = 1000 * 60 * 60 * 24
 
 const {
   isNodeModulesInSync,
@@ -28,65 +39,78 @@ const {
   setImpls: setSyncImpls,
   resetImpls: resetSyncImpls,
 } = require(path.resolve(__dirname, './lib/sync-check.js'))
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { fetchRegistryJson } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
+const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
+const { runWithConcurrencyLimit } = require(
+  path.resolve(__dirname, './lib/concurrency.js'),
+)
+const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { validatePackument } = require(
+  path.resolve(__dirname, './lib/validate-external-content.js'),
+)
 
-// Reads the project manifest. Only native modules are used so this script can
-// run before any installation is complete.
-const pkg = require(path.resolve(__dirname, '../package.json'))
-
-// Configuration block, kept next to pkgAgeCheck in package.json.
-const config = pkg.updateCheck ?? {}
+const config = loadConfig()
+const updateConfig = config.updateCheck
 
 // Minimum age for a new release to be considered safe to update to.
 // Falls back to pkgAgeCheck.minAgeDays, then to the .npmrc min-release-age
 // value (7 days in this project). Keeps all age-based defenses aligned.
-const MIN_AGE_DAYS =
-  config.minAgeDays ??
-  pkg.pkgAgeCheck?.minAgeDays ??
-  resolveNpmrcMinReleaseAge() ??
-  7
+const MIN_AGE_DAYS = updateConfig.minAgeDays
 
 // How often (in days) the reminder should be shown when alwaysRemind is false.
-const REMIND_EVERY_DAYS = config.remindEveryDays ?? 1
+const REMIND_EVERY_DAYS = updateConfig.remindEveryDays
 
 // If true, the alert is shown on every run when updates exist.
-const ALWAYS_REMIND = config.alwaysRemind ?? false
+const ALWAYS_REMIND = updateConfig.alwaysRemind
 
 // Whether to include transitive dependencies in the outdated check.
-const INCLUDE_TRANSITIVE = config.includeTransitive ?? false
+const INCLUDE_TRANSITIVE = updateConfig.includeTransitive
 
 // Network timeout for registry calls, to keep pre-commit fast.
-const REGISTRY_TIMEOUT_MS = config.registryTimeoutMs ?? 10000
+const REGISTRY_TIMEOUT_MS = updateConfig.registryTimeoutMs
 
 // How long cached results remain valid before a rescan is needed.
-const CACHE_TTL_HOURS = config.cacheTtlHours ?? 24
+const CACHE_TTL_HOURS = updateConfig.cacheTtlHours
 
 // Maximum response size per registry call (20 MB), mirroring check-package-age.js.
-const MAX_RESPONSE_BYTES = 20 * 1024 * 1024
+// 1024 * 1024 is the fixed bytes-per-MB conversion factor; kept inline as a
+// mathematical constant, not a configurable project value.
+const MAX_RESPONSE_BYTES = updateConfig.maxResponseMB * 1024 * 1024
 
 // Maximum concurrent registry queries, mirroring check-package-age.js.
-const CONCURRENCY = 10
+const CONCURRENCY = updateConfig.concurrency
 
 // Historical scan tracking settings.
-const HISTORY_MAX_ENTRIES = config.historyMaxEntries ?? 30
-const STUCK_IN_QUARANTINE_THRESHOLD = config.stuckInQuarantineThreshold ?? 3
-const HIGH_RELEASE_CADENCE_DAYS = config.highReleaseCadenceDays ?? 7
+const HISTORY_MAX_ENTRIES = updateConfig.historyMaxEntries
+const STUCK_IN_QUARANTINE_THRESHOLD = updateConfig.stuckInQuarantineThreshold
+const HIGH_RELEASE_CADENCE_DAYS = updateConfig.highReleaseCadenceDays
+
+// Maximum number of intermediate eligible versions reported per package.
+// Configurable via updateCheck.maxIntermediateEligible; the default keeps
+// reports readable for packages with very long release histories.
+const MAX_INTERMEDIATE_ELIGIBLE = updateConfig.maxIntermediateEligible
 
 // Local state file; never committed (see .gitignore).
-const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
+const STATE_FILE = config.paths.updateCheckState
 
 // ---------------------------------------------------------------------------
 // Dependency injection hooks — exposed for tests.
 // ---------------------------------------------------------------------------
 
 let fsImpl = fs
-let httpsGetImpl = https.get
+let fetchRegistryJsonImpl = fetchRegistryJson
+let fetchJsonImpl = fetchJson
 let spawnSyncImpl = spawnSync
 let nowImpl = () => Date.now()
 let exitImpl = process.exit
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
-  if (impls.httpsGet) httpsGetImpl = impls.httpsGet
+  if (impls.fetchRegistryJson) fetchRegistryJsonImpl = impls.fetchRegistryJson
+  if (impls.fetchJson) fetchJsonImpl = impls.fetchJson
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.now) nowImpl = impls.now
   if (impls.exit) exitImpl = impls.exit
@@ -98,7 +122,8 @@ function setImpls(impls) {
 
 function resetImpls() {
   fsImpl = fs
-  httpsGetImpl = https.get
+  fetchRegistryJsonImpl = fetchRegistryJson
+  fetchJsonImpl = fetchJson
   spawnSyncImpl = spawnSync
   nowImpl = () => Date.now()
   exitImpl = process.exit
@@ -131,7 +156,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
 // ---------------------------------------------------------------------------
 
 function daysBetween(a, b) {
-  return (b - a) / (1000 * 60 * 60 * 24)
+  return (b - a) / MS_PER_DAY
 }
 
 function readJsonSafe(filePath) {
@@ -145,17 +170,6 @@ function readJsonSafe(filePath) {
 
 function writeJson(filePath, data) {
   fsImpl.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`, 'utf8')
-}
-
-function resolveNpmrcMinReleaseAge() {
-  try {
-    const npmrcPath = path.resolve(__dirname, '../.npmrc')
-    const content = fs.readFileSync(npmrcPath, 'utf8')
-    const match = content.match(/^min-release-age\s*=\s*(\d+)/m)
-    return match ? Number.parseInt(match[1], 10) : null
-  } catch {
-    return null
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -199,70 +213,110 @@ function determineSeverity(current, latest) {
 }
 
 // ---------------------------------------------------------------------------
+// Semver helpers (native only — the project forbids new runtime dependencies).
+// ---------------------------------------------------------------------------
+
+function parseVersionParts(version) {
+  // Pre-release and build metadata (e.g. "1.0.0-rc.1", "1.0.0+build") are
+  // rejected on purpose: a security gate should never steer users toward a
+  // pre-release, and build metadata has no semver ordering semantics.
+  if (!/^\d+\.\d+\.\d+$/.test(version)) return null
+  return version.split('.').map(Number)
+}
+
+function compareVersions(a, b) {
+  const partsA = parseVersionParts(a)
+  const partsB = parseVersionParts(b)
+  // Unparseable versions sort last; this path is defensive because npm
+  // registry data is external input that cannot be trusted to be well-formed.
+  if (!partsA && !partsB) return 0
+  if (!partsA) return 1
+  if (!partsB) return -1
+  for (let i = 0; i < 3; i++) {
+    if (partsA[i] !== partsB[i]) return partsA[i] - partsB[i]
+  }
+  return 0
+}
+
+// Versions strictly newer than `wanted` and at most `latest` whose publish
+// age already satisfies the minimum-age gate. `latest` itself is included when
+// eligible so callers (and defence:update in Fase F.1) can treat the last
+// element as the recommended target version.
+function findIntermediateEligibleVersions(info, wanted, latest, referenceMs) {
+  const times = info?.time ?? {}
+  const candidates = []
+
+  for (const [version, published] of Object.entries(times)) {
+    // The packument time map mixes release metadata with version timestamps.
+    if (version === 'created' || version === 'modified') continue
+    if (parseVersionParts(version) === null) continue
+    if (compareVersions(version, wanted) <= 0) continue
+    if (compareVersions(version, latest) > 0) continue
+
+    // Deprecated versions are never recommended targets, regardless of age
+    // (Fase F.4.1) — the deprecation flag lives per version in the packument.
+    const deprecated = info?.versions?.[version]?.deprecated
+    if (typeof deprecated === 'string' && deprecated.length > 0) continue
+
+    const publishedMs = new Date(published).getTime()
+    if (Number.isNaN(publishedMs)) continue
+    if (daysBetween(publishedMs, referenceMs) < MIN_AGE_DAYS) continue
+
+    candidates.push(version)
+  }
+
+  candidates.sort(compareVersions)
+  // Keep only the newest few: the cap bounds report size for packages with
+  // long release histories and prevents unbounded output from external data.
+  return candidates.slice(-MAX_INTERMEDIATE_ELIGIBLE)
+}
+
+// ---------------------------------------------------------------------------
 // Registry interaction.
 // ---------------------------------------------------------------------------
 
-function fetchRegistryInfo(name) {
-  return new Promise((resolve, reject) => {
-    let settled = false
-    const safeResolve = (val) => {
-      if (!settled) {
-        settled = true
-        resolve(val)
-      }
-    }
-    const safeReject = (err) => {
-      if (!settled) {
-        settled = true
-        reject(err)
-      }
-    }
+async function fetchRegistryInfo(name, inMemoryCache, metrics) {
+  const cacheKey = name
+  if (inMemoryCache?.has(cacheKey)) {
+    metrics.registryCacheHits++
+    return inMemoryCache.get(cacheKey)
+  }
 
-    const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  const url = `https://registry.npmjs.org/${encodeURIComponent(name)}`
+  const fetchOptions = {
+    url,
+    cacheTtlHours: CACHE_TTL_HOURS,
+    maxResponseBytes: MAX_RESPONSE_BYTES,
+    timeoutMs: REGISTRY_TIMEOUT_MS,
+    retryMaxAttempts: updateConfig.retryMaxAttempts,
+    retryInitialDelayMs: updateConfig.retryInitialDelayMs,
+    retryBackoffMultiplier: updateConfig.retryBackoffMultiplier,
+    retryMaxDelayMs: updateConfig.retryMaxDelayMs,
+    acceptGzip: true,
+  }
+  let info = await fetchRegistryJsonImpl(name, null, fetchOptions)
 
-    const req = httpsGetImpl(
-      url,
-      { headers: { Accept: 'application/json' }, timeout: REGISTRY_TIMEOUT_MS },
-      (res) => {
-        let data = ''
-
-        res.on('data', (chunk) => {
-          data += chunk
-          if (Buffer.byteLength(data) > MAX_RESPONSE_BYTES) {
-            res.destroy()
-            safeReject(
-              new Error(`response exceeds ${MAX_RESPONSE_BYTES} bytes`),
-            )
-          }
-        })
-
-        res.on('error', (err) => {
-          safeReject(new Error(`stream error: ${err.message}`))
-        })
-
-        res.on('end', () => {
-          if (res.statusCode !== 200) {
-            safeReject(new Error(`HTTP ${res.statusCode}`))
-            return
-          }
-          try {
-            const info = JSON.parse(data)
-            safeResolve(info)
-          } catch (err) {
-            safeReject(new Error(`invalid JSON: ${err.message}`))
-          }
-        })
-      },
-    )
-
-    req.on('timeout', () => {
-      req.destroy()
-      safeReject(new Error('timeout'))
+  // Output validation (Fase AI-3.2): verify the packument shape before
+  // trusting or caching it — a malformed/manipulated response must never
+  // drive update classification. A validation failure may come from a
+  // poisoned/stale cache entry, so the first failure triggers one forced
+  // re-fetch (cache bypass) before giving up.
+  try {
+    validatePackument(info, name)
+  } catch {
+    metrics.registryCacheMisses++
+    info = await fetchRegistryJsonImpl(name, null, {
+      ...fetchOptions,
+      force: true,
     })
-    req.on('error', (err) => {
-      safeReject(new Error(`network error: ${err.message}`))
-    })
-  })
+    validatePackument(info, name)
+  }
+
+  metrics.registryCacheMisses++
+  if (inMemoryCache) {
+    inMemoryCache.set(cacheKey, info)
+  }
+  return info
 }
 
 function buildReleaseLinks(name, version, repositoryUrl) {
@@ -296,13 +350,39 @@ function buildReleaseLinks(name, version, repositoryUrl) {
   return links
 }
 
-async function classifyUpdate(name, data) {
+async function fetchWeeklyDownloads(name) {
+  try {
+    const url = `https://api.npmjs.org/downloads/point/last-week/${encodeURIComponent(name)}`
+    const data = await fetchJsonImpl(url, {
+      timeoutMs: REGISTRY_TIMEOUT_MS,
+      retryMaxAttempts: 1,
+      acceptGzip: true,
+    })
+    return typeof data.downloads === 'number' ? data.downloads : null
+  } catch {
+    return null
+  }
+}
+
+function extractVersionMetadata(info, version) {
+  const versionInfo = info.versions?.[version]
+  const isDeprecated =
+    typeof versionInfo?.deprecated === 'string' &&
+    versionInfo.deprecated.length > 0
+  const maintainers = versionInfo?.maintainers ?? info.maintainers ?? []
+  return {
+    isDeprecated,
+    maintainerCount: Array.isArray(maintainers) ? maintainers.length : null,
+  }
+}
+
+async function classifyUpdate(name, data, inMemoryCache, metrics) {
   const current = data.current
   const wanted = data.wanted
   const latest = data.latest
 
   try {
-    const info = await fetchRegistryInfo(name)
+    const info = await fetchRegistryInfo(name, inMemoryCache, metrics)
     const published = info.time?.[latest]
     if (!published) {
       throw new Error('no publish date in registry')
@@ -314,6 +394,15 @@ async function classifyUpdate(name, data) {
     }
 
     const daysOld = daysBetween(publishedDate.getTime(), nowImpl())
+    const metadata = extractVersionMetadata(info, latest)
+    const weeklyDownloads = await fetchWeeklyDownloads(name)
+    const intermediateEligible = findIntermediateEligibleVersions(
+      info,
+      wanted,
+      latest,
+      nowImpl(),
+    )
+
     const entry = {
       name,
       current,
@@ -321,7 +410,13 @@ async function classifyUpdate(name, data) {
       latest,
       daysOld,
       severity: determineSeverity(current, latest),
+      intermediateEligible,
       links: buildReleaseLinks(name, latest, info.repository?.url),
+      metadata: {
+        isDeprecated: metadata.isDeprecated,
+        maintainerCount: metadata.maintainerCount,
+        weeklyDownloads,
+      },
     }
 
     if (daysOld >= MIN_AGE_DAYS) {
@@ -342,53 +437,13 @@ async function classifyUpdate(name, data) {
         latest,
         daysOld: null,
         severity: determineSeverity(current, latest),
+        // Without packument data there is no way to discover intermediates.
+        intermediateEligible: [],
         reason: `registry lookup failed: ${err.message}`,
         links: buildReleaseLinks(name, latest, null),
       },
     }
   }
-}
-
-// ---------------------------------------------------------------------------
-// Concurrency helper (same shape as check-package-age.js).
-// ---------------------------------------------------------------------------
-
-function runWithConcurrencyLimit(tasks, limit) {
-  return new Promise((resolve) => {
-    if (tasks.length === 0) return resolve([])
-    const results = new Array(tasks.length)
-    let started = 0
-    let completed = 0
-
-    function runNext() {
-      if (started >= tasks.length) return
-      const index = started++
-      Promise.resolve()
-        .then(() => tasks[index]())
-        .then(
-          (value) => {
-            results[index] = { status: 'fulfilled', value }
-            onDone()
-          },
-          (reason) => {
-            results[index] = { status: 'rejected', reason }
-            onDone()
-          },
-        )
-    }
-
-    function onDone() {
-      completed++
-      if (completed === tasks.length) {
-        resolve(results)
-        return
-      }
-      runNext()
-    }
-
-    const initial = Math.min(limit, tasks.length)
-    for (let i = 0; i < initial; i++) runNext()
-  })
 }
 
 // ---------------------------------------------------------------------------
@@ -399,8 +454,13 @@ function loadState() {
   return readJsonSafe(STATE_FILE)
 }
 
+// State-file schema version (Fase AI-2.7.4). Bump when the shape changes in a
+// way readers must not silently misinterpret; readers warn when the file is
+// newer than what they understand.
+const STATE_SCHEMA_VERSION = 1
+
 function saveState(state) {
-  writeJson(STATE_FILE, state)
+  writeJson(STATE_FILE, { schemaVersion: STATE_SCHEMA_VERSION, ...state })
 }
 
 // ---------------------------------------------------------------------------
@@ -437,13 +497,6 @@ function appendHistory(state) {
   }
   state.history = history
   return state
-}
-
-function countPackageOccurrences(history, name, status) {
-  return history.reduce((count, entry) => {
-    const list = entry[status] ?? []
-    return count + (list.some((item) => item.name === name) ? 1 : 0)
-  }, 0)
 }
 
 function isStuckInQuarantine(history, name) {
@@ -486,29 +539,63 @@ function calculateReleaseCadence(history, name) {
 function calculateConfidence(entry, history) {
   const { daysOld, severity } = entry
 
-  // Age contributes up to 40 points. Older releases are safer.
-  const agePoints = Math.min(40, Math.floor((daysOld ?? 0) / 7) * 10)
+  const scoring = updateConfig.scoringRules
 
-  // Semver severity contributes up to 30 points.
+  // Age contributes up to a configurable number of points. Older releases are safer.
+  const agePoints = Math.min(
+    scoring.agePointsMax,
+    Math.floor((daysOld ?? 0) / scoring.agePointsStepDays) *
+      scoring.agePointsStep,
+  )
+
+  // Semver severity contributes a configurable number of points.
   const severityPoints =
-    severity === 'patch' ? 30 : severity === 'minor' ? 20 : 0
+    severity === 'patch'
+      ? scoring.severityPointsPatch
+      : severity === 'minor'
+        ? scoring.severityPointsMinor
+        : scoring.severityPointsMajor
 
-  // Release cadence can reduce the score by up to 30 points.
+  // Release cadence can reduce the score by a configurable number of points.
   const cadence = calculateReleaseCadence(history, entry.name)
   let cadencePenalty = 0
   if (cadence !== null && cadence < HIGH_RELEASE_CADENCE_DAYS) {
     cadencePenalty = Math.min(
-      30,
-      Math.floor((HIGH_RELEASE_CADENCE_DAYS - cadence) / 2) * 5,
+      scoring.cadencePenaltyMax,
+      Math.floor(
+        (HIGH_RELEASE_CADENCE_DAYS - cadence) / scoring.cadencePenaltyUnitDays,
+      ) * scoring.cadencePenaltyUnit,
     )
   }
 
-  const score = Math.max(0, agePoints + severityPoints - cadencePenalty)
+  // Package metadata risk signals.
+  const metadata = entry.metadata ?? {}
+  let metadataPenalty = 0
+  if (metadata.isDeprecated) {
+    metadataPenalty += scoring.deprecatedPenalty
+  }
+  if (
+    metadata.maintainerCount !== null &&
+    metadata.maintainerCount < scoring.maintainerPenaltyThreshold
+  ) {
+    metadataPenalty += scoring.maintainerPenalty
+  }
+  if (
+    metadata.weeklyDownloads !== null &&
+    metadata.weeklyDownloads < scoring.downloadsPenaltyThreshold
+  ) {
+    metadataPenalty += scoring.downloadsPenalty
+  }
+
+  const score = Math.max(
+    0,
+    agePoints + severityPoints - cadencePenalty - metadataPenalty,
+  )
 
   let label
-  if (score >= 70) {
+  if (score >= scoring.scoreRecommendedMin) {
     label = 'recommended'
-  } else if (score >= 40) {
+  } else if (score >= scoring.scoreReviewRequiredMin) {
     label = 'review required'
   } else {
     label = 'high risk'
@@ -561,14 +648,25 @@ function formatDays(daysOld) {
   return `(released ${Math.floor(daysOld)} days ago)`
 }
 
+// Renders the eligible intermediate versions of an entry, or null when the
+// entry predates the field or no intermediate passed the age gate.
+function formatIntermediateEligible(item) {
+  const versions = item.intermediateEligible ?? []
+  if (versions.length === 0) return null
+  return versions.join(', ')
+}
+
+// Safety diagnostics go to stderr on purpose: stdout carries the report
+// (which may be machine-parsed with --format=json), so warnings must never
+// pollute it. This also keeps them visible when --silent suppresses reports.
 function printSyncWarning(reason) {
-  console.log(
+  console.error(
     '\n⚠️  Installed dependencies are out of sync with package-lock.json.',
   )
-  if (reason) console.log(`   Reason: ${reason}`)
-  console.log('   Run the following command before checking for new updates:')
-  console.log('     npm ci')
-  console.log()
+  if (reason) console.error(`   Reason: ${reason}`)
+  console.error('   Run the following command before checking for new updates:')
+  console.error('     npm ci')
+  console.error()
 }
 
 function formatJsonReport(state) {
@@ -581,14 +679,17 @@ function formatMarkdownReport(state) {
 
   if (state.eligible.length > 0) {
     lines.push('## Eligible for update\n')
-    lines.push('| Package | Current | Latest | Severity | Age | Confidence |')
-    lines.push('|---|---|---|---|---|---|')
+    lines.push(
+      '| Package | Current | Latest | Severity | Age | Confidence | Eligible versions |',
+    )
+    lines.push('|---|---|---|---|---|---|---|')
     for (const item of state.eligible) {
       const age =
         item.daysOld !== null ? `${Math.floor(item.daysOld)} days` : '—'
       const confidence = `${item.confidenceLabel} (${item.confidence})`
+      const intermediates = formatIntermediateEligible(item) ?? '—'
       lines.push(
-        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} | ${confidence} |`,
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${age} | ${confidence} | ${intermediates} |`,
       )
     }
     lines.push('')
@@ -596,12 +697,15 @@ function formatMarkdownReport(state) {
 
   if (state.quarantine.length > 0) {
     lines.push('## Quarantine\n')
-    lines.push('| Package | Current | Latest | Severity | Reason |')
-    lines.push('|---|---|---|---|---|')
+    lines.push(
+      '| Package | Current | Latest | Severity | Reason | Eligible versions |',
+    )
+    lines.push('|---|---|---|---|---|---|')
     for (const item of state.quarantine) {
       const reason = item.reason ?? formatDays(item.daysOld) ?? '—'
+      const intermediates = formatIntermediateEligible(item) ?? '—'
       lines.push(
-        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} |`,
+        `| ${item.name} | ${item.current} | ${item.latest} | ${item.severity} | ${reason} | ${intermediates} |`,
       )
     }
     lines.push('')
@@ -657,6 +761,10 @@ function printReport(state, format) {
       console.log(
         `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${formatDays(item.daysOld)} — ${item.confidenceLabel} (${item.confidence})`,
       )
+      const intermediates = formatIntermediateEligible(item)
+      if (intermediates) {
+        console.log(`       eligible versions: ${intermediates}`)
+      }
       if (item.links?.npm) console.log(`       npm:     ${item.links.npm}`)
       if (item.links?.release) {
         console.log(`       release: ${item.links.release}`)
@@ -672,6 +780,12 @@ function printReport(state, format) {
       console.log(
         `     ${item.name}  ${item.current} → ${item.latest} [${item.severity}] ${suffix}`,
       )
+      // Intermediates matter most in quarantine: they are the safe stepping
+      // stones while latest is still too recent.
+      const intermediates = formatIntermediateEligible(item)
+      if (intermediates) {
+        console.log(`       eligible versions: ${intermediates}`)
+      }
       if (item.links?.npm) console.log(`       npm:     ${item.links.npm}`)
       if (item.links?.release) {
         console.log(`       release: ${item.links.release}`)
@@ -700,95 +814,124 @@ async function main(argv = process.argv.slice(2)) {
   const { isForce, isSilent, isOffline, format } = parseCliArgs(argv)
   const currentLockfileHash = readLockfileHash()
 
-  // Step 1: local sync check.
-  const sync = isNodeModulesInSync()
-  if (!sync.inSync) {
-    if (!isSilent) printSyncWarning(sync.reason)
-    const state = loadState() ?? {}
-    state.lastScan = new Date(nowImpl()).toISOString()
-    state.installedLockfileHash = currentLockfileHash
-    state.eligible = []
-    state.quarantine = []
-    saveState(state)
-    return 0
-  }
-
-  // Step 2: load cache or rescan.
-  let state = loadState()
-
-  if (isForce || !state || !isCacheValid(state)) {
-    if (isOffline) {
-      if (!state) {
-        if (!isSilent) {
-          console.log(
-            '\nℹ️  Update check is offline and no cached scan was found.',
-          )
-          console.log('   Connect to the network or run without --offline.')
-          console.log()
-        }
+  return withProfile(
+    'check-updates',
+    async (profileMetrics) => {
+      // Step 1: local sync check.
+      const sync = isNodeModulesInSync()
+      if (!sync.inSync) {
+        // Maintainer decision (Fase F.0): sync warnings are safety-critical
+        // information, not progress noise, so they are shown even when
+        // --silent is active. --silent suppresses reports, never warnings.
+        printSyncWarning(sync.reason)
+        const state = loadState() ?? {}
+        state.lastScan = new Date(nowImpl()).toISOString()
+        state.installedLockfileHash = currentLockfileHash
+        state.eligible = []
+        state.quarantine = []
+        saveState(state)
         return 0
       }
-      // In offline mode, use the existing cache even if TTL expired.
-      if (!isSilent) {
-        console.log('\nℹ️  Update check is offline; using the last cached scan.')
-        console.log()
-      }
-    } else {
-      const outdated = runNpmOutdated()
-      const entries = Object.entries(outdated)
 
-      const results = await runWithConcurrencyLimit(
-        entries.map(
-          ([name, data]) =>
-            () =>
-              classifyUpdate(name, data),
-        ),
-        CONCURRENCY,
+      // Step 2: load cache or rescan.
+      let state = loadState()
+
+      if (isForce || !state || !isCacheValid(state)) {
+        if (isOffline) {
+          if (!state) {
+            // Maintainer decision (Fase F.0): offline fallback messages are
+            // always shown, even with --silent, because silently producing no
+            // output would look like "no updates found" — a false negative.
+            // They go to stderr so machine-readable stdout stays clean.
+            console.error(
+              '\nℹ️  Update check is offline and no cached scan was found.',
+            )
+            console.error('   Connect to the network or run without --offline.')
+            console.error()
+            return 0
+          }
+          // In offline mode, use the existing cache even if TTL expired.
+          console.error(
+            '\nℹ️  Update check is offline; using the last cached scan.',
+          )
+          console.error()
+        } else {
+          const outdated = runNpmOutdated()
+          const entries = Object.entries(outdated)
+
+          // In-memory packument cache shared across all dependency lookups in this
+          // run. This prevents duplicate registry fetches when the same package is
+          // referenced multiple times (e.g. direct + transitive) and complements the
+          // disk-backed cache in registry-cache.js.
+          const inMemoryCache = new Map()
+          const metrics = { registryCacheHits: 0, registryCacheMisses: 0 }
+
+          const results = await runWithConcurrencyLimit(
+            entries.map(
+              ([name, data]) =>
+                () =>
+                  classifyUpdate(name, data, inMemoryCache, metrics),
+            ),
+            CONCURRENCY,
+          )
+
+          const eligible = []
+          const quarantine = []
+
+          for (const result of results) {
+            if (result.status === 'rejected') continue
+            if (result.value.eligible) eligible.push(result.value.eligible)
+            if (result.value.quarantine)
+              quarantine.push(result.value.quarantine)
+          }
+
+          const stats = require(
+            path.resolve(__dirname, './lib/registry-cache.js'),
+          ).getStats()
+          profileMetrics.networkCalls = stats.cacheMisses
+          profileMetrics.cacheHits = stats.cacheHits
+
+          state = {
+            lastScan: new Date(nowImpl()).toISOString(),
+            lastReminder: null,
+            installedLockfileHash: currentLockfileHash,
+            eligible: enrichEligibleWithConfidence(eligible, state?.history),
+            quarantine,
+            history: state?.history ?? [],
+            metrics,
+          }
+          appendHistory(state)
+          saveState(state)
+        }
+      }
+
+      // Ensure cached state carries the new fields even if it predates them.
+      state.history = state.history ?? []
+      state.eligible = enrichEligibleWithConfidence(
+        state.eligible,
+        state.history,
       )
 
-      const eligible = []
-      const quarantine = []
-
-      for (const result of results) {
-        if (result.status === 'rejected') continue
-        if (result.value.eligible) eligible.push(result.value.eligible)
-        if (result.value.quarantine) quarantine.push(result.value.quarantine)
+      // Step 3: show reminder if needed.
+      const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
+      if (hasItems || format !== 'table') {
+        // JSON/Markdown formatters always produce output (unless silent).
+        // Table output respects the reminder interval.
+        const shouldShow =
+          format !== 'table' ||
+          shouldRemind(state) ||
+          state.eligible.length + state.quarantine.length === 0
+        if (!isSilent && shouldShow) {
+          printReport(state, format)
+          state.lastReminder = new Date(nowImpl()).toISOString()
+          saveState(state)
+        }
       }
 
-      state = {
-        lastScan: new Date(nowImpl()).toISOString(),
-        lastReminder: null,
-        installedLockfileHash: currentLockfileHash,
-        eligible: enrichEligibleWithConfidence(eligible, state?.history),
-        quarantine,
-        history: state?.history ?? [],
-      }
-      appendHistory(state)
-      saveState(state)
-    }
-  }
-
-  // Ensure cached state carries the new fields even if it predates them.
-  state.history = state.history ?? []
-  state.eligible = enrichEligibleWithConfidence(state.eligible, state.history)
-
-  // Step 3: show reminder if needed.
-  const hasItems = state.eligible.length > 0 || state.quarantine.length > 0
-  if (hasItems || format !== 'table') {
-    // JSON/Markdown formatters always produce output (unless silent).
-    // Table output respects the reminder interval.
-    const shouldShow =
-      format !== 'table' ||
-      shouldRemind(state) ||
-      state.eligible.length + state.quarantine.length === 0
-    if (!isSilent && shouldShow) {
-      printReport(state, format)
-      state.lastReminder = new Date(nowImpl()).toISOString()
-      saveState(state)
-    }
-  }
-
-  return 0
+      return 0
+    },
+    { profilePath: path.resolve(__dirname, '..', '.defence-profile.json') },
+  )
 }
 
 if (require.main === module) {
@@ -803,11 +946,10 @@ module.exports = {
   setImpls,
   resetImpls,
   appendHistory,
-  buildHistoryEntry,
-  countPackageOccurrences,
   isStuckInQuarantine,
   calculateReleaseCadence,
   calculateConfidence,
-  enrichEligibleWithConfidence,
-  findStuckInQuarantine,
+  fetchRegistryInfo,
+  classifyUpdate,
+  findIntermediateEligibleVersions,
 }

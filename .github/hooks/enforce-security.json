@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "bash|powershell",
+        "bash": "bash .github/hooks/scripts/enforce-security.sh",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

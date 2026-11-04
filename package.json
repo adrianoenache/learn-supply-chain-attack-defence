@@ -22,8 +22,8 @@
     "husky"
   ],
   "engines": {
-    "node": ">=24.19.0",
-    "npm": ">=11.17.0"
+    "node": ">=24.22.2",
+    "npm": ">=11.19.1"
   },
   "pkgAgeCheck": {
     "minAgeDays": 7
@@ -37,7 +37,17 @@
     "cacheTtlHours": 24,
     "historyMaxEntries": 30,
     "stuckInQuarantineThreshold": 3,
-    "highReleaseCadenceDays": 7
+    "highReleaseCadenceDays": 7,
+    "maxIntermediateEligible": 10
+  },
+  "typosquattingCheck": {
+    "cacheTtlHours": 24,
+    "maxResponseMB": 1,
+    "timeoutMs": 10000,
+    "retryMaxAttempts": 1,
+    "retryInitialDelayMs": 250,
+    "retryBackoffMultiplier": 2,
+    "retryMaxDelayMs": 1000
   },
   "licensesCheck": {
     "allowed": [
@@ -64,16 +74,93 @@
     ],
     "failOnUnknown": false
   },
+  "checkMdLinks": {
+    "ignoredDirs": [
+      "node_modules",
+      ".git"
+    ],
+    "cacheTtlHours": 24,
+    "cacheFile": ".md-links-cache.json"
+  },
+  "checkExternalUrls": {
+    "ignoredDirs": [
+      "node_modules",
+      ".git",
+      "coverage",
+      ".cache",
+      "tmp"
+    ],
+    "ignoredFiles": [
+      ".external-urls-cache.json",
+      ".defence-profile.json"
+    ],
+    "cacheTtlHours": 24,
+    "cacheFile": ".external-urls-cache.json",
+    "timeoutMs": 15000,
+    "retryMaxAttempts": 2,
+    "retryInitialDelayMs": 500,
+    "retryBackoffMultiplier": 2,
+    "retryMaxDelayMs": 5000,
+    "concurrency": 10
+  },
+  "lifecycleScriptAnalysis": {
+    "enabled": true,
+    "failOn": "high"
+  },
+  "lifecycleMonitoring": {
+    "enabled": true,
+    "reportFile": "lifecycle-monitor-report.md",
+    "failOnLifecycle": false,
+    "maxArgsLength": 200
+  },
+  "trustReport": {
+    "enabled": true,
+    "failOnMinScore": false,
+    "minScore": 60,
+    "concurrency": 10,
+    "registryTimeoutMs": 10000,
+    "cacheTtlHours": 24,
+    "outputFile": "trust-report.md",
+    "scoringWeights": {
+      "age": 20,
+      "cadence": 10,
+      "downloads": 15,
+      "maintainers": 10,
+      "provenance": 15,
+      "typosquatting": 10,
+      "lifecycleRisk": 15,
+      "license": 5
+    }
+  },
+  "defences": {
+    "typosquattingThreshold": 2,
+    "internalPackageNames": [],
+    "provenanceMode": "warn",
+    "huskyPreCommitHash": "2a0015316f304b6b5d5c97dfe8aa7839de4410c209ef10cee47c4623267d087c"
+  },
   "scripts": {
     "defence:add": "node ./tools/add-package.js",
+    "defence:analyze-lifecycle-scripts": "node ./tools/analyze-lifecycle-scripts.js",
+    "defence:install-monitored": "node ./tools/monitor-install.js",
+    "defence:trust-report": "node ./tools/generate-trust-report.js",
+    "defence:trust-report:json": "node ./tools/generate-trust-report.js --format=json",
+    "defence:trust-report:fail": "node ./tools/generate-trust-report.js --fail",
     "defence:bootstrap": "node ./tools/setup-bootstrap.js",
     "defence:check-engines": "node ./tools/check-engines.js",
+    "defence:check-lockfile-integrity": "node ./tools/check-lockfile-integrity.js",
+    "defence:check-hooks": "node ./tools/check-hooks.js",
+    "defence:check-secrets": "node ./tools/check-secrets.js",
     "defence:check-md-links": "node ./tools/check-md-links.js",
+    "defence:check-dead-code": "node ./tools/check-dead-code.js",
+    "defence:check-npmrc": "node ./tools/check-npmrc.js",
+    "defence:check-external-urls": "node ./tools/check-external-urls.js",
+    "defence:check-external-urls:force": "node ./tools/check-external-urls.js --force",
     "defence:license-check": "node ./tools/check-licenses.js",
     "defence:license-check:fail": "node ./tools/check-licenses.js --fail",
     "defence:license-check:json": "node ./tools/check-licenses.js --format=json",
     "defence:pkg-age-check": "node ./tools/check-package-age.js",
-    "defence:pre-commit": "npm audit signatures && npm audit --audit-level=high && npm run defence:update-check",
+    "defence:audit": "node ./tools/run-audit-with-retry.js",
+    "defence:pre-commit": "npm audit signatures && npm run defence:audit && npm run defence:update-check",
     "defence:reinstall": "npm run defence:check-engines && npm run defence:pkg-age-check && rm -rf node_modules && npm cache clean --force && npm ci && npm audit signatures && npm run prepare && node ./tools/check-package-age.js --transitive && npm audit fix && node ./tools/check-package-age.js --transitive && npm outdated",
     "defence:update": "node ./tools/update-packages.js",
     "defence:update:interactive": "node ./tools/update-packages.js --interactive",
@@ -84,18 +171,31 @@
     "defence:update-check:force": "node ./tools/check-updates.js --force",
     "defence:update-check:json": "node ./tools/check-updates.js --format=json",
     "defence:update-check:offline": "node ./tools/check-updates.js --offline",
+    "defence:measure-ai-context": "node ./tools/measure-ai-context.js",
+    "defence:update-engines": "node ./tools/update-engines.js",
+    "defence:update-engines:update": "node ./tools/update-engines.js --update",
+    "defence:update-engines:upgrade": "node ./tools/update-engines.js --upgrade",
+    "defence:perf": "node ./tools/perf/benchmark.js",
+    "defence:perf:baseline": "node ./tools/perf/benchmark.js --save-baseline",
+    "defence:perf:check-package-age": "node ./tools/perf/benchmark.js --tool=check-package-age",
+    "defence:perf:check-updates": "node ./tools/perf/benchmark.js --tool=check-updates",
     "defence:sync-check": "node ./tools/check-sync.js",
     "defence:sync-check:fix": "node ./tools/check-sync.js --fix",
-    "format": "biome format --write tools/",
-    "lint:fix": "biome check --write tools/",
-    "lint": "biome check tools/",
+    "defence:verify-defences": "node ./tools/verify-defences.js",
+    "defence:verify-defences:fix": "node ./tools/install-defences.js --update-local-manifest",
+    "defence:generate-sbom": "node ./tools/generate-sbom.js",
+    "format": "./node_modules/.bin/biome format --write tools/ .github/",
+    "format:check": "./node_modules/.bin/biome format tools/ .github/",
+    "lint:fix": "./node_modules/.bin/biome check --write tools/ .github/",
+    "lint": "./node_modules/.bin/biome check tools/ .github/",
     "prepare": "husky",
     "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare",
-    "test": "node --test tools/*.test.js",
+    "test": "node --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js .github/agents/agents.sanity.test.js .github/skills/skills.sanity.test.js .github/hooks/hooks.sanity.test.js .github/hooks/scripts/*.test.js .github/test-fixtures/*.test.js",
+    "test:coverage": "node --experimental-test-coverage --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js .github/agents/agents.sanity.test.js .github/skills/skills.sanity.test.js .github/hooks/hooks.sanity.test.js .github/hooks/scripts/*.test.js .github/test-fixtures/*.test.js",
     "test:e2e": "RUN_E2E_TESTS=true node --test tools/e2e/*.test.js"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8",
+    "@biomejs/biome": "2.6.3",
     "husky": "9.1.7"
   }
 }

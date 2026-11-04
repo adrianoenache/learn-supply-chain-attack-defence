@@ -8,14 +8,14 @@ O script npm `setup` instala as dependências e executa todas as camadas de segu
 "setup": "npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare"
 ```
 
-O script começa com `npm run defence:check-engines` para falhar antecipadamente com uma mensagem amigável se o ambiente local não satisfizer o campo `engines` do `package.json` (Node.js >= 24.19.0 e npm >= 11.17.0). Isso evita falhas confusas mais adiante no fluxo de setup.
+O script começa com `npm run defence:check-engines` para falhar antecipadamente com uma mensagem amigável se o ambiente local não satisfizer o campo `engines` do `package.json` (Node.js >= 24.22.2 e npm >= 11.19.1). Isso evita falhas confusas mais adiante no fluxo de setup.
 
 1. `npm run defence:pkg-age-check` — garante que toda dependência direta tenha pelo menos 7 dias de idade.
 2. `npm ci` — instalação determinística a partir do `package-lock.json`.
 3. `npm audit signatures` — verifica as assinaturas do registry dos pacotes instalados.
 4. `npm run prepare` — instala os hooks do Husky.
 
-O script `defence:pre-commit` (usado pelo hook do Git) também executa `npm audit --audit-level=high` para falhar em CVEs alta ou crítica.
+O hook `.husky/pre-commit` também executa `npm audit --audit-level=high`, `npm run defence:update-check` e `npm run defence:license-check:fail` para bloquear CVEs alta ou crítica, dependências desatualizadas e licenças incompatíveis.
 
 ## Primeiro Setup (Sem `package-lock.json`)
 
@@ -27,7 +27,7 @@ npm run defence:bootstrap
 
 O script de bootstrap:
 
-1. Executa `npm install --ignore-scripts --save-exact` para gerar o primeiro lock file sem executar scripts de lifecycle.
+1. Executa `npm install --ignore-scripts --save-exact` para gerar o primeiro lock file sem executar scripts de lifecycle — sob o monitor de processos (veja [monitoramento de lifecycle](lifecycle-monitoring.md)), porque um clone fresco sem lock file é um dos momentos mais arriscados do ciclo de vida de dependências.
 2. Executa `npm run defence:pkg-age-check`.
 3. Executa `npm audit signatures`.
 4. Executa `npm audit --audit-level=high`.
@@ -52,7 +52,7 @@ Para atualizar dependências existentes de forma controlada, use o script dedica
 npm run defence:update
 ```
 
-O script `defence:update` executa `npm update` e depois reexecuta a verificação transitiva de idade dos pacotes, a verificação de assinaturas e o audit de vulnerabilidades.
+O script `defence:update` prefere a maior versão intermediária elegível por idade descoberta pelo `defence:update-check` (nunca uma `latest` em quarentena), aplica com instalação fixada e depois reexecuta a verificação transitiva de idade, a verificação de assinaturas, o audit de vulnerabilidades e a checagem de licenças.
 
 ## Quando Executar
 

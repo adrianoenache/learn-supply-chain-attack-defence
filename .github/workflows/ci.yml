@@ -1,0 +1,421 @@
+name: CI
+
+# Minimal permissions for the default GITHUB_TOKEN. Jobs that need additional
+# access declare them explicitly. This reduces blast radius if a step is
+# compromised.
+permissions:
+  contents: read
+  actions: write
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      node-version: ${{ steps.engines.outputs.node }}
+      npm-version: ${{ steps.engines.outputs.npm }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Read engines from package.json
+        id: engines
+        run: |
+          node_version=$(node -p "require('./package.json').engines.node.replace(/[^0-9.]/g, '')")
+          npm_version=$(node -p "require('./package.json').engines.npm.replace(/[^0-9.]/g, '')")
+          echo "node=${node_version}" >> "$GITHUB_OUTPUT"
+          echo "npm=${npm_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ steps.engines.outputs.node }}
+          npm-version: ${{ steps.engines.outputs.npm }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint workflow with actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.4
+          ACTIONLINT_SHA256: fc0a6886bbb9a23a39eeec4b176193cadb54ddbe77cdbb19b637933919545395
+        run: |
+          curl -fsSL -o actionlint.tar.gz \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          echo "${ACTIONLINT_SHA256}  actionlint.tar.gz" | sha256sum -c
+          tar -xzf actionlint.tar.gz actionlint
+          ./actionlint -color .github/workflows/*.yml
+
+      - name: Create node_modules tarball preserving symlinks and permissions
+        # GitHub Actions artifacts are stored as ZIP, which does not preserve
+        # Unix symlinks or executable bits. A tar.gz created locally keeps the
+        # exact tree produced by npm ci, including node_modules/.bin entries.
+        run: tar --create --gzip --file node_modules.tar.gz node_modules/
+
+      - name: Upload node_modules tarball
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: node_modules-${{ github.run_id }}
+          path: node_modules.tar.gz
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    name: Test (engines floor)
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run tests
+        run: npm test
+
+  test-latest-lts:
+    # Complement to the `test` job: `test` pins the engines floor (minimum
+    # supported runtime, derived from package.json), while this job proves the
+    # suite also stays green on the newest Node.js LTS line. When both resolve
+    # to the same version the job is a harmless duplicate and self-adjusts as
+    # soon as a newer LTS line appears.
+    name: Test (Node LTS latest)
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Resolve latest Node.js LTS from the official dist index
+        id: lts
+        run: |
+          # The dist index is sorted newest-first, so the first entry with an
+          # LTS codename is the newest LTS release. We resolve an exact
+          # version instead of a floating 'lts/*' label so every run log
+          # records precisely what was validated.
+          curl -fsSL --max-time 30 -o dist-index.json https://nodejs.org/dist/index.json
+          node -e "
+            const idx = require('./dist-index.json');
+            const lts = idx.find((r) => r.lts);
+            if (!lts || !lts.npm) throw new Error('No LTS entry with a bundled npm found in the Node.js dist index.');
+            console.log('node=' + lts.version.replace(/^v/, ''));
+            console.log('npm=' + lts.npm);
+          " >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node.js (latest LTS)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ steps.lts.outputs.node }}
+          npm-version: ${{ steps.lts.outputs.npm }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run tests
+        run: npm test
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run coverage
+        run: npm run test:coverage
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run linter
+        run: npm run lint
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Check formatting
+        run: npm run format:check
+
+  docs:
+    name: Documentation Links
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Check markdown links
+        run: npm run defence:check-md-links
+
+  license:
+    name: License Check
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Run license check
+        run: npm run defence:license-check:fail
+
+  lockfile-integrity:
+    name: Lockfile Integrity
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Check lockfile integrity
+        run: npm run defence:check-lockfile-integrity
+
+  secrets:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Scan tracked files for secrets
+        run: git ls-files -z | xargs -0 -r npm run defence:check-secrets --
+
+  install-defences-dry-run:
+    name: Installer Dry-Run
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Verify local manifest integrity
+        run: npm run defence:verify-defences
+
+      - name: Prepare temporary target project
+        run: |
+          mkdir -p /tmp/target-project
+          echo '{}' > /tmp/target-project/package.json
+
+      - name: Run install-defences dry-run
+        run: node ./tools/install-defences.js /tmp/target-project --dry-run
+
+  defence-gates:
+    name: Defence Gates
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: ${{ needs.build.outputs.node-version }}
+          npm-version: ${{ needs.build.outputs.npm-version }}
+
+      - name: Download node_modules tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: node_modules-${{ github.run_id }}
+
+      - name: Extract node_modules preserving symlinks and permissions
+        run: tar --extract --gzip --file node_modules.tar.gz
+
+      - name: Check engines
+        run: npm run defence:check-engines
+
+      - name: Sync check
+        run: npm run defence:sync-check
+
+      - name: Package age check
+        run: npm run defence:pkg-age-check -- --transitive
+
+      - name: Check hook integrity
+        run: npm run defence:check-hooks
+
+      - name: Check npm configuration surface
+        run: npm run defence:check-npmrc
+
+      - name: Pre-commit gate
+        run: |
+          npm audit signatures
+          npm run defence:audit
+          npm run defence:update-check
+
+      - name: Generate SBOM
+        run: npm run defence:generate-sbom -- --output=/tmp/sbom.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: sbom-${{ github.run_id }}
+          path: /tmp/sbom.json
+          retention-days: 30
+          archive: false
+          if-no-files-found: error
+
+      - name: Verify adoption manifest
+        run: npm run defence:verify-defences

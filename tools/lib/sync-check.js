@@ -13,25 +13,32 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 
-const pkg = require(path.resolve(__dirname, '../../package.json'))
+const { loadConfig } = require(path.resolve(__dirname, './config.js'))
 
-const LOCK_FILE = path.resolve(__dirname, '../../package-lock.json')
-const NODE_MODULES_LOCK_FILE = path.resolve(
-  __dirname,
-  '../../node_modules/.package-lock.json',
-)
+const config = loadConfig()
+
+const LOCK_FILE = config.paths.packageLockJson
+const NODE_MODULES_LOCK_FILE = config.paths.nodeModulesLockJson
 
 let fsImpl = fs
 let spawnSyncImpl = spawnSync
+let pkgImpl = null
 
 function setImpls(impls) {
   if (impls.fs) fsImpl = impls.fs
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
+  if (impls.pkg) pkgImpl = impls.pkg
 }
 
 function resetImpls() {
   fsImpl = fs
   spawnSyncImpl = spawnSync
+  pkgImpl = null
+}
+
+function getPkg() {
+  if (pkgImpl) return pkgImpl
+  return require(path.resolve(__dirname, '../../package.json'))
 }
 
 function sha256(content) {
@@ -77,6 +84,10 @@ function checkInstalledVersions() {
   })
 
   if (result.status !== 0 || !result.stdout) {
+    if (result.stderr) {
+      console.error('npm ls diagnostic output:')
+      console.error(result.stderr)
+    }
     return {
       inSync: false,
       reason: 'node_modules appears outdated or missing',
@@ -85,22 +96,30 @@ function checkInstalledVersions() {
 
   try {
     const ls = JSON.parse(result.stdout)
+    const pkg = getPkg()
     const declared = {
       ...pkg.dependencies,
       ...pkg.devDependencies,
       ...pkg.peerDependencies,
       ...pkg.optionalDependencies,
     }
+    // The deterministic reference is the LOCKFILE's resolved version, never
+    // the package.json specifier: ranges like ^8.0.1 and git URLs are valid
+    // declarations that never equal an installed version string. (Dogfooding
+    // finding, Fase M.1 — the previous comparison broke adopters with ranges.)
+    const lockfile = readJsonSafe(LOCK_FILE)
 
     for (const [name, declaredVersion] of Object.entries(declared)) {
       const installed = ls.dependencies?.[name]
       if (!installed?.version) {
         return { inSync: false, reason: `${name} is not installed` }
       }
-      if (installed.version !== declaredVersion) {
+      const expected =
+        lockfile?.packages?.[`node_modules/${name}`]?.version ?? declaredVersion
+      if (installed.version !== expected) {
         return {
           inSync: false,
-          reason: `${name} is ${installed.version}, expected ${declaredVersion}`,
+          reason: `${name} is ${installed.version}, expected ${expected}`,
         }
       }
     }

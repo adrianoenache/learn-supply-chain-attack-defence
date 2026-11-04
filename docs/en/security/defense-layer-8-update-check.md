@@ -10,13 +10,35 @@ When you run `npm run defence:update-check` (or commit changes, which triggers i
 
 1. **Local sync check**: verifies that `node_modules` matches `package-lock.json`.
 2. **Outdated scan**: runs `npm outdated --json` to discover available updates.
-3. **Registry age check**: queries the npm registry for the publication date of each `latest` version.
-4. **Classification**:
+3. **Registry age check**: queries the npm registry for the publication date of each `latest` version through the shared [`registry-cache.js`](../../../tools/lib/registry-cache.js) and [`retry-fetch.js`](../../../tools/lib/retry-fetch.js) layers.
+4. **Intermediate discovery**: for each outdated package, the packument is scanned for versions between the installed one and `latest` that already satisfy the age gate (`intermediateEligible`, ascending; deprecated versions are excluded) — so a quarantined `latest` does not block safe progress.
+5. **Classification**:
    - **Eligible** — the new version is at least `minAgeDays` old, so it has had time to be reviewed by the community.
-   - **Quarantine** — the new version is too recent, or the registry lookup failed. These updates are shown for awareness but are not recommended yet.
-5. **Reminder**: prints a warning only if updates exist and the configured reminder interval has passed.
+   - **Quarantine** — the new version is too recent, or the registry lookup failed. Entries with eligible intermediates are *actionable quarantine*: `defence:update` can advance to the newest age-approved intermediate while `latest` stays blocked. Registry lookup failures are never actionable.
+6. **Reminder**: prints a warning only if updates exist and the configured reminder interval has passed.
 
 If your local dependencies are out of sync (for example, after pulling a colleague's changes), the script recommends `npm ci` first. This prevents you from evaluating updates against a stale installed tree.
+
+The registry calls reuse the same caching, gzip, and retry layer as the package-age check. To bypass the registry cache while debugging, set:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:update-check
+```
+
+## Metadata Risk Scoring
+
+Eligible updates receive a confidence score that combines several risk signals. The score helps you decide which updates can be applied quickly and which deserve extra review.
+
+Signals used:
+
+- **Age** — older releases earn more points because the community has had time to report issues.
+- **Semver severity** — patch updates earn more points than minor or major updates.
+- **Release cadence** — packages that release very frequently receive a penalty because each release has had less community exposure.
+- **Deprecation** — deprecated versions receive a large penalty and usually become "high risk" or "review required".
+- **Maintainer count** — packages with fewer than two maintainers receive a small penalty.
+- **Weekly downloads** — packages with fewer than 100 weekly downloads receive a small penalty.
+
+The weights for these signals live under `updateCheck.scoringRules` in `package.json` and can be overridden via `.defence.config.json`. Download counts come from the npm downloads API (`https://api.npmjs.org/downloads/point/last-week/<pkg>`) and gracefully fall back to null if the API is unreachable.
 
 ## Configuration
 
@@ -40,7 +62,7 @@ The behavior is controlled by the `updateCheck` block in `package.json`:
 | `alwaysRemind` | `false` | If `true`, the alert appears every time updates exist. |
 | `includeTransitive` | `false` | If `true`, also checks transitive dependencies. |
 | `registryTimeoutMs` | `10000` | Network timeout for registry calls. |
-| `cacheTtlHours` | `24` | How long scan results are cached locally. |
+| `cacheTtlHours` | `24` | How long the per-package registry cache is considered fresh. This is independent of the `.defence-update-check.json` scan state. |
 | `historyMaxEntries` | `30` | Maximum number of past scans kept in the local history. |
 | `stuckInQuarantineThreshold` | `3` | How many consecutive scans a package must spend in quarantine to be flagged as stuck. |
 | `highReleaseCadenceDays` | `7` | Average days between releases below which a package is considered high-cadence. |
@@ -87,6 +109,9 @@ npm run defence:update-check:offline
 
 ## Output example
 
+> The versions and URLs below are illustrative examples of the CLI output format.
+> They may not point to real releases.
+
 ```text
 ⚠️  Dependency updates available:
    (This script never modifies dependencies automatically.)
@@ -98,6 +123,7 @@ npm run defence:update-check:offline
 
    In quarantine (too recent or unsafe to update):
      husky  9.1.7 → 9.2.0 [minor] (released 2 days ago)
+       eligible versions: 9.1.8, 9.1.9
        npm:     https://www.npmjs.com/package/husky/v/9.2.0
        release: https://github.com/typicode/husky/releases/tag/v9.2.0
 
@@ -186,6 +212,22 @@ Implemented in:
 - [tools/lib/sync-check.js](../../../tools/lib/sync-check.js)
 
 The local state is stored in `.defence-update-check.json`, which is ignored by git so each developer has their own reminder state.
+
+## Performance monitoring
+
+The update check is one of the registry-dependent tools tracked by the performance benchmark suite in [`tools/perf/benchmark.js`](../../../tools/perf/benchmark.js). Run the benchmarks with:
+
+```bash
+npm run defence:perf
+```
+
+To update the baseline after deliberate improvements:
+
+```bash
+npm run defence:perf:baseline
+```
+
+Results are compared against [`tools/perf/baselines.json`](../../../tools/perf/baselines.json); a regression above 20% fails the run.
 
 ## Integration with other layers
 

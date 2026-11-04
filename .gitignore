@@ -79,6 +79,20 @@ web_modules/
 # E2E test registry-response cache (never commit; per-developer state)
 tools/e2e/.cache/
 
+# Incremental markdown link-check cache (never commit; per-developer state)
+.md-links-cache.json
+
+# Incremental external URL reachability cache (never commit; per-developer state)
+.external-urls-cache.json
+# Hook security-block audit log (never commit; local-only audit trail)
+# Superseded by the unified observability log (Fase AI-3.3); kept so stale
+# local files from earlier revisions never get committed.
+.github/hooks/scripts/security-blocks.log
+# Unified hook observability log (never commit; per-developer state)
+.github/hooks/scripts/observability.jsonl
+# Registry response cache for defence tools (never commit; per-developer state)
+.cache/
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -91,6 +105,12 @@ out
 .nuxt
 dist
 .output
+
+# AI session memory (per-conversation, not versioned)
+/memories/
+
+# Per-run performance profile (per-developer state)
+.defence-profile.json
 
 # Gatsby files
 .cache/

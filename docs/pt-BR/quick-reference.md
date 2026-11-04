@@ -5,7 +5,7 @@ Uma lista concisa de todos os comandos necessários para trabalhar com este proj
 ## Setup Inicial
 
 ```bash
-# Clone e instalação (requer Node.js >= 24.19.0 e npm >= 11.17.0)
+# Clone e instalação (requer Node.js >= 24.22.2 e npm >= 11.19.1)
 git clone git@github.com:adrianoenache/learn-supply-chain-attack-defence.git
 cd learn-supply-chain-attack-defence
 npm run setup
@@ -52,12 +52,32 @@ npm run setup
 
 | Comando | O que faz |
 | --- | --- |
+| `npm run defence:update-engines` | Reporta updates (dentro do major) e upgrades (LTS mais recente) de engine Node.js, gateados no índice dist oficial. |
+| `npm run defence:update-engines:update` | Aplica o update de engine mais recente dentro do major em `package.json`, lockfile e `.nvmrc`. |
+| `npm run defence:check-npmrc` | Valida as chaves do `.npmrc` e rejeita o mecanismo de extensão do npm v12. |
+| `npm run defence:check-dead-code` | Lista candidatos a código morto (consultivo; nunca bloqueia). |
 | `npm run defence:pkg-age-check` | Verifica dependências diretas contra a idade mínima de 7 dias. |
 | `npm run defence:pkg-age-check -- --transitive` | Verifica todos os pacotes resolvidos no `package-lock.json`. |
 | `npm run defence:bootstrap` | Helper de primeira instalação quando `package-lock.json` está ausente. |
 | `npm run defence:reinstall` | Apaga `node_modules`, reinstala e reexecuta todas as verificações. |
 | `npm run defence:pre-commit` | Executa audits de assinatura, vulnerabilidade e verificação de atualizações. |
 | `bash .husky/pre-commit` | Executa o hook de pré-commit completo localmente. |
+| `npm run defence:check-hooks` | Verifica se `.husky/pre-commit` corresponde ao hash conhecido. |
+| `npm run defence:check-lockfile-integrity` | Verifica se cada entrada do lockfile possui um campo de integridade SHA-512. |
+| `npm run defence:check-secrets` | Verifica arquivos rastreados em busca de possíveis secrets. |
+| `npm run defence:generate-sbom -- --output=sbom.json` | Gera um SBOM CycloneDX 1.4 JSON. |
+| `npm run defence:verify-defences` | Verifica arquivos copiados pelo `install-defences.js` contra o manifesto. |
+| `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version` | Análise estática dos scripts de lifecycle de um pacote antes da instalação. |
+| `npm run defence:analyze-lifecycle-scripts -- --pkg=name@version --fail` | Sai com código não-zero quando padrões de alto risco são encontrados. |
+| `npm run defence:trust-report` | Gera um relatório Markdown de trust score para todas as dependências transitivas. |
+| `npm run defence:trust-report -- --direct` | Gera um relatório de trust score apenas para dependências diretas. |
+| `npm run defence:trust-report -- --pkg=nome@versao` | Gera um relatório de trust score para um único pacote. |
+| `npm run defence:trust-report:json` | Gera saída JSON do relatório de trust score. |
+| `npm run defence:trust-report:fail` | Sai com código 1 se algum pacote estiver abaixo do mínimo configurado. |
+| `npm run defence:install-monitored -- npm install` | Executa `npm install` registrando todo subprocesso gerado. |
+| `npm run defence:install-monitored -- --output=report.md npm ci` | Grava o relatório do install monitorado em arquivo personalizado. |
+| `npm run defence:install-monitored -- --format=json npm install` | Grava o relatório do install monitorado em JSON. |
+| `npm run defence:install-monitored -- --fail-on-lifecycle npm install` | Falha se algum script de lifecycle for executado durante o install. |
 
 ## Adoção em Outros Projetos
 

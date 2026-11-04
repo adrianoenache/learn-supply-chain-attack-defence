@@ -13,8 +13,16 @@ Implementado em:
 - [tools/check-package-age.js](../../../tools/check-package-age.js)
 - [tools/add-package.js](../../../tools/add-package.js)
 - [tools/update-packages.js](../../../tools/update-packages.js)
+- [tools/lib/registry-cache.js](../../../tools/lib/registry-cache.js)
+- [tools/lib/retry-fetch.js](../../../tools/lib/retry-fetch.js)
 
-O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-lock.json` (dependências transitivas), consulta o registry do npm para o timestamp de publicação de cada versão e falha se algum pacote for muito novo.
+O `check-package-age.js` lê `package.json` (dependências diretas) ou `package-lock.json` (dependências transitivas) e consulta o registry do npm para o timestamp de publicação de cada versão. As requisições ao registry passam pela camada compartilhada [`retry-fetch.js`](../../../tools/lib/retry-fetch.js) (gzip, limite de tamanho e retry em falhas transitórias) e são cacheadas em disco por [`registry-cache.js`](../../../tools/lib/registry-cache.js) para evitar downloads repetidos.
+
+Para ignorar o cache do registry durante o debug, defina:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:pkg-age-check
+```
 
 ## Uso
 
@@ -29,3 +37,7 @@ npm run defence:pkg-age-check -- --transitive
 ## Por Que 7 Dias?
 
 A maioria dos lançamentos maliciosos é detectada em poucas horas ou dias. Um período de resfriamento de 7 dias reduz drasticamente a chance de instalar um pacote malicioso recém-publicado, sem atrasar significativamente o trabalho normal.
+
+## Reforço nativo do npm
+
+A mesma janela de 7 dias também é imposta pelo próprio npm via `min-release-age=7` no `.npmrc` — dois gates independentes para a mesma política (o tradeoff fail-closed e o escape de emergência `min-release-age-exclude` estão documentados no [guia de hardening do `.npmrc`](../npmrc-hardening.md) e no ADR em `DECISIONS.md`).

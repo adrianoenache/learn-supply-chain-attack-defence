@@ -4,32 +4,36 @@
 const { describe, test, beforeEach, afterEach } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, './check-engines.js')
+const PROJECT_ROOT = path.resolve(__dirname, '..')
+const { engines: projectEngines } = require(
+  path.join(PROJECT_ROOT, 'package.json'),
+)
 
 let captured = { logs: [], errors: [] }
 let exitCode = null
-const fsState = {}
-const npmVersion = '11.17.0'
+
+// Read project engine requirements from package.json so tests stay in sync
+// with the real configuration. Hardcoded fixtures below (e.g. '>=99.0.0')
+// are intentionally fixed boundary values used to exercise failure paths.
+const sampleNodeRange = projectEngines.node
+const sampleNpmRange = projectEngines.npm
+const sampleNpmVersion = projectEngines.npm.replace(/^>=/, '')
 
 function readScriptExports() {
   delete require.cache[require.resolve(SCRIPT_PATH)]
   return require(SCRIPT_PATH)
 }
 
-function setImpls(impls) {
-  const script = readScriptExports()
+function setImpls(script, impls) {
   script.setImpls({
-    fs: impls.fs || {
-      readFileSync: (filePath, _encoding) => {
-        if (filePath.endsWith('package.json')) {
-          return JSON.stringify(impls.pkg || {})
-        }
-        return fsState[filePath]
-      },
-    },
+    loadConfig:
+      impls.loadConfig || (() => ({ engines: impls.pkg?.engines || {} })),
     spawnSync:
-      impls.spawnSync || (() => ({ status: 0, stdout: `${npmVersion}\n` })),
+      impls.spawnSync ||
+      (() => ({ status: 0, stdout: `${sampleNpmVersion}\n` })),
     exit: (code) => {
       exitCode = code
       throw new Error(`exit:${code}`)
@@ -58,29 +62,47 @@ describe('check-engines', () => {
 
   test('satisfies helper supports >=, >, =, <=, <, ~ and ^', () => {
     const { satisfies } = readScriptExports()
-    assert.equal(satisfies('24.19.0', '>=24.19.0'), true)
-    assert.equal(satisfies('24.18.9', '>=24.19.0'), false)
-    assert.equal(satisfies('24.20.0', '>24.19.0'), true)
-    assert.equal(satisfies('24.19.0', '>24.19.0'), false)
-    assert.equal(satisfies('11.17.0', '=11.17.0'), true)
-    assert.equal(satisfies('11.17.1', '=11.17.0'), false)
-    assert.equal(satisfies('11.16.0', '<=11.17.0'), true)
-    assert.equal(satisfies('11.18.0', '<=11.17.0'), false)
-    assert.equal(satisfies('11.16.0', '<11.17.0'), true)
-    assert.equal(satisfies('11.17.0', '<11.17.0'), false)
-    assert.equal(satisfies('11.17.5', '~11.17.0'), true)
-    assert.equal(satisfies('11.18.0', '~11.17.0'), false)
-    assert.equal(satisfies('11.17.5', '^11.17.0'), true)
-    assert.equal(satisfies('12.0.0', '^11.17.0'), false)
+    const nodeTarget = sampleNodeRange.replace(/^>=/, '')
+    const npmTarget = sampleNpmRange.replace(/^>=/, '')
+
+    // Neighbor versions are derived from the live engine pins instead of
+    // hardcoded: fixtures tied to a specific pin silently break on every
+    // engine bump (this test failed on the 24.19.0 -> 24.22.2 update).
+    const [nodeMajor, nodeMinor] = nodeTarget.split('.').map(Number)
+    const [npmMajor, npmMinor, npmPatch] = npmTarget.split('.').map(Number)
+    const nodeBelow = `${nodeMajor}.${nodeMinor - 1}.0`
+    const nodeAbove = `${nodeMajor}.${nodeMinor + 1}.0`
+    const npmBelowMinor = `${npmMajor}.${npmMinor - 1}.0`
+    const npmAbovePatch = `${npmMajor}.${npmMinor}.${npmPatch + 1}`
+    const npmAboveMinor = `${npmMajor}.${npmMinor + 1}.0`
+    const npmAboveMajor = `${npmMajor + 1}.0.0`
+
+    assert.equal(satisfies(nodeTarget, `>=${nodeTarget}`), true)
+    assert.equal(satisfies(nodeBelow, `>=${nodeTarget}`), false)
+    assert.equal(satisfies(nodeAbove, `>${nodeTarget}`), true)
+    assert.equal(satisfies(nodeTarget, `>${nodeTarget}`), false)
+    assert.equal(satisfies(npmTarget, `=${npmTarget}`), true)
+    assert.equal(satisfies(npmAbovePatch, `=${npmTarget}`), false)
+    assert.equal(satisfies(npmBelowMinor, `<=${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMinor, `<=${npmTarget}`), false)
+    assert.equal(satisfies(npmBelowMinor, `<${npmTarget}`), true)
+    assert.equal(satisfies(npmTarget, `<${npmTarget}`), false)
+    assert.equal(satisfies(npmAbovePatch, `~${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMinor, `~${npmTarget}`), false)
+    assert.equal(satisfies(npmAbovePatch, `^${npmTarget}`), true)
+    assert.equal(satisfies(npmAboveMajor, `^${npmTarget}`), false)
   })
+
+  // Intentionally hardcoded boundary values: they exercise the range parser
+  // against an unsupported "x" wildcard pattern without depending on config.
 
   test('passes when node and npm satisfy engines', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {
-        engines: { node: '>=24.19.0', npm: '>=11.17.0' },
+        engines: { node: sampleNodeRange, npm: sampleNpmRange },
       },
-      spawnSync: () => ({ status: 0, stdout: '11.17.0\n' }),
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
     })
     assert.throws(() => script.main(), /exit:0/)
     assert.equal(exitCode, 0)
@@ -93,11 +115,11 @@ describe('check-engines', () => {
 
   test('fails when node is below required version', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {
-        engines: { node: '>=99.0.0', npm: '>=11.17.0' },
+        engines: { node: '>=99.0.0', npm: sampleNpmRange },
       },
-      spawnSync: () => ({ status: 0, stdout: '11.17.0\n' }),
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
     })
     assert.throws(() => script.main(), /exit:1/)
     assert.equal(exitCode, 1)
@@ -110,11 +132,11 @@ describe('check-engines', () => {
 
   test('fails when npm is below required version', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {
-        engines: { node: '>=24.19.0', npm: '>=99.0.0' },
+        engines: { node: sampleNodeRange, npm: '>=99.0.0' },
       },
-      spawnSync: () => ({ status: 0, stdout: '11.17.0\n' }),
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
     })
     assert.throws(() => script.main(), /exit:1/)
     assert.equal(exitCode, 1)
@@ -127,11 +149,11 @@ describe('check-engines', () => {
 
   test('fails when both node and npm are below required versions', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {
         engines: { node: '>=99.0.0', npm: '>=99.0.0' },
       },
-      spawnSync: () => ({ status: 0, stdout: '11.17.0\n' }),
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
     })
     assert.throws(() => script.main(), /exit:1/)
     assert.equal(exitCode, 1)
@@ -149,18 +171,18 @@ describe('check-engines', () => {
 
   test('throws when engines field is missing', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {},
-      spawnSync: () => ({ status: 0, stdout: '11.17.0\n' }),
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
     })
     assert.throws(() => script.main(), /Missing engines\.node or engines\.npm/)
   })
 
   test('throws when npm version cannot be determined', () => {
     const script = readScriptExports()
-    setImpls({
+    setImpls(script, {
       pkg: {
-        engines: { node: '>=24.19.0', npm: '>=11.17.0' },
+        engines: { node: sampleNodeRange, npm: sampleNpmRange },
       },
       spawnSync: () => ({ status: 1, stdout: '', stderr: 'not found' }),
     })
@@ -169,9 +191,17 @@ describe('check-engines', () => {
 
   test('throws on unsupported engine range', () => {
     const { satisfies } = readScriptExports()
+    // '24.x' is intentionally hardcoded: it tests wildcard rejection, not config drift.
     assert.throws(
-      () => satisfies('24.19.0', '24.x'),
+      () => satisfies(sampleNodeRange.replace(/^>=/, ''), '24.x'),
       /Unsupported engine range/,
     )
+  })
+
+  test('CLI exits 0 when engines satisfy', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

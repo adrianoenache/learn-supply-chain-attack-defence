@@ -7,8 +7,10 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
+const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'update-badge.js')
+const README_PATH = path.resolve(__dirname, '../README.md')
 
 function readScriptExports() {
   delete require.cache[require.resolve(SCRIPT_PATH)]
@@ -34,7 +36,34 @@ function makeMockFs(files) {
 }
 
 function makeMockGlob(filePaths) {
-  return () => filePaths
+  return (pattern) => {
+    const isLib =
+      pattern.includes(`${path.sep}lib${path.sep}`) || pattern.includes('/lib/')
+    const isPerf =
+      pattern.includes(`${path.sep}perf${path.sep}`) ||
+      pattern.includes('/perf/')
+    const isGithub = pattern.includes('.github')
+    return filePaths.filter((p) => {
+      const hasLib =
+        p.includes(`${path.sep}lib${path.sep}`) || p.includes('/lib/')
+      const hasPerf =
+        p.includes(`${path.sep}perf${path.sep}`) || p.includes('/perf/')
+      const hasGithub = p.includes('.github')
+      if (isGithub) return hasGithub
+      if (isLib) return hasLib && !hasGithub
+      if (isPerf) return hasPerf && !hasGithub
+      return !hasLib && !hasPerf && !hasGithub
+    })
+  }
+}
+
+function makeMockSpawnSync(expectedCount) {
+  return () => ({
+    status: 0,
+    stdout: '',
+    stderr: `# tests ${expectedCount}\n# pass ${expectedCount}\n`,
+    signal: null,
+  })
 }
 
 describe('update-badge', () => {
@@ -124,15 +153,16 @@ describe('update-badge', () => {
   test('main updates README and reports new count', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        [
-          '# Title',
-          '',
-          '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
-          '',
-          'Body',
-        ].join('\n'),
+      [README_PATH]: [
+        '# Title',
+        '',
+        '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
+        '',
+        'Body',
+      ].join('\n'),
       '/tools/a.test.js': "test('a1', () => {})\ntest('a2', () => {})",
+      '/tools/lib/b.test.js': "test('b1', () => {})",
+      '/tools/perf/c.test.js': "test('c1', () => {})\ntest('c2', () => {})",
     }
     const fs = makeMockFs(files)
     const logs = []
@@ -141,19 +171,21 @@ describe('update-badge', () => {
 
     mod.setImpls({
       fs,
-      globSync: makeMockGlob(['/tools/a.test.js']),
+      globSync: makeMockGlob([
+        '/tools/a.test.js',
+        '/tools/lib/b.test.js',
+        '/tools/perf/c.test.js',
+      ]),
+      spawnSync: makeMockSpawnSync(5),
       exit: () => {},
+      readmePath: README_PATH,
     })
 
     try {
       const code = mod.main([])
       assert.equal(code, 0)
-      assert.ok(
-        files[
-          '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md'
-        ].includes(mod.buildBadgeLine(2)),
-      )
-      assert.ok(logs.some((line) => line.includes('2/2')))
+      assert.ok(files[README_PATH].includes(mod.buildBadgeLine(5)))
+      assert.ok(logs.some((line) => line.includes('5/5')))
     } finally {
       console.log = originalLog
       mod.resetImpls()
@@ -163,14 +195,13 @@ describe('update-badge', () => {
   test('dry-run does not write README', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        [
-          '# Title',
-          '',
-          '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
-          '',
-          'Body',
-        ].join('\n'),
+      [README_PATH]: [
+        '# Title',
+        '',
+        '![Tests](https://img.shields.io/badge/Tests-1%2F1%20passing-brightgreen)',
+        '',
+        'Body',
+      ].join('\n'),
       '/tools/a.test.js': "test('a1', () => {})",
     }
     const fs = makeMockFs(files)
@@ -181,17 +212,15 @@ describe('update-badge', () => {
     mod.setImpls({
       fs,
       globSync: makeMockGlob(['/tools/a.test.js']),
+      spawnSync: makeMockSpawnSync(1),
       exit: () => {},
+      readmePath: README_PATH,
     })
 
     try {
       const code = mod.main(['--dry-run'])
       assert.equal(code, 0)
-      assert.ok(
-        files[
-          '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md'
-        ].includes('1%2F1'),
-      )
+      assert.ok(files[README_PATH].includes('1%2F1'))
       assert.ok(logs.some((line) => line.includes('[dry-run]')))
     } finally {
       console.log = originalLog
@@ -202,8 +231,7 @@ describe('update-badge', () => {
   test('main exits 1 when badge line is missing', () => {
     const mod = readScriptExports()
     const files = {
-      '/home/adriano-enache/GitHub/portifolio/learn-supply-chain-attack-defence/README.md':
-        '# Title\n\nBody',
+      [README_PATH]: '# Title\n\nBody',
       '/tools/a.test.js': "test('a1', () => {})",
     }
     const fs = makeMockFs(files)
@@ -213,11 +241,114 @@ describe('update-badge', () => {
       exit: (code) => {
         throw new Error(`exit ${code}`)
       },
+      readmePath: README_PATH,
     })
 
     try {
       assert.throws(() => mod.main([]), /exit 1/)
     } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('CLI exits 0 and updates badge', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH, '--dry-run'], {
+      encoding: 'utf8',
+      cwd: path.resolve(__dirname, '..'),
+    })
+    assert.equal(result.status, 0)
+    assert.ok(result.stdout.includes('Test badge would be'))
+  })
+
+  test('badge globs cover the same files as the package.json test script', () => {
+    // Regression guard for the H.4 drift: the badge counted 469 tests while
+    // npm test ran 738 because TEST_GLOBS never saw the .github suites. The
+    // badge must derive from the same file set as the `test` script.
+    const mod = readScriptExports()
+    const pkg = require(path.resolve(__dirname, '..', 'package.json'))
+    const testScript = pkg.scripts.test
+    // Every .test.js path/group in the script must have a corresponding glob.
+    const scriptRefs =
+      testScript.match(/[\w./-]*\.test\.js|[\w./-]+\*\.test\.js/g) ?? []
+    const globDirs = mod.TEST_GLOBS.join(' ')
+    for (const ref of scriptRefs) {
+      // Both script refs and globs are repo-root relative; the glob list uses
+      // absolute paths, so we check by suffix containment of the directory.
+      const dir = ref.replace(/[^/]*\.test\.js$/, '').replace(/\*$/, '')
+      assert.ok(
+        dir === '' ||
+          globDirs.includes(dir.replace(/\/$/, '')) ||
+          globDirs.includes(dir),
+        `test script covers "${ref}" but TEST_GLOBS has no matching entry`,
+      )
+    }
+  })
+
+  test('countTestsDynamically parses the TAP test count', () => {
+    // Covers the spawnSync path used when the script runs outside node:test.
+    const mod = readScriptExports()
+    mod.setImpls({ spawnSync: makeMockSpawnSync(123) })
+    try {
+      const count = mod.countTestsDynamically(['/tools/a.test.js'])
+      assert.equal(count, 123)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('countTestsDynamically throws an actionable error when the count is missing', () => {
+    const mod = readScriptExports()
+    mod.setImpls({
+      spawnSync: () => ({
+        status: 1,
+        stdout: '',
+        stderr: 'boom',
+        signal: null,
+      }),
+    })
+    try {
+      assert.throws(
+        () => mod.countTestsDynamically(['/tools/a.test.js']),
+        /Could not determine test count/,
+      )
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('countTestsDynamically returns 0 when there are no test files', () => {
+    const mod = readScriptExports()
+    try {
+      assert.equal(mod.countTestsDynamically([]), 0)
+    } finally {
+      mod.resetImpls()
+    }
+  })
+
+  test('main reports when the badge is already up to date', () => {
+    const mod = readScriptExports()
+    const files = {
+      [README_PATH]:
+        '![Tests](https://img.shields.io/badge/Tests-2%2F2%20passing-brightgreen)',
+      '/tools/a.test.js': "test('a1', () => {})\ntest('a2', () => {})",
+    }
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    mod.setImpls({
+      fs: makeMockFs(files),
+      globSync: makeMockGlob(['/tools/a.test.js']),
+      spawnSync: makeMockSpawnSync(2),
+      exit: () => {},
+      readmePath: README_PATH,
+    })
+
+    try {
+      const code = mod.main([])
+      assert.equal(code, 0)
+      assert.ok(logs.some((line) => line.includes('already up to date')))
+    } finally {
+      console.log = originalLog
       mod.resetImpls()
     }
   })

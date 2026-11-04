@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "type": "command",
+        "matcher": "runSubagent",
+        "bash": "bash .github/hooks/scripts/subagent-invocation.sh",
+        "timeoutSec": 5
+      }
+    ]
+  }
+}

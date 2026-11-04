@@ -1,0 +1,48 @@
+# update-packages
+
+`update-packages.js` is a controlled wrapper for `npm update` that re-runs defense gates after the update.
+
+## What it does
+
+- Loads eligible updates from `.defence-update-check.json` (produced by `defence:update-check`).
+- Resolves each package's target as the highest `intermediateEligible` version (already past the age gate at scan time), falling back to `latest` for older state files.
+- **Actionable quarantine:** quarantined packages whose only blocker is age (`too recent`) and that have age-gated intermediates are also offered/applied — the intermediate passed the same age gate; `latest` stays blocked until it does. Registry-lookup failures are never actionable.
+- Installs pinned targets with `npm install --save-exact --ignore-scripts <pkg>@<target>`; falls back to generic in-range `npm update` only when no scan state exists.
+- Re-runs package-age checks, signature verification, vulnerability audit, and license checks.
+- Supports interactive approval of each update.
+- Supports dry-run mode for safe previewing.
+
+Implemented in [tools/update-packages.js](../../../tools/update-packages.js).
+
+## Usage
+
+```bash
+# Non-interactive update with post-checks
+npm run defence:update
+
+# Interactive approval
+npm run defence:update -- --interactive
+
+# Dry run preview
+npm run defence:update -- --interactive --dry-run
+```
+
+## Output example
+
+Real dry-run output (captured 2026-11-03):
+
+```text
+[dry-run] Would update dependencies with:
+  - pinned quarantine intermediate: @biomejs/biome@2.6.3 (latest 2.6.4 still in quarantine)
+  - npm run defence:pkg-age-check -- --transitive
+  - npm audit signatures
+  - npm audit --audit-level=high
+  - npm run defence:license-check:fail
+```
+
+## Related defense layers
+
+- [Defense Layer 1 — Package age check](../security/defense-layer-1-package-age.md)
+- [Defense Layer 2 — Signature verification](../security/defense-layer-2-signatures.md)
+- [Defense Layer 3 — Vulnerability audit](../security/defense-layer-3-vulnerabilities.md)
+- [Defense Layer 9 — License check](../security/defense-layer-9-license-check.md)

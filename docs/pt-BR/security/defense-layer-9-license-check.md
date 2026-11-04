@@ -125,7 +125,7 @@ npm run defence:license-check -- --pkg=react@18.3.1
 Pacotes com escopo são suportados:
 
 ```bash
-npm run defence:license-check -- --pkg=@biomejs/biome@2.5.8
+npm run defence:license-check -- --pkg=@biomejs/biome@2.6.3
 ```
 
 Se o pacote não for encontrado no lock file, o comando sai com código 1.

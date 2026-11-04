@@ -10,13 +10,35 @@ Quando você executa `npm run defence:update-check` (ou faz commit, o que dispar
 
 1. **Verificação de sincronia local**: verifica se `node_modules` está em sincronia com `package-lock.json`.
 2. **Scan de desatualizados**: executa `npm outdated --json` para descobrir atualizações disponíveis.
-3. **Consulta de idade no registry**: consulta o registry do npm pela data de publicação de cada versão `latest`.
-4. **Classificação**:
+3. **Consulta de idade no registry**: consulta o registry do npm pela data de publicação de cada versão `latest` através das camadas compartilhadas [`registry-cache.js`](../../../tools/lib/registry-cache.js) e [`retry-fetch.js`](../../../tools/lib/retry-fetch.js).
+4. **Descoberta de intermediárias**: para cada pacote desatualizado, o packument é varrido em busca de versões entre a instalada e a `latest` que já satisfaçam o portão de idade (`intermediateEligible`, em ordem crescente; versões depreciadas são excluídas) — assim uma `latest` em quarentena não bloqueia o progresso seguro.
+5. **Classificação**:
    - **Elegível** — a nova versão tem pelo menos `minAgeDays` de idade, então já teve tempo de ser revisada pela comunidade.
-   - **Quarentena** — a nova versão é muito recente, ou a consulta ao registry falhou. Essas atualizações são mostradas apenas para fins de conscientização, ainda não sendo recomendadas.
-5. **Lembrete**: imprime um aviso apenas se existirem atualizações e o intervalo de lembrete configurado já tiver passado.
+   - **Quarentena** — a nova versão é muito recente, ou a consulta ao registry falhou. Entradas com intermediárias elegíveis são *quarentena acionável*: o `defence:update` pode avançar para a intermediária aprovada por idade mais recente enquanto a `latest` permanece bloqueada. Falhas de consulta ao registry nunca são acionáveis.
+6. **Lembrete**: imprime um aviso apenas se existirem atualizações e o intervalo de lembrete configurado já tiver passado.
 
 Se as dependências locais estiverem desatualizadas (por exemplo, após fazer pull das alterações de um colega), o script recomenda executar `npm ci` primeiro. Isso evita que você avalie atualizações sobre uma árvore instalada desatualizada.
+
+As chamadas ao registry reutilizam a mesma camada de cache, gzip e retry da verificação de idade dos pacotes. Para ignorar o cache do registry durante o debug, defina:
+
+```bash
+DEFENCE_NO_CACHE=1 npm run defence:update-check
+```
+
+## Pontuação de Risco de Metadados (Metadata Risk Scoring)
+
+Atualizações elegíveis recebem um score de confiança que combina vários sinais de risco. O score ajuda a decidir quais atualizações podem ser aplicadas rapidamente e quais merecem revisão extra.
+
+Sinais utilizados:
+
+- **Idade** — releases mais antigas ganham mais pontos porque a comunidade teve tempo de reportar problemas.
+- **Severidade semver** — atualizações de patch ganham mais pontos do que minor ou major.
+- **Cadência de release** — pacotes que lançam com muita frequência recebem uma penalidade porque cada release teve menos exposição da comunidade.
+- **Depreciação** — versões deprecadas recebem uma grande penalidade e geralmente ficam como "high risk" ou "review required".
+- **Quantidade de mantenedores** — pacotes com menos de dois mantenedores recebem uma pequena penalidade.
+- **Downloads semanais** — pacotes com menos de 100 downloads semanais recebem uma pequena penalidade.
+
+Os pesos desses sinais ficam em `updateCheck.scoringRules` no `package.json` e podem ser sobrescritos via `.defence.config.json`. A contagem de downloads vem da API de downloads do npm (`https://api.npmjs.org/downloads/point/last-week/<pkg>`) e retorna gracefulmente para null se a API estiver indisponível.
 
 ## Configuração
 
@@ -40,7 +62,7 @@ O comportamento é controlado pelo bloco `updateCheck` no `package.json`:
 | `alwaysRemind` | `false` | Se `true`, o aviso aparece sempre que houver atualizações. |
 | `includeTransitive` | `false` | Se `true`, também verifica dependências transitivas. |
 | `registryTimeoutMs` | `10000` | Timeout de rede para chamadas ao registry. |
-| `cacheTtlHours` | `24` | Tempo de vida do cache local de resultados do scan. |
+| `cacheTtlHours` | `24` | Tempo de vida do cache de registry por pacote. É independente do estado de scan em `.defence-update-check.json`. |
 | `historyMaxEntries` | `30` | Número máximo de scans passados mantidos no histórico local. |
 | `stuckInQuarantineThreshold` | `3` | Quantos scans consecutivos um pacote deve passar em quarentena para ser marcado como preso. |
 | `highReleaseCadenceDays` | `7` | Média de dias entre releases abaixo da qual um pacote é considerado de alta cadência. |
@@ -87,6 +109,9 @@ npm run defence:update-check:offline
 
 ## Exemplo de saída
 
+> As versões e URLs abaixo são exemplos ilustrativos do formato de saída da CLI.
+> Elas podem não apontar para releases reais.
+
 ```text
 ⚠️  Dependency updates available:
    (This script never modifies dependencies automatically.)
@@ -98,6 +123,7 @@ npm run defence:update-check:offline
 
    In quarantine (too recent or unsafe to update):
      husky  9.1.7 → 9.2.0 [minor] (released 2 days ago)
+       eligible versions: 9.1.8, 9.1.9
        npm:     https://www.npmjs.com/package/husky/v/9.2.0
        release: https://github.com/typicode/husky/releases/tag/v9.2.0
 
@@ -186,6 +212,22 @@ Implementado em:
 - [tools/lib/sync-check.js](../../../tools/lib/sync-check.js)
 
 O estado local é armazenado em `.defence-update-check.json`, que é ignorado pelo git para que cada desenvolvedor mantenha seu próprio estado de lembrete.
+
+## Monitoramento de performance
+
+A verificação de atualizações é uma das ferramentas dependentes do registry rastreadas pela suite de benchmarks de performance em [`tools/perf/benchmark.js`](../../../tools/perf/benchmark.js). Execute os benchmarks com:
+
+```bash
+npm run defence:perf
+```
+
+Para atualizar a baseline após melhorias deliberadas:
+
+```bash
+npm run defence:perf:baseline
+```
+
+Os resultados são comparados com [`tools/perf/baselines.json`](../../../tools/perf/baselines.json); uma regressão acima de 20% faz a execução falhar.
 
 ## Integração com outras camadas
 

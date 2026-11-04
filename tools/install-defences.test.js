@@ -3,11 +3,18 @@
 
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
+const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
+const { spawnSync } = require('node:child_process')
 
-const { parseArgs, main } = require('./install-defences.js')
+const {
+  parseArgs,
+  main,
+  updateLocalManifest,
+} = require('./install-defences.js')
+const SCRIPT_PATH = path.resolve(__dirname, 'install-defences.js')
 
 function makeTempTarget(pkg = {}) {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'defence-install-'))
@@ -72,86 +79,175 @@ describe('install-defences', () => {
       const code = main([target])
       assert.equal(code, 0)
 
-      assert.equal(fs.existsSync(path.join(target, '.npmrc')), true)
-      assert.equal(
-        fs.existsSync(path.join(target, '.husky', 'pre-commit')),
-        true,
-      )
-      assert.equal(fs.existsSync(path.join(target, 'biome.json')), true)
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'check-package-age.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'add-package.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'check-md-links.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'check-md-links.test.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'lib', 'package-utils.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'setup-bootstrap.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'setup-bootstrap.test.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'check-package-age.test.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'install-defences.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'install-defences.test.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'update-packages.js')),
-        true,
-      )
-      assert.equal(
-        fs.existsSync(path.join(target, 'tools', 'update-packages.test.js')),
-        true,
-      )
+      const expectedFiles = [
+        '.npmrc',
+        '.husky/pre-commit',
+        '.husky/post-merge',
+        'biome.json',
+        'tools/add-package.js',
+        'tools/add-package.test.js',
+        'tools/analyze-lifecycle-scripts.js',
+        'tools/analyze-lifecycle-scripts.test.js',
+        'tools/check-engines.js',
+        'tools/check-engines.test.js',
+        'tools/check-external-urls.js',
+        'tools/check-external-urls.test.js',
+        'tools/check-hooks.js',
+        'tools/check-hooks.test.js',
+        'tools/check-licenses.js',
+        'tools/check-licenses.test.js',
+        'tools/check-lockfile-integrity.js',
+        'tools/check-lockfile-integrity.test.js',
+        'tools/check-md-links.js',
+        'tools/check-md-links.test.js',
+        'tools/check-package-age.js',
+        'tools/check-package-age.test.js',
+        'tools/check-secrets.js',
+        'tools/check-secrets.test.js',
+        'tools/check-sync.js',
+        'tools/check-sync.test.js',
+        'tools/check-updates.js',
+        'tools/check-updates.test.js',
+        'tools/generate-sbom.js',
+        'tools/generate-sbom.test.js',
+        'tools/generate-trust-report.js',
+        'tools/generate-trust-report.test.js',
+        'tools/install-defences.js',
+        'tools/install-defences.test.js',
+        'tools/monitor-install.js',
+        'tools/monitor-install.test.js',
+        'tools/integration.test.js',
+        'tools/run-audit-with-retry.js',
+        'tools/run-audit-with-retry.test.js',
+        'tools/setup-bootstrap.js',
+        'tools/setup-bootstrap.test.js',
+        'tools/update-badge.js',
+        'tools/update-badge.test.js',
+        'tools/update-packages.js',
+        'tools/update-packages.test.js',
+        'tools/verify-defences.js',
+        'tools/verify-defences.test.js',
+        'tools/lib/config.js',
+        'tools/lib/config.test.js',
+        'tools/lib/package-utils.js',
+        'tools/lib/profiler.js',
+        'tools/lib/profiler.test.js',
+        'tools/lib/provenance.js',
+        'tools/lib/provenance.test.js',
+        'tools/lib/registry-cache.js',
+        'tools/lib/script-analyzer.js',
+        'tools/lib/script-analyzer.test.js',
+        'tools/lib/trust-engine.js',
+        'tools/lib/trust-engine.test.js',
+        'tools/lib/process-monitor.js',
+        'tools/lib/process-monitor.test.js',
+        'tools/lib/install-monitor-report.js',
+        'tools/lib/install-monitor-report.test.js',
+        'tools/lib/registry-cache.test.js',
+        'tools/lib/retry-fetch.js',
+        'tools/lib/retry-fetch.test.js',
+        'tools/lib/sync-check.js',
+        'tools/lib/typosquatting.js',
+        'tools/lib/typosquatting.test.js',
+        'tools/perf/benchmark.js',
+        'tools/perf/benchmark.test.js',
+        'tools/perf/baselines.json',
+      ]
+      for (const relativePath of expectedFiles) {
+        assert.equal(
+          fs.existsSync(path.join(target, relativePath)),
+          true,
+          `expected ${relativePath} to be copied`,
+        )
+      }
 
       const pkg = JSON.parse(
         fs.readFileSync(path.join(target, 'package.json'), 'utf8'),
       )
+      const expectedScripts = {
+        setup:
+          'npm run defence:check-engines && npm run defence:pkg-age-check && npm ci && npm audit signatures && npm run prepare',
+        'defence:add': 'node ./tools/add-package.js',
+        'defence:analyze-lifecycle-scripts':
+          'node ./tools/analyze-lifecycle-scripts.js',
+        'defence:install-monitored': 'node ./tools/monitor-install.js',
+        'defence:trust-report': 'node ./tools/generate-trust-report.js',
+        'defence:trust-report:json':
+          'node ./tools/generate-trust-report.js --format=json',
+        'defence:trust-report:fail':
+          'node ./tools/generate-trust-report.js --fail',
+        'defence:audit': 'node ./tools/run-audit-with-retry.js',
+        'defence:bootstrap': 'node ./tools/setup-bootstrap.js',
+        'defence:check-engines': 'node ./tools/check-engines.js',
+        'defence:check-hooks': 'node ./tools/check-hooks.js',
+        'defence:check-md-links': 'node ./tools/check-md-links.js',
+        'defence:check-external-urls': 'node ./tools/check-external-urls.js',
+        'defence:check-external-urls:force':
+          'node ./tools/check-external-urls.js --force',
+        'defence:check-secrets': 'node ./tools/check-secrets.js',
+        'defence:check-lockfile-integrity':
+          'node ./tools/check-lockfile-integrity.js',
+        'defence:generate-sbom': 'node ./tools/generate-sbom.js',
+        'defence:license-check': 'node ./tools/check-licenses.js',
+        'defence:license-check:fail': 'node ./tools/check-licenses.js --fail',
+        'defence:license-check:json':
+          'node ./tools/check-licenses.js --format=json',
+        'defence:perf': 'node ./tools/perf/benchmark.js',
+        'defence:perf:baseline':
+          'node ./tools/perf/benchmark.js --save-baseline',
+        'defence:pkg-age-check': 'node ./tools/check-package-age.js',
+        'defence:pre-commit':
+          'npm audit signatures && npm run defence:audit && npm run defence:update-check',
+        'defence:sync-check': 'node ./tools/check-sync.js',
+        'defence:sync-check:fix': 'node ./tools/check-sync.js --fix',
+        'defence:update': 'node ./tools/update-packages.js',
+        'defence:update:interactive':
+          'node ./tools/update-packages.js --interactive',
+        'defence:update:interactive:dry-run':
+          'node ./tools/update-packages.js --interactive --dry-run',
+        'defence:update-badge': 'node ./tools/update-badge.js',
+        'defence:update-badge:dry-run':
+          'node ./tools/update-badge.js --dry-run',
+        'defence:update-check': 'node ./tools/check-updates.js',
+        'defence:update-check:force': 'node ./tools/check-updates.js --force',
+        'defence:update-check:json':
+          'node ./tools/check-updates.js --format=json',
+        'defence:update-check:offline':
+          'node ./tools/check-updates.js --offline',
+        'defence:verify-defences': 'node ./tools/verify-defences.js',
+        'defence:verify-defences:fix':
+          'node ./tools/install-defences.js --update-local-manifest',
+        format: './node_modules/.bin/biome format --write tools/',
+        'format:check': './node_modules/.bin/biome format tools/',
+        lint: './node_modules/.bin/biome check tools/',
+        'lint:fix': './node_modules/.bin/biome check --write tools/',
+        prepare: 'husky',
+        test: 'node --test tools/*.test.js tools/lib/*.test.js tools/perf/*.test.js',
+      }
+      for (const [name, value] of Object.entries(expectedScripts)) {
+        assert.equal(pkg.scripts[name], value, `unexpected script ${name}`)
+      }
+      // Since Fase M.1 the installer tracks the source project's current
+      // devDependency pins instead of a hardcoded pair.
+      const sourcePkg = require(path.resolve(__dirname, '..', 'package.json'))
+      assert.equal(pkg.devDependencies.husky, sourcePkg.devDependencies.husky)
       assert.equal(
-        pkg.scripts['defence:pkg-age-check'],
-        'node ./tools/check-package-age.js',
+        pkg.devDependencies['@biomejs/biome'],
+        sourcePkg.devDependencies['@biomejs/biome'],
       )
+      // Config blocks and the hook hash land in the target package.json.
+      assert.ok(pkg.pkgAgeCheck, 'pkgAgeCheck merged')
       assert.equal(
-        pkg.scripts['defence:check-md-links'],
-        'node ./tools/check-md-links.js',
+        pkg.defences?.huskyPreCommitHash,
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(target, '.husky', 'pre-commit')))
+          .digest('hex'),
       )
-      assert.equal(
-        pkg.scripts['defence:bootstrap'],
-        'node ./tools/setup-bootstrap.js',
-      )
-      assert.equal(
-        pkg.scripts['defence:update'],
-        'node ./tools/update-packages.js',
-      )
-      assert.equal(pkg.scripts.test, 'node --test tools/*.test.js')
-      assert.equal(pkg.scripts.lint, 'biome check tools/')
-      assert.equal(pkg.scripts['lint:fix'], 'biome check --write tools/')
-      assert.equal(pkg.scripts.format, 'biome format --write tools/')
-      assert.equal(pkg.devDependencies.husky, '9.1.7')
-      assert.equal(pkg.devDependencies['@biomejs/biome'], '2.5.8')
+      // Local defence state is gitignored in the target.
+      const gitignore = fs.readFileSync(path.join(target, '.gitignore'), 'utf8')
+      assert.ok(gitignore.includes('.defence-update-check.json'))
+      assert.ok(gitignore.includes('.cache/'))
     } finally {
       cleanup(target)
     }
@@ -223,5 +319,92 @@ describe('install-defences', () => {
     } finally {
       cleanup(target)
     }
+  })
+
+  test('CLI prints usage when called without arguments', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
+    assert.ok(result.stdout.includes('Usage'))
+  })
+
+  test('updateLocalManifest regenerates manifest from current source tree', () => {
+    const target = makeTempTarget()
+    try {
+      const code = main([target])
+      assert.equal(code, 0)
+      const originalManifest = JSON.parse(
+        fs.readFileSync(path.join(target, '.defence-manifest.json'), 'utf8'),
+      )
+
+      // Simulate a legitimate edit to a copied file.
+      const filePath = path.join(target, 'tools', 'check-package-age.js')
+      fs.appendFileSync(filePath, '\n')
+
+      const manifest = updateLocalManifest(target)
+      assert.ok(Array.isArray(manifest.files))
+      assert.ok(manifest.files.length > 0)
+      const checkPackageAgeEntry = manifest.files.find(
+        (f) => f.path === 'tools/check-package-age.js',
+      )
+      assert.ok(checkPackageAgeEntry)
+      assert.notEqual(
+        checkPackageAgeEntry.hash,
+        originalManifest.files.find(
+          (f) => f.path === 'tools/check-package-age.js',
+        ).hash,
+      )
+    } finally {
+      cleanup(target)
+    }
+  })
+})
+
+describe('adoption completeness (anti-drift)', () => {
+  // Walks the real tools/ tree: every JavaScript/JSON file must be either in
+  // FILES_TO_COPY or under an EXCLUDED_FROM_ADOPTION prefix. A file matching
+  // neither means someone added a tool without updating the installer — the
+  // incident that removed concurrency.js/semver.js/update-engines.js from
+  // the adopted toolset until 2026-11-03.
+  test('every tools/ file is adopted or explicitly excluded', () => {
+    const { FILES_TO_COPY, EXCLUDED_FROM_ADOPTION } = require(SCRIPT_PATH)
+    const toolsRoot = path.resolve(__dirname)
+    const repoRoot = path.resolve(__dirname, '..')
+    const onDisk = []
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const full = path.join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        // Relative to the repo root, never to process.cwd(), so the test
+        // behaves identically under npm test and direct node invocation.
+        else onDisk.push(path.relative(repoRoot, full))
+      }
+    }
+    walk(toolsRoot)
+
+    const candidates = onDisk.filter(
+      (p) => p.endsWith('.js') || p.endsWith('.json'),
+    )
+    const uncovered = candidates.filter(
+      (p) =>
+        !FILES_TO_COPY.includes(p) &&
+        !EXCLUDED_FROM_ADOPTION.some((prefix) => p.startsWith(prefix)),
+    )
+    assert.deepEqual(
+      uncovered,
+      [],
+      `Files missing from FILES_TO_COPY (or EXCLUDED_FROM_ADOPTION): ${uncovered.join(', ')}`,
+    )
+  })
+
+  test('FILES_TO_COPY contains no ghosts', () => {
+    const { FILES_TO_COPY } = require(SCRIPT_PATH)
+    const ghosts = FILES_TO_COPY.filter((p) => !fs.existsSync(p))
+    assert.deepEqual(
+      ghosts,
+      [],
+      `Listed files that do not exist: ${ghosts.join(', ')}`,
+    )
   })
 })

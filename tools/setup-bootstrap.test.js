@@ -6,6 +6,7 @@ const assert = require('node:assert/strict')
 const fs = require('node:fs')
 const path = require('node:path')
 const os = require('node:os')
+const { spawnSync } = require('node:child_process')
 
 const SCRIPT_PATH = path.resolve(__dirname, 'setup-bootstrap.js')
 
@@ -25,6 +26,8 @@ async function withTempProject(fn, { hasLock = false } = {}) {
   if (hasLock) {
     fs.writeFileSync(path.join(tmpDir, 'package-lock.json'), '{}\n')
   }
+  fs.mkdirSync(path.join(tmpDir, '.husky'), { recursive: true })
+  fs.writeFileSync(path.join(tmpDir, '.husky', 'pre-commit'), 'npm run lint\n')
   process.chdir(tmpDir)
   try {
     return await fn(tmpDir)
@@ -41,13 +44,44 @@ function makeMockSpawn(calls) {
   }
 }
 
+function makeMockConfig(overrides = {}) {
+  return {
+    huskyPreCommitHash: null,
+    defences: { huskyPreCommitHash: null },
+    lifecycleMonitoring: {
+      enabled: true,
+      reportFile: 'lifecycle-monitor-report.md',
+      failOnLifecycle: false,
+      maxArgsLength: 200,
+    },
+    ...overrides,
+  }
+}
+
+const nullProcessMonitor = {
+  startMonitoring: () => {},
+  stopMonitoring: () => {},
+  getEvents: () => [],
+  clearEvents: () => {},
+}
+
+const nullInstallMonitorReport = {
+  buildMarkdownReport: () => '# report\n',
+  buildJsonReport: () => '{}',
+}
+
 describe('setup-bootstrap', () => {
   test('main exits 0 when package-lock.json exists', async () => {
     await withTempProject(
       async () => {
-        const { main } = readScriptExports()
-        const code = main()
-        assert.equal(code, 0)
+        const mod = readScriptExports()
+        mod.setLoadConfigImpl(() => makeMockConfig())
+        try {
+          const code = mod.main()
+          assert.equal(code, 0)
+        } finally {
+          mod.resetLoadConfigImpl()
+        }
       },
       { hasLock: true },
     )
@@ -57,11 +91,14 @@ describe('setup-bootstrap', () => {
     await withTempProject(async () => {
       const calls = []
       const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
       mod.setSpawnSyncImpl(makeMockSpawn(calls))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         const code = mod.main()
         assert.equal(code, 0)
-        assert.equal(calls.length, 4)
+        assert.equal(calls.length, 5)
         assert.deepEqual(calls[0], {
           cmd: 'npm',
           args: ['install', '--ignore-scripts', '--save-exact'],
@@ -78,8 +115,65 @@ describe('setup-bootstrap', () => {
           cmd: 'npm',
           args: ['audit', '--audit-level=high'],
         })
+        assert.deepEqual(calls[4], {
+          cmd: 'npm',
+          args: ['run', 'prepare'],
+        })
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
+      }
+    })
+  })
+
+  test('main skips hook check when huskyPreCommitHash is not configured', async () => {
+    await withTempProject(async () => {
+      const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
+      mod.setSpawnSyncImpl(makeMockSpawn([]))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
+      try {
+        const code = mod.main()
+        assert.equal(code, 0)
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
+      }
+    })
+  })
+
+  test('main records pre-commit hook hash after bootstrap', async () => {
+    await withTempProject(async (tmpDir) => {
+      const mod = readScriptExports()
+      mod.setLoadConfigImpl(() => makeMockConfig())
+      mod.setSpawnSyncImpl(makeMockSpawn([]))
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
+      try {
+        const code = mod.main()
+        assert.equal(code, 0)
+        const pkg = JSON.parse(
+          fs.readFileSync(path.join(tmpDir, 'package.json'), 'utf8'),
+        )
+        assert.ok(
+          pkg.defences?.huskyPreCommitHash?.length > 0,
+          'defences.huskyPreCommitHash should be recorded',
+        )
+        assert.equal(
+          pkg.defences.huskyPreCommitHash,
+          pkg.huskyPreCommitHash,
+          'legacy huskyPreCommitHash should stay in sync',
+        )
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetLoadConfigImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
   })
@@ -90,6 +184,8 @@ describe('setup-bootstrap', () => {
       mod.setSpawnSyncImpl(function failingSpawn() {
         return { status: 1, signal: null }
       })
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
       try {
         let threw = false
         try {
@@ -101,7 +197,56 @@ describe('setup-bootstrap', () => {
         assert.equal(threw, true)
       } finally {
         mod.resetSpawnSyncImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
       }
     })
+  })
+
+  test('main throws when bootstrap command is killed by signal', async () => {
+    await withTempProject(async () => {
+      const mod = readScriptExports()
+      mod.setSpawnSyncImpl(function killedSpawn() {
+        return { status: null, signal: 'SIGTERM' }
+      })
+      mod.setProcessMonitorImpl(nullProcessMonitor)
+      mod.setInstallMonitorReportImpl(nullInstallMonitorReport)
+      try {
+        let threw = false
+        try {
+          mod.main()
+        } catch (err) {
+          threw = true
+          assert.ok(err.message.includes('SIGTERM'))
+        }
+        assert.equal(threw, true)
+      } finally {
+        mod.resetSpawnSyncImpl()
+        mod.resetProcessMonitorImpl()
+        mod.resetInstallMonitorReportImpl()
+      }
+    })
+  })
+
+  test('CLI exits 0 when lockfile exists', async () => {
+    await withTempProject(
+      async () => {
+        const { spawnSync } = require('node:child_process')
+        const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+          encoding: 'utf8',
+          cwd: process.cwd(),
+        })
+        assert.equal(result.status, 0)
+        assert.ok(result.stdout.includes('package-lock.json already exists'))
+      },
+      { hasLock: true },
+    )
+  })
+
+  test('CLI exits 0 in current project', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
   })
 })

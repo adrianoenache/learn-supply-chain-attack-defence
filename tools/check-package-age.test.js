@@ -10,20 +10,18 @@
 const { test, describe } = require('node:test')
 const assert = require('node:assert/strict')
 const path = require('node:path')
-const { EventEmitter } = require('node:events')
-// EventEmitter is used to mock HTTP request/response streams when testing
-// fetchPackageAge() without making real network calls.
+const { spawnSync } = require('node:child_process')
+
+const SCRIPT_PATH = path.resolve(__dirname, './check-package-age.js')
 
 // Imports the exported functions — the `require.main === module` guard in both files
 // ensures main() is not executed when imported via require().
-const {
-  resolveExactVersion,
-  fetchPackageAge,
-  runWithConcurrencyLimit,
-  MAX_RESPONSE_BYTES,
-  main,
-  buildDeps,
-} = require(path.resolve(__dirname, './check-package-age.js'))
+const { resolveExactVersion, fetchPackageAge, main, buildDeps } = require(
+  path.resolve(__dirname, './check-package-age.js'),
+)
+const { setImpls: setRegistryImpls, resetImpls: resetRegistryImpls } = require(
+  path.resolve(__dirname, './lib/registry-cache.js'),
+)
 const { parsePackageArg, VALID_PKG_SPECIFIER_RE } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
@@ -32,6 +30,12 @@ const {
   main: addPackageMain,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
+  setFetchRegistryJsonImpl,
+  resetFetchRegistryJsonImpl,
+  setFsImpl,
+  resetFsImpl,
+  setProcessMonitorImpl,
+  resetProcessMonitorImpl,
 } = require(path.resolve(__dirname, './add-package.js'))
 
 // ---------------------------------------------------------------------------
@@ -224,121 +228,73 @@ describe('parsePackageArg', () => {
 })
 
 // ---------------------------------------------------------------------------
-// runWithConcurrencyLimit
-// ---------------------------------------------------------------------------
-
-describe('runWithConcurrencyLimit', () => {
-  test('resolves with [] for empty task list', async () => {
-    const results = await runWithConcurrencyLimit([], 5)
-    assert.deepEqual(results, [])
-  })
-
-  test('runs all tasks and returns results in allSettled format', async () => {
-    const tasks = [
-      () => Promise.resolve('a'),
-      () => Promise.resolve('b'),
-      () => Promise.resolve('c'),
-    ]
-    const results = await runWithConcurrencyLimit(tasks, 2)
-    assert.deepEqual(results, [
-      { status: 'fulfilled', value: 'a' },
-      { status: 'fulfilled', value: 'b' },
-      { status: 'fulfilled', value: 'c' },
-    ])
-  })
-
-  test('rejected task does not stop the others', async () => {
-    const tasks = [
-      () => Promise.resolve('ok1'),
-      () => Promise.reject(new Error('failure')),
-      () => Promise.resolve('ok2'),
-    ]
-    const results = await runWithConcurrencyLimit(tasks, 3)
-    assert.equal(results.length, 3)
-    assert.equal(results[0].status, 'fulfilled')
-    assert.equal(results[0].value, 'ok1')
-    assert.equal(results[1].status, 'rejected')
-    assert.equal(results[1].reason.message, 'failure')
-    assert.equal(results[2].status, 'fulfilled')
-    assert.equal(results[2].value, 'ok2')
-  })
-
-  test('keeps result order independent of completion order', async () => {
-    // Task 0 uses setImmediate (slower), task 1 resolves immediately.
-    // Result index must follow insertion order, not completion order.
-    const results = await runWithConcurrencyLimit(
-      [
-        () => new Promise((res) => setImmediate(() => res('slow'))),
-        () => Promise.resolve('fast'),
-      ],
-      2,
-    )
-    assert.equal(results[0].value, 'slow')
-    assert.equal(results[1].value, 'fast')
-  })
-
-  test('respects the concurrency limit', async () => {
-    let running = 0
-    let maxRunning = 0
-    const LIMIT = 3
-    const tasks = Array.from(
-      { length: 10 },
-      () => () =>
-        new Promise((resolve) => {
-          running++
-          if (running > maxRunning) maxRunning = running
-          setImmediate(() => {
-            running--
-            resolve()
-          })
-        }),
-    )
-    await runWithConcurrencyLimit(tasks, LIMIT)
-    assert.ok(
-      maxRunning <= LIMIT,
-      `Maximum concurrent was ${maxRunning}, expected <= ${LIMIT}`,
-    )
-  })
-})
-
-// ---------------------------------------------------------------------------
 // fetchPackageAge
 // ---------------------------------------------------------------------------
 
-describe('fetchPackageAge', () => {
-  const https = require('node:https')
+function registryUrlToName(url) {
+  try {
+    return decodeURIComponent(new URL(url).pathname.slice(1))
+  } catch {
+    return ''
+  }
+}
 
-  // Creates a mock request object with manual event handlers.
-  function makeMockRequest() {
-    const req = new EventEmitter()
-    req.destroy = () => {}
-    return req
+describe('fetchPackageAge', () => {
+  const noOpFs = {
+    existsSync: () => false,
+    mkdirSync: () => {},
+    readFileSync: () => {
+      throw new Error('not found')
+    },
+    writeFileSync: () => {},
+    readdirSync: () => [],
+    unlinkSync: () => {},
   }
 
-  // Creates a mock response object that emits data+end asynchronously,
-  // ensuring listeners are registered before emission.
-  function makeMockResponse(statusCode, body) {
-    const res = new EventEmitter()
-    res.statusCode = statusCode
-    res.destroy = () => {}
-    setImmediate(() => {
-      res.emit('data', body)
-      setImmediate(() => res.emit('end'))
-    })
-    return res
+  function mockFetchRegistryJson(responses) {
+    return async (url) => {
+      const name = registryUrlToName(url)
+      const response = responses[name]
+      if (!response) {
+        const err = new Error(`HTTP 404`)
+        err.statusCode = 404
+        throw err
+      }
+      if (response.error) throw response.error
+      if (response.statusCode && response.statusCode !== 200) {
+        const err = new Error(`HTTP ${response.statusCode}`)
+        err.statusCode = response.statusCode
+        throw err
+      }
+      const body = response.body
+      // Since Fase AI-3.2 the tools validate the packument shape before
+      // trusting it, so fixtures must look like real registry documents:
+      // fill in `name` and a `versions` map (derived from `time`) when the
+      // test only cares about other fields.
+      if (body && typeof body === 'object') {
+        if (body.time && body.name === undefined) body.name = name
+        if (body.time && body.versions === undefined) {
+          body.versions = Object.fromEntries(
+            Object.keys(body.time)
+              .filter((k) => k !== 'created' && k !== 'modified')
+              .map((v) => [v, {}]),
+          )
+        }
+      }
+      return body
+    }
   }
 
   test('returns { name, version, ageDays, published } for valid HTTP 200', async () => {
     const publishDate = new Date(
       Date.now() - 10 * 24 * 60 * 60 * 1000,
     ).toISOString()
-    const body = JSON.stringify({ time: { '1.0.0': publishDate } })
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: { body: { time: { '1.0.0': publishDate } } },
+      }),
+    })
     try {
       const result = await fetchPackageAge('mypkg', '1.0.0')
       assert.equal(result.name, 'mypkg')
@@ -346,161 +302,75 @@ describe('fetchPackageAge', () => {
       assert.ok(result.ageDays >= 9.9 && result.ageDays <= 10.1)
       assert.ok(result.published instanceof Date)
     } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Registry returned HTTP" for non-200 status', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(404, ''))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Registry returned HTTP 404 for mypkg/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Timeout fetching registry data" when timeout fires', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, _callback) => {
-      const req = makeMockRequest()
-      setImmediate(() => req.emit('timeout'))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Timeout fetching registry data for mypkg/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Network error" for error on req', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, _callback) => {
-      const req = makeMockRequest()
-      setImmediate(() => req.emit('error', new Error('ECONNREFUSED')))
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Network error for mypkg: ECONNREFUSED/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "Stream error" for mid-stream error on res', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => res.emit('error', new Error('socket hang up')))
-      })
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Stream error for mypkg: socket hang up/,
-      )
-    } finally {
-      https.get = originalGet
-    }
-  })
-
-  test('rejects with "exceeds" when payload exceeds size limit', async () => {
-    const originalGet = https.get
-    // Buffer.alloc is more efficient than a string literal for allocating MAX_RESPONSE_BYTES + 1.
-    const oversizedChunk = Buffer.alloc(MAX_RESPONSE_BYTES + 1, 120).toString() // 120 = 'x'
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => res.emit('data', oversizedChunk))
-      })
-      return req
-    }
-    try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /exceeds \d+ MB limit/,
-      )
-    } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 
   test('rejects with "No publish date found" when time[version] is missing', async () => {
-    const originalGet = https.get
-    const body = JSON.stringify({
-      time: { '2.0.0': '2024-01-01T00:00:00.000Z' },
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: {
+          body: { time: { '2.0.0': '2024-01-01T00:00:00.000Z' } },
+        },
+      }),
     })
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
         /No publish date found for mypkg@1\.0\.0/,
       )
     } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 
-  test('rejects with "Could not parse publish date" for invalid date', async () => {
-    const originalGet = https.get
-    const body = JSON.stringify({ time: { '1.0.0': 'not-a-date' } })
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, body))
-      return req
-    }
+  test('rejects with "unparseable publish date" for invalid date', async () => {
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: mockFetchRegistryJson({
+        mypkg: { body: { time: { '1.0.0': 'not-a-date' } } },
+      }),
+    })
     try {
       await assert.rejects(
         () => fetchPackageAge('mypkg', '1.0.0'),
-        /Could not parse publish date for mypkg@1\.0\.0/,
+        // Since Fase AI-3.2 the packument validator rejects the document
+        // before the age computation ever sees the date.
+        /unparseable publish date/,
       )
     } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 
-  test('rejects with "Failed to parse response" for malformed JSON', async () => {
-    const originalGet = https.get
-    https.get = (_url, _opts, callback) => {
-      const req = makeMockRequest()
-      callback(makeMockResponse(200, 'isto nao e json {{{{'))
-      return req
-    }
+  test('self-heals a poisoned cache entry by re-fetching with force', async () => {
+    const publishDate = new Date(
+      Date.now() - 10 * 24 * 60 * 60 * 1000,
+    ).toISOString()
+    let calls = 0
+    setRegistryImpls({
+      fs: noOpFs,
+      fetchJson: async () => {
+        calls += 1
+        // First call simulates a poisoned cache entry (no name field); the
+        // second call (triggered by the validation failure) returns a valid
+        // document. Two calls prove the forced re-fetch happened — the
+        // registry-cache layer consumes `force` before the fetch layer.
+        if (calls === 1) return { time: { '1.0.0': publishDate } }
+        return {
+          name: 'mypkg',
+          versions: { '1.0.0': {} },
+          time: { '1.0.0': publishDate },
+        }
+      },
+    })
     try {
-      await assert.rejects(
-        () => fetchPackageAge('mypkg', '1.0.0'),
-        /Failed to parse response for mypkg/,
-      )
+      const result = await fetchPackageAge('mypkg', '1.0.0')
+      assert.equal(calls, 2)
+      assert.ok(result.ageDays >= 9.9)
     } finally {
-      https.get = originalGet
+      resetRegistryImpls()
     }
   })
 })
@@ -593,39 +463,47 @@ describe('CLI — add-package flags', () => {
 // ---------------------------------------------------------------------------
 
 describe('Integration — check-package-age dependency modes', () => {
-  const https = require('node:https')
-
-  // Mocks the npm registry by replacing https.get so check-package-age reads
-  // from a local fixture instead of the real registry. Returns a restore function.
+  // Mocks the npm registry via the registry-cache layer so check-package-age
+  // reads from local fixtures instead of the real registry. Returns a restore function.
   function mockRegistry(publishDates) {
-    const originalGet = https.get
-    https.get = (url, _opts, callback) => {
-      const name = decodeURIComponent(
-        url.replace('https://registry.npmjs.org/', ''),
-      )
-      const req = new EventEmitter()
-      req.destroy = () => {}
-      const res = new EventEmitter()
-      res.statusCode = 200
-      res.destroy = () => {}
-      const time = Object.fromEntries(
-        Object.entries(publishDates[name] || {}).map(([version, daysAgo]) => [
-          version,
-          new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
-        ]),
-      )
-      setImmediate(() => {
-        callback(res)
-        setImmediate(() => {
-          res.emit('data', JSON.stringify({ time }))
-          setImmediate(() => res.emit('end'))
-        })
-      })
-      return req
-    }
-    return () => {
-      https.get = originalGet
-    }
+    const cache = new Map()
+    setRegistryImpls({
+      fs: {
+        existsSync: () => false,
+        mkdirSync: () => {},
+        readFileSync: () => {
+          throw new Error('not found')
+        },
+        writeFileSync: () => {},
+        readdirSync: () => [],
+        unlinkSync: () => {},
+      },
+      fetchJson: async (url) => {
+        const name = registryUrlToName(url)
+        const key = name
+        if (cache.has(key)) {
+          return cache.get(key)
+        }
+        const versions = publishDates[name] || {}
+        const time = Object.fromEntries(
+          Object.entries(versions).map(([version, daysAgo]) => [
+            version,
+            new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toISOString(),
+          ]),
+        )
+        // Since Fase AI-3.2 the tools validate the packument shape, so the
+        // dynamic fixture mirrors a real registry document (name + versions
+        // derived from the time map).
+        const data = {
+          name,
+          time,
+          versions: Object.fromEntries(Object.keys(time).map((v) => [v, {}])),
+        }
+        cache.set(key, data)
+        return data
+      },
+    })
+    return () => resetRegistryImpls()
   }
 
   test('default mode reads all dependency types from package.json', async () => {
@@ -652,11 +530,48 @@ describe('Integration — check-package-age dependency modes', () => {
     }
   })
 
+  test('git dependencies are skipped with an advisory, not a failure', async () => {
+    const restore = mockRegistry({
+      prod: { '1.0.0': 10 },
+    })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: {
+            prod: '1.0.0',
+            // Fase M.1 dogfooding finding: git-URL deps are pinned by commit,
+            // not published to the registry — skip with advisory, never fail.
+            'my-loader':
+              'git+ssh://git@github.com:example/my-loader.git#abc123',
+          },
+        },
+      })
+      // Success path completes main without exitFn(1) and reports the skip.
+      assert.ok(
+        logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
+        'expected the git dependency to be reported as skipped',
+      )
+      assert.ok(logs.some((l) => l.includes('All packages passed')))
+    } finally {
+      console.log = origLog
+      restore()
+    }
+  })
+
   test('--transitive mode reads resolved versions from package-lock.json', async () => {
     const restore = mockRegistry({
       lodash: { '4.17.21': 10 },
       'is-odd': { '3.0.1': 10 },
     })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
 
     try {
       await main({
@@ -672,12 +587,83 @@ describe('Integration — check-package-age dependency modes', () => {
               version: '1.0.0',
               dependencies: { lodash: '4.17.21' },
             },
-            'node_modules/lodash': { version: '4.17.21' },
-            'node_modules/is-odd': { version: '3.0.1' },
+            // Real lockfiles always carry a `resolved` tarball URL — and the
+            // registry one MUST NOT classify the entry as non-registry.
+            // Regression found by the v1.0.0 release checklist: the gate
+            // silently SKIPped the entire tree ("No dependencies to check").
+            'node_modules/lodash': {
+              version: '4.17.21',
+              resolved:
+                'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+            },
+            'node_modules/is-odd': {
+              version: '3.0.1',
+              resolved: 'https://registry.npmjs.org/is-odd/-/is-odd-3.0.1.tgz',
+            },
           },
         },
       })
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('lodash@4.17.21')),
+        'registry-resolved packages must still be age-checked',
+      )
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('is-odd@3.0.1')),
+        'registry-resolved packages must still be age-checked',
+      )
+      assert.ok(
+        !logs.some((l) => l.includes('No dependencies to check')),
+        'the transitive gate must never no-op on a registry-only tree',
+      )
     } finally {
+      console.log = origLog
+      restore()
+    }
+  })
+
+  test('--transitive skips only entries resolved outside the registry', async () => {
+    const restore = mockRegistry({
+      lodash: { '4.17.21': 10 },
+    })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      await main({
+        argv: ['--transitive'],
+        pkg: { name: 'test-project', version: '1.0.0' },
+        lock: {
+          name: 'test-project',
+          lockfileVersion: 3,
+          requires: true,
+          packages: {
+            '': { name: 'test-project', version: '1.0.0' },
+            'node_modules/lodash': {
+              version: '4.17.21',
+              resolved:
+                'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz',
+            },
+            // Fase M.1 dogfooding fixture: git deps are pinned by commit and
+            // have no publish date — skipped with an advisory, never failed.
+            'node_modules/my-loader': {
+              version: '1.0.0',
+              resolved: 'git+ssh://git@github.com/example/my-loader.git#abc123',
+            },
+          },
+        },
+      })
+      assert.ok(
+        logs.some((l) => l.includes('OK') && l.includes('lodash@4.17.21')),
+        'registry entries must be checked even when a sibling is a git dep',
+      )
+      assert.ok(
+        logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
+        'git-resolved entries must be skipped with an advisory',
+      )
+      assert.ok(logs.some((l) => l.includes('All packages passed')))
+    } finally {
+      console.log = origLog
       restore()
     }
   })
@@ -701,6 +687,33 @@ describe('Integration — check-package-age dependency modes', () => {
           version: '1.0.0',
           pkgAgeCheck: { minAgeDays: 5 },
           dependencies: { recent: '1.0.0', old: '2.0.0' },
+        },
+        exitFn,
+      })
+    } catch (err) {
+      if (err.message !== 'EXIT_CALLED') throw err
+    } finally {
+      restore()
+    }
+
+    assert.equal(exitCode, 1)
+  })
+
+  test('reports registry lookup errors and exits 1', async () => {
+    const restore = mockRegistry({})
+
+    let exitCode = null
+    const exitFn = (code) => {
+      exitCode = code
+      throw new Error('EXIT_CALLED')
+    }
+
+    try {
+      await main({
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: { missing: '1.0.0' },
         },
         exitFn,
       })
@@ -746,10 +759,17 @@ describe('Integration — check-package-age dependency modes', () => {
           '': {},
           'node_modules/lodash': { version: '4.17.21' },
           'node_modules/is-odd': { version: '3.0.1' },
+          'node_modules/cliui/node_modules/string-width': { version: '4.2.3' },
+          'node_modules/@scope/bar': { version: '2.0.0' },
         },
       },
     })
-    assert.deepEqual(result, { lodash: '4.17.21', 'is-odd': '3.0.1' })
+    assert.deepEqual(result, {
+      lodash: '4.17.21',
+      'is-odd': '3.0.1',
+      'string-width': '4.2.3',
+      '@scope/bar': '2.0.0',
+    })
   })
 })
 
@@ -772,6 +792,38 @@ describe('Integration — add-package flow', () => {
     return original
   }
 
+  function mockFetchRegistryJsonForIntegrity(integrity) {
+    return async () => ({
+      dist: { integrity: integrity ?? 'sha512-abc' },
+    })
+  }
+
+  function mockFsForIntegrity(integrity, pkgName = null) {
+    return {
+      readFileSync: (filePath, _encoding) => {
+        if (filePath.endsWith('package-lock.json')) {
+          return JSON.stringify({
+            packages: {
+              [`node_modules/${pkgName ?? (integrity ? 'lodash' : 'react-native-svg')}`]:
+                {
+                  integrity: integrity ?? 'sha512-abc',
+                },
+            },
+          })
+        }
+        throw new Error(`ENOENT: ${filePath}`)
+      },
+      writeFileSync: (_filePath, _data, _encoding) => {},
+    }
+  }
+
+  const nullProcessMonitor = {
+    startMonitoring: () => {},
+    stopMonitoring: () => {},
+    getEvents: () => [],
+    clearEvents: () => {},
+  }
+
   test('dry-run approves an old enough package without installing', async () => {
     const originalFetch = mockFetchPackageAge(10)
     const argv = ['lodash@4.17.21', '--dry-run']
@@ -780,6 +832,9 @@ describe('Integration — add-package flow', () => {
       exitCode = code
       throw new Error('EXIT_CALLED')
     }
+
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
+    setFsImpl(mockFsForIntegrity())
 
     try {
       validateArgs(argv)
@@ -791,6 +846,8 @@ describe('Integration — add-package flow', () => {
         path.resolve(__dirname, './check-package-age.js'),
       )
       checkPackageAge.fetchPackageAge = originalFetch
+      resetFetchRegistryJsonImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -822,6 +879,9 @@ describe('Integration — add-package flow', () => {
 
   test('installs production dependency with correct spawn arguments', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity('sha512-good'))
+    setFsImpl(mockFsForIntegrity('sha512-good'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -846,10 +906,13 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetFetchRegistryJsonImpl()
+      resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)
-    assert.equal(calls.length, 4)
+    assert.equal(calls.length, 5)
     assert.deepEqual(calls[0], [
       'install',
       '--save',
@@ -864,10 +927,14 @@ describe('Integration — add-package flow', () => {
       '--',
       '--transitive',
     ])
+    assert.deepEqual(calls[4], ['run', 'defence:license-check:fail'])
   })
 
   test('installs dev dependency with --save-dev flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
+    setFsImpl(mockFsForIntegrity(null, '@biomejs/biome'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -892,6 +959,9 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetFetchRegistryJsonImpl()
+      resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -905,6 +975,9 @@ describe('Integration — add-package flow', () => {
 
   test('installs peer dependency with --save-peer flag', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
+    setFsImpl(mockFsForIntegrity(null, 'react-native-svg'))
+    setProcessMonitorImpl(nullProcessMonitor)
     const calls = []
     setSpawnSyncImpl((_cmd, args, _opts) => {
       calls.push(args)
@@ -929,6 +1002,9 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetFetchRegistryJsonImpl()
+      resetFsImpl()
+      resetProcessMonitorImpl()
     }
 
     assert.equal(exitCode, 0)
@@ -942,6 +1018,8 @@ describe('Integration — add-package flow', () => {
 
   test('installation failure exits with code 1', async () => {
     const originalFetch = mockFetchPackageAge(10)
+    setFetchRegistryJsonImpl(mockFetchRegistryJsonForIntegrity())
+    setFsImpl(mockFsForIntegrity())
     setSpawnSyncImpl((_cmd, _args, _opts) => ({ status: 1 }))
 
     const argv = ['lodash@4.17.21']
@@ -962,8 +1040,27 @@ describe('Integration — add-package flow', () => {
       )
       checkPackageAge.fetchPackageAge = originalFetch
       resetSpawnSyncImpl()
+      resetFetchRegistryJsonImpl()
+      resetFsImpl()
     }
 
     assert.equal(exitCode, 1)
+  })
+})
+
+describe('CLI subprocess', () => {
+  test('check-package-age CLI exits 0 with no arguments', () => {
+    const result = spawnSync(process.execPath, [SCRIPT_PATH], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 0)
+  })
+
+  test('add-package CLI prints help with no arguments', () => {
+    const addPackagePath = path.resolve(__dirname, './add-package.js')
+    const result = spawnSync(process.execPath, [addPackagePath], {
+      encoding: 'utf8',
+    })
+    assert.equal(result.status, 1)
   })
 })

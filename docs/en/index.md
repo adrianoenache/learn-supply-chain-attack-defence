@@ -6,10 +6,19 @@ This repository is a practical learning environment for understanding and applyi
 
 ## Documentation Index
 
+### About This Project
+
+- [Project overview](project-overview.md) — purpose, audience, and how to use this repository.
+- [Glossary](glossary.md) — definitions of supply-chain security terms.
+- [AI guidelines](ai-guidelines.md) — how this project uses GitHub Copilot / Kimi Code.
+- [AI observability](ai-observability.md) — reading the unified hook event log.
+
 ### Getting Started
 
+- [Learning Path](learning-path.md) — curated tracks and hands-on tutorials.
 - [Getting Started](getting-started.md) — prerequisites and first setup.
 - [Setup](setup.md) — how `npm run setup` works and what it protects.
+- [FAQ](faq.md) — frequently asked conceptual questions.
 
 ### Security Layers
 
@@ -24,21 +33,46 @@ This repository is a practical learning environment for understanding and applyi
 - Layer 7: [Lint / format gate](security/defense-layer-7-lint-format.md)
 - Layer 8: [Update availability check](security/defense-layer-8-update-check.md)
 - Layer 9: [License check](security/defense-layer-9-license-check.md)
+- Layer 10: [Typosquatting & dependency confusion](security/defense-layer-10-typosquatting.md)
+- Layer 11: [Provenance & SLSA attestation](security/defense-layer-11-provenance.md)
+- Layer 12: [Pre-commit hook integrity](security/defense-layer-12-hook-integrity.md)
+
+### Support Guides
+
+- [Troubleshooting](troubleshooting.md) — common failures, fixes, and how to run each defense manually.
+- [Lifecycle script analysis](security/lifecycle-script-analysis.md) — static, read-only scan of package lifecycle scripts before install.
+- [Lifecycle process monitoring](lifecycle-monitoring.md) — runtime observation of every subprocess spawned during `npm install`.
+- [`.npmrc` hardening](npmrc-hardening.md) — detailed guide to every npm configuration that hardens installs.
+- [Rebuilding lifecycle-script packages](security/rebuilding-lifecycle-packages.md) — safely rebuild native packages after `ignore-scripts`.
+- [Trust scoring](trust-scoring.md) — aggregate supply-chain signals into a per-package trust score.
 
 ### Project
 
 - [Architecture](architecture.md)
+- [Repository organization](repository-organization.md) — layout conventions and the CODEOWNERS organizational defense layer.
 - [Tools](tools.md)
+- [Command verification checklist](command-verification-checklist.md) — CLI contract (flags, exit codes, formats) of every `defence:*` script.
+- [Decisions](../../DECISIONS.md) — lightweight ADRs recording *why* key choices were made.
 - [Quick reference](quick-reference.md)
-- [GitHub Copilot & Kimi K2.7 Code](copilot.md)
+- [GitHub Copilot & Kimi Code](copilot.md)
+
+### CI/CD and Operations
+
+- [CI/CD Overview](ci-cd-overview.md)
+- [Git Workflow](git-workflow.md)
+- [SBOM and Compliance](sbom-and-compliance.md)
+- [Performance Tuning](performance-tuning.md)
 
 ### Development
 
 - [Git hooks](git-hooks.md)
 - [Adding dependencies](dependencies.md)
 - [Testing](testing.md)
+- [Code review improvements](code-review-improvements.md) — Fase G educational audit: header standard, error-message and hardcode findings.
+- [Release checklist](release-checklist.md)
 - [References](references.md)
 - [Adopting in other projects](adopting-in-other-projects.md)
+- [Dogfooding report (Fase M.1)](dogfooding-m1-report.md) — what installing into a real pre-existing project surfaced, and the fixes it produced.
 
 ## Other Languages
 

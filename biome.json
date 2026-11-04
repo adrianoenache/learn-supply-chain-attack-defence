@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.8/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -33,6 +33,18 @@
     }
   },
   "files": {
-    "includes": ["tools/**/*.js", "*.js"]
-  }
+    "includes": ["tools/**/*.js", ".github/**/*.js", "*.js"]
+  },
+  "overrides": [
+    {
+      "includes": [".github/skills/generate-test/test-template.js"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    }
+  ]
 }

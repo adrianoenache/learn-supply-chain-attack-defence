@@ -1,0 +1,41 @@
+# check-hooks
+
+`check-hooks.js` verifies that `.husky/pre-commit` matches the SHA-256 hash stored in `package.json`. It detects accidental or malicious modifications to the commit gate.
+
+## What it does
+
+- Reads the configured `huskyPreCommitHash` from `package.json`.
+- Computes the SHA-256 hash of `.husky/pre-commit`.
+- Reports whether they match and exits non-zero on mismatch.
+
+Implemented in [tools/check-hooks.js](../../../tools/check-hooks.js).
+
+## Configuration
+
+Store the expected hash in `package.json`:
+
+```json
+{
+  "defences": {
+    "huskyPreCommitHash": "<sha256-of-.husky/pre-commit>"
+  }
+}
+```
+
+After a deliberate hook change, follow the `pre-commit-hash-sync` skill: recompute the SHA-256 of the hook, update `defences.huskyPreCommitHash` in `package.json`, run `npm run defence:verify-defences:fix` to refresh the manifest, and commit all three files together. Running `verify-defences:fix` alone is not enough — it only updates the manifest, not the `package.json` hash.
+
+## Usage
+
+```bash
+npm run defence:check-hooks
+```
+
+## Output example
+
+```text
+✅ Pre-commit hook integrity verified.
+```
+
+## Related defense layer
+
+- [Defense Layer 12 — Pre-commit hook integrity](../security/defense-layer-12-hook-integrity.md)

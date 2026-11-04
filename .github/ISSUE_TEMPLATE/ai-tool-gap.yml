@@ -1,0 +1,61 @@
+name: AI tool gap
+about: Report a missing tool in an agent that blocked a subagent delegation.
+title: '[AI tool gap] <agent-name> needs <tool-name> for <task>'
+labels: ['ai', 'customization', 'tooling']
+body:
+  - type: input
+    id: agent
+    attributes:
+      label: Agent affected
+      description: Which agent was invoked?
+      placeholder: e.g., docs, security, quality
+    validations:
+      required: true
+  - type: input
+    id: tool
+    attributes:
+      label: Missing tool
+      description: Which tool was required but not declared?
+      placeholder: e.g., create_file, run_in_terminal, fetch_webpage
+    validations:
+      required: true
+  - type: textarea
+    id: task
+    attributes:
+      label: Task that failed
+      description: Describe what the subagent was asked to do.
+      placeholder: e.g., Create 23 new documentation files in docs/en/tools/
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error message
+      description: Paste the subagent response or error.
+      render: text
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Impact
+      description: How did the missing tool affect the workflow?
+      options:
+        - Blocker: task could not be delegated
+        - Workaround: handled in main conversation
+        - Nice-to-have: would make delegation smoother
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested fix
+      description: Which tools should be added to the agent, and why?
+      placeholder: e.g., Add create_file and create_directory because docs agents often create new pages.
+  - type: checkboxes
+    id: lessons-learned
+    attributes:
+      label: Lessons learned
+      description: Has this gap been recorded for continuous improvement?
+      options:
+        - label: I added a note to `.github/ai-lessons-learned.md`
+        - label: I updated the agent frontmatter locally
+        - label: I regenerated `.github/agents/README.md`

@@ -125,7 +125,7 @@ npm run defence:license-check -- --pkg=react@18.3.1
 Scoped packages are supported:
 
 ```bash
-npm run defence:license-check -- --pkg=@biomejs/biome@2.5.8
+npm run defence:license-check -- --pkg=@biomejs/biome@2.6.3
 ```
 
 If the package is not found in the lock file, the command exits with code 1.

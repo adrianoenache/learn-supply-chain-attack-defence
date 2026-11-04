@@ -1,20 +1,26 @@
 # Camada de Defesa 5 — Hook de Pré-commit
 
-O Husky executa um hook de pré-commit a cada `git commit`. Ele roda as mesmas verificações usadas no setup e na adição de dependências, mais uma verificação transitiva de idade dos pacotes. Também atualiza o badge de contagem de testes no `README.md` para mantê-lo sincronizado com a suite de testes.
+O Husky executa um hook de pré-commit a cada `git commit`. Ele roda as mesmas verificações usadas no setup e na adição de dependências, mais a verificação transitiva de idade, a verificação transitiva de licenças, a varredura de segredos, a verificação de integridade do hook, a checagem da superfície de configuração do npm, a validação de URLs externas e as atualizações do manifesto de adoção e do badge de testes.
 
 ## Arquivo do Hook
 
 [.husky/pre-commit](../../../.husky/pre-commit)
 
 ```bash
-# Husky pre-commit hook: runs lint, refreshes the test badge, runs the project
-# pre-commit script (signatures + CVE audit), and a transitive package-age check
-# to catch manual edits to package.json/package-lock.json.
+git diff --cached --name-only -z | xargs -0 -r npm run defence:check-secrets --
+npm run defence:check-hooks
+npm run defence:check-npmrc
 npm run lint
+npm run defence:check-external-urls
+npm run defence:verify-defences:fix && git add .defence-manifest.json
 npm run defence:update-badge && git add README.md
 npm run defence:pre-commit
 npm run defence:pkg-age-check -- --transitive
+npm run defence:license-check:fail
 ```
+
+> Resumo legível — o arquivo do hook, verificado por hash, é o autoritativo. O
+> detalhamento passo a passo está em [Git hooks](../git-hooks.md).
 
 ## Por Que Transitivo?
 

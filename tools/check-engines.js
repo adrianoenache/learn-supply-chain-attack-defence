@@ -13,19 +13,21 @@
 //   1 — Node.js or npm is below the required version.
 
 const { spawnSync } = require('node:child_process')
-const fs = require('node:fs')
 const path = require('node:path')
 
-const PKG_PATH = path.resolve(__dirname, '../package.json')
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { compareVersions, versionToParts } = require(
+  path.resolve(__dirname, './lib/semver.js'),
+)
 
-let fsImpl = fs
+let loadConfigImpl = loadConfig
 let spawnSyncImpl = spawnSync
 let exitImpl = process.exit
 let logImpl = console.log
 let errorImpl = console.error
 
 function setImpls(impls) {
-  if (impls.fs) fsImpl = impls.fs
+  if (impls.loadConfig) loadConfigImpl = impls.loadConfig
   if (impls.spawnSync) spawnSyncImpl = impls.spawnSync
   if (impls.exit) exitImpl = impls.exit
   if (impls.log) logImpl = impls.log
@@ -33,7 +35,7 @@ function setImpls(impls) {
 }
 
 function resetImpls() {
-  fsImpl = fs
+  loadConfigImpl = loadConfig
   spawnSyncImpl = spawnSync
   exitImpl = process.exit
   logImpl = console.log
@@ -48,24 +50,6 @@ function parseVersionRange(range) {
     throw new Error(`Unsupported engine range: ${range}`)
   }
   return { operator: match[1] || '>=', version: match[2] }
-}
-
-function versionToParts(version) {
-  const [core] = version.split('-')
-  return core.split('.').map(Number)
-}
-
-function compareVersions(a, b) {
-  const partsA = versionToParts(a)
-  const partsB = versionToParts(b)
-  const len = Math.max(partsA.length, partsB.length)
-  for (let i = 0; i < len; i += 1) {
-    const pa = partsA[i] || 0
-    const pb = partsB[i] || 0
-    if (pa > pb) return 1
-    if (pa < pb) return -1
-  }
-  return 0
 }
 
 function satisfies(version, range) {
@@ -109,8 +93,8 @@ function getNpmVersion() {
 }
 
 function main() {
-  const pkg = JSON.parse(fsImpl.readFileSync(PKG_PATH, 'utf8'))
-  const engines = pkg.engines || {}
+  const config = loadConfigImpl()
+  const engines = config.engines || {}
 
   const nodeRange = engines.node
   const npmRange = engines.npm

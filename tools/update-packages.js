@@ -2,9 +2,16 @@
 'use strict'
 
 // Controlled update script for existing dependencies.
-// Runs `npm update` inside the security constraints defined in .npmrc
-// (save-exact, ignore-scripts, min-release-age) and then re-runs every
-// verification layer so updated packages are still vetted.
+// Prefers pinned installs of the highest age-gated version discovered by
+// `defence:update-check` (`intermediateEligible`) over blindly jumping to
+// `latest`, and then re-runs every verification layer so updated packages
+// are still vetted. All installs run with --save-exact and --ignore-scripts,
+// mirroring the .npmrc hardening.
+//
+// Quarantined packages whose only blocker is age ("too recent") and that have
+// age-gated intermediates are also actionable (Fase F.4): the intermediate
+// passed the same minimum-age gate as any eligible package. Packages whose
+// registry lookup failed are never actionable.
 //
 // Usage:
 //   npm run defence:update
@@ -13,16 +20,20 @@
 //   npm run defence:update -- --interactive --dry-run
 //
 // Flow executed (non-interactive):
-//   1. npm update
-//   2. npm run defence:pkg-age-check -- --transitive
-//   3. npm audit signatures
-//   4. npm audit --audit-level=high
+//   1. Load eligible updates from .defence-update-check.json.
+//   2. npm install --save-exact --ignore-scripts <pkg>@<target> for each
+//      eligible package (target = highest intermediateEligible, falling back
+//      to latest); when no scan state exists, fall back to generic npm update.
+//   3. npm run defence:pkg-age-check -- --transitive
+//   4. npm audit signatures
+//   5. npm audit --audit-level=high
+//   6. npm run defence:license-check:fail
 //
 // Interactive flow:
 //   1. Load eligible updates from .defence-update-check.json.
-//   2. Ask y/n/q for each eligible package.
+//   2. Ask y/n/q for each eligible package (showing the resolved target).
 //   3. Save decisions to .defence-update-decisions.json.
-//   4. Run npm update <approved> (or nothing if all rejected).
+//   4. Run the pinned install for approved packages (or nothing if all rejected).
 //   5. Re-run the same verification layers.
 
 const fs = require('node:fs')
@@ -30,12 +41,13 @@ const path = require('node:path')
 const readline = require('node:readline')
 const { spawnSync } = require('node:child_process')
 
-const STATE_FILE = path.resolve(__dirname, '../.defence-update-check.json')
-const DECISIONS_FILE = path.resolve(
-  __dirname,
-  '../.defence-update-decisions.json',
-)
-const PROMPT_TIMEOUT_MS = 30000
+const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+
+const config = loadConfig()
+
+const STATE_FILE = config.paths.updateCheckState
+const DECISIONS_FILE = config.paths.updateDecisions
+const PROMPT_TIMEOUT_MS = config.updatePackages.promptTimeoutMs
 
 // Exposed for tests so spawnSync calls can be mocked without patching the global child_process module.
 let spawnSyncImpl = spawnSync
@@ -87,11 +99,6 @@ function runCmd(label, cmd, args, opts = {}) {
   }
 }
 
-function runUpdatePackages(packages) {
-  if (packages.length === 0) return
-  runCmd('Update dependencies', 'npm', ['update', ...packages])
-}
-
 function runVerificationLayers() {
   runCmd('Transitive package age check', 'npm', [
     'run',
@@ -101,6 +108,35 @@ function runVerificationLayers() {
   ])
   runCmd('Signature verification', 'npm', ['audit', 'signatures'])
   runCmd('Vulnerability audit', 'npm', ['audit', '--audit-level=high'])
+  runCmd('License check', 'npm', ['run', 'defence:license-check:fail'])
+}
+
+// Resolves the version an eligible item should be updated to: the highest
+// intermediate that already passed the age gate at scan time. check-updates
+// includes `latest` in intermediateEligible when it passes the gate, so the
+// fallback to `latest` only triggers for state files that predate the field.
+function resolveTargetVersion(item) {
+  const intermediates = Array.isArray(item.intermediateEligible)
+    ? item.intermediateEligible
+    : []
+  return intermediates.length > 0
+    ? intermediates[intermediates.length - 1]
+    : item.latest
+}
+
+// Pinned install of the resolved targets. --save-exact and --ignore-scripts
+// are passed explicitly (not just inherited from .npmrc) so the install keeps
+// the project hardening even if a contributor's local config drifts.
+function runPinnedInstalls(items) {
+  const specs = items.map(
+    (item) => `${item.name}@${resolveTargetVersion(item)}`,
+  )
+  runCmd('Install pinned updates', 'npm', [
+    'install',
+    '--save-exact',
+    '--ignore-scripts',
+    ...specs,
+  ])
 }
 
 function readJsonSafe(filePath) {
@@ -112,12 +148,53 @@ function readJsonSafe(filePath) {
   }
 }
 
+// Newest state-file schema this reader understands (Fase AI-2.7.4). A newer
+// schemaVersion means the file was written by a newer check-updates.js and
+// may carry fields or semantics this version would misinterpret.
+const SUPPORTED_STATE_SCHEMA = 1
+
+function warnOnNewerStateSchema(state) {
+  const version = state?.schemaVersion
+  if (typeof version === 'number' && version > SUPPORTED_STATE_SCHEMA) {
+    console.error(
+      `\n⚠️  .defence-update-check.json has schemaVersion ${version}, ` +
+        `but this tool understands up to ${SUPPORTED_STATE_SCHEMA}. ` +
+        'Regenerate the scan with npm run defence:update-check -- --force.',
+    )
+  }
+}
+
 function loadEligibleUpdates() {
   const state = readJsonSafe(STATE_FILE)
   if (!state || !Array.isArray(state.eligible)) {
     return []
   }
+  warnOnNewerStateSchema(state)
   return state.eligible
+}
+
+// Quarantined packages whose quarantine reason is purely age ("too recent")
+// and that have at least one age-gated intermediate are actionable: the
+// intermediate passed the same minimum-age gate as any eligible package.
+// Entries with a failed registry lookup are never actionable — there is no
+// trustworthy data to act on (Fase F.4).
+function getActionableQuarantine(state) {
+  if (!state || !Array.isArray(state.quarantine)) return []
+  return state.quarantine.filter(
+    (item) =>
+      item.reason === 'too recent' &&
+      Array.isArray(item.intermediateEligible) &&
+      item.intermediateEligible.length > 0,
+  )
+}
+
+function loadActionableUpdates() {
+  const state = readJsonSafe(STATE_FILE)
+  warnOnNewerStateSchema(state)
+  return {
+    eligible: state && Array.isArray(state.eligible) ? state.eligible : [],
+    quarantine: getActionableQuarantine(state),
+  }
 }
 
 function promptQuestion(rl, questionText) {
@@ -152,27 +229,46 @@ function promptQuestion(rl, questionText) {
   })
 }
 
-async function promptForSelections(eligible) {
+// Resolves the display target and, when the target is not latest, an explicit
+// note explaining that latest is still inside the age gate (Fase F.4).
+function describeTarget(item) {
+  const target = resolveTargetVersion(item)
+  const note =
+    target !== item.latest
+      ? ` (intermediate target; latest ${item.latest} still in quarantine — it has not passed the age gate yet)`
+      : ''
+  return { target, note }
+}
+
+async function promptForSelections(eligible, quarantineActionable = []) {
   const approved = []
   const rejected = []
 
-  for (const item of eligible) {
-    const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
-    const question = `Update ${item.name} ${item.current} → ${item.latest}? (y/n/q)${label} `
-    const rl = readlineImpl.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    })
+  const groups = [
+    { items: eligible, source: 'eligible' },
+    { items: quarantineActionable, source: 'quarantine' },
+  ]
 
-    const answer = await promptQuestion(rl, question)
+  for (const group of groups) {
+    for (const item of group.items) {
+      const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
+      const { target, note } = describeTarget(item)
+      const question = `Update ${item.name} ${item.current} → ${target}${note}? (y/n/q)${label} `
+      const rl = readlineImpl.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      })
 
-    if (answer === 'q') {
-      return { approved, rejected, aborted: true }
-    }
-    if (answer === 'y') {
-      approved.push(item)
-    } else {
-      rejected.push(item)
+      const answer = await promptQuestion(rl, question)
+
+      if (answer === 'q') {
+        return { approved, rejected, aborted: true }
+      }
+      if (answer === 'y') {
+        approved.push({ item, source: group.source })
+      } else {
+        rejected.push({ item, source: group.source })
+      }
     }
   }
 
@@ -180,20 +276,23 @@ async function promptForSelections(eligible) {
 }
 
 function saveDecisions(approved, rejected) {
+  const toEntry = ({ item, source }) => ({
+    name: item.name,
+    current: item.current,
+    latest: item.latest,
+    target: resolveTargetVersion(item),
+    severity: item.severity,
+    // Whether the entry came from the eligible list or from an actionable
+    // quarantine (age-gated intermediate while latest is still too recent).
+    source,
+  })
   const decisions = {
+    // Decisions-file schema version (Fase AI-2.7.4); readers of this file
+    // should warn when encountering a newer version.
+    schemaVersion: 1,
     updatedAt: new Date().toISOString(),
-    approved: approved.map((item) => ({
-      name: item.name,
-      current: item.current,
-      latest: item.latest,
-      severity: item.severity,
-    })),
-    rejected: rejected.map((item) => ({
-      name: item.name,
-      current: item.current,
-      latest: item.latest,
-      severity: item.severity,
-    })),
+    approved: approved.map(toEntry),
+    rejected: rejected.map(toEntry),
   }
   fsImpl.writeFileSync(
     DECISIONS_FILE,
@@ -206,9 +305,9 @@ async function main(argv = process.argv.slice(2)) {
   const { isDryRun, isInteractive } = parseCliArgs(argv)
 
   if (isInteractive) {
-    const eligible = loadEligibleUpdates()
+    const { eligible, quarantine } = loadActionableUpdates()
 
-    if (eligible.length === 0) {
+    if (eligible.length === 0 && quarantine.length === 0) {
       console.log(
         'No eligible updates found. Run npm run defence:update-check first.',
       )
@@ -216,16 +315,31 @@ async function main(argv = process.argv.slice(2)) {
     }
 
     if (isDryRun) {
-      console.log('[dry-run] Would prompt for the following eligible updates:')
+      console.log('[dry-run] Would prompt for the following updates:')
       for (const item of eligible) {
         const label = item.confidenceLabel ? ` [${item.confidenceLabel}]` : ''
-        console.log(`  - ${item.name} ${item.current} → ${item.latest}${label}`)
+        const { target, note } = describeTarget(item)
+        console.log(
+          `  - ${item.name} ${item.current} → ${target}${note}${label}`,
+        )
+      }
+      if (quarantine.length > 0) {
+        console.log(
+          '  Quarantined packages with age-gated intermediate targets:',
+        )
+        for (const item of quarantine) {
+          const { target, note } = describeTarget(item)
+          console.log(`  - ${item.name} ${item.current} → ${target}${note}`)
+        }
       }
       return 0
     }
 
-    console.log('Select which eligible updates to apply:\n')
-    const { approved, rejected, aborted } = await promptForSelections(eligible)
+    console.log('Select which updates to apply:\n')
+    const { approved, rejected, aborted } = await promptForSelections(
+      eligible,
+      quarantine,
+    )
 
     if (aborted) {
       console.log('\nUpdate aborted. No changes were made.')
@@ -240,7 +354,7 @@ async function main(argv = process.argv.slice(2)) {
     }
 
     console.log(`\nApplying ${approved.length} approved update(s)...`)
-    runUpdatePackages(approved.map((item) => item.name))
+    runPinnedInstalls(approved.map((entry) => entry.item))
     runVerificationLayers()
 
     console.log('\nUpdate complete.')
@@ -251,19 +365,46 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (isDryRun) {
-    console.log(
-      '[dry-run] Would update dependencies with controlled npm update:',
-    )
-    console.log('  - npm update')
+    const { eligible, quarantine } = loadActionableUpdates()
+    console.log('[dry-run] Would update dependencies with:')
+    if (eligible.length > 0 || quarantine.length > 0) {
+      if (eligible.length > 0) {
+        const specs = eligible.map(
+          (item) => `${item.name}@${resolveTargetVersion(item)}`,
+        )
+        console.log(
+          `  - npm install --save-exact --ignore-scripts ${specs.join(' ')}`,
+        )
+      }
+      for (const item of quarantine) {
+        const { target } = describeTarget(item)
+        console.log(
+          `  - pinned quarantine intermediate: ${item.name}@${target} (latest ${item.latest} still in quarantine)`,
+        )
+      }
+    } else {
+      console.log('  - npm update (no scan state found; in-range updates only)')
+    }
     console.log('  - npm run defence:pkg-age-check -- --transitive')
     console.log('  - npm audit signatures')
     console.log('  - npm audit --audit-level=high')
+    console.log('  - npm run defence:license-check:fail')
     return 0
   }
 
-  console.log('Updating dependencies with controlled npm update...')
-
-  runCmd('Update dependencies', 'npm', ['update'])
+  const { eligible, quarantine } = loadActionableUpdates()
+  if (eligible.length > 0 || quarantine.length > 0) {
+    console.log(
+      `Applying ${eligible.length} eligible update(s) and ${quarantine.length} quarantined intermediate update(s) from the last defence:update-check scan...`,
+    )
+    runPinnedInstalls([...eligible, ...quarantine])
+  } else {
+    console.log(
+      'No scanned eligible updates found; falling back to in-range npm update...',
+    )
+    console.log('(Run npm run defence:update-check first for pinned updates.)')
+    runCmd('Update dependencies', 'npm', ['update'])
+  }
   runVerificationLayers()
 
   console.log('\nUpdate complete.')
@@ -286,9 +427,9 @@ if (require.main === module) {
 
 module.exports = {
   main,
-  parseCliArgs,
   loadEligibleUpdates,
-  promptForSelections,
+  getActionableQuarantine,
+  resolveTargetVersion,
   saveDecisions,
   setSpawnSyncImpl,
   resetSpawnSyncImpl,
