@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (CI — dual Node.js line validation)
+
+- New `test-latest-lts` job in `ci.yml`: resolves the newest Node.js LTS from
+  the official dist index at run time and runs the full test suite on it,
+  alongside the engines-floor `test` job. The engines floor stays at Node
+  24.22.2 / npm 11.19.1 (already the v24 line tip); the suite was verified
+  green locally (959/959) on Node 26.13.0 LTS (npm 11.20.0).
+
+### Added (VS Code 1.145 compatibility review)
+
+- New "VS Code 1.145" section in the bilingual AI guidelines: zero relevant
+  deprecations (only the unused `#installExtension` tool was removed from the
+  Local harness), Copilot harness default plus the official transition guide
+  link, and four relevant additions (mixed harnesses in nested sessions, cron
+  local automations with workspace custom agents, organization-enforced
+  plugins, sandboxing guidance/attachments) — two of them tracked as
+  post-v1.0.0 backlog items in `TODO.md`.
+- CI job-count references updated (11 → 12) in the architecture,
+  git-workflow, repository-organization, and CI/CD overview pages (EN/PT).
+
 ### Security (Fase L.0 — engine update)
 - Updated the minimum Node.js from 24.19.0 to 24.22.2 and npm from 11.17.0 to
   11.19.1 (the version bundled with Node 24.22.2). The previous pin predated
