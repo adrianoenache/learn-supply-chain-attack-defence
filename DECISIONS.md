@@ -331,3 +331,21 @@ Keep entries concise; link to the phase/commit for detail.
   with new direct tests); the scanner runs on demand via the
   `code-review-pass` skill, and its parser is hardened against the
   codebase's real consumption patterns.
+
+### 2026-11-04 — "Restrict updates" belongs to frozen refs, never to merge targets
+
+- **Decision:** The `main`/`dev` branch rulesets must NOT enable
+  "Restrict updates"; the full, intentionally identical ruleset inventory
+  for both branches is documented in
+  `docs/{en,pt-BR}/repository-organization.md`.
+- **Context:** During the v1.0.0 release, `main` had "Restrict updates"
+  enabled with an empty bypass list. Merging the release PR counts as a ref
+  update, so the merge was blocked with "Cannot update this protected ref"
+  even with all 24 checks green and approvals at 0.
+- **Rejected alternative:** Keeping the rule and adding the maintainer to
+  the bypass list — a bypass that always applies to the only person who
+  merges is indistinguishable from not having the rule, and it makes
+  `main`/`dev` diverge from the documented model.
+- **Consequences:** The release merged after the rule was removed; the
+  documented inventory now doubles as a checklist when reproducing the
+  protection in another repository (Fase M adopters).
