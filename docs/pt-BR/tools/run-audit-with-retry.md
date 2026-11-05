@@ -20,9 +20,12 @@ npm run defence:audit
 
 ```text
 found 0 vulnerabilities
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
 ```
 
-(em falhas transitórias de registry, o wrapper reporta `Audit attempt N/3 failed ... Retrying` e tenta novamente com backoff; a saída final é do próprio npm, em inglês)
+(em falhas transitórias de registry, o wrapper reporta `Audit attempt N/3 failed ... Retrying` e tenta novamente com backoff; a saída final é do próprio npm, em inglês; `--quiet` suprime o relatório do npm e o sumário em caso de sucesso — falhas sempre aparecem)
 
 ## Camada de defesa relacionada
 

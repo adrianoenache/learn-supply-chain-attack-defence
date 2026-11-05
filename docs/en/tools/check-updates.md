@@ -68,11 +68,23 @@ npm run defence:update-check -- --silent
      sharp  0.33.4 → 0.34.2 [minor] (released 2 days ago)
        eligible versions: 0.34.0, 0.34.1
 
-   Run the command below to review and apply updates safely:
-     npm run defence:update
+── Summary ───────────────────────────────────────────
+  ✓ OK   0 passed
+  ⚠ WARN 1 warned
+  ○ SKIP 1 skipped
+  Next: npm run defence:update — review and apply updates safely
 ```
 
-Quarantined entries with an `eligible versions` line are *actionable*: `defence:update` can advance to the newest age-approved intermediate while `latest` stays blocked.
+When everything is up to date:
+
+```text
+  ✓ OK   no dependency updates found
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+```
+
+Quarantined entries with an `eligible versions` line are *actionable*: `defence:update` can advance to the newest age-approved intermediate while `latest` stays blocked. In the summary, `warned` counts eligible updates and `skipped` counts quarantined ones.
 
 ## Related defense layer
 

@@ -64,8 +64,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** reporta e aplica atualizações de engine Node.js (dentro do major) e upgrades (LTS mais recente), fixando o npm na versão bundled; os alvos são gateados no índice oficial `nodejs.org/dist`, garantindo disponibilidade no CI por construção.
 - **Scripts:** `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade`
-- **Flags:** `--update`, `--upgrade`, `--to <versão>`, `--dry-run`, `--silent`, `--format json`.
-- **Modos silencioso/formato:** `--silent` suprime o relatório humano; `--format json` imprime o relatório legível por máquina no stdout.
+- **Flags:** `--update`, `--upgrade`, `--to <versão>`, `--dry-run`, `--quiet`/`--silent`, `--format json`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o relatório humano; `--format json` imprime o relatório legível por máquina no stdout. O relatório humano termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` relatório/atualizado/aplicado; `1` falha de rede, alvo ausente do índice dist, tentativa de downgrade ou edição de arquivo insegura.
 - **Testes:** `tools/update-engines.test.js`
 - **Observações:** edita `package.json`, `package-lock.json` (apenas a entrada raiz) e `.nvmrc` de forma cirúrgica para preservar a formatação; após aplicar, troque o runtime com `nvm install <versão> && nvm use` e rode os gates.
@@ -100,7 +100,7 @@ cabeçalho no arquivo da ferramenta.
 - **Propósito:** a única forma sancionada de adicionar uma dependência — executa portões de idade, proveniência, scripts de ciclo de vida e confiança antes de instalar.
 - **Scripts:** `defence:add`
 - **Flags:** posicional `pkg@x.y.z` (versão exata obrigatória); `--dry-run` (apenas portões, sem instalação); `--dev`; `--peer`.
-- **Modos silencioso/formato:** não suportados.
+- **Modos silencioso/formato:** intencionalmente não suportados — workflow interativo de supply-chain; a saída das etapas é a evidência. Fecha com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` todos os portões passaram (ou dry-run passou); `1` algum portão falhou.
 - **Testes:** `tools/add-package.test.js`, `tools/integration.test.js`
 - **Observações:** modifica `package.json`/`package-lock.json` exceto com `--dry-run`.
@@ -110,8 +110,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** scan somente-leitura de dependências desatualizadas; classifica elegível vs quarentena por idade de publicação e lista as versões `intermediateEligible`.
 - **Scripts:** `defence:update-check`, mais as variantes `:force`, `:json`, `:offline`.
-- **Flags:** `--force` (ignora cache), `--offline` (apenas cache), `--silent`, `--format=<table|json|markdown>`.
-- **Modos silencioso/formato:** `--silent` suprime **apenas relatórios**; avisos de segurança (dessincronização, fallback offline) sempre são impressos no **stderr**. `--format` muda o renderizador do relatório.
+- **Flags:** `--force` (ignora cache), `--offline` (apenas cache), `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime **apenas relatórios**; avisos de segurança (dessincronização, fallback offline) sempre são impressos no **stderr**. `--format` muda o renderizador do relatório. O relatório em tabela termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` em todos os caminhos normais (ferramenta consultiva, nunca bloqueia); `1` em erro interno.
 - **Testes:** `tools/check-updates.test.js`, `tools/integration.test.js`
 - **Observações:** grava o estado `.defence-update-check.json` (ignorado pelo git); nunca instala nada.
@@ -122,7 +122,7 @@ cabeçalho no arquivo da ferramenta.
 - **Propósito:** aplica atualizações com segurança — instalações pinadas do maior alvo `intermediateEligible` aprovado no portão de idade, incluindo entradas de quarentena acionáveis (pacotes em quarentena por idade com intermediárias elegíveis), depois reexecuta todas as camadas de verificação.
 - **Scripts:** `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`
 - **Flags:** `--interactive` (y/n/q por pacote), `--dry-run`.
-- **Modos silencioso/formato:** não suportados.
+- **Modos silencioso/formato:** intencionalmente não suportados — workflow interativo; a saída das etapas é a evidência. Fecha com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` concluído (incluindo "nada a fazer"); `1` quando qualquer instalação ou verificação falha.
 - **Testes:** `tools/update-packages.test.js`
 - **Observações:** modifica dependências exceto com `--dry-run`; usa `npm update` genérico quando não há estado de scan; registra decisões (com `source: eligible|quarantine`) em `.defence-update-decisions.json`; nunca oferece um `latest` em quarentena como alvo.
@@ -156,7 +156,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** envolve `npm audit --audit-level=high` com retry/backoff limitado para instabilidade do registry.
 - **Scripts:** `defence:audit`
-- **Flags:** nenhuma (parâmetros de retry vêm da config `retryFetch`).
+- **Flags:** `--quiet`/`--silent` (consumidas pelo wrapper, nunca repassadas ao npm); quaisquer outras flags são passadas ao `npm audit`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o relatório repassado do npm e o sumário em caso de sucesso; falhas sempre aparecem. Execuções não-quiet terminam com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` auditoria limpa; `1` auditoria reporta vulnerabilidades altas/críticas após retries.
 - **Testes:** `tools/run-audit-with-retry.test.js`
 - **Docs:** [tools/run-audit-with-retry.md](tools/run-audit-with-retry.md)

@@ -63,8 +63,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** reports and applies Node.js engine updates (in-major) and upgrades (latest LTS), pinning npm to the bundled version; targets are gated on the official `nodejs.org/dist` index so CI availability is guaranteed by construction.
 - **Scripts:** `defence:update-engines`, `defence:update-engines:update`, `defence:update-engines:upgrade`
-- **Flags:** `--update`, `--upgrade`, `--to <version>`, `--dry-run`, `--silent`, `--format json`.
-- **Silent/format modes:** `--silent` suppresses the human report; `--format json` prints a machine-readable report on stdout.
+- **Flags:** `--update`, `--upgrade`, `--to <version>`, `--dry-run`, `--quiet`/`--silent`, `--format json`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the human report; `--format json` prints a machine-readable report on stdout. The human report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` report/up-to-date/applied; `1` network failure, target absent from the dist index, downgrade attempt, or unsafe file edit.
 - **Tests:** `tools/update-engines.test.js`
 - **Notes:** edits `package.json`, `package-lock.json` (root entry only), and `.nvmrc` surgically to preserve formatting; after applying, switch runtime with `nvm install <version> && nvm use` and re-run the gates.
@@ -99,7 +99,7 @@ behavior with the header comment in the tool file.
 - **Purpose:** the only sanctioned way to add a dependency — runs age, provenance, lifecycle-script, and trust gates before installing.
 - **Scripts:** `defence:add`
 - **Flags:** positional `pkg@x.y.z` (exact version required); `--dry-run` (gates only, no install); `--dev`; `--peer`.
-- **Silent/format modes:** not supported.
+- **Silent/format modes:** intentionally not supported — interactive supply-chain workflow; step output is the evidence. Closes with the shared summary block (Phase N).
 - **Exit codes:** `0` all gates passed (or dry-run passed); `1` any gate failed.
 - **Tests:** `tools/add-package.test.js`, `tools/integration.test.js`
 - **Notes:** modifies `package.json`/`package-lock.json` unless `--dry-run`.
@@ -109,8 +109,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** read-only scan for outdated dependencies; classifies eligible vs quarantine by publish age and lists `intermediateEligible` versions.
 - **Scripts:** `defence:update-check`, plus `:force`, `:json`, `:offline` variants.
-- **Flags:** `--force` (ignore cache), `--offline` (cache only), `--silent`, `--format=<table|json|markdown>`.
-- **Silent/format modes:** `--silent` suppresses **reports only**; safety warnings (out-of-sync, offline fallback) always print to **stderr**. `--format` switches the report renderer.
+- **Flags:** `--force` (ignore cache), `--offline` (cache only), `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses **reports only**; safety warnings (out-of-sync, offline fallback) always print to **stderr**. `--format` switches the report renderer. The table report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` in all normal paths (advisory tool, never blocks); `1` on internal error.
 - **Tests:** `tools/check-updates.test.js`, `tools/integration.test.js`
 - **Notes:** writes `.defence-update-check.json` state (gitignored); never installs anything.
@@ -121,7 +121,7 @@ behavior with the header comment in the tool file.
 - **Purpose:** applies updates safely — pinned installs of the highest age-gated `intermediateEligible` target, including actionable quarantine entries (age-quarantined packages with eligible intermediates), then re-runs all verification layers.
 - **Scripts:** `defence:update`, `defence:update:interactive`, `defence:update:interactive:dry-run`
 - **Flags:** `--interactive` (y/n/q per package), `--dry-run`.
-- **Silent/format modes:** not supported.
+- **Silent/format modes:** intentionally not supported — interactive workflow; step output is the evidence. Closes with the shared summary block (Phase N).
 - **Exit codes:** `0` completed (including "nothing to do"); `1` when any install or verification command fails.
 - **Tests:** `tools/update-packages.test.js`
 - **Notes:** modifies dependencies unless `--dry-run`; falls back to generic `npm update` when no scan state exists; records decisions (with `source: eligible|quarantine`) in `.defence-update-decisions.json`; never offers a quarantined `latest` as a target.
@@ -155,7 +155,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** wraps `npm audit --audit-level=high` with bounded retry/backoff for registry flakiness.
 - **Scripts:** `defence:audit`
-- **Flags:** none (retry parameters come from `retryFetch` config).
+- **Flags:** `--quiet`/`--silent` (consumed by the wrapper, never forwarded to npm); any other flags are passed through to `npm audit`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the forwarded npm report and the summary on success; failures always print. Non-quiet runs end with the shared summary block (Phase N).
 - **Exit codes:** `0` audit clean; `1` audit reports high/critical vulnerabilities after retries.
 - **Tests:** `tools/run-audit-with-retry.test.js`
 - **Docs:** [tools/run-audit-with-retry.md](tools/run-audit-with-retry.md)

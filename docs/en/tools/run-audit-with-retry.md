@@ -20,9 +20,12 @@ npm run defence:audit
 
 ```text
 found 0 vulnerabilities
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
 ```
 
-(on transient registry failures, the wrapper reports `Audit attempt N/3 failed ... Retrying` and tries again with backoff)
+(on transient registry failures, the wrapper reports `Audit attempt N/3 failed ... Retrying` and tries again with backoff; `--quiet` suppresses the forwarded npm report and the summary on success — failures always print)
 
 ## Related defense layer
 
