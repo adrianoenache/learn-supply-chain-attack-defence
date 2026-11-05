@@ -72,12 +72,13 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 - [x] Avaliar cores via detecção de TTY — **adotado**: ANSI nativo em
   `formatters.js` (`supportsColor`: TTY + `NO_COLOR`/`FORCE_COLOR`), zero
   dependências, desligado fora de TTY.
-- [ ] Aplicar ferramenta por ferramenta (3/25 feitas: check-sync,
-  check-licenses, check-package-age), atualizando os testes que assertam
+- [ ] Aplicar ferramenta por ferramenta (10/25 feitas: pilotos check-sync,
+  check-licenses, check-package-age + batch (a) check-secrets, check-hooks,
+  check-engines, check-lockfile-integrity, check-npmrc, check-md-links,
+  check-external-urls), atualizando os testes que assertam
   strings de saída e as páginas de docs (EN/PT) com antes/depois. Batches
-  sugeridos para as próximas PRs: (a) gates de CI/pre-commit — check-secrets,
-  check-hooks, check-engines, check-lockfile-integrity, check-npmrc,
-  check-md-links, check-external-urls; (b) registry/update — check-updates,
+  sugeridos para as próximas PRs: ~~(a) gates de CI/pre-commit~~ (entregue
+  na branch `feat/phase-n-batch-ci-gates`); (b) registry/update — check-updates,
   update-packages, update-engines, run-audit-with-retry, add-package;
   (c) relatórios/infra — generate-sbom, generate-trust-report,
   verify-defences, install-defences, setup-bootstrap, monitor-install,
