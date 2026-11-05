@@ -373,3 +373,22 @@ Review this log at the end of each phase or before tagging a release. If the sam
 - **Instruction/agent updated:** none — reinforces the previous entry
   (delivery choreography); if it recurs once more, both graduate to
   `copilot-instructions.md`.
+
+### 2026-11-05 — Nested sessions share the working set; delegate with independent sessions
+
+- **Date:** 2026-11-05
+- **Rule violated:** (UX/process, not a written rule — now it is one)
+- **Affected files:** TODO.md, PLAN.md, CHANGELOG.md, tools/* (PR #37 flow)
+- **What happened:** A delegated session created with
+  `relationship: currentSession` (nested) edited files that the parent
+  session had also touched earlier in the day. VS Code's working set then
+  refused both "Keep" and "Undo" ("another chat in this session also
+  changed it"), leaving the maintainer with an unresolvable review UI even
+  though the work was already committed and merged. Verified safe: the
+  working tree was byte-identical to the merge commit, so closing the
+  nested chat tab discards only the stale review bookkeeping.
+- **Correction applied:** delegate with `relationship: independent` for any
+  task with its own deliverable (PR); nested sessions only for read-only or
+  single-file consults. Maintainer decision, 2026-11-05.
+- **Instruction/agent updated:** none — recorded here; the maintainer-facing
+  guidance lives in this entry.
