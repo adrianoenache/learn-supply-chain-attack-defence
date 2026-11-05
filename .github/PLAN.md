@@ -16,23 +16,36 @@ Todas as fases do ciclo v1.0.0 foram concluídas — detalhe completo no
 **Ciclo atual (v1.1.0)** — fila operacional acordada em 2026-11-05 (a ordem
 explícita vive em `TODO.md` § Fila operacional):
 
-1. ~~Limpeza pós-release do PLAN/TODO~~ — **este arquivo, em execução**.
-2. Fix do `dependabot.yml` (run falhou em 2026-11-04).
-3. ~~**Fase N — UX de output** das ferramentas~~ — **concluída em
-   2026-11-05**: `tools/lib/formatters.js` + sumário estruturado + `--quiet`
-   em 25/25 ferramentas (4 workflows interativos sem quiet por design);
-   ADR 2026-11-05 em DECISIONS.md.
-4. **Novo projeto de teste** de adoção — o irmão anterior
-   (`setup-webpack-stylus-liquid`) foi abandonado em 2026-11-05 por excesso
-   de dependências; o novo deve ser pequeno e saudável, idealmente já criado
-   via M.2.
-5. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
+1. ~~Limpeza pós-release do PLAN/TODO~~ — concluída (PR #31).
+2. ~~Fix do `dependabot.yml`~~ — concluído (PR #35; causa: `reviewers: []`
+   inválido + labels inexistentes; validação real no próximo run semanal).
+3. ~~**Fase N — UX de output**~~ — concluída (fundação PR #33 + batches
+   (a)/(b)/(c), 25/25 ferramentas; ADR 2026-11-05 em DECISIONS.md).
+4. **P1 — robustez do `update-engines` (PRÓXIMO PASSO).** A entrada
+   malformada `v27.0.0-alpha.0.0.0` no dist index oficial aborta o run
+   inteiro (fail-closed), **bloqueando o procedimento do security release
+   de 2026-11-11**. Decisão de design a confirmar: fail-open com warning no
+   *report* (pular entradas inválidas) mantendo fail-closed na *escrita*;
+   hardening contra versões malformadas além de pre-release com build
+   metadata.
+5. **Release v1.1.0** — escopo a decidir na largada: Fase N (25/25), fix do
+   dependabot, item 4 e o que mais estiver mergeado. Precede o novo projeto
+   de teste (assim ele nasce já na UX nova).
+6. **Novo projeto de teste** de adoção — pequeno e saudável, idealmente já
+   criado via M.2 (o irmão anterior foi abandonado em 2026-11-05).
+7. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
    + avaliação de marketplace), além do backlog P3.
 
 **Lembrete datado:** security release do Node.js em **2026-11-11**
-(26.x/24.x/22.x, severidade HIGH) — procedimento L.0 pronto
-(`defence:update-engines` report → `:update` → PR); o CI já valida as duas
-linhas.
+(26.x/24.x/22.x, severidade HIGH) — **depende do item 4** (o report do
+`update-engines` está quebrado enquanto a entrada alfa existir no dist
+index); depois: report → `:update` → PR. O CI já valida as duas linhas.
+
+**Nota de processo (2026-11-05):** duas sessões paralelas trabalharam hoje.
+Incidentes: uma parou antes da coreografia de entrega (lição registrada:
+execução inclui branch/commit/push/PR) e um push partiu de dev desatualizado
+(lição: fetch é o primeiro passo, inegociável). A sessões novas devem abrir
+com "retomando o projeto — item N da fila" e entregar PR completa.
 
 ## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
 
