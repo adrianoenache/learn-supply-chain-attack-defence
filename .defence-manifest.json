@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-05T20:11:10.172Z",
+  "installedAt": "2026-11-05T20:54:39.304Z",
   "files": [
     {
       "path": ".npmrc",
@@ -20,7 +20,7 @@
     },
     {
       "path": "tools/add-package.js",
-      "hash": "4aad32e84cdeafca90ae54d09671ab3842dbe0e7f89e1039590339551f4fed42"
+      "hash": "81c72cb66aecdcf1b5c924a795e7ab6373e55955de005973e8130016d11c9cac"
     },
     {
       "path": "tools/add-package.test.js",
@@ -124,11 +124,11 @@
     },
     {
       "path": "tools/check-updates.js",
-      "hash": "0d19f90c1404110a516398e240739f7bcaf6bd28acefd8f21aeaa5b36e7fbcb6"
+      "hash": "e9f6cdcfc7757690e563539a3c09cf0ff86b0d1c4327aa93d93eb4b2e4ac43b8"
     },
     {
       "path": "tools/check-updates.test.js",
-      "hash": "dc8d9674f3448cdafeb824f189e7e62d58d964b4972afecbde84b979692fb62a"
+      "hash": "c38a51c1ca3936fa7f86f2765fb305307dde25a174866e0c65deecc69572e6f3"
     },
     {
       "path": "tools/generate-sbom.js",
@@ -168,11 +168,11 @@
     },
     {
       "path": "tools/run-audit-with-retry.js",
-      "hash": "3babffb98e09e8bba859e92d2c1151b104ae94122bc35d1196d9d5efdcfa756d"
+      "hash": "7872f1379467c30d2cfbfb97d4a15fdca762808f42f9c79e5985d3870ea897b9"
     },
     {
       "path": "tools/run-audit-with-retry.test.js",
-      "hash": "012a8ce94cc38e46a65332e4b2bf415b04251dfc936a248978efb08c080a0254"
+      "hash": "585cf04331096f6b6134ed6e389e39db291c57550d9e14f6a0d6533ac7542d60"
     },
     {
       "path": "tools/setup-bootstrap.js",
@@ -192,15 +192,15 @@
     },
     {
       "path": "tools/update-engines.js",
-      "hash": "5e375eccbd92e150da544b733a47e09d83a719cb6aa8f667bec3f6990ea188c1"
+      "hash": "a018817e359b8dbfcb32577ebc4b9f8e8097cc108a455b3a23c12e8d447a7f09"
     },
     {
       "path": "tools/update-engines.test.js",
-      "hash": "52b1d0640635d38dbafb15d68c67ce83d5c6a8d8b2e332409404fb5753937c5c"
+      "hash": "4706d94570094582382db1e016330ff9bcf4c6142aa5249f45f17ff15134739d"
     },
     {
       "path": "tools/update-packages.js",
-      "hash": "61315c30a98a97fce3e783e4cc63492279f1e263abd07535d695310268b86ee0"
+      "hash": "3a27030fcc655915a9e502f690df1bffee2d4079de803ed10cf979bd4772fb26"
     },
     {
       "path": "tools/update-packages.test.js",

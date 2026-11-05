@@ -8,8 +8,14 @@
 // Usage:
 //   node ./tools/run-audit-with-retry.js
 //   npm run defence:audit
+//   node ./tools/run-audit-with-retry.js --quiet   — forward nothing on success (--silent is a kept alias)
 
 const { spawnSync } = require('node:child_process')
+const path = require('node:path')
+
+const { hasQuietFlag, supportsColor, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 // Maximum number of attempts when the audit fails for network/timeout reasons.
 // Hardcoded because it defines the project's resilience policy, not a tunable.
@@ -75,21 +81,42 @@ const impl = {
 }
 
 function main(argv = process.argv.slice(2)) {
-  const args = argv.length > 0 ? argv : AUDIT_ARGS
+  // The quiet convention is consumed here and never forwarded to npm audit
+  // (npm would reject the unknown flag).
+  const quiet = hasQuietFlag(argv)
+  const forwarded = argv.filter((a) => a !== '--quiet' && a !== '--silent')
+  const args = forwarded.length > 0 ? forwarded : AUDIT_ARGS
+  const color = supportsColor()
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     const result = impl.runAudit(args)
 
     // Forward npm output so the user always sees the audit result.
-    if (result.stdout) process.stdout.write(result.stdout)
-    if (result.stderr) process.stderr.write(result.stderr)
+    // In quiet mode only failures are forwarded; a clean audit stays silent.
+    const failed = result.status !== 0
+    if (!quiet || failed) {
+      if (result.stdout) process.stdout.write(result.stdout)
+      if (result.stderr) process.stderr.write(result.stderr)
+    }
 
     if (result.status === 0) {
+      if (!quiet) {
+        console.log(renderSummary({ passed: 1, color }))
+      }
       return 0
     }
 
     if (!isTransientError(result, result.status)) {
       // Real vulnerability or unknown non-network failure — fail fast.
+      if (!quiet) {
+        console.log(
+          renderSummary({
+            failed: 1,
+            next: 'npm audit — review the findings, then update safely with npm run defence:add -- pkg@x.y.z',
+            color,
+          }),
+        )
+      }
       return result.status ?? 1
     }
 
@@ -102,6 +129,15 @@ function main(argv = process.argv.slice(2)) {
       console.error(
         `\nAudit failed after ${MAX_ATTEMPTS} attempts due to persistent network/transient errors.`,
       )
+      if (!quiet) {
+        console.log(
+          renderSummary({
+            failed: 1,
+            next: 'check the network connection and re-run npm run defence:audit',
+            color,
+          }),
+        )
+      }
     }
   }
 

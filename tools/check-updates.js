@@ -9,9 +9,10 @@
 // Usage:
 //   npm run defence:update-check            — run the check
 //   npm run defence:update-check -- --force — ignore cache and rescan
-//   npm run defence:update-check -- --silent — suppress reports (safety
+//   npm run defence:update-check -- --quiet — suppress reports (safety
 //     warnings about unsynced node_modules and offline fallback are still
-//     shown, because silently skipping them would hide real risk)
+//     shown, because silently skipping them would hide real risk);
+//     --silent is a kept alias
 //   npm run defence:update-check -- --offline — rely only on local cache, no network calls
 //
 // Each package entry lists `intermediateEligible`: versions newer than
@@ -48,6 +49,9 @@ const { runWithConcurrencyLimit } = require(
   path.resolve(__dirname, './lib/concurrency.js'),
 )
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const { validatePackument } = require(
   path.resolve(__dirname, './lib/validate-external-content.js'),
 )
@@ -136,7 +140,7 @@ function resetImpls() {
 
 function parseCliArgs(argv = process.argv.slice(2)) {
   const isForce = argv.includes('--force')
-  const isSilent = argv.includes('--silent')
+  const isSilent = hasQuietFlag(argv)
   const isOffline = argv.includes('--offline')
 
   const formatArg = argv.find((arg) => arg.startsWith('--format='))
@@ -750,7 +754,13 @@ function printReport(state, format) {
   // Default table format.
   const { eligible, quarantine } = state
   const hasItems = eligible.length > 0 || quarantine.length > 0
-  if (!hasItems) return
+  const color = supportsColor()
+
+  if (!hasItems) {
+    console.log(formatItem('pass', 'no dependency updates found', { color }))
+    console.log(renderSummary({ passed: 1, color }))
+    return
+  }
 
   console.log('\n⚠️  Dependency updates available:')
   console.log('   (This script never modifies dependencies automatically.)')
@@ -801,9 +811,14 @@ function printReport(state, format) {
     }
   }
 
-  console.log('\n   Run the command below to review and apply updates safely:')
-  console.log('     npm run defence:update')
-  console.log()
+  console.log(
+    renderSummary({
+      warned: eligible.length,
+      skipped: quarantine.length,
+      next: 'npm run defence:update — review and apply updates safely',
+      color,
+    }),
+  )
 }
 
 // ---------------------------------------------------------------------------

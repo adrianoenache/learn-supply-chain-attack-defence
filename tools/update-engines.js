@@ -18,7 +18,7 @@
 //   node ./tools/update-engines.js --update       — apply latest in-major update
 //   node ./tools/update-engines.js --upgrade      — apply latest LTS major upgrade
 //   node ./tools/update-engines.js --to 26.13.0   — apply an explicit target
-//   Flags: --dry-run, --silent, --format json
+//   Flags: --dry-run, --quiet (--silent is a kept alias), --format json
 //
 // Files edited surgically (formatting preserved — npm rewrites JSON
 // formatting on install, so this tool never round-trips JSON):
@@ -40,6 +40,9 @@ const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
 const { compareVersions } = require(path.resolve(__dirname, './lib/semver.js'))
 const { validateDistIndex } = require(
   path.resolve(__dirname, './lib/validate-external-content.js'),
+)
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
 )
 
 const REPO_ROOT = path.resolve(__dirname, '..')
@@ -88,7 +91,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
     mode: to ? 'to' : modes.length === 1 ? modes[0].slice(2) : 'report',
     to: to ? to.replace(/^v/, '') : null,
     isDryRun: argv.includes('--dry-run'),
-    isSilent: argv.includes('--silent'),
+    isSilent: hasQuietFlag(argv),
     format: argv.includes('--format')
       ? argv[argv.indexOf('--format') + 1]
       : 'text',
@@ -275,6 +278,22 @@ async function main(argv = process.argv.slice(2)) {
     logImpl(
       'Apply with: --update (in-major), --upgrade (latest LTS), or --to <version>.',
     )
+    const pending =
+      (report.update?.available ? 1 : 0) + (report.upgrade?.available ? 1 : 0)
+    logImpl(
+      renderSummary({
+        // Report mode has no per-package pass/fail; the single "check" is
+        // the current pin verified against the official index, so it always
+        // passes when we get this far (index fetch/validation failed earlier).
+        passed: 1,
+        warned: pending,
+        next:
+          pending > 0
+            ? 'npm run defence:update-engines:update (in-major) or :upgrade (latest LTS)'
+            : null,
+        color: supportsColor(),
+      }),
+    )
   }
 
   if (args.mode === 'report') return exitImpl(0)
@@ -309,7 +328,11 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (compareVersions(target.version, currentNode) === 0) {
-    logImpl(`Already at ${currentNode} — nothing to do.`)
+    logImpl(
+      formatItem('pass', `already at ${currentNode} — nothing to do`, {
+        color: supportsColor(),
+      }),
+    )
     return exitImpl(0)
   }
 
@@ -336,7 +359,15 @@ async function main(argv = process.argv.slice(2)) {
   writeFileImpl(PACKAGE_LOCK, editLockfile(lockContent, nextNode, nextNpm))
   writeFileImpl(NVMRC, `${nextNode}\n`)
 
-  logImpl(`Engines updated: node >=${nextNode}, npm >=${nextNpm}`)
+  logImpl(
+    formatItem(
+      'pass',
+      `engines updated: node >=${nextNode}, npm >=${nextNpm}`,
+      {
+        color: supportsColor(),
+      },
+    ),
+  )
   logImpl(`  .nvmrc -> ${nextNode}`)
   logImpl('')
   logImpl('Next steps (the current process still runs the old runtime):')
