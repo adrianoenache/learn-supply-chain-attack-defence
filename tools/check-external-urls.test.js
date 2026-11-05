@@ -122,6 +122,35 @@ See https://example.com/real for details.`
     }
   })
 
+  test('--quiet suppresses success output but keeps the exit code (Phase N)', async () => {
+    const tmpDir = makeTempDir()
+    const origCwd = process.cwd()
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      fs.writeFileSync(
+        path.join(tmpDir, 'doc.md'),
+        '[ok](https://example.com)\n',
+      )
+
+      process.chdir(tmpDir)
+      setImpls({
+        fs,
+        fetchBuffer: async () => ({ ok: true, statusCode: 200 }),
+      })
+
+      const code = await main(['--quiet'])
+      assert.equal(code, 0)
+      assert.deepEqual(logs, [], '--quiet must suppress all stdout output')
+    } finally {
+      console.log = originalLog
+      resetImpls()
+      process.chdir(origCwd)
+      cleanup(tmpDir)
+    }
+  })
+
   test('main returns 1 when a URL is broken', async () => {
     const tmpDir = makeTempDir()
     const origCwd = process.cwd()

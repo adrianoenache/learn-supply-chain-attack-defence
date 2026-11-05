@@ -6,7 +6,8 @@
 // environment is below the minimum required versions.
 //
 // Usage:
-//   node ./tools/check-engines.js
+//   node ./tools/check-engines.js           — validate Node.js/npm against engines
+//   node ./tools/check-engines.js --quiet   — exit only, no success output (--silent is a kept alias)
 //
 // Exit codes:
 //   0 — the environment satisfies the engines field.
@@ -18,6 +19,9 @@ const path = require('node:path')
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { compareVersions, versionToParts } = require(
   path.resolve(__dirname, './lib/semver.js'),
+)
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
 )
 
 let loadConfigImpl = loadConfig
@@ -92,7 +96,7 @@ function getNpmVersion() {
   return result.stdout.trim()
 }
 
-function main() {
+function main(argv = process.argv.slice(2)) {
   const config = loadConfigImpl()
   const engines = config.engines || {}
 
@@ -106,11 +110,29 @@ function main() {
   const nodeVersion = process.version.replace(/^v/, '')
   const npmVersion = getNpmVersion()
 
-  logImpl(`Node.js ${nodeVersion} (required ${nodeRange})`)
-  logImpl(`npm ${npmVersion} (required ${npmRange})`)
-
   const nodeOk = satisfies(nodeVersion, nodeRange)
   const npmOk = satisfies(npmVersion, npmRange)
+  const quiet = hasQuietFlag(argv)
+  const color = supportsColor()
+
+  if (!quiet) {
+    logImpl(
+      formatItem(
+        nodeOk ? 'pass' : 'fail',
+        `Node.js ${nodeVersion} (required ${nodeRange})`,
+        { color },
+      ),
+    )
+    logImpl(
+      formatItem(
+        npmOk ? 'pass' : 'fail',
+        `npm ${npmVersion} (required ${npmRange})`,
+        { color },
+      ),
+    )
+  }
+
+  const passed = (nodeOk ? 1 : 0) + (npmOk ? 1 : 0)
 
   if (!nodeOk || !npmOk) {
     errorImpl(
@@ -129,10 +151,22 @@ function main() {
     errorImpl(
       '\nIf you use nvm, run `nvm use` (or `nvm install`) to switch to the correct version.',
     )
+    if (!quiet) {
+      logImpl(
+        renderSummary({
+          passed,
+          failed: 2 - passed,
+          next: 'nvm use (or nvm install) to switch to the correct version',
+          color,
+        }),
+      )
+    }
     return exitImpl(1)
   }
 
-  logImpl('Engine requirements satisfied.')
+  if (!quiet) {
+    logImpl(renderSummary({ passed, color }))
+  }
   return exitImpl(0)
 }
 

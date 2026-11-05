@@ -19,13 +19,32 @@ npm run defence:check-secrets
 
 # Scan specific files
 npm run defence:check-secrets -- src/config.js tests/fixture.env
+
+# Quiet mode (exit code only; findings still print)
+npm run defence:check-secrets -- --quiet src/config.js
 ```
+
+`--silent` is kept as a compatibility alias of `--quiet`.
 
 ## Output example
 
 ```text
-Possible secret in src/config.js:3
-  Pattern: AWS access key ID
+  ✓ OK   no secrets detected in 2 file(s)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
+```
+
+When a potential secret is found:
+
+```text
+Potential secrets detected:
+  ✗ FAIL src/config.js:3 — AWS access key ID: AKIA...
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   0 passed
+  ✗ FAIL 1 failed
+  Next: review the findings above; add false positives to .check-secrets-ignore
 ```
 
 ## Related defense layer

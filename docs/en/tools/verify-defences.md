@@ -30,11 +30,13 @@ npm run defence:verify-defences:fix
 ## Output example
 
 ```text
-Verified <N> defence file(s).
-All defence files match the manifest.
+  ✓ OK   verified <N> defence file(s)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   <N> passed
 ```
 
-(`<N>` is the live manifest entry count, which grows as defence files are added.)
+(`<N>` is the live manifest entry count, which grows as defence files are added. `--quiet`, `--silent` and `-s` suppress success output; missing/changed files always print.)
 
 ## Related defense layer
 

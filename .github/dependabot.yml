@@ -10,8 +10,8 @@ updates:
     commit-message:
       prefix: "chore(deps)"
       include: "scope"
-    labels:
-      - "dependencies"
-      - "github-actions"
+    # No custom `labels:` — the repository has no `dependencies`/`github-actions`
+    # labels; Dependabot creates the default `dependencies` label automatically.
+    # No `reviewers:` — an empty list is invalid ("did not contain a minimum
+    # number of items 1") and this is a solo-maintainer repo.
     open-pull-requests-limit: 10
-    reviewers: []

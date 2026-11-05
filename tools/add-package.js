@@ -11,6 +11,12 @@
 //   npm run defence:add -- <package>@<version> --peer     — add as peerDependency
 //   npm run defence:add -- <package>@<version> --dry-run  — check age without installing
 //
+// Phase N note: this is an interactive multi-step workflow; each step prints
+// its own progress and the run closes with the shared summary block. A
+// --quiet mode is intentionally NOT offered here — suppressing gate progress
+// during a supply-chain-critical install would hide the very evidence the
+// workflow exists to show.
+//
 // Examples:
 //   npm run defence:add -- lodash@4.17.21
 //   npm run defence:add -- express@4.21.2
@@ -64,6 +70,9 @@ const { VALID_PKG_SPECIFIER_RE, parsePackageArg } = require(
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const typosquatting = require(path.resolve(__dirname, './lib/typosquatting.js'))
 const provenance = require(path.resolve(__dirname, './lib/provenance.js'))
+const { formatItem, renderSummary, supportsColor } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const scriptAnalyzer = require(
   path.resolve(__dirname, './lib/script-analyzer.js'),
 )
@@ -395,7 +404,7 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
 
       if (ageResult.ageDays < MIN_AGE_DAYS) {
         console.error(
-          `\n  BLOCKED  ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
+          `\n${formatItem('fail', `${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`)}`,
         )
         console.error(
           `\nPackage age check FAILED — below minimum age of ${MIN_AGE_DAYS} days.`,
@@ -406,7 +415,11 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
       }
 
       console.log(
-        `  OK       ${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
+        formatItem(
+          'pass',
+          `${name}@${exactVersion} — published ${publishedStr} (${ageDays} days ago)`,
+          { color: supportsColor() },
+        ),
       )
 
       // Step 2.6 — Provenance / SLSA attestation check.
@@ -437,7 +450,9 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
               exitFn(1)
               return
             }
-            console.log(`\n  WARNING  ${message}`)
+            console.log(
+              `\n${formatItem('warn', message, { color: supportsColor() })}`,
+            )
           } else if (!provenanceResult.valid) {
             const message = `Provenance attestation for ${name}@${exactVersion} is malformed: ${provenanceResult.reason}`
             if (provenanceMode === 'strict') {
@@ -448,9 +463,13 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
               exitFn(1)
               return
             }
-            console.log(`\n  WARNING  ${message}`)
+            console.log(
+              `\n${formatItem('warn', message, { color: supportsColor() })}`,
+            )
           } else {
-            console.log(`\n  OK       provenance attestation verified`)
+            console.log(
+              `\n${formatItem('pass', 'provenance attestation verified', { color: supportsColor() })}`,
+            )
           }
         } catch (err) {
           const message = `Could not verify provenance for ${name}@${exactVersion}: ${err.message}`
@@ -462,7 +481,9 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
             exitFn(1)
             return
           }
-          console.log(`\n  WARNING  ${message}`)
+          console.log(
+            `\n${formatItem('warn', message, { color: supportsColor() })}`,
+          )
         }
       }
 
@@ -630,7 +651,11 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
             `Registry manifest for ${name}@${exactVersion} does not contain dist.integrity`,
           )
         }
-        console.log(`  OK       integrity ${expectedIntegrity}`)
+        console.log(
+          formatItem('pass', `integrity ${expectedIntegrity}`, {
+            color: supportsColor(),
+          }),
+        )
       } catch (err) {
         console.error(`\nFailed to pin tarball integrity: ${err.message}`)
         console.error(
@@ -752,7 +777,11 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
       console.log('\nRe-verifying installed tarball integrity...')
       try {
         await verifyInstalledIntegrity(name, exactVersion, expectedIntegrity)
-        console.log(`  OK       installed integrity matches registry`)
+        console.log(
+          formatItem('pass', 'installed integrity matches registry', {
+            color: supportsColor(),
+          }),
+        )
       } catch (err) {
         console.error(`\nIntegrity verification FAILED: ${err.message}`)
         console.error(
@@ -846,8 +875,18 @@ async function main(argv = process.argv.slice(2), exitFn = process.exit) {
         return
       }
 
-      console.log(`\nDone. ${name}@${exactVersion} added successfully.`)
-      console.log('Remember to commit both package.json and package-lock.json.')
+      console.log(
+        formatItem('pass', `${name}@${exactVersion} added successfully`, {
+          color: supportsColor(),
+        }),
+      )
+      console.log(
+        renderSummary({
+          passed: 1,
+          next: 'commit package.json and package-lock.json together',
+          color: supportsColor(),
+        }),
+      )
 
       const stats = require(
         path.resolve(__dirname, './lib/registry-cache.js'),

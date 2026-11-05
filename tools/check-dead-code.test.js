@@ -180,6 +180,14 @@ describe('check-dead-code analysis', () => {
     assert.equal(exitCode, 0)
     assert.ok(logs.some((l) => l.includes('candidate(s)')))
     assert.ok(logs.some((l) => l.includes('advisory')))
+    // Phase N: the advisory report closes with the shared summary block.
+    assert.ok(logs.some((l) => l.includes('── Summary')))
+  })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    script.main(['--quiet'])
+    assert.equal(exitCode, 0)
+    assert.deepEqual(logs, [], '--quiet must suppress the report')
   })
 
   test('clean tree reports no candidates', () => {

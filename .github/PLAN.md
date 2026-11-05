@@ -1,29 +1,94 @@
-# Plano de Ação — Reorganização pós-Fase D com Fase AI-0 Foundation
+# Plano de Ação — ciclo v1.1.0 (pós-release)
 
 > **Authoritative plan.** This file is the source of truth for the current
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-11-03
+> Last updated: 2026-11-05
 
 ## TL;DR
 
-**Todas as fases concluídas exceto o release.** prévia, AI-0, Pre-E, E, AI-1
-(migração VS Code 1.140), F/F.4, AI-2, G, AI-3.5, H, L (engines), AI-4
-(processos de AI), I (docs completas + revisão integral dos 69 pares EN/PT),
-AI-3.3 (observabilidade JSONL), J (**10/10 medido**, zero P0), AI-3.2
-(injection hardening), AI-3.1 ("não fazer" medido) e M.1 (dogfooding
-validado — 549/549 no projeto irmão) — todas concluídas.
+**v1.0.0 released em 2026-11-04** (PR #27 dev→main, tag `v1.0.0`, GitHub
+Release com SBOM publicado; verificação pós-release em clone limpo verde).
+Todas as fases do ciclo v1.0.0 foram concluídas — detalhe completo no
+**§ Histórico** abaixo, em `CHANGELOG.md` `[1.0.0]` e em `DECISIONS.md`.
 
-Resta apenas: **K** (release v1.0.0 — tag, GitHub Release com SBOM,
-comunicação), que exige aprovação explícita do mantenedor. Pré-requisitos de
-gate já atingidos: nota 10/10 (2026-11-03) e zero itens P0. Pós-release:
-M.2/M.3 (scaffolding, alvo v1.1.0).
+**Ciclo atual (v1.1.0)** — fila operacional acordada em 2026-11-05 (a ordem
+explícita vive em `TODO.md` § Fila operacional):
 
-Em 2026-11-04: VS Code 1.145 verificado (zero deprecations relevantes; novos
-itens P3 de automações cron e harnesses mistos) e suíte validada em Node
-26.13.0 LTS (959/959) — o CI ganhou o job `test-latest-lts` (12 jobs),
-mantendo o piso de engines em 24.22.2.
+1. ~~Limpeza pós-release do PLAN/TODO~~ — concluída (PR #31).
+2. ~~Fix do `dependabot.yml`~~ — concluído (PR #35; causa: `reviewers: []`
+   inválido + labels inexistentes; validação real no próximo run semanal).
+3. ~~**Fase N — UX de output**~~ — concluída (fundação PR #33 + batches
+   (a)/(b)/(c), 25/25 ferramentas; ADR 2026-11-05 em DECISIONS.md).
+4. ~~**P1 — robustez do `update-engines`**~~ — concluído em 2026-11-05:
+   skip com warning em todos os modos + fail-closed na escrita apenas para
+   entradas relevantes à decisão + candidatas só em semver estável estrita
+   (ADR 2026-11-05 em DECISIONS.md). O procedimento do security release de
+   2026-11-11 está destravado (report e `--update --dry-run` validados ao
+   vivo contra o dist index real).
+5. **Release v1.1.0** — 🔄 em execução (2026-11-05). Escopo: Fase N
+   (25/25 ferramentas), fix do dependabot (#32), robustez do
+   update-engines (#37), CI (push em main + job dual-line) e as lições de
+   processo do dia (#31/#36/#38). Executado em worktree isolado — regra
+   nova e obrigatória para releases (ADR 2026-11-05 em DECISIONS.md).
+   Fechar após merge da PR dev→main + tag `v1.1.0` + verificação
+   pós-release.
+6. **Novo projeto de teste** de adoção — pequeno e saudável, idealmente já
+   criado via M.2 (o irmão anterior foi abandonado em 2026-11-05).
+7. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
+   + avaliação de marketplace), além do backlog P3.
+
+**Lembrete datado:** security release do Node.js em **2026-11-11**
+(26.x/24.x/22.x, severidade HIGH) — procedimento destravado pelo item 4:
+report → `:update` → PR. O CI já valida as duas linhas.
+
+**Nota de processo (2026-11-05):** duas sessões paralelas trabalharam hoje.
+Incidentes: uma parou antes da coreografia de entrega (lição registrada:
+execução inclui branch/commit/push/PR) e um push partiu de dev desatualizado
+(lição: fetch é o primeiro passo, inegociável). A sessões novas devem abrir
+com "retomando o projeto — item N da fila" e entregar PR completa.
+
+## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
+
+- **Fase N — UX de output (concluída 2026-11-05):** padrão de saída legível
+  por ferramenta (sumário estruturado, símbolos consistentes ✓/✗/⚠/○, colunas
+  alinhadas, `--quiet` como alias de `--silent`), formatação central em
+  `tools/lib/formatters.js` (ADR 2026-11-05 emenda a de 2026-10-08), cores
+  ANSI nativas via TTY, testes e docs EN/PT atualizados ferramenta por
+  ferramenta (25/25 em fundação + 3 batches). Exceções documentadas sem
+  `--quiet`: add-package, update-packages, install-defences, setup-bootstrap
+  (workflows interativos/instaladores).
+- **Fase M.2 — Scaffolding completo:** `tools/create-defended-project.js`
+  cria projeto zerado com as 12 camadas (opção de incluir a infra de AI).
+  Driver: o novo projeto de teste da fila.
+- **Fase M.3 — Scaffolding de infra AI:** somente `.github/` para projetos
+  existentes; avaliar o marketplace do VS Code como canal (sinal 1.145:
+  `enabledPlugins` gerenciado impede desinstalação).
+
+## Regras permanentes (valem para todo ciclo)
+
+- **Pós-release: arquivar.** Ao fechar um release, fases concluídas saem do
+  corpo do PLAN/TODO e viram resumo de uma linha por fase no § Histórico;
+  o detalhe permanece em CHANGELOG/DECISIONS/PRs (regra criada em
+  2026-11-05, nesta limpeza).
+- **Fonte da verdade:** este arquivo vence qualquer memória de sessão;
+  divergências são resolvidas aqui antes de agir (skill `context-recovery`).
+- **Gates por mudança:** `npm test`, `npm run lint`,
+  `defence:check-md-links` (se markdown), pre-commit — sempre.
+- **Commits granulares:** 1 commit = 1 intent; pares EN/PT juntos no mesmo
+  commit; bookkeeping (PLAN/TODO/DECISIONS) separado de código.
+- **Branch protection:** nada entra em `main`/`dev` sem PR verde (12 checks)
+  — ver inventário exato das regras em
+  `docs/{en,pt-BR}/repository-organization.md`.
+- **Dependências:** somente via `defence:add` / `defence:update` — nunca
+  instalação direta de pacotes fora dos gates.
+
+## Histórico — ciclo v1.0.0 (2026-09 → 2026-11-04)
+
+> Arquivo morto: as fases abaixo estão concluídas e preservadas como
+> registro. Detalhes operacionais em `CHANGELOG.md` `[1.0.0]`, decisões em
+> `DECISIONS.md`, e o diff completo nas PRs #1–#29.
 
 ## Fases
 
@@ -676,27 +741,7 @@ mantendo o piso de engines em 24.22.2.
 
 ### Fase M — Adoção e scaffolding
 
-> **Origem (2026-11-03, decisão do mantenedor):** levar as defesas para fora
-> do próprio repositório. **M.1 executa antes da K** (valida o instalador num
-> projeto real e alimenta correções pré-release); **M.2/M.3 são pós-v1.0.0**
-> (alvo v1.1.0) para não inflar o escopo do release.
->
-> **M.1 concluída em 2026-11-03** — dogfooding no projeto irmão com 8 gaps
-> corrigidos na raiz e suíte adotada 549/549 verde; relatório datado em
-> `docs/{en,pt-BR}/dogfooding-m1-report.md` e ADR para deps não-registry.
-
-- **M.1** Dogfooding (pré-release): executar `install-defences.js` em
-  `../setup-webpack-stylus-liquid/` (projeto real, webpack/babel/postcss),
-  documentar gaps encontrados, abrir itens de correção e reexecutar até a
-  instalação ficar limpa; registrar o relatório em docs bilíngues.
-- **M.2** Scaffolding de projeto zerado (v1.1.0):
-  `tools/create-defended-project.js` — novo projeto Node.js já com todas as
-  camadas de defesa configuradas (ou pré-configuradas com prompts), incluindo
-  opção de nascer com a infraestrutura de AI deste repositório.
-- **M.3** Scaffolding exclusivo da infraestrutura de AI (v1.1.0): instalar
-  apenas o conjunto `.github/` (instructions, agents, skills, hooks,
-  sanity suites) em projeto zerado ou em andamento sem infra de AI; avaliar o
-  marketplace/Browse do VS Code 1.144 como canal de distribuição.
+---
 
 ## Arquivos críticos
 

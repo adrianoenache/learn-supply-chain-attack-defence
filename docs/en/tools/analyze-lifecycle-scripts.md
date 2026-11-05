@@ -28,10 +28,20 @@ npm run defence:analyze-lifecycle-scripts -- --pkg=sharp@0.33.5 --fail
 ## Output example
 
 ```text
-Package: sharp@0.33.5
-postinstall: node (./install/libvips && node install/dll-copy)
-Risk: high (native compilation, network)
+⚠️ Lifecycle script analysis summary
+
+Packages analyzed: 1
+Packages with lifecycle scripts: 1
+Overall risk level: HIGH
+Findings: 2 (high: 1, medium: 1, low: 0)
+
+<findings table>
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
 ```
+
+With `--fail` on a high-risk package the exit code is 1 and the summary shows `1 failed` with a `Next:` hint. `--quiet` (alias `--silent`) suppresses the report and summary.
 
 ## Related defense layer
 

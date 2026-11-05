@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-05
+
+### Added (Fase N — output UX)
+
+- All 25 defence tools now share a consistent output contract through the
+  new `tools/lib/formatters.js`: a structured end-of-run summary
+  (passed/failed/warned/skipped plus the next suggested command), status
+  symbols (✓/✗/⚠/○), aligned columns, and native ANSI colors gated on TTY
+  detection with `NO_COLOR`/`FORCE_COLOR` support. Every batch tool accepts
+  `--quiet` (with `--silent` kept as a compatibility alias). Four
+  interactive workflows are documented exceptions without `--quiet`:
+  `add-package`, `update-packages`, `install-defences`, and
+  `setup-bootstrap`. Delivered as foundation + three batches (PRs #33–#35);
+  ADR 2026-11-05 in `DECISIONS.md` amends the 2026-10-08 ADR (shared
+  primitives extracted, domain rendering stays per tool).
+
+### Fixed (tools — update-engines robustness)
+
+- `update-engines.js` no longer aborts the whole run when the official
+  Node.js dist index contains malformed entries (observed live:
+  `v27.0.0-alpha.0.0.0` on 2026-11-05, plus 13 permanently malformed
+  historical entries from 2011–2018). Every mode skips invalid entries
+  with a warning and the JSON report lists them under `skipped`; apply
+  modes still fail closed when a skipped entry could affect the target
+  decision (well-formed `vX.Y.Z` at or above the current major), and only
+  strict stable semver versions can become engine candidates. New
+  `sanitizeDistIndex` helper in `tools/lib/validate-external-content.js`.
+
+### Fixed (CI — main branch never ran the workflow)
+
+- The `push` trigger now covers `main` in addition to `dev`. The README CI
+  badge (`?branch=main`) showed "no-status" since the repository's first day
+  because no workflow run ever happened on `main`; merges to `main` now run
+  the full pipeline on the branch itself, not only on the PR merge ref.
+
+### Fixed (dependabot — invalid configuration)
+
+- `.github/dependabot.yml` no longer sets an empty `reviewers: []` list
+  (Dependabot rejects an empty reviewer array at config validation, which
+  broke every weekly run) and no longer references labels that do not exist
+  in the repository (PR #32). Real validation happens on the next scheduled
+  run (tracked in the TODO operational queue).
+
+### Changed (process — release archival and AI delivery lessons)
+
+- New ADR: completed phases are archived at each release boundary, keeping
+  `TODO.md` as open work only and `PLAN.md` history below the fold
+  (PR #31); credit-efficiency practices documented (EN/PT).
+- AI lessons learned, now enforced in the AI infrastructure: task execution
+  includes the delivery choreography (branch/commit/push/PR — PR #32),
+  fetch is the non-negotiable first step before branching or pushing (the
+  stale-dev PR incident — PR #36), and parallel work is delegated through
+  independent sessions to avoid working-set conflicts (PR #38).
+- New rule: releases must run in an isolated git worktree, never in the
+  main checkout shared with other sessions — documented in the
+  release-checklist skill, the project-wide AI instructions, and the
+  bilingual release checklist pages (ADR 2026-11-05 in `DECISIONS.md`).
+
 ## [1.0.0] - 2026-11-04
 
 ### Changed (CI — descriptive test job names)

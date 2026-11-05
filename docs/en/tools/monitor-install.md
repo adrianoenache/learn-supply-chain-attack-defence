@@ -30,11 +30,18 @@ npm run defence:install-monitored -- npm ci -- --fail-on-lifecycle
 ## Output example
 
 ```text
-Monitored npm ci
-Subprocesses: 12
-High-risk: 1 (native compilation)
-Report written to lifecycle-monitor-report.md
+Monitoring: npm ci
+
+  ✓ OK   report written to lifecycle-monitor-report.md
+  Recorded 12 event(s), 1 lifecycle script(s).
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  ⚠ WARN 1 warned
+  Next: review the lifecycle events in the report before trusting the install
 ```
+
+`--quiet` (alias `--silent`) suppresses the confirmation and summary; the `Monitoring:` start marker still prints.
 
 ## Related defense layer
 

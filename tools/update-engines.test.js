@@ -161,6 +161,120 @@ describe('update-engines target resolution', () => {
     assert.equal(exitCode, 0)
     assert.equal(logs.length, 0)
   })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+    await script.main(['--quiet'])
+    assert.equal(exitCode, 0)
+    assert.equal(logs.length, 0)
+  })
+})
+
+describe('update-engines malformed dist entries (P1 robustness)', () => {
+  // Real malformed entry served by the official dist index on 2026-11-05;
+  // it aborted the whole run before this fix. Intentionally hardcoded as a
+  // regression fixture.
+  const MALFORMED_ENTRY = {
+    version: 'v27.0.0-alpha.0.0.0',
+    lts: false,
+    npm: '12.0.0',
+  }
+
+  function fetchMalformedIndex() {
+    script.setImpls({
+      fetchJson: async () => [MALFORMED_ENTRY, ...DIST_INDEX],
+    })
+  }
+
+  test('report mode skips the malformed entry with a warning and exits 0', async () => {
+    fetchMalformedIndex()
+    await script.main([])
+    assert.equal(exitCode, 0)
+    assert.ok(
+      errors.some(
+        (e) => e.includes('WARN') && e.includes('v27.0.0-alpha.0.0.0'),
+      ),
+    )
+    // The report still reflects the valid entries.
+    assert.ok(logs.some((l) => l.includes('26.13.0') && l.includes('Lithium')))
+  })
+
+  test('report --format json lists skipped entries and keeps stdout parseable', async () => {
+    fetchMalformedIndex()
+    await script.main(['--format', 'json'])
+    assert.equal(exitCode, 0)
+    const report = JSON.parse(logs.join('\n'))
+    assert.equal(report.skipped.length, 1)
+    assert.equal(report.skipped[0].version, 'v27.0.0-alpha.0.0.0')
+    assert.equal(report.update.version, '24.22.2')
+  })
+
+  test('report --silent suppresses the skip warnings', async () => {
+    fetchMalformedIndex()
+    await script.main(['--silent'])
+    assert.equal(exitCode, 0)
+    assert.equal(errors.length, 0)
+  })
+
+  test('apply modes tolerate decision-irrelevant malformed entries', async () => {
+    // v27.0.0-alpha.0.0.0 has a malformed version (never a valid target) and
+    // historical junk sits below the current major — neither can affect a
+    // write decision, so --update proceeds with warnings.
+    fetchMalformedIndex()
+    await script.main(['--update'])
+    assert.equal(exitCode, 0)
+    assert.ok(errors.some((e) => e.includes('WARN')))
+    const pkg = written.get(path.resolve(__dirname, '../package.json'))
+    assert.ok(pkg.includes('"node": ">=24.22.2"'))
+  })
+
+  test('apply modes fail closed when a skipped entry could hide the in-major target', async () => {
+    // Same major as the current floor, well-formed version, malformed npm:
+    // this could be the real latest v24 release we would silently miss.
+    script.setImpls({
+      fetchJson: async () => [
+        { version: 'v24.99.0', lts: 'Krypton', npm: 'not-a-version' },
+        ...DIST_INDEX,
+      ],
+    })
+    await script.main(['--update'])
+    assert.equal(exitCode, 1)
+    assert.ok(errors.some((e) => e.includes('Refusing to apply')))
+    assert.ok(errors.some((e) => e.includes('v24.99.0')))
+    assert.equal(written.size, 0)
+  })
+
+  test('apply modes fail closed when a skipped entry could hide a newer major', async () => {
+    script.setImpls({
+      fetchJson: async () => [
+        { version: 'v99.1.0', lts: false, npm: 'not-a-version' },
+        ...DIST_INDEX,
+      ],
+    })
+    await script.main(['--upgrade'])
+    assert.equal(exitCode, 1)
+    assert.ok(errors.some((e) => e.includes('Refusing to apply')))
+    assert.equal(written.size, 0)
+  })
+
+  test('computeTargets ignores non-strict-stable versions explicitly', () => {
+    const { latestInMajor, latestLts } = script.computeTargets(
+      [
+        { version: 'v27.0.0-alpha.1', lts: 'Future', npm: '12.0.0' },
+        ...DIST_INDEX,
+      ],
+      '24.19.0',
+    )
+    // The pre-release LTS entry must not win the upgrade candidate slot.
+    assert.equal(latestLts.version, '26.13.0')
+    assert.equal(latestInMajor.version, '24.22.2')
+  })
+
+  test('isStrictStableVersion accepts only plain X.Y.Z', () => {
+    assert.equal(script.isStrictStableVersion('24.22.2'), true)
+    assert.equal(script.isStrictStableVersion('27.0.0-alpha.1'), false)
+    assert.equal(script.isStrictStableVersion('24.22'), false)
+    assert.equal(script.isStrictStableVersion('v24.22.2'), false)
+  })
 })
 
 describe('update-engines apply modes', () => {

@@ -203,6 +203,27 @@ Três adições da 1.144 interagem com a estrutura de AI deste repositório:
 - **Permissões assistidas (GA).** O VS Code agora pode fazer triagem de chamadas de ferramenta por LLM e auto-aprovar as de baixo risco *antes* dos nossos hooks rodarem. Isso não enfraquece nada: os hooks `preToolUse` acima continuam sendo a última palavra determinística, e a ordem em camadas é triagem do cliente → hooks do projeto → aprovação humana. Settings gerenciadas pela organização (`permissions.defaultMode`) podem desabilitar a triagem; o projeto não exige nem proíbe.
 - **Copilot Memory (nuvem, ligado por padrão).** O harness Copilot pode gravar fatos do repositório e preferências do usuário na memória em nuvem do GitHub. Política: **os arquivos versionados continuam sendo a fonte da verdade** — `DECISIONS.md`, `PLAN.md`/`TODO.md` e `.github/ai-lessons-learned.md` são auditáveis, revisáveis em PR e compartilhados por todos os contribuidores; a memória em nuvem é tratada como cache volátil de conveniência, nunca como único registro de uma decisão. Se as duas divergirem, o repositório vence (e a divergência deve ser destilada para os arquivos ao fim da sessão, conforme a skill `context-recovery`).
 
+### Eficiência de créditos (uso do Copilot)
+
+O uso medido de AI é um orçamento compartilhado. A infraestrutura deste
+repositório já nasce econômica — as instructions sempre ativas têm ~3 KB
+(~750 tokens por requisição, medido por `tools/measure-ai-context.js`) e as
+skills carregam sob demanda — então a economia restante é de hábitos
+operacionais:
+
+- **Uma sessão por objetivo coerente, não por dia.** Sessões longas
+  reprocessam o histórico acumulado a cada turno; quando o assunto muda ou a
+  tarefa termina, comece uma nova. Uma única frase ("retomando o projeto —
+  item X da fila do TODO") mais a skill `context-recovery` reconstrói o
+  estado completo a partir dos arquivos versionados.
+- **Perguntas pontuais recebem respostas diretas.** Skills, subagentes e
+  buscas amplas somam custo de contexto; a AI só os aplica quando a tarefa
+  realmente precisa (a skill subagent-invocation já codifica a regra dos
+  "cinco tool calls diretos").
+- **Destile ao fim da sessão.** Decisões e lições vivem em arquivos
+  versionados, então nada valioso se perde ao fechar uma sessão — encerrar
+  cedo é sempre seguro.
+
 ### VS Code 1.145: harnesses mistos, automações locais e plugins gerenciados
 
 Verificado contra as release notes da 1.145.0 (2026-11-04): **nenhuma deprecação afeta este repositório** — a única remoção é a ferramenta de agente `#installExtension` do harness Local, que este projeto nunca usou. Os formatos de arquivos de agentes, skills, hooks e instructions permanecem inalterados, e `target: github-copilot` continua válido. O harness Copilot agora é o padrão para novas sessões, e a Microsoft publicou um [guia de transição do harness Local para o Copilot](https://code.visualstudio.com/docs/agents/run/move-to-copilot) que adotantes externos podem seguir.

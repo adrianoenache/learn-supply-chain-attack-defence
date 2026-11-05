@@ -1,411 +1,50 @@
 # TODO
 
-This file tracks the remaining work required for the project to be considered
-**concluded**: a 10/10 quality score across security, code quality, performance,
-documentation, and AI-assisted development, plus a regenerated
-`PROJECT_STATUS_REPORT.md` with the maximum score in every category.
+This file tracks **open work** for the current cycle (v1.1.0). The v1.0.0
+release is done (2026-11-04); completed phases were archived to
+`.github/PLAN.md` § Histórico, with full detail in `CHANGELOG.md` `[1.0.0]`,
+`DECISIONS.md`, and the merged PRs.
 
-The **release v1.0.0 is a future action** that will only be planned and executed
-after the project itself is fully concluded. It is not a current gate.
-
-Items are prioritized with `P0` (critical/blocking for conclusion), `P1`
-(important for conclusion), `P2` (improvement for conclusion), and `P3`
-(experimental or post-conclusion).
-
-Priority order: **P0 → P1 → P2 → P3**.
-
-This file follows the nomenclature defined in `.github/PLAN.md`:
-Fase prévia → AI-0 → E → F → G → H → I → J → K.
+Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
+(improvement), and `P3` (experimental or post-release). Priority order:
+**P0 → P1 → P2 → P3**.
 
 ---
 
-## Fase prévia — Alinhamento de nomenclatura e baseline
+## Fila operacional (ordem de execução acordada em 2026-11-05)
 
-- [x] Unificar `TODO.md` (fases 0–11) e `PLAN.md` para Fase AI-0, E, F, G, H, I,
-  J, K.
-- [x] Rodar `npm test`, `npm run lint`, `npm run defence:check-md-links`,
-  `bash .husky/pre-commit`, `npm run defence:verify-defences`.
-- [x] Sincronizar badge de testes em `README.md` com a contagem real
-  (`npm test` reporta 432/432; badge atualizado via `tools/update-badge.js`).
+1. **Limpeza pós-release** do PLAN/TODO (arquivar fases concluídas) —
+   concluído no PR #31.
+2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels) —
+   concluído em 2026-11-05.
+3. ~~**Fase N — UX de output** das ferramentas~~ — **concluída em
+   2026-11-05** (fundação + 3 batches, 25/25 ferramentas; PRs #33 +
+   batches (a)/(b)/(c)).
+4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
+   via M.2).
+5. ~~**P1 — robustez do `update-engines`**~~ — **concluído em
+   2026-11-05**: `sanitizeDistIndex` pula entradas inválidas com warning em
+   todos os modos (o report não morre mais); a escrita falha em fail-closed
+   apenas quando uma entrada pulada poderia afetar a decisão de alvo
+   (versão `vX.Y.Z` bem-formada com major ≥ atual); candidatas restritas a
+   semver estável estrita. ADR 2026-11-05 em DECISIONS.md.
+6. **Release v1.1.0** — 🔄 **em execução (2026-11-05)**: branch
+   `chore/release-v1.1.0` em worktree isolado (nova regra, ADR em
+   DECISIONS.md), matriz de gates local verde, PR dev→main aberta.
+   Fechar após o merge do mantenedor + tag `v1.1.0` + verificação
+   pós-release em clone limpo.
+7. **Validação do Dependabot** no próximo run (segunda-feira 09:00, ou
+   manual em Insights → Dependency graph → Dependabot).
 
-## Fase AI-0 — AI Customizations Foundation (P0)
+## Lembretes datados
 
-- [x] Criar agentes: `command-execution`, `code-review`,
-  `repository-organization`, `project-evaluation`.
-- [x] Criar skills: `script-contract-verification`,
-  `educational-code-review`, `docs-completeness`,
-  `repository-organization-audit`.
-- [x] Criar instructions: `educational-code-quality`, `file-organization`,
-  `project-evaluation`.
-- [x] Criar prompts: `code-review-for-learning`, `verify-command-contract`,
-  `validate-architecture`, `project-status-evaluation`.
-- [x] Criar hooks: `enforce-security`, `auto-lint-test`, `inject-context`
-  seguindo o schema da [GitHub Copilot hooks reference](https://docs.github.com/en/copilot/reference/hooks-reference)
-  (funcionalidades de docs-drift e command-contract foram incorporadas ao `auto-lint-test`).
-- [x] Revisar agentes/skills/prompts/hooks/instructions existentes para refletir
-  as novas fases.
-- [x] Atualizar `docs/en/ai-guidelines.md` e `docs/pt-BR/ai-guidelines.md`.
-
-## Fase E — Documentação conceitual ✅
-
-> Concluída em 2026-09-08 (ver PLAN.md, Fase E). Checkboxes sincronizados em 2026-10-05.
-
-- [x] Criar `docs/{en,pt-BR}/learning-path.md`.
-- [x] Criar `docs/{en,pt-BR}/faq.md`.
-- [x] Criar `docs/{en,pt-BR}/tools/<tool>.md` para todas as ferramentas.
-- [x] Atualizar `README.md`, `docs/{en,pt-BR}/index.md`,
-  `docs/{en,pt-BR}/tools.md`.
-- [x] Corrigir `CONTRIBUTING.md`: `npm run format:check` no lugar de
-  `npm run format -- --check`.
-
-## Fase F — Verificação de execução de comandos
-
-> Detalhamento completo e decisões em `.github/PLAN.md` (F.0–F.3). Verificado em
-> 2026-10-05: nenhum subitem implementado — esta é a próxima fase a executar.
-
-- [x] **F.0** Corrigir contrato em `tools/check-updates.js`: warnings de
-  sync/offline sempre visíveis mesmo com `--silent`; descobrir versões
-  intermediárias elegíveis (`intermediateEligible`) entre current/wanted e
-  latest; incluir o campo nos formatos table/json/markdown; cobrir com testes.
-  - Concluído em 2026-10-05: warnings roteados para stderr (stdout fica limpo
-    para `--format=json`); 13 novos testes; config `maxIntermediateEligible`.
-- [x] **F.1** Integrar `tools/update-packages.js`: preferir a maior versão
-  intermediária elegível em vez de `latest`, re-executar os portões de defesa
-  após instalar; testes para intermediárias, fallback, interativo e dry-run.
-  - Concluído em 2026-10-05: `resolveTargetVersion` + instalação pinada
-    (`npm install --save-exact --ignore-scripts pkg@alvo`); portão de licenças
-    adicionado às camadas de verificação; 7 novos testes.
-- [x] **F.2** Criar `docs/{en,pt-BR}/command-verification-checklist.md`
-  documentando todos os scripts `defence:*` (propósito, contrato, flags, modos
-  silencioso/formato, códigos de saída, arquivo de teste) e linkar a partir de
-  `docs/{en,pt-BR}/index.md` e `docs/{en,pt-BR}/tools.md`.
-  - Concluído em 2026-10-05: 39 scripts em 7 categorias, links adicionados.
-- [x] **F.3** Validação final: suite completa de gates + verificações manuais
-  listadas no PLAN.
-  - Concluído em 2026-10-05: todos os gates verdes; verificado com dados reais
-    que `--silent` mantém avisos no stderr, `update-check` lista 6
-    intermediárias elegíveis reais de `@biomejs/biome`, links do checklist
-    resolvem e manifesto está sincronizado. Ver observação no PLAN.md sobre
-    intermediárias em pacotes em quarentena.
-- [x] **F.4** Intermediárias elegíveis para pacotes em quarentena (decisão do
-  mantenedor, 2026-10-05; detalhamento em `.github/PLAN.md`, F.4.1–F.4.5).
-  - [x] **F.4.1** Excluir versões deprecated de `intermediateEligible` em
-    `tools/check-updates.js` (+ testes).
-  - [x] **F.4.2** `tools/update-packages.js`: `getActionableQuarantine()`
-    (somente `reason === 'too recent'` com intermediárias); aplicar alvo
-    pinado também para quarentena acionável nos fluxos não-interativo e
-    interativo; `source` no arquivo de decisões; dry-run com grupos separados.
-  - [x] **F.4.3** Testes dos dois arquivos cobrindo os novos caminhos.
-  - [x] **F.4.4** Docs bilíngues (tools pages + checklist) e CHANGELOG.
-  - [x] **F.4.5** Validação final no padrão F.3 (gates + verificações manuais
-    com dados reais, confirmando que `latest` em quarentena não é oferecido).
-    - Concluído em 2026-10-05: 738/738 testes; caso real `@biomejs/biome`
-      oferecido como `@2.5.14` (intermediário) com `2.5.15` bloqueado.
-
-## Fase AI-2 — Governança e ergonomia das customizações AI ✅
-
-> Detalhamento completo em `.github/PLAN.md` (AI-2.1–AI-2.8). Decisão do
-> mantenedor em 2026-10-05: executar após a Fase F. Escopo expandido em
-> 2026-10-06 (aprovado): novos blocos AI-2.6 (tokens) e AI-2.7 (segurança).
-
-- [x] **AI-2.1** Adicionar `context: fork` às skills pesadas
-  (`context-recovery`, `security-audit`, `repository-organization-audit`,
-  `project-status-evaluation`, `docs-completeness`, `validate-urls`) e
-  documentar o requisito experimental nos ai-guidelines bilíngues.
-  - Concluído em 2026-10-07 (VS Code 1.141.0 com `skillTool.enabled`).
-- [x] **AI-2.2** Marcar skills de conhecimento de fundo com
-  `user-invocable: false` (`subagent-invocation`, `context-recovery`) e
-  documentar a matriz de visibilidade (automática/manual/oculta).
-  - Concluído em 2026-10-07: matriz documentada nos ai-guidelines bilíngues;
-    12 automáticas, 4 manuais, 2 background.
-- [x] **AI-2.3** Empacotar recursos nas skills: `release-checklist/checklist-template.md`
-  e `generate-test/test-template.js`, referenciados via links relativos;
-  estender `skills.sanity.test.js` para validar que recursos linkados existem.
-  - Concluído em 2026-10-07: 181 testes de sanidade (18 novos de recursos);
-    `file-organization.instructions.md` documenta o padrão de recursos.
-- [x] **AI-2.4** Criar `.github/hooks/hooks.sanity.test.js` (JSON parseável,
-  campos obrigatórios da hooks reference, scripts e skills referenciadas
-  existem), registrá-lo nos scripts `test`/`test:coverage`, e escopar hooks de
-  pós-edição por glob (`auto-lint-test` → `tools/**/*.js`, `validate-urls` →
-  docs/config).
-  - Concluído em 2026-10-07: 30 testes de sanidade de hooks + 8 testes novos
-    para `suggest-validation.sh` (que não tinha cobertura); corrigida contagem
-    hardcoded obsoleta "432/432 expected"; o escopo por path já existia dentro
-    dos scripts (o campo `matcher` filtra por nome de ferramenta, não por path)
-    e foi ampliado para cobrir testes em `.github/`.
-- [x] **AI-2.5** Criar `.github/skills/scripts/generate-skills-index.js`
-  gerando `.github/skills/README.md`, com teste de drift no `npm test` e link
-  nos ai-guidelines bilíngues.
-  - Concluído em 2026-10-07: índice com 18 skills (modo de invocação, fork,
-    descrição), `--check` idempotente integrado ao sanity suite (182 testes).
-- [x] **AI-2.6** Economia de tokens: compactar `copilot-instructions.md`
-  (≤ 2,5 KB sem perder regras), deduplicar regras repetidas entre camadas por
-  referência, guarda de tamanho nos sanity tests (SKILL.md ≤ 10 KB,
-  copilot-instructions ≤ 3 KB), e corrigir o drift do session-memory path
-  (instrução fala de `/memories/`; harness real usa `session-state/<id>/files/`).
-  - Concluído em 2026-10-07: always-on 3,5 KB → 2,4 KB (−32%); regra de
-    hardcoded values canonizada e referenciada; guardas de tamanho ativas;
-    path de memória de sessão agnóstico de harness.
-- [x] **AI-2.7** Segurança da execução: hook `enforce-write-paths` (bloqueio de
-  escrita em `.env*`, `.git/`, fora do workspace; fricção extra para
-  `.husky/`/`package.json`), log JSONL de bloqueios do `enforce-security`
-  (gitignored), invariante no `agents.sanity.test.js` (agent com
-  `run_in_terminal` exige `applyTo` restrito), `schemaVersion` nos state files
-  `.defence-update-check.json`/`.defence-update-decisions.json` (P1), mensagens
-  de bloqueio sempre indicando o caminho sancionado (APPA lite), e smoke test
-  E2E do write guard (P3).
-  - Concluído em 2026-10-07: 13 testes de hooks novos (incl. primeira cobertura
-    do `enforce-security.sh`), 4 testes de schemaVersion, invariante de matriz
-    verde; documentação do sandboxing do VS Code 1.141 como camada
-    complementar.
-- [x] **AI-2.8** Validação final: gates completos, `CHANGELOG.md`, checkboxes e
-  `ai-lessons-learned.md` atualizados.
-  - Concluído em 2026-10-07: 844/844 testes, todos os gates verdes,
-    pre-commit exit 0; PLAN.md registra os critérios de aceite verificados.
-
-## Fase AI-3 — Resiliência e observabilidade da estrutura de AI
-
-> Definida em 2026-10-06 na revisão da AI-2. Ressequenciada em 2026-10-08
-> (decisão do mantenedor) por dependência real: **AI-3.5 → H → I(+AI-3.4) →
-> AI-3.3 → J → AI-3.2 → AI-3.1 → K**. Detalhamento em `.github/PLAN.md`.
-
-- [x] **AI-3.5** (executar antes de H) Memória de decisões: criar
-  `DECISIONS.md` (ADRs leves) e estender `context-recovery` com destilação de
-  fim de sessão.
-  - Concluído em 2026-10-08: `DECISIONS.md` criado com 7 ADRs retroativas
-    (F.4, migração de skills, stderr, reparo APPA, resequenciamento AI-3,
-    data-free drift check); context-recovery lê DECISIONS no início e destila
-    decisões/lições/plano no fim da sessão; referência no always-on.
-- [x] **AI-3.1** (última; condicionada à medição) Otimizar o hook
-  `inject-context` (medir custo do session-start; cachear dados estáticos com
-  invalidação por mtime).
-  - Concluído em 2026-11-03 como **"não fazer" documentado (ADR)**:
-    medição real — 143 bytes (~36 tokens) e ~96 ms, uma vez por sessão;
-    caching por mtime economizaria ~90 ms/sessão a custo de complexidade de
-    invalidação e risco de dados obsoletos. O canal `sessionStart` no
-    `measure-ai-context.js` torna a evidência reproduzível.
-- [x] **AI-3.2** (entre J e K) Smoke test de prompt-injection e sanitização de
-  outputs em CI (fixtures com instruções maliciosas embutidas; validação de
-  output de tools externas antes de admitir no contexto — segunda fase do
-  monitor, APPA).
-  - Concluído em 2026-11-03: `validate-external-content.js` (packument + dist
-    index) conectado às 3 ferramentas que decidem com dados externos;
-    autocorreção de cache envenenado; smoke suite de injeção (modelo
-    comprometido → hooks negam) + guarda de frases de injeção nos arquivos
-    de AI; ADR + ai-guidelines EN/PT.
-- [x] **AI-3.3** (entre I e J) Observabilidade estruturada: log JSONL
-  unificado de hooks, skills e bloqueios + página de docs bilíngue explicando
-  a leitura.
-  - Concluído em 2026-11-03: `log-hook-event.js` + `observability-summary.js`;
-    9 hooks fiados; `security-blocks.log` migrado; log limitado (5.000) e
-    à prova de falhas; `ai-observability.md` EN/PT; ADR registrado.
-    Limitação documentada: invocações de skills pelo modelo não são
-    observáveis por hooks.
-- [x] **AI-3.4** (fundido à Fase I) Mapa da arquitetura de AI em
-  `docs/{en,pt-BR}/architecture.md` (as 5 camadas e onde posicionar regras
-  novas).
-
-## Fase G — Code review educacional ✅
-
-- [x] Definir padrão de header comment para `tools/*.js` e `tools/lib/*.js`.
-  - Formalizado em 2026-10-07: todos os 34 arquivos de produção já seguiam o
-    padrão de-facto (shebang → `'use strict'` → header de propósito); agora
-    documentado no relatório da fase.
-- [x] Auditar headers, mensagens de erro, hardcoded values e links a camadas de
-  defesa.
-  - P0: nenhum. P1: pesos/thresholds do `trust-engine.js` sem justificativa —
-    corrigido inline. P2: 2 itens documentados como débito.
-- [x] Gerar `docs/{en,pt-BR}/code-review-improvements.md` e aplicar melhorias
-  P0/P1.
-- [x] Elevar a cobertura de linhas para ≥ 95% (concluído em 2026-10-07:
-  **95,94%**, era 94,70%; +14 testes nos 4 maiores hotspots; a busca por
-  cobertura revelou e corrigiu um bug de produção nos wrappers `exec`/`execSync`
-  de `tools/lib/process-monitor.js`, que ignoravam a implementação injetável).
-
-## Fase H — Organização e governança ✅
-
-> Refinada em 2026-10-08 com dados reais (ver PLAN.md). Extrair apenas
-> `concurrency.js` (duplicação real); formatters/cli seriam falsa abstração —
-> documentar as convenções.
-
-- [x] **H.1** Extrair `tools/lib/concurrency.js` (`runWithConcurrencyLimit`)
-  de `check-updates.js`, `check-package-age.js`, `trust-engine.js` e avaliar
-  `check-external-urls.js`; testes + regenerar manifesto.
-  - Concluído em 2026-10-08: helper compartilhado com 5 testes próprios;
-    re-export legado e testes duplicados removidos de `check-package-age`;
-    `check-external-urls.js` avaliado e mantido (usa loop sequencial, não o
-    helper); docs de arquitetura bilíngues atualizadas.
-- [x] **H.2** Expandir Biome para `.github/**/*.js` e corrigir o que surgir
-  (13 arquivos hoje não lintados).
-  - Concluído em 2026-10-08: escopo em `biome.json` + scripts `lint`/`format`
-    ampliados para `tools/ .github/` (86 arquivos, +15); auto-fixes aplicados;
-    correções manuais no template de teste (biome-ignore justificado) e no
-    sanity suite (sem assignment-em-expressão).
-- [x] **H.3** Criar `.github/CODEOWNERS` (`tools/`, `.npmrc`, `.husky/`,
-  `.github/hooks/`, `.github/workflows/` → mantenedor) + documentar a exigência
-  de review de code owner na branch protection.
-  - Concluído em 2026-10-08: `.github/CODEOWNERS` criado cobrindo também a
-    superfície de AI (`copilot-instructions`, `instructions/`, `agents/`,
-    `skills/`); páginas `docs/{en,pt-BR}/repository-organization.md` criadas
-    com a seção CODEOWNERS completa (o restante da página é H.5); nota da
-    camada organizacional adicionada ao índice de segurança bilíngue.
-    ✅ **Confirmado pelo mantenedor em 2026-10-08:** branch protection com
-    "Require PR + review de Code Owner" ativa em `main` e `dev`.
-- [x] **H.3.1** (evolução sugerida pelo Copilot, aceita em 2026-10-08) Habilitar
-  **Required Status Checks** em `main` e `dev`: "Require status checks to pass
-  before merging" com os 11 jobs de `.github/workflows/ci.yml` (`Build`,
-  `Test`, `Coverage`, `Lint`, `Format`, `Documentation Links`,
-  `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
-  `Defence Gates`) + "Require branches to be up to date before merging".
-  Documentado em `docs/{en,pt-BR}/repository-organization.md`; a ativação é
-  manual (Settings → Branches) — marcar como feito após aplicar no GitHub.
-  - ✅ Concluído em 2026-10-08: confirmado pelo mantenedor nos dois branches.
-- [x] **H.4** Corrigir drift do badge: `TEST_GLOBS` em `tools/update-badge.js`
-  cobrindo os mesmos arquivos do script `test` (hoje 487 vs 858 reais).
-  - Concluído em 2026-10-08: globs estendidos para as suítes de sanidade de
-    `.github/`; badge atualizado de 487 → 859; guarda de regressão trava o
-    drift comparando `TEST_GLOBS` com o script `test` do `package.json`.
-- [x] **H.5** Criar `docs/{en,pt-BR}/repository-organization.md` com o estado
-  final (incl. a decisão de não extrair formatters/cli).
-  - Concluído em 2026-10-08: página completa com convenções de layout, seção
-    "o que deliberadamente NÃO é extraído", resultados da auditoria (zero
-    órfãos, applyTo higiênico) e a seção CODEOWNERS.
-- [x] **H.6** Validação final + registrar no `DECISIONS.md` a decisão
-  "documentar, não extrair" para formatters/cli.
-  - Concluído em 2026-10-08: ADR registrado; gates verdes.
-- [x] ~~Corrigir drift do badge de testes (avaliação 2026-10-07)~~ — **coberto
-  por H.4** (item original da sessão de avaliação K2; resolvido com guarda de
-  regressão).
-
-## Fase L — Gestão de engines (Node.js/npm)
-
-> Origem: release de segurança Node.js 2026-10-21 (8 CVEs, 4 High) — pin atual
-> `24.19.0` antecede os fixes. Detalhes e política npm-bundled no PLAN.md.
-> Executa antes da Fase I (decisão do mantenedor, 2026-11-03).
-
-- [x] **L.0** Update imediato `24.19.0 → 24.22.2` (npm `>=11.19.1`):
-  `package.json#engines` + `.nvmrc` + `nvm install/use` + gates + CI verde.
-  - Executado em 2026-11-03: 23 arquivos de requisito atualizados; gates
-    locais verdes sob Node 24.22.2 / npm 11.19.1; CI validada na PR.
-- [x] **L.1** `tools/update-engines.js` + testes: modos update (in-major) e
-  upgrade (major LTS); consulta `nodejs.org/dist/index.json`; npm = bundled;
-  edição cirúrgica de `package.json`/`.nvmrc`; recusa alvo fora do dist;
-  scripts `defence:engines:*` + checklist de comandos.
-  - Concluído em 2026-11-03 (scripts registrados como
-    `defence:update-engines[:update|:upgrade]`); 14 testes + smoke test real;
-    helpers semver extraídos para `tools/lib/semver.js`.
-- [x] **L.2** Higiene do `.npmrc` (remover/substituir as chaves mortas
-  `npm-audit-fix-level`/`send-metrics` + guarda de chaves conhecidas) e blind
-  spot `.npm-extension.mjs` (npm v12): detecção nas ferramentas + docs
-  bilíngues (`ignore-scripts` ⇒ `ignore-extension`).
-  - Concluído em 2026-11-03: chaves eram lookahead intencional documentado —
-    mantidas por decisão do mantenedor, comentários inline alinhados. Nova
-    ferramenta `check-npmrc.js` (gate no pre-commit + CI). Drift de adoção do
-    instalador corrigido com teste de completude (manifesto 72 → 79).
-- [x] **L.3** ADRs: formalizar a adoção já existente de `min-release-age=7`
-  (com docs bilíngues do tradeoff) e avaliar o Permission Model
-  (`--permission` não é sandbox de install).
-  - Concluído em 2026-11-03: 2 ADRs em DECISIONS.md; fail-closed documentado
-    em npmrc-hardening (EN/PT); limitação do Permission Model registrada em
-    lifecycle-script-analysis (EN/PT).
-- [x] **L.4** Validação final (gates + `nvm use` + CI + CHANGELOG/DECISIONS).
-  - Concluído em 2026-11-03: 902/902 testes, lint 92 arquivos, 187 md,
-    CI verde nas PRs da fase.
-
-## Fase AI-4 — Processos de AI: granularidade de commits e code review
-
-> Origem: feedback do mantenedor (commits acumulando escopo) + avaliação do
-> VS Code 1.144.1 (zero deprecations; Copilot Memory cloud; Assisted
-> Permissions GA; `context: fork` sem menção — re-teste empírico).
-> Executa depois da L e antes da Fase I (decisão do mantenedor, 2026-11-03).
-
-- [x] **AI-4.1** Commits granulares: regra normativa (1 commit = 1 intenção) +
-  hook de advertência para staged diff grande/multidomínio + ADR.
-  - Concluído em 2026-11-03: regra no always-on (2.998 bytes, dentro do
-    orçamento de 3 KB) e no CONTRIBUTING; hook `warn-oversized-commit`
-    (consultivo, nunca bloqueia) com 9 testes E2E em repos temporários;
-    limites 8 arquivos / 400 linhas / 2 domínios (par bilíngue = 1 domínio)
-    justificados em ADR.
-- [x] **AI-4.2** Processo de code review em 4 eixos (qualidade, segurança,
-  código morto, docs relacionadas): skill orquestradora + avaliar ferramenta
-  leve de dead-code sem deps novas.
-  - Concluído em 2026-11-03: skill `code-review-pass` + ferramenta consultiva
-    `check-dead-code.js` (ADR: nunca gate rígido); triagem inicial com 41
-    unexports + 2 deleções + 4 keeps-com-teste; baseline zero; lição
-    "suíte como árbitra" registrada.
-- [x] **AI-4.3** Adoção VS Code 1.144: re-teste de `context: fork`; `target`
-  explícito nos `.agent.md`; política Copilot Memory × memória em arquivos;
-  interação Assisted Permissions × hooks; deep links de customização (opcional).
-  - Concluído em 2026-11-03: fork sem efeito observável no 1.144.1 (mantido,
-    revalidar no próximo update); `target: github-copilot` nos 9 agents; seção
-    "VS Code 1.144" nos ai-guidelines EN/PT; deep links adiados para a Fase M.
-- [x] **AI-4.4** Validação final (gates + sanity suites + docs bilíngues).
-  - Concluído em 2026-11-03: 926/926 testes, lint 94, 190 md, manifesto 81.
-
-## Fase I — Revisão total da documentação ✅
-
-> Refinada em 2026-10-08 com auditoria real (ver PLAN.md). README/SECURITY e
-> paridade bilíngue já saudáveis; trabalho em 3 arquivos + 1 rename + seção AI.
-> **Concluída em 2026-11-03.**
-
-- [x] **I.1** `docs/{en,pt-BR}/architecture.md`: árvore completa real +
-  seção "AI customization layer" (AI-3.4) com as 5 camadas e a regra de
-  posicionamento de regras novas.
-- [x] **I.2** `docs/{en,pt-BR}/glossary.md`: +8 termos (intermediateEligible,
-  quarantine, schemaVersion, CODEOWNERS, skill, agent, hook, fork).
-- [x] **I.3** `CONTRIBUTING.md`: comando de format corrigido
-  (`npm run format:check`) e defence-gates alinhado ao ci.yml (incl.
-  check-npmrc da L.2).
-- [x] **I.4** Renomear check-links → check-md-links: **resolvido sem ação** —
-  os arquivos já estavam corretos; zero referências obsoletas.
-- [x] **I.5** README.md/SECURITY.md revisados: adicionadas as capacidades da
-  Fase L (check-npmrc, update-engines) e a camada organizacional; índices
-  EN/PT consistentes.
-- [x] **I.6** Validação final: 926/926 testes, lint 94 arquivos, 190 md,
-  manifesto 81, paridade bilíngue mantida.
-
-## Fase J — Avaliação do projeto ✅
-
-> **Concluída em 2026-11-03.** `PROJECT_STATUS_REPORT.md` regenerado com
-> métricas medidas: **10/10** em todas as categorias, zero P0. A incluir o
-> item opcional P4: `tools/measure-ai-context.js` criado (pegada de contexto
-> AI medida, não estimada).
-
-- [x] Coletar métricas atuais e verificar problemas do
-  `PROJECT_STATUS_REPORT.md` de 2026-08-20.
-- [x] Gerar novo `PROJECT_STATUS_REPORT.md` e decidir se atingiu 10/10.
-- [x] Atualizar `TODO.md` com ações derivadas.
-- [x] (Opcional, P4) Criar `tools/measure-ai-context.js` para medir bytes por
-  camada de customização AI e incluir o custo de tokens real no status report.
-
-## Fase K — Planejamento do release v1.0.0 ✅
-
-- [x] Só inicia com aprovação explícita, nota 10/10 e zero itens P0.
-  (Aprovada pelo mantenedor em 2026-11-04.)
-- [x] Planejar tag, GitHub Release com SBOM e comunicação.
-  (Executado em 2026-11-04: checklist da skill `release-checklist`, gates
-  completos verdes — incluindo a captura e correção da regressão do portão
-  de idade transitivo.)
-
-## Fase M — Adoção e scaffolding
-
-> M.1 executa antes da K (validação pré-release do instalador); M.2/M.3 são
-> pós-v1.0.0, alvo v1.1.0 (decisão do mantenedor, 2026-11-03).
-
-- [x] **M.1** Dogfooding: `install-defences.js` em
-  `../setup-webpack-stylus-liquid/`; documentar gaps; iterar até instalação
-  limpa; relatório bilíngue.
-  - Concluído em 2026-11-03: instalação limpa, suíte adotada 549/549, 8 gaps
-    corrigidos na raiz (relatório em `docs/{en,pt-BR}/dogfooding-m1-report.md`,
-    ADR para deps não-registry). O projeto irmão segue na branch
-    `chore/adopt-defences` para revisão do mantenedor (29 vulns a triangular).
-- [ ] **M.2** (v1.1.0) `tools/create-defended-project.js`: scaffolding de
-  projeto zerado com defesas completas, com opção de infra de AI incluída.
-- [ ] **M.3** (v1.1.0) Scaffolding exclusivo da infra de AI (`.github/`) para
-  projetos zerados ou em andamento; avaliar marketplace do VS Code 1.144 como
-  canal de distribuição. Nota 1.145: a setting gerenciada `enabledPlugins`
-  impede a desinstalação de plugins exigidos pela organização — reforça o
-  marketplace como canal de distribuição impositiva.
+- [ ] **2026-11-11 — Security release do Node.js** (26.x/24.x/22.x,
+  severidade máxima HIGH):
+  [anúncio oficial](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases).
+  Quando o dist index publicar a versão nova da linha 24.x: rodar
+  `npm run defence:update-engines` (report), aplicar com
+  `defence:update-engines:update`, abrir PR. O CI já valida as duas linhas
+  (engines floor + LTS latest).
 
 ---
 
@@ -420,10 +59,66 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.
+- [ ] Deduplicate CI runs on dev→main PRs — pushing to `dev` fires both the
+  `push` run and the `pull_request` run, so release PRs show 24 checks (two
+  identical sets of 12, both green on v1.0.0). Options: gate the
+  `pull_request` trigger when the head branch is `dev`, or accept the noise
+  as extra evidence.
 - [ ] Add deep performance profiling dashboard.
 - [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
 - [ ] Run the ninth project status analysis as a pre-release step and decide
   whether further improvements are needed before releasing.
+
+---
+
+---
+
+## Fase N — UX de output das ferramentas ✅ (25/25; PRs #33–#35)
+
+- [x] Definir o padrão de saída legível: sumário estruturado ao final de cada
+  ferramenta (passou/falhou/pulou + próximo comando sugerido), formatação
+  compartilhada em `tools/lib/formatters.js` (símbolos consistentes ✓/✗/⚠/○,
+  alinhamento por colunas, agrupamento por seção) e modo `--quiet` (alias de
+  `--silent`). Fundação entregue na branch `feat/phase-n-output-ux`; ADR em
+  `DECISIONS.md` emenda a decisão de 2026-10-08.
+- [x] Avaliar cores via detecção de TTY — **adotado**: ANSI nativo em
+  `formatters.js` (`supportsColor`: TTY + `NO_COLOR`/`FORCE_COLOR`), zero
+  dependências, desligado fora de TTY.
+- [x] Aplicar ferramenta por ferramenta (**25/25 feitas**), atualizando os
+  testes que assertam strings de saída e as páginas de docs (EN/PT) com
+  antes/depois. Batches: (a) gates de CI/pre-commit, (b) registry/update,
+  (c) relatórios/infra — todos entregues. Decisão: `add-package`,
+  `update-packages`, `install-defences` e `setup-bootstrap` **não** ganham
+  `--quiet` (workflows interativos/instaladores — a saída das etapas é a
+  evidência); documentado nos headers, páginas e checklist. Lição recorrente
+  promovida a regra: exemplos de saída fictícios/traduzidos nas docs
+  (9 páginas corrigidas; ver `.github/instructions/docs.instructions.md`
+  § Sample Output Accuracy).
+
+## Fase M — Adoção e scaffolding (pós-v1.0.0, alvo v1.1.0)
+
+- [x] **M.1** Dogfooding no `setup-webpack-stylus-liquid` — concluído em
+  2026-11-03 (549/549, 8 gaps corrigidos; relatório bilíngue em
+  `docs/{en,pt-BR}/dogfooding-m1-report.md`). O projeto irmão foi
+  **abandonado pelo mantenedor em 2026-11-05** (muitas dependências, estado
+  problemático); um projeto novo e pequeno será usado para os próximos
+  testes de adoção.
+- [ ] **M.2** `tools/create-defended-project.js`: scaffolding de projeto
+  zerado com defesas completas, com opção de infra de AI incluída.
+- [ ] **M.3** Scaffolding exclusivo da infra de AI (`.github/`) para projetos
+  zerados ou em andamento; avaliar marketplace como canal de distribuição.
+  Nota VS Code 1.145: a setting gerenciada `enabledPlugins` impede a
+  desinstalação de plugins exigidos pela organização — reforça o marketplace
+  como canal de distribuição impositiva.
+
+## Fix pendente — dependabot.yml
+
+- [x] O run do Dependabot falhou (2026-11-04). Causa confirmada no CI:
+  `#/updates/0/reviewers` precisa de no mínimo 1 item. Corrigido em
+  2026-11-05: removidos `reviewers: []` e o bloco `labels:` (os labels
+  `dependencies`/`github-actions` não existem no repositório; o Dependabot
+  cria o label padrão `dependencies` automaticamente). Decisão documentada em
+  `docs/{en,pt-BR}/ci-cd-overview.md` e como comentário no próprio YAML.
 
 ---
 

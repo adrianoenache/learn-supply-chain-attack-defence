@@ -40,6 +40,18 @@ Saída real de dry-run (capturada em 2026-11-03; a ferramenta imprime em inglês
   - npm run defence:license-check:fail
 ```
 
+E o fechamento de uma execução real:
+
+```text
+  ✓ OK   update complete — 1 pinned package(s) applied
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: review package.json and package-lock.json, then commit both files
+```
+
+Assim como o `add-package`, este workflow interativo intencionalmente não tem modo `--quiet`.
+
 ## Camadas de defesa relacionadas
 
 - [Camada de Defesa 1 — Verificação de idade do pacote](../security/defense-layer-1-package-age.md)

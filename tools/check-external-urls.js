@@ -11,6 +11,7 @@
 //   node ./tools/check-external-urls.js
 //   npm run defence:check-external-urls
 //   npm run defence:check-external-urls -- --force
+//   npm run defence:check-external-urls -- --quiet   — exit only, no success output (--silent is a kept alias)
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -19,6 +20,13 @@ const crypto = require('node:crypto')
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { fetchBuffer } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const {
+  hasQuietFlag,
+  supportsColor,
+  formatItem,
+  formatSection,
+  renderSummary,
+} = require(path.resolve(__dirname, './lib/formatters.js'))
 
 const config = loadConfig()
 
@@ -280,7 +288,7 @@ async function checkUrls(urls, cache, force) {
 function parseCliArgs(argv = process.argv.slice(2)) {
   return {
     isForce: argv.includes('--force'),
-    isSilent: argv.includes('--silent'),
+    isSilent: hasQuietFlag(argv),
   }
 }
 
@@ -340,34 +348,60 @@ function main(argv = process.argv.slice(2)) {
       profileMetrics.cacheMisses = checkedCount - fromCache
 
       if (!isSilent) {
+        const color = supportsColor()
+
         if (deadButKnown.length > 0) {
-          console.log(`⚠️  ${deadButKnown.length} known-dead URL(s) skipped:`)
+          console.log(
+            formatSection('Known-dead URL(s) skipped', deadButKnown.length),
+          )
           for (const { url, statusCode } of deadButKnown) {
-            console.log(`  ${url} (HTTP ${statusCode ?? 'error'})`)
+            console.log(
+              formatItem('skip', `${url} (HTTP ${statusCode ?? 'error'})`, {
+                indent: 4,
+                color,
+              }),
+            )
           }
         }
 
         if (broken.length > 0) {
-          console.error(`\n❌ Found ${broken.length} broken external URL(s):`)
+          console.error(`\nFound ${broken.length} broken external URL(s):`)
           for (const { url, statusCode, error } of broken) {
-            console.error(`  ${url}`)
+            console.error(formatItem('fail', url))
             console.error(
-              `    status: ${statusCode ?? 'network error'} | ${error}`,
+              `      status: ${statusCode ?? 'network error'} | ${error}`,
             )
             const files = Array.from(urlIndex.get(url).files).map((f) =>
               path.relative(rootDir, f),
             )
-            console.error(`    files:  ${files.join(', ')}`)
+            console.error(`      files:  ${files.join(', ')}`)
           }
-          console.error(
-            '\nFix the URLs, mark them as illustrative, or add intentional dead URLs to .github/known-dead-urls.md.',
+          console.log(
+            renderSummary({
+              passed: checkedCount - broken.length - deadButKnown.length,
+              failed: broken.length,
+              skipped: deadButKnown.length,
+              next: 'fix the URLs, mark them as illustrative, or add intentional dead URLs to .github/known-dead-urls.md',
+              color,
+            }),
           )
           return 1
         }
 
         console.log(
-          `✅ Checked ${checkedCount} external URL(s). All reachable.` +
-            (fromCache > 0 ? ` (${fromCache} from cache)` : ''),
+          formatItem(
+            'pass',
+            `checked ${checkedCount} external URL(s); all reachable` +
+              (fromCache > 0 ? ` (${fromCache} from cache)` : ''),
+            { color },
+          ),
+        )
+        console.log(
+          renderSummary({
+            passed: checkedCount - deadButKnown.length,
+            skipped: deadButKnown.length,
+            color,
+          }),
         )
       }
 

@@ -156,4 +156,33 @@ describe('run-audit-with-retry', () => {
     assert.equal(mod.main(['--audit-level=moderate']), 0)
     assert.deepEqual(seen[0], ['--audit-level=moderate'])
   })
+
+  test('--quiet suppresses forwarded success output and is never forwarded (Phase N)', () => {
+    const mod = loadTool()
+    const written = []
+    const originalOut = process.stdout.write.bind(process.stdout)
+    process.stdout.write = (chunk) => {
+      written.push(chunk)
+      return true
+    }
+    const seen = []
+    mod.runAudit = (args) => {
+      seen.push(args)
+      return { status: 0, stdout: 'audit-ok-out', stderr: '' }
+    }
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(mod.main(['--quiet']), 0)
+      // npm's own report and the summary stay silent on success...
+      assert.deepEqual(written, [])
+      assert.deepEqual(logs, [])
+      // ...and --quiet must not leak into the npm audit arguments.
+      assert.ok(!seen[0].includes('--quiet'))
+    } finally {
+      process.stdout.write = originalOut
+      console.log = originalLog
+    }
+  })
 })

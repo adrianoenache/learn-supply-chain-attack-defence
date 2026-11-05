@@ -32,6 +32,10 @@ const crypto = require('node:crypto')
 const fs = require('node:fs')
 const path = require('node:path')
 
+const { supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
+
 const SOURCE_DIR = path.resolve(__dirname, '..')
 
 const FILES_TO_COPY = [
@@ -92,6 +96,8 @@ const FILES_TO_COPY = [
   'tools/lib/config.test.js',
   'tools/lib/concurrency.js',
   'tools/lib/concurrency.test.js',
+  'tools/lib/formatters.js',
+  'tools/lib/formatters.test.js',
   'tools/lib/package-utils.js',
   'tools/lib/profiler.js',
   'tools/lib/profiler.test.js',
@@ -363,8 +369,13 @@ function updateLocalManifest(cwd = process.cwd()) {
   const manifestPath = path.join(cwd, MANIFEST_NAME)
   fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`)
   console.log(
-    `Updated ${MANIFEST_NAME} with ${manifest.files.length} file hash(es).`,
+    formatItem(
+      'pass',
+      `updated ${MANIFEST_NAME} with ${manifest.files.length} file hash(es)`,
+      { color: supportsColor() },
+    ),
   )
+  console.log(renderSummary({ passed: 1, color: supportsColor() }))
   return manifest
 }
 
@@ -506,7 +517,13 @@ function main(argv) {
   updatePackageJson(pkgPath, content, dryRun)
   updateGitignore(targetDir, dryRun)
 
-  console.log('\nDone.')
+  console.log(
+    formatItem(
+      'pass',
+      `${dryRun ? '[dry-run] ' : ''}defence files installed into ${targetDir}`,
+      { color: supportsColor() },
+    ),
+  )
   if (dryRun) {
     console.log('This was a dry run. Remove --dry-run to apply changes.')
   } else {
@@ -519,6 +536,12 @@ function main(argv) {
       '  3. Commit .npmrc, .husky/, tools/, and package.json changes.',
     )
   }
+  console.log(
+    renderSummary({
+      passed: FILES_TO_COPY.length,
+      color: supportsColor(),
+    }),
+  )
   return 0
 }
 

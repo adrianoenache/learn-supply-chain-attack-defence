@@ -40,6 +40,18 @@ Real dry-run output (captured 2026-11-03):
   - npm run defence:license-check:fail
 ```
 
+And the closing block of a real run:
+
+```text
+  ✓ OK   update complete — 1 pinned package(s) applied
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: review package.json and package-lock.json, then commit both files
+```
+
+Like `add-package`, this interactive workflow intentionally has no `--quiet` mode.
+
 ## Related defense layers
 
 - [Defense Layer 1 — Package age check](../security/defense-layer-1-package-age.md)

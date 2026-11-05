@@ -14,6 +14,7 @@
 //   node ./tools/check-md-links.js
 //   npm run defence:check-md-links
 //   npm run defence:check-md-links -- --force
+//   npm run defence:check-md-links -- --quiet   — exit only, no success output (--silent is a kept alias)
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -21,6 +22,9 @@ const crypto = require('node:crypto')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const config = loadConfig()
 
@@ -149,6 +153,7 @@ function checkFileWithCache(filePath, cache, force = false) {
 function parseCliArgs(argv = process.argv.slice(2)) {
   return {
     isForce: argv.includes('--force'),
+    isSilent: hasQuietFlag(argv),
   }
 }
 
@@ -156,11 +161,13 @@ function main(argv = process.argv.slice(2)) {
   return withProfile(
     'check-md-links',
     (profileMetrics) => {
-      const { isForce } = parseCliArgs(argv)
+      const { isForce, isSilent } = parseCliArgs(argv)
+      const color = supportsColor()
       const rootDir = process.cwd()
       const files = findMarkdownFiles(rootDir)
       let totalBroken = 0
       let checkedFromCache = 0
+      let filesWithBroken = 0
 
       const cache = loadCache()
 
@@ -169,6 +176,7 @@ function main(argv = process.argv.slice(2)) {
         if (fromCache) checkedFromCache++
         if (broken.length > 0) {
           totalBroken += broken.length
+          filesWithBroken++
           console.error(`Broken links in ${path.relative(rootDir, file)}:`)
           for (const link of broken) {
             console.error(`  -> ${link}`)
@@ -182,14 +190,33 @@ function main(argv = process.argv.slice(2)) {
       profileMetrics.cacheMisses = files.length - checkedFromCache
 
       if (totalBroken === 0) {
-        console.log(
-          `Checked ${files.length} markdown file(s). All local links are valid.` +
-            (checkedFromCache > 0 ? ` (${checkedFromCache} from cache)` : ''),
-        )
+        if (!isSilent) {
+          console.log(
+            formatItem(
+              'pass',
+              `checked ${files.length} markdown file(s); all local links are valid` +
+                (checkedFromCache > 0
+                  ? ` (${checkedFromCache} from cache)`
+                  : ''),
+              { color },
+            ),
+          )
+          console.log(renderSummary({ passed: files.length, color }))
+        }
         return 0
       }
 
       console.error(`Found ${totalBroken} broken local link(s).`)
+      if (!isSilent) {
+        console.log(
+          renderSummary({
+            passed: files.length - filesWithBroken,
+            failed: totalBroken,
+            next: 'fix the links above and re-run npm run defence:check-md-links',
+            color,
+          }),
+        )
+      }
       return 1
     },
     { profilePath: path.resolve(process.cwd(), '.defence-profile.json') },

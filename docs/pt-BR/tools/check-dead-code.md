@@ -16,8 +16,21 @@ Implementado em [tools/check-dead-code.js](../../../tools/check-dead-code.js).
 ```bash
 npm run defence:check-dead-code                  # lista de candidatos legível
 node ./tools/check-dead-code.js --format json    # legível por máquina
-node ./tools/check-dead-code.js --silent         # apenas exit code
+node ./tools/check-dead-code.js --quiet          # apenas exit code (--silent permanece como alias)
 ```
+
+## Exemplo de saída
+
+```text
+  ✓ OK   dead-code scan: no candidates found
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+```
+
+Com candidatos presentes, cada um aparece como item `⚠ WARN` e o sumário fecha com `N warned` mais uma dica de `Next:` para revisão.
+
+(A saída da ferramenta é em inglês.)
 
 ## Regras de triagem (importante)
 

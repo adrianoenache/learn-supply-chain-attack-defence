@@ -331,3 +331,109 @@ Keep entries concise; link to the phase/commit for detail.
   with new direct tests); the scanner runs on demand via the
   `code-review-pass` skill, and its parser is hardened against the
   codebase's real consumption patterns.
+
+### 2026-11-04 — "Restrict updates" belongs to frozen refs, never to merge targets
+
+- **Decision:** The `main`/`dev` branch rulesets must NOT enable
+  "Restrict updates"; the full, intentionally identical ruleset inventory
+  for both branches is documented in
+  `docs/{en,pt-BR}/repository-organization.md`.
+- **Context:** During the v1.0.0 release, `main` had "Restrict updates"
+  enabled with an empty bypass list. Merging the release PR counts as a ref
+  update, so the merge was blocked with "Cannot update this protected ref"
+  even with all 24 checks green and approvals at 0.
+- **Rejected alternative:** Keeping the rule and adding the maintainer to
+  the bypass list — a bypass that always applies to the only person who
+  merges is indistinguishable from not having the rule, and it makes
+  `main`/`dev` diverge from the documented model.
+- **Consequences:** The release merged after the rule was removed; the
+  documented inventory now doubles as a checklist when reproducing the
+  protection in another repository (Fase M adopters).
+
+### 2026-11-05 — Post-release: archive completed phases out of PLAN/TODO
+
+- **Decision:** After each release, completed phases leave the body of
+  `.github/PLAN.md` and `TODO.md`; PLAN keeps them as a "Histórico" archive
+  section and TODO keeps only open work. The permanent rule lives in PLAN
+  § Regras permanentes.
+- **Context:** By v1.0.0 the two files totalled 1,618 lines; the maintainer
+  reported them unreadable as operational dashboards. Detail was already
+  triple-redundant (CHANGELOG, DECISIONS, merged PRs).
+- **Rejected alternative:** Deleting the history outright — the narrative of
+  *why* phases existed aids future audits and the project's teaching goal.
+- **Consequences:** TODO drops from 852 to ~490 lines (open work only, plus
+  the dated Node.js security-release reminder and the explicit execution
+  queue); PLAN keeps the archive below the fold. Repeat the cleanup at every
+  release boundary.
+
+### 2026-11-05 — Extract shared output primitives (Phase N), keep domain rendering per tool
+
+- **Decision:** Create `tools/lib/formatters.js` with the byte-identical
+  output elements of every defence tool: status symbols (✓/✗/⚠/○), aligned
+  labels (OK/FAIL/WARN/SKIP), the structured end-of-run summary
+  (passed/failed/warned/skipped + next suggested command), the
+  `--quiet` flag convention (`--silent` kept as a compatibility alias), and
+  native ANSI colors gated on TTY/NO_COLOR/FORCE_COLOR. Domain-specific
+  report rendering (license tables, SBOM documents) stays in each tool.
+- **Context:** Fase N (output UX) found an inconsistent vocabulary across
+  tools — emoji in check-sync/check-licenses, bare words
+  (OK/SKIP/BLOCKED) in check-package-age, no summary anywhere, and 12 tools
+  with `--silent` while the rest had nothing. The 2026-10-08 ADR rejected
+  extracting formatters because *report* formatters are domain-specific;
+  the elements above are instead byte-identical in intent, which is exactly
+  what that ADR's own rule allows ("extract only byte-identical
+  implementations used by more than one file").
+- **Rejected alternative:** Standardizing by convention alone (reaffirming
+  2026-10-08) — the summary block and TTY color detection are non-trivial
+  logic that would drift across 25 tools if copied by hand.
+- **Consequences:** New tools get a consistent, greppable output contract
+  for free; the 2026-10-08 ADR is amended, not reversed (domain rendering
+  is still per-tool). Emoji were dropped from status output because they
+  are double-width and break column alignment. Applied to the three pilot
+  tools (check-sync, check-licenses, check-package-age) first; the
+  remaining tools follow in batches.
+
+### 2026-11-05 — update-engines: skip malformed dist entries; fail-closed only on decision-relevant ones
+
+- **Decision:** `sanitizeDistIndex` splits the official Node.js dist index
+  into valid entries and per-entry skip records. Every `update-engines`
+  mode skips invalid entries with a WARN on stderr (JSON report exposes a
+  `skipped` field). Apply modes (`--update`/`--upgrade`/`--to`) abort only
+  when a skipped entry could affect the target decision — a well-formed
+  `vX.Y.Z` version with major ≥ the current one. Candidate selection also
+  ignores anything that is not strict stable semver (`X.Y.Z`), so
+  pre-releases never reach `package.json`.
+- **Context:** The entry `v27.0.0-alpha.0.0.0` (published 2026-10-29)
+  aborted the whole report run via `validateDistIndex`, blocking the
+  2026-11-11 security-release procedure. Live inspection showed 13 more
+  permanently malformed historical entries (v0.6.x–v11.6.0, 2011–2018,
+  bundled npm with alpha/beta/next suffixes) that upstream will never fix,
+  so whole-index fail-closed would break apply modes forever.
+- **Rejected alternative:** Whole-index fail-closed in apply modes (first
+  proposal) — permanently unusable given the historical entries. Fail-open
+  everywhere — a malformed `v24.x` entry with a well-formed version could
+  hide the real security-release target we meant to apply.
+- **Consequences:** Report and dry-run validate live against the real
+  index again; the L.0 procedure for 2026-11-11 is unblocked. The
+  relevance rule keeps the security property: engines are never written
+  from a decision that untrusted data may have influenced.
+
+### 2026-11-05 — Releases run in an isolated git worktree
+
+- **Decision:** All release work (version bump, release PR dev→main,
+  tagging, post-release verification) executes in an isolated git
+  worktree, never in the main checkout. `git fetch --all --prune` is the
+  non-negotiable first step before cutting the release branch from
+  `origin/dev`.
+- **Context:** Multiple parallel AI sessions share the main checkout (five
+  active sessions observed on 2026-11-05, two with feature branches
+  checked out). A branch switch by another session mid-release would
+  corrupt the validation gates and their recorded evidence. The
+  maintainer mandated the rule at the v1.1.0 release start.
+- **Rejected alternative:** Reusing the main checkout, as done for
+  v1.0.0 — safe only when no other session is active, which is no longer
+  the norm.
+- **Consequences:** The release-checklist skill (step 1), the bilingual
+  release checklist pages and the project-wide AI instructions make the
+  worktree mandatory. Cost: a fresh `npm ci` per release and worktree
+  cleanup at the end; benefit: full isolation from concurrent sessions.

@@ -33,6 +33,10 @@
 const fs = require('node:fs')
 const path = require('node:path')
 
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
+
 const REPO_ROOT = path.resolve(__dirname, '..')
 const TOOLS_DIR = path.resolve(__dirname)
 const PACKAGE_JSON = path.join(REPO_ROOT, 'package.json')
@@ -79,7 +83,7 @@ function defaultListFiles() {
 
 function parseCliArgs(argv = process.argv.slice(2)) {
   return {
-    isSilent: argv.includes('--silent'),
+    isSilent: hasQuietFlag(argv),
     format: argv.includes('--format')
       ? argv[argv.indexOf('--format') + 1]
       : 'text',
@@ -353,20 +357,43 @@ function main(argv = process.argv.slice(2)) {
   }
 
   if (!args.isSilent) {
+    const color = supportsColor()
     if (candidateCount === 0) {
-      logImpl('Dead-code scan: no candidates found.')
+      logImpl(
+        formatItem('pass', 'dead-code scan: no candidates found', { color }),
+      )
+      logImpl(renderSummary({ passed: 1, color }))
     } else {
       logImpl(
         `Dead-code scan: ${candidateCount} candidate(s) — review required (advisory, never a hard gate).`,
       )
       for (const { file, exports } of deadExports) {
-        logImpl(`  ${file}: unreferenced export(s): ${exports.join(', ')}`)
+        logImpl(
+          formatItem(
+            'warn',
+            `${file}: unreferenced export(s): ${exports.join(', ')}`,
+            { color },
+          ),
+        )
       }
       for (const file of orphanFiles) {
-        logImpl(`  ${file}: never required and not an npm script entry point`)
+        logImpl(
+          formatItem(
+            'warn',
+            `${file}: never required and not an npm script entry point`,
+            { color },
+          ),
+        )
       }
       logImpl(
         '  Note: DI-contract exports (setImpls/resetImpls and friends) may be consumed through indirection — confirm before removing.',
+      )
+      logImpl(
+        renderSummary({
+          warned: candidateCount,
+          next: 'review the candidates above — advisory only, never a hard gate',
+          color,
+        }),
       )
     }
   }

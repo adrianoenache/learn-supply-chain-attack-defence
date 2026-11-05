@@ -216,6 +216,22 @@ describe('check-secrets', () => {
     }
   })
 
+  test('--quiet suppresses success output and is not treated as a file (Phase N)', () => {
+    const filePath = '/tmp/clean.txt'
+    setFsImpl(makeMockFs(new Map([[path.resolve(filePath), 'hello world']])))
+
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(main(['--quiet', filePath]), 0)
+      assert.deepEqual(logs, [], '--quiet must suppress all stdout output')
+    } finally {
+      console.log = originalLog
+      resetFsImpl()
+    }
+  })
+
   test('main returns 1 when secrets found', () => {
     const filePath = '/tmp/secret.txt'
     setFsImpl(

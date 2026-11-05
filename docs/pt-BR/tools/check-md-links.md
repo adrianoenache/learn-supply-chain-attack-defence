@@ -33,12 +33,20 @@ npm run defence:check-md-links
 
 # Forçar re-verificação de todos os links
 npm run defence:check-md-links -- --force
+
+# Modo quiet (apenas código de saída; links quebrados continuam visíveis)
+npm run defence:check-md-links -- --quiet
 ```
+
+`--silent` permanece como alias de compatibilidade de `--quiet`.
 
 ## Exemplo de saída
 
 ```text
-Checked 190 markdown file(s). All local links are valid. (190 from cache)
+  ✓ OK   checked 197 markdown file(s); all local links are valid (197 from cache)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   197 passed
 ```
 
 (A saída da ferramenta é em inglês; os contadores refletem o repositório vivo e mudam conforme páginas são adicionadas.)

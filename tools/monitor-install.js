@@ -7,6 +7,7 @@
 //   npm run defence:install-monitored -- npm install <args...>
 //   npm run defence:install-monitored -- npm ci
 //   npm run defence:install-monitored -- npm install --save-exact lodash@4.17.21 --output=report.md
+//   Flags: --quiet (--silent is a kept alias), --format=<markdown|json>, --output=<path>, --fail-on-lifecycle
 //
 // The command after the script name must be `npm install` or `npm ci`.
 // The monitor records every child process spawned during the install and writes
@@ -18,6 +19,9 @@ const path = require('node:path')
 const { performance } = require('node:perf_hooks')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const processMonitor = require(
   path.resolve(__dirname, './lib/process-monitor.js'),
 )
@@ -83,7 +87,7 @@ function parseCliArgs(argv) {
       args.shift()
       continue
     }
-    if (arg === '--silent') {
+    if (arg === '--silent' || arg === '--quiet') {
       options.silent = true
       args.shift()
       continue
@@ -196,12 +200,27 @@ function main(argv = processImpl.argv.slice(2), exitFn = processImpl.exit) {
   writeReport(outputPath, reportContent)
 
   if (!options.silent) {
-    consoleImpl.log(`\nReport written to: ${outputPath}`)
+    const color = supportsColor()
     const lifecycleCount = events.filter((e) =>
       e.labels.includes('lifecycle'),
     ).length
     consoleImpl.log(
-      `Recorded ${events.length} event(s), ${lifecycleCount} lifecycle script(s).`,
+      formatItem('pass', `report written to ${outputPath}`, { color }),
+    )
+    consoleImpl.log(
+      `  Recorded ${events.length} event(s), ${lifecycleCount} lifecycle script(s).`,
+    )
+    consoleImpl.log(
+      renderSummary({
+        passed: monitoredExitCode === 0 ? 1 : 0,
+        failed: monitoredExitCode === 0 ? 0 : 1,
+        warned: lifecycleCount,
+        next:
+          lifecycleCount > 0
+            ? 'review the lifecycle events in the report before trusting the install'
+            : null,
+        color,
+      }),
     )
   }
 

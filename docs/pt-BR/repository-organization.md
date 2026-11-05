@@ -32,6 +32,35 @@ simplificaria. A regra: extrair apenas quando a implementação é
 byte-idêntica em mais de um arquivo — como foi o caso de
 `tools/lib/concurrency.js` e, depois, de `tools/lib/semver.js`.
 
+A Fase N (2026-11-05) **emendou** essa decisão para os primitivos de status de
+saída: símbolos (✓/✗/⚠/○), rótulos alinhados (OK/FAIL/WARN/SKIP), o bloco de
+sumário de fim de execução, a convenção `--quiet` e a detecção de cor via TTY
+são byte-idênticos em intenção em todas as ferramentas, então agora vivem em
+`tools/lib/formatters.js` (ADR em `DECISIONS.md`). A renderização de relatórios
+específicos de domínio permanece em cada ferramenta.
+
+### Convenções de saída antes/depois (pilotos da Fase N)
+
+Antes, cada ferramenta inventava o próprio vocabulário — emoji no
+`check-sync.js` (`✅ node_modules is in sync…`), palavras soltas com
+preenchimento no `check-package-age.js` (`  OK       lodash@4.17.21 — …`) e
+nenhum sumário de fim de execução, então os logs de CI não podiam ser
+varridos com um único padrão. Depois, toda ferramenta imprime itens de status
+alinhados e fecha com o sumário compartilhado:
+
+```text
+  ✓ OK   lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
+```
+
+O sumário sempre responde três perguntas: o que passou, o que falhou ou foi
+pulado, e o que rodar em seguida (`Next:`). As cores são ANSI nativo, ativadas
+apenas em terminais interativos (TTY) e desativadas por `NO_COLOR` — sem
+dependência. Os emoji foram removidos das linhas de status porque ocupam duas
+colunas e quebram o alinhamento.
+
 ## Resultados da auditoria (2026-10-08)
 
 - **Arquivos órfãos:** nenhum. Todo script é referenciado pelo `package.json`,
@@ -90,6 +119,25 @@ PR com o CI vermelho. Ambas as branches exigem os jobs de CI de
 `Documentation Links`, `License Check`, `Lockfile Integrity`, `Secret Scan`,
 `Installer Dry-Run`, `Defence Gates` — com "Require branches to be up to date
 before merging" habilitado.
+
+O ruleset completo das branches, idêntico para `main` e `dev` (alinhado em
+2026-11-04):
+
+- **Restrict deletions**
+- **Require a pull request before merging** — aprovações obrigatórias **0**
+  (ADR de mantenedor solo), descartar aprovações obsoletas em novos commits,
+  exigir revisão de Code Owners, exigir resolução de conversas e exigir
+  aprovação adicional para PRs de Copilot não atribuídas
+- **Require status checks to pass** — os 12 jobs de CI listados acima, com
+  "Require branches to be up to date before merging"
+- **Block force pushes**
+
+> **Atenção:** **não** habilite "Restrict updates" em `main` ou `dev`. Essa
+> regra bloqueia merges de PR por completo ("Cannot update this protected
+> ref") a menos que o mantenedor esteja na lista de bypass do ruleset — ela
+> existe para refs congelados (tags, branches arquivadas), não para branches
+> que recebem merges. Ela bloqueou a PR de release v1.0.0 (#27) até ser
+> removida do `main`.
 
 Para reproduzir essa configuração em outro repositório: habilite **Require
 status checks to pass before merging** na regra da branch e adicione os nomes

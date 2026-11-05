@@ -4,6 +4,7 @@ Use esta checklist antes de criar uma nova tag de release. Todos os gates abaixo
 
 ## Antes de Começar
 
+- [ ] **Trabalhe em um worktree git isolado** — o release nunca deve rodar no checkout principal compartilhado com outras sessões (uma troca de branch no meio do release corrompe os gates e suas evidências). Crie o worktree e rode `git fetch --all --prune` *antes* de criar a branch de release a partir de `origin/dev`.
 - [ ] Confirme o escopo do release com os mantenedores.
 - [ ] Garanta que o `CHANGELOG.md` tenha uma entrada para a nova versão.
 - [ ] Decida se o bump será patch, minor ou major com base no [SemVer](https://semver.org/lang/pt-BR/).

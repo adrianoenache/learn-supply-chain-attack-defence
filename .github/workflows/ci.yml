@@ -9,7 +9,10 @@ permissions:
 
 on:
   push:
-    branches: [dev]
+    # main included so the branch itself is CI-verified after each merge
+    # (the README badge reads runs on main) — before 2026-11-04 only dev
+    # pushes ran CI, so the main badge showed "no-status" forever.
+    branches: [main, dev]
   pull_request:
     branches: [main, dev]
 

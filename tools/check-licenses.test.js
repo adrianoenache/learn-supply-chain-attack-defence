@@ -415,6 +415,32 @@ describe('main with mock lockfile', () => {
       assert.ok(logs.some((line) => line.includes('Prohibited')))
       assert.ok(logs.some((line) => line.includes('Flagged for review')))
       assert.ok(logs.some((line) => line.includes('Allowed')))
+      // Phase N: the table report ends with the structured summary block,
+      // using the canonical vocabulary (failed = prohibited, warned = flagged).
+      assert.ok(logs.some((line) => line.includes('── Summary')))
+      assert.ok(logs.some((line) => line.includes('1 failed')))
+      assert.ok(logs.some((line) => line.includes('1 warned')))
+      assert.ok(logs.some((line) => line.includes('Next:')))
+    } finally {
+      console.log = originalLog
+      resetImpls()
+    }
+  })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+    setImpls({
+      fs: mockFsForLockfile({
+        packages: {
+          'node_modules/foo': { version: '1.0.0', license: 'MIT' },
+        },
+      }),
+    })
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(await main(['--quiet']), 0)
+      assert.deepEqual(logs, [], '--quiet must suppress the report')
     } finally {
       console.log = originalLog
       resetImpls()

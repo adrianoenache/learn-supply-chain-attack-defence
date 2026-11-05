@@ -107,6 +107,25 @@ describe('check-md-links', () => {
     }
   })
 
+  test('--quiet suppresses success output but keeps the exit code (Phase N)', async () => {
+    const tmpDir = makeTempDir()
+    const origCwd = process.cwd()
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      fs.writeFileSync(path.join(tmpDir, 'readme.md'), '# readme\n')
+      process.chdir(tmpDir)
+      const code = await main(['--quiet'])
+      assert.equal(code, 0)
+      assert.deepEqual(logs, [], '--quiet must suppress all stdout output')
+    } finally {
+      console.log = originalLog
+      process.chdir(origCwd)
+      cleanup(tmpDir)
+    }
+  })
+
   test('main returns 1 when broken links exist', async () => {
     const tmpDir = makeTempDir()
     const origCwd = process.cwd()

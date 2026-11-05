@@ -289,6 +289,65 @@ describe('check-sync CLI', () => {
     }
   })
 
+  test('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    const mod = readCheckSyncExports()
+    const lock = JSON.stringify({ name: 'test', lockfileVersion: 3 })
+
+    mod.setImpls({
+      fs: makeMockFs({
+        lock,
+        nodeModulesLock: { packageLockHash: 'different-hash' },
+      }),
+      spawnSync: () => ({
+        status: 1,
+        stdout: '',
+        stderr: 'ERR!',
+      }),
+    })
+
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      const code = mod.main(['--quiet'])
+      assert.equal(code, 1)
+      assert.deepEqual(logs, [], '--quiet must suppress all stdout output')
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('prints the structured Phase N summary on success', () => {
+    const mod = readCheckSyncExports()
+    const lock = JSON.stringify({ name: 'test', lockfileVersion: 3 })
+    const hash = computeHash(lock)
+
+    mod.setImpls({
+      fs: makeMockFs({
+        lock,
+        nodeModulesLock: { packageLockHash: hash },
+      }),
+      spawnSync: () => {
+        throw new Error('should not call npm ls')
+      },
+    })
+
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      const code = mod.main([])
+      assert.equal(code, 0)
+      assert.ok(logs.some((line) => line.includes('✓ OK')))
+      assert.ok(logs.some((line) => line.includes('── Summary')))
+      assert.ok(logs.some((line) => line.includes('1 passed')))
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
   test('prints non-fix recommendation when out of sync', () => {
     const mod = readCheckSyncExports()
     const lock = JSON.stringify({ name: 'test', lockfileVersion: 3 })

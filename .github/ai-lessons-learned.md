@@ -314,3 +314,81 @@ Each entry must be concise and actionable:
 ## Review Cadence
 
 Review this log at the end of each phase or before tagging a release. If the same mistake appears more than once, update the top-level `.github/copilot-instructions.md` or the relevant domain-specific instruction/agent file.
+
+### 2026-11-05 — Task execution is not delivery: branch, commit, push, and the PR text are part of the task
+
+- **Date:** 2026-11-05
+- **Rule violated:** Commit Granularity + the established PR workflow (branch
+  from updated dev → granular commits → push → template-based PR text for
+  the maintainer).
+- **Affected files:** `.github/dependabot.yml`, `TODO.md`,
+  `docs/{en,pt-BR}/ci-cd-overview.md`
+- **What happened:** A fresh session executed the dependabot fix (item 2 of
+  the queue) with correct technical work, but stopped at "Quer que eu
+  commite?" — leaving the edits uncommitted on the *previous item's already
+  merged branch*, with no push and no PR text. The maintainer had to return
+  to a second session to salvage the work. The trigger message asked for the
+  item but did not name the delivery choreography.
+- **Correction applied:** the default for any task execution is the full
+  choreography unless the user explicitly says "don't commit": sync dev,
+  fresh branch, granular commits with gates, push, PR body from the
+  repository template. Asking "should I commit?" is reserved for genuinely
+  ambiguous situations, not for routine deliverables.
+- **Instruction/agent updated:** none — recorded here; if it recurs, it
+  graduates to `copilot-instructions.md`.
+
+---
+
+### 2026-11-05 — Sample outputs in docs were invented or translated instead of real
+
+- **Date:** 2026-11-05
+- **Rule violated:** Documentation quality — pages must reflect real behavior.
+- **Affected files:** docs pages of check-sync, check-secrets,
+  check-lockfile-integrity, add-package, generate-trust-report,
+  setup-bootstrap, monitor-install, analyze-lifecycle-scripts, update-badge
+  (mostly pt-BR, one EN).
+- **What happened:** Fase N compared documented sample outputs against the
+  real Phase N output and found nine pages whose examples were invented or
+  translated into Portuguese — formats the tools never printed. Tool output
+  is always in English.
+- **Correction applied:** all samples replaced with the real output format
+  during the Phase N migrations; new "Sample Output Accuracy" section added
+  to `.github/instructions/docs.instructions.md` (graduated rule after 3+
+  occurrences), requiring real English samples plus the standard pt-BR note.
+- **Instruction/agent updated:** `.github/instructions/docs.instructions.md`.
+
+### 2026-11-05 — Pushing before fetching: a branch based on stale dev forces a GitHub-side update
+
+- **Date:** 2026-11-05
+- **Rule violated:** The delivery choreography (fetch → branch from latest
+  dev → commits → push → PR) — the fetch step was skipped.
+- **Affected files:** PR #35 (dependabot fix delivery)
+- **What happened:** The PR branch was created from a stale local `dev` and
+  pushed immediately; the maintainer had to click "Update branch" on GitHub
+  because the protection requires branches to be up to date before merging.
+  A `git fetch` before branching would have made the PR merge-ready from
+  the start.
+- **Correction applied:** fetch is non-negotiable and comes FIRST in the
+  choreography — never branch or push from an unrefreshed dev.
+- **Instruction/agent updated:** none — reinforces the previous entry
+  (delivery choreography); if it recurs once more, both graduate to
+  `copilot-instructions.md`.
+
+### 2026-11-05 — Nested sessions share the working set; delegate with independent sessions
+
+- **Date:** 2026-11-05
+- **Rule violated:** (UX/process, not a written rule — now it is one)
+- **Affected files:** TODO.md, PLAN.md, CHANGELOG.md, tools/* (PR #37 flow)
+- **What happened:** A delegated session created with
+  `relationship: currentSession` (nested) edited files that the parent
+  session had also touched earlier in the day. VS Code's working set then
+  refused both "Keep" and "Undo" ("another chat in this session also
+  changed it"), leaving the maintainer with an unresolvable review UI even
+  though the work was already committed and merged. Verified safe: the
+  working tree was byte-identical to the merge commit, so closing the
+  nested chat tab discards only the stale review bookkeeping.
+- **Correction applied:** delegate with `relationship: independent` for any
+  task with its own deliverable (PR); nested sessions only for read-only or
+  single-file consults. Maintainer decision, 2026-11-05.
+- **Instruction/agent updated:** none — recorded here; the maintainer-facing
+  guidance lives in this entry.

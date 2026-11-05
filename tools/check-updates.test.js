@@ -201,6 +201,65 @@ describe('check-updates', () => {
       assert.ok(logs.some((line) => line.includes('Eligible for update')))
       assert.ok(logs.some((line) => line.includes('biome')))
       assert.ok(logs.some((line) => line.includes('2.5.8 → 2.6.0')))
+      // Phase N: the report closes with the shared summary block.
+      assert.ok(logs.some((line) => line.includes('── Summary')))
+      assert.ok(logs.some((line) => line.includes('1 warned')))
+      assert.ok(
+        logs.some((line) => line.includes('Next: npm run defence:update')),
+      )
+    } finally {
+      console.log = originalLog
+      mod.resetImpls()
+    }
+  })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+    const calls = []
+    const logs = []
+    const mod = readScriptExports()
+    const lockContent = JSON.stringify({
+      name: 'learn-supply-chain-attack-defence',
+      lockfileVersion: 3,
+      packages: {},
+    })
+    const lockHash = require('node:crypto')
+      .createHash('sha256')
+      .update(lockContent)
+      .digest('hex')
+
+    mod.setImpls({
+      fs: makeMockFs({
+        state: null,
+        lock: lockContent,
+        nodeModulesLock: { packageLockHash: lockHash },
+      }),
+      spawnSync: makeMockSpawn(calls, {
+        'npm outdated --json --min-release-age=0': {
+          status: 0,
+          stdout: JSON.stringify({
+            biome: { current: '2.5.8', wanted: '2.6.0', latest: '2.6.0' },
+          }),
+        },
+      }),
+      fetchRegistryJson: makeMockFetchRegistryJson({
+        biome: {
+          statusCode: 200,
+          body: {
+            time: { '2.6.0': '2026-08-01T00:00:00.000Z' },
+            repository: { url: 'git+https://github.com/biomejs/biome.git' },
+          },
+        },
+      }),
+      now: () => baseTime,
+    })
+
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      const code = await mod.main(['--force', '--quiet'])
+      assert.equal(code, 0)
+      assert.deepEqual(logs, [], '--quiet must suppress the report')
     } finally {
       console.log = originalLog
       mod.resetImpls()

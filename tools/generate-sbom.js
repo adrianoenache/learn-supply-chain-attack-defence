@@ -4,12 +4,18 @@
 // Generates a CycloneDX 1.4 SBOM from package-lock.json.
 //
 // Usage:
-//   node ./tools/generate-sbom.js [--output=<path>] [--format=cyclonedx]
+//   node ./tools/generate-sbom.js [--output=<path>] [--format=cyclonedx] [--quiet]
 //   npm run defence:generate-sbom
+//   --quiet suppresses the confirmation line when writing to a file
+//   (--silent is a kept alias); stdout JSON output is never altered.
 
 const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
+
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const DEFAULT_LOCKFILE = path.resolve(__dirname, '../package-lock.json')
 const DEFAULT_OUTPUT = undefined
@@ -188,6 +194,7 @@ function parseArgs(argv) {
 
 function main(argv, lockPath = DEFAULT_LOCKFILE) {
   const { output } = parseArgs(argv)
+  const quiet = hasQuietFlag(argv)
 
   let bom
   try {
@@ -201,8 +208,24 @@ function main(argv, lockPath = DEFAULT_LOCKFILE) {
 
   if (output) {
     fsImpl.writeFileSync(output, `${json}\n`)
-    consoleImpl.log(`SBOM written to ${output}`)
+    if (!quiet) {
+      consoleImpl.log(
+        formatItem(
+          'pass',
+          `SBOM written to ${output} (${bom.components.length} component(s))`,
+          { color: supportsColor() },
+        ),
+      )
+      consoleImpl.log(
+        renderSummary({
+          passed: 1,
+          next: 'commit the SBOM or attach it to the GitHub Release',
+          color: supportsColor(),
+        }),
+      )
+    }
   } else {
+    // Machine-readable stdout stays pure JSON — no summary pollution.
     consoleImpl.log(json)
   }
 

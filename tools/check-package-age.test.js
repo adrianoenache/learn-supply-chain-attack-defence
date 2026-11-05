@@ -557,7 +557,16 @@ describe('Integration — check-package-age dependency modes', () => {
         logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
         'expected the git dependency to be reported as skipped',
       )
-      assert.ok(logs.some((l) => l.includes('All packages passed')))
+      // Phase N: the final line is now the structured summary block.
+      assert.ok(logs.some((l) => l.includes('── Summary')))
+      assert.ok(
+        logs.some((l) => l.includes('1 passed')),
+        'expected the summary to count the passed registry package',
+      )
+      assert.ok(
+        logs.some((l) => l.includes('1 skipped')),
+        'expected the summary to count the skipped git dependency',
+      )
     } finally {
       console.log = origLog
       restore()
@@ -661,7 +670,38 @@ describe('Integration — check-package-age dependency modes', () => {
         logs.some((l) => l.includes('SKIP') && l.includes('my-loader')),
         'git-resolved entries must be skipped with an advisory',
       )
-      assert.ok(logs.some((l) => l.includes('All packages passed')))
+      // Phase N: the final line is now the structured summary block.
+      assert.ok(logs.some((l) => l.includes('── Summary')))
+      assert.ok(logs.some((l) => l.includes('1 passed')))
+      assert.ok(logs.some((l) => l.includes('1 skipped')))
+    } finally {
+      console.log = origLog
+      restore()
+    }
+  })
+
+  test('--quiet suppresses success output but keeps the exit code (Phase N)', async () => {
+    const restore = mockRegistry({
+      prod: { '1.0.0': 10 },
+    })
+    const logs = []
+    const origLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+
+    try {
+      await main({
+        argv: ['--quiet'],
+        pkg: {
+          name: 'test-project',
+          version: '1.0.0',
+          dependencies: { prod: '1.0.0' },
+        },
+      })
+      assert.deepEqual(
+        logs,
+        [],
+        '--quiet must suppress per-package lines and the summary on success',
+      )
     } finally {
       console.log = origLog
       restore()

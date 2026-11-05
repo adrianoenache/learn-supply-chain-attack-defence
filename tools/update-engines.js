@@ -18,7 +18,7 @@
 //   node ./tools/update-engines.js --update       — apply latest in-major update
 //   node ./tools/update-engines.js --upgrade      — apply latest LTS major upgrade
 //   node ./tools/update-engines.js --to 26.13.0   — apply an explicit target
-//   Flags: --dry-run, --silent, --format json
+//   Flags: --dry-run, --quiet (--silent is a kept alias), --format json
 //
 // Files edited surgically (formatting preserved — npm rewrites JSON
 // formatting on install, so this tool never round-trips JSON):
@@ -31,6 +31,13 @@
 //   0 — report printed / target applied / already up to date.
 //   1 — network failure, target missing from the dist index, downgrade
 //       attempt, or a file that could not be edited safely.
+//
+// Malformed dist index entries: every mode skips them with a warning (the
+// official index permanently carries malformed historical entries). Apply
+// modes additionally refuse to run when a skipped entry could affect the
+// target decision (a well-formed version at or above the current major) —
+// engines are never written from a decision that untrusted data may have
+// influenced.
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -38,8 +45,11 @@ const path = require('node:path')
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { fetchJson } = require(path.resolve(__dirname, './lib/retry-fetch.js'))
 const { compareVersions } = require(path.resolve(__dirname, './lib/semver.js'))
-const { validateDistIndex } = require(
+const { sanitizeDistIndex } = require(
   path.resolve(__dirname, './lib/validate-external-content.js'),
+)
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
 )
 
 const REPO_ROOT = path.resolve(__dirname, '..')
@@ -88,7 +98,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
     mode: to ? 'to' : modes.length === 1 ? modes[0].slice(2) : 'report',
     to: to ? to.replace(/^v/, '') : null,
     isDryRun: argv.includes('--dry-run'),
-    isSilent: argv.includes('--silent'),
+    isSilent: hasQuietFlag(argv),
     format: argv.includes('--format')
       ? argv[argv.indexOf('--format') + 1]
       : 'text',
@@ -120,6 +130,9 @@ function computeTargets(distIndex, currentFloor) {
   let latestInMajor = null
   let latestLts = null
   for (const entry of entries) {
+    // Hardening: only strict stable versions may become engine candidates,
+    // even if a caller fed us entries that bypassed dist-index validation.
+    if (!isStrictStableVersion(entry.version)) continue
     if (Number(versionMajor(entry.version)) === currentMajor) {
       if (
         !latestInMajor ||
@@ -139,6 +152,15 @@ function computeTargets(distIndex, currentFloor) {
 
 function versionMajor(version) {
   return version.split('.')[0]
+}
+
+// Returns true only for plain X.Y.Z versions — the strict stable subset.
+// Pre-releases and build metadata are rejected: engine floors and dist
+// candidates must always be stable releases. This is defense-in-depth
+// alongside the dist-index validators in lib/validate-external-content.js,
+// so candidate selection stays safe even if entry validation is relaxed.
+function isStrictStableVersion(version) {
+  return typeof version === 'string' && /^\d+\.\d+\.\d+$/.test(version)
 }
 
 function findExactVersion(distIndex, version) {
@@ -212,6 +234,7 @@ async function main(argv = process.argv.slice(2)) {
   const currentNpm = parseEngineFloor(JSON.parse(pkgContent).engines.npm)
 
   let distIndex
+  let skippedEntries = []
   try {
     distIndex = await fetchJsonImpl(engineConfig.distIndexUrl, {
       timeoutMs: engineConfig.timeoutMs,
@@ -223,7 +246,16 @@ async function main(argv = process.argv.slice(2)) {
     })
     // Output validation (Fase AI-3.2): entries are written into engines, so
     // malformed versions/npm fields are rejected before any edit.
-    validateDistIndex(distIndex)
+    // Every mode skips per-entry junk with a warning — the official index
+    // permanently carries malformed historical entries (e.g. v0.6.x with
+    // npm "1.1.0-alpha-6", 2011–2018) plus occasional bad new entries
+    // (observed live: "v27.0.0-alpha.0.0.0" on 2026-11-05), so whole-index
+    // fail-closed would break the tool forever. Apply modes stay
+    // fail-closed where it matters: below, any skipped entry that could
+    // affect the write decision aborts the run.
+    const sanitized = sanitizeDistIndex(distIndex)
+    distIndex = sanitized.entries
+    skippedEntries = sanitized.skipped
   } catch (err) {
     errorImpl(
       `Could not fetch or trust ${engineConfig.distIndexUrl}: ${err.message}\n` +
@@ -234,6 +266,42 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const { latestInMajor, latestLts } = computeTargets(distIndex, currentNode)
+
+  // Apply modes: fail-closed on skipped entries that could change the write
+  // decision — a well-formed version at or above the current major might be
+  // the real target we would otherwise silently miss. Skipped entries that
+  // can never be a target (malformed version, or an older major — downgrades
+  // are refused anyway) only earn the warnings printed below.
+  if (args.mode !== 'report' && skippedEntries.length > 0) {
+    const currentMajor = Number(versionMajor(currentNode))
+    const relevant = skippedEntries.filter((skipped) => {
+      if (skipped.version === null) return false
+      const match = /^v(\d+)\.\d+\.\d+$/.exec(skipped.version)
+      return match !== null && Number(match[1]) >= currentMajor
+    })
+    if (relevant.length > 0) {
+      errorImpl(
+        'Refusing to apply: the dist index contains malformed entries that could affect the target decision:\n' +
+          relevant.map((s) => `  - ${s.version}: ${s.reason}`).join('\n') +
+          '\nVerify the real latest release on https://nodejs.org/dist/ and apply it manually.',
+      )
+      return exitImpl(1)
+    }
+  }
+
+  // Warn about skipped entries on stderr so JSON stdout stays parseable;
+  // --silent suppresses them like the rest of the human output.
+  if (skippedEntries.length > 0 && !args.isSilent) {
+    for (const skipped of skippedEntries) {
+      errorImpl(
+        formatItem(
+          'warn',
+          `skipped malformed dist index entry ${skipped.version ?? '(no version)'}: ${skipped.reason}`,
+          { color: supportsColor() },
+        ),
+      )
+    }
+  }
 
   const report = {
     current: { node: currentNode, npm: currentNpm },
@@ -249,6 +317,7 @@ async function main(argv = process.argv.slice(2)) {
       npm: latestLts.npm,
       lts: latestLts.lts,
     },
+    skipped: skippedEntries,
   }
 
   if (args.format === 'json' && args.mode === 'report') {
@@ -274,6 +343,24 @@ async function main(argv = process.argv.slice(2)) {
     logImpl('')
     logImpl(
       'Apply with: --update (in-major), --upgrade (latest LTS), or --to <version>.',
+    )
+    const pending =
+      (report.update?.available ? 1 : 0) +
+      (report.upgrade?.available ? 1 : 0) +
+      skippedEntries.length
+    logImpl(
+      renderSummary({
+        // Report mode has no per-package pass/fail; the single "check" is
+        // the current pin verified against the official index, so it always
+        // passes when we get this far (index fetch/validation failed earlier).
+        passed: 1,
+        warned: pending,
+        next:
+          pending > 0
+            ? 'npm run defence:update-engines:update (in-major) or :upgrade (latest LTS)'
+            : null,
+        color: supportsColor(),
+      }),
     )
   }
 
@@ -309,7 +396,11 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   if (compareVersions(target.version, currentNode) === 0) {
-    logImpl(`Already at ${currentNode} — nothing to do.`)
+    logImpl(
+      formatItem('pass', `already at ${currentNode} — nothing to do`, {
+        color: supportsColor(),
+      }),
+    )
     return exitImpl(0)
   }
 
@@ -336,7 +427,15 @@ async function main(argv = process.argv.slice(2)) {
   writeFileImpl(PACKAGE_LOCK, editLockfile(lockContent, nextNode, nextNpm))
   writeFileImpl(NVMRC, `${nextNode}\n`)
 
-  logImpl(`Engines updated: node >=${nextNode}, npm >=${nextNpm}`)
+  logImpl(
+    formatItem(
+      'pass',
+      `engines updated: node >=${nextNode}, npm >=${nextNpm}`,
+      {
+        color: supportsColor(),
+      },
+    ),
+  )
   logImpl(`  .nvmrc -> ${nextNode}`)
   logImpl('')
   logImpl('Next steps (the current process still runs the old runtime):')
@@ -358,6 +457,7 @@ module.exports = {
   parseCliArgs,
   parseEngineFloor,
   computeTargets,
+  isStrictStableVersion,
   editPackageJson,
   editLockfile,
   setImpls,

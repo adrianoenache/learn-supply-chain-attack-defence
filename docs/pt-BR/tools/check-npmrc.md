@@ -15,7 +15,7 @@ Implementado em [tools/check-npmrc.js](../../../tools/check-npmrc.js). Roda no p
 
 ```bash
 npm run defence:check-npmrc                    # relatório legível
-node ./tools/check-npmrc.js --silent           # apenas exit code + problemas
+node ./tools/check-npmrc.js --quiet            # apenas exit code + problemas (--silent permanece como alias)
 node ./tools/check-npmrc.js --format json      # relatório legível por máquina
 ```
 
@@ -23,9 +23,12 @@ node ./tools/check-npmrc.js --format json      # relatório legível por máquin
 
 ```text
 npm configuration surface: 17 key(s) checked, 2 lookahead (documented), 0 problem(s).
-  LOOKAHEAD  npm-audit-fix-level — Restricts npm audit fix to high/critical fixes once npm supports it...
-  LOOKAHEAD  send-metrics — Explicit telemetry opt-out kept for future npm releases...
-npm configuration surface is valid.
+  ○ SKIP npm-audit-fix-level — Restricts npm audit fix to high/critical fixes once npm supports it...
+  ○ SKIP send-metrics — Explicit telemetry opt-out kept for future npm releases...
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   15 passed
+  ○ SKIP 2 skipped
 ```
 
 ## Códigos de saída

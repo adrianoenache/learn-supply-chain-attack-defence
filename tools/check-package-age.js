@@ -10,6 +10,7 @@
 //   node ./tools/check-package-age.js                        — check declared package.json dependencies (pre-install)
 //   node ./tools/check-package-age.js --transitive            — check all resolved dependencies in package-lock.json (post-install)
 //   node ./tools/check-package-age.js --pkg lodash@4.17.21   — check a single package with an exact version (point check)
+//   node ./tools/check-package-age.js --quiet                 — suppress success output; failures still print (--silent is a kept alias)
 //
 // Invoked via the `pkg-age-check` script (setup, npm-reinstall pre-install),
 // directly with --transitive (npm-reinstall post-install),
@@ -31,6 +32,13 @@ const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
 const { validatePackument, validatePublishDate } = require(
   path.resolve(__dirname, './lib/validate-external-content.js'),
 )
+const {
+  hasQuietFlag,
+  supportsColor,
+  formatItem,
+  formatSection,
+  renderSummary,
+} = require(path.resolve(__dirname, './lib/formatters.js'))
 
 // Reads the declared dependencies from the project's package.json.
 // Only native modules are used here — this script must not depend on installable
@@ -69,11 +77,12 @@ function resetNowImpl() {
 }
 
 // Resolves the operation mode from command-line arguments.
-// Returns an object with { transitive, pkgArg } or exits on invalid input.
+// Returns an object with { transitive, pkgArg, silent } or exits on invalid input.
 function resolveMode(argv) {
   const transitive = argv.includes('--transitive')
   const pkgArgIndex = argv.indexOf('--pkg')
   const pkgArg = pkgArgIndex === -1 ? null : argv[pkgArgIndex + 1]
+  const silent = hasQuietFlag(argv)
 
   if (pkgArgIndex !== -1 && !pkgArg) {
     console.error(
@@ -93,7 +102,7 @@ function resolveMode(argv) {
     process.exit(1)
   }
 
-  return { transitive, pkgArg }
+  return { transitive, pkgArg, silent }
 }
 
 // Builds the dependency map to be checked based on the operation mode.
@@ -229,6 +238,8 @@ async function main(options = {}) {
     lock,
   })
   const minAgeDays = options.minAgeDays ?? MIN_AGE_DAYS
+  const silent = mode.silent
+  const color = supportsColor()
 
   // Non-registry specs (git URLs, file:/link:, workspace:, tarball URLs)
   // cannot be age-checked against the registry — they pin by commit/URL.
@@ -281,18 +292,28 @@ async function main(options = {}) {
     entries = stillRegistry
   }
 
-  if (nonRegistry.length > 0) {
+  if (nonRegistry.length > 0 && !silent) {
     console.log(
-      `Non-registry dependencies (age gate not applicable — pinned by commit/URL, verify them manually):`,
+      formatSection(
+        'Non-registry dependencies (age gate not applicable — pinned by commit/URL, verify them manually)',
+        nonRegistry.length,
+      ),
     )
     for (const [name, spec] of nonRegistry) {
-      console.log(`  SKIP     ${name} — ${String(spec).slice(0, 80)}`)
+      console.log(
+        formatItem('skip', `${name} — ${String(spec).slice(0, 80)}`, {
+          indent: 4,
+          color,
+        }),
+      )
     }
-    console.log('')
   }
 
   if (entries.length === 0) {
-    console.log('No dependencies to check.')
+    if (!silent) {
+      console.log('No dependencies to check.')
+      console.log(renderSummary({ skipped: nonRegistry.length, color }))
+    }
     exitFn(0)
     return
   }
@@ -300,9 +321,11 @@ async function main(options = {}) {
   const scope = mode.transitive
     ? 'transitive (package-lock.json)'
     : 'declared (package.json)'
-  console.log(
-    `Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${minAgeDays} days)...\n`,
-  )
+  if (!silent) {
+    console.log(
+      `Checking publish age for ${entries.length} ${scope} package(s) (minimum: ${minAgeDays} days)...\n`,
+    )
+  }
 
   const profileName = mode.transitive
     ? 'check-package-age-transitive'
@@ -341,6 +364,7 @@ async function main(options = {}) {
       // Both result in failure — a package whose age cannot be confirmed must not be installed.
       const blocked = []
       const errors = []
+      let passedCount = 0
 
       results.forEach((result) => {
         if (result.status === 'rejected') {
@@ -354,12 +378,22 @@ async function main(options = {}) {
 
         if (ageDays < minAgeDays) {
           blocked.push(
-            `  BLOCKED  ${name}@${version} — published ${publishedStr} (${age} days ago)`,
+            formatItem(
+              'fail',
+              `${name}@${version} — published ${publishedStr} (${age} days ago)`,
+            ),
           )
         } else {
-          console.log(
-            `  OK       ${name}@${version} — published ${publishedStr} (${age} days ago)`,
-          )
+          passedCount++
+          if (!silent) {
+            console.log(
+              formatItem(
+                'pass',
+                `${name}@${version} — published ${publishedStr} (${age} days ago)`,
+                { color },
+              ),
+            )
+          }
         }
       })
 
@@ -384,11 +418,30 @@ async function main(options = {}) {
       // Exit with code 1 (failure) if any package was blocked or any registry lookup could not complete.
       // Either case prevents installation.
       if (blocked.length > 0 || errors.length > 0) {
+        if (!silent) {
+          console.log(
+            renderSummary({
+              passed: passedCount,
+              failed: blocked.length + errors.length,
+              skipped: nonRegistry.length,
+              next: 'inspect publish dates with `npm view <pkg> time` or pin an older version',
+              color,
+            }),
+          )
+        }
         exitFn(1)
         return
       }
 
-      console.log(`\nAll packages passed the minimum age check.`)
+      if (!silent) {
+        console.log(
+          renderSummary({
+            passed: passedCount,
+            skipped: nonRegistry.length,
+            color,
+          }),
+        )
+      }
     },
     { profilePath: path.resolve(__dirname, '..', '.defence-profile.json') },
   )

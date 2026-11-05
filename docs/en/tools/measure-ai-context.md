@@ -30,6 +30,8 @@ AI context footprint (measured from disk):
   hooks            9 file(s)     2082 bytes  ~521 tokens
 ```
 
+The report closes with the shared summary block (one `passed` per measured layer); `--format json` prints the machine-readable report instead.
+
 (The report also includes a `sessionStart` line with the live `inject-context` payload measured at run time.)
 
 Only the always-on instructions ship with **every** request; the other layers load on demand by scope/relevance.

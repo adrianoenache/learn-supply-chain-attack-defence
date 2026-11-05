@@ -31,6 +31,33 @@ module would complicate, not simplify. The rule: extract only when the
 implementation is byte-identical in more than one file — as was the case for
 `tools/lib/concurrency.js` and later `tools/lib/semver.js`.
 
+Phase N (2026-11-05) **amended** that decision for output status primitives:
+symbols (✓/✗/⚠/○), aligned labels (OK/FAIL/WARN/SKIP), the end-of-run summary
+block, the `--quiet` convention, and TTY color detection are byte-identical in
+intent across every tool, so they now live in `tools/lib/formatters.js` (ADR in
+`DECISIONS.md`). Domain-specific report rendering stays in each tool.
+
+### Output conventions before/after (Phase N pilots)
+
+Before, each tool invented its own vocabulary — emoji in `check-sync.js`
+(`✅ node_modules is in sync…`), bare padded words in `check-package-age.js`
+(`  OK       lodash@4.17.21 — …`), and no end-of-run summary anywhere, so CI
+logs could not be grepped with a single pattern. After, every tool prints
+aligned status items and closes with the shared summary:
+
+```text
+  ✓ OK   lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
+```
+
+The summary always answers three questions: what passed, what failed or was
+skipped, and what to run next (`Next:`). Colors are native ANSI, enabled only
+on interactive terminals (TTY) and disabled by `NO_COLOR` — no dependency.
+Emoji were dropped from status lines because they are double-width and break
+column alignment.
+
 ## Audit results (2026-10-08)
 
 - **Orphaned files:** none. Every script is referenced by `package.json`, a
@@ -85,6 +112,24 @@ CI is red. Both branches require the CI jobs from `.github/workflows/ci.yml`:
 `License Check`, `Lockfile Integrity`, `Secret Scan`, `Installer Dry-Run`,
 `Defence Gates` — with "Require branches to be up to date before merging"
 enabled.
+
+The full branch ruleset, identical for `main` and `dev` (aligned on
+2026-11-04):
+
+- **Restrict deletions**
+- **Require a pull request before merging** — required approvals **0**
+  (solo-maintainer ADR), dismiss stale approvals on new commits, require
+  review from Code Owners, require conversation resolution, and require an
+  additional approval for unattributed Copilot pull requests
+- **Require status checks to pass** — the 12 CI jobs listed above, with
+  "Require branches to be up to date before merging"
+- **Block force pushes**
+
+> **Caution:** do **not** enable "Restrict updates" on `main` or `dev`. That
+> rule blocks PR merges entirely ("Cannot update this protected ref") unless
+> the maintainer is on the ruleset's bypass list — it is designed for frozen
+> refs (tags, archived branches), not for branches that receive merges. It
+> blocked the v1.0.0 release PR (#27) until it was removed from `main`.
 
 To reproduce this setup in another repository: enable **Require status checks
 to pass before merging** in the branch rule and add the job names above.
