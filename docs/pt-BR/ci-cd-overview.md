@@ -4,10 +4,12 @@ O fluxo de integração contínua do repositório é definido em [`.github/workf
 
 ## Gatilhos do workflow
 
-- `push` na branch `dev`
+- `push` nas branches `main` e `dev`
 - `pull_request` para `main` e `dev`
 
-Isso limita as execuções automáticas na branch protegida `main` apenas a pull requests.
+O gatilho de push em `main` mantém a própria branch protegida verificada pelo
+CI após cada merge (e alimenta o badge do README, que lê runs do `main`). Os
+runs de PR continuam cobrindo o merge ref antes do merge acontecer.
 
 ## Diagrama do workflow
 

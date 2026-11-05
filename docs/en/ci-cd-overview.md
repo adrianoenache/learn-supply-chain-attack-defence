@@ -4,10 +4,12 @@ The repository’s continuous integration workflow is defined in [`.github/workf
 
 ## Workflow triggers
 
-- `push` to `dev`
+- `push` to `main` and `dev`
 - `pull_request` to `main` and `dev`
 
-This limits automatic runs on the protected `main` branch to pull requests only.
+The `main` push trigger keeps the protected branch itself CI-verified after
+each merge (and feeds the README badge, which reads runs on `main`). PR runs
+continue to cover the merge ref before the merge lands.
 
 ## Workflow diagram
 
