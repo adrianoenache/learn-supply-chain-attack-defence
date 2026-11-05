@@ -365,3 +365,30 @@ Keep entries concise; link to the phase/commit for detail.
   the dated Node.js security-release reminder and the explicit execution
   queue); PLAN keeps the archive below the fold. Repeat the cleanup at every
   release boundary.
+
+### 2026-11-05 — Extract shared output primitives (Phase N), keep domain rendering per tool
+
+- **Decision:** Create `tools/lib/formatters.js` with the byte-identical
+  output elements of every defence tool: status symbols (✓/✗/⚠/○), aligned
+  labels (OK/FAIL/WARN/SKIP), the structured end-of-run summary
+  (passed/failed/warned/skipped + next suggested command), the
+  `--quiet` flag convention (`--silent` kept as a compatibility alias), and
+  native ANSI colors gated on TTY/NO_COLOR/FORCE_COLOR. Domain-specific
+  report rendering (license tables, SBOM documents) stays in each tool.
+- **Context:** Fase N (output UX) found an inconsistent vocabulary across
+  tools — emoji in check-sync/check-licenses, bare words
+  (OK/SKIP/BLOCKED) in check-package-age, no summary anywhere, and 12 tools
+  with `--silent` while the rest had nothing. The 2026-10-08 ADR rejected
+  extracting formatters because *report* formatters are domain-specific;
+  the elements above are instead byte-identical in intent, which is exactly
+  what that ADR's own rule allows ("extract only byte-identical
+  implementations used by more than one file").
+- **Rejected alternative:** Standardizing by convention alone (reaffirming
+  2026-10-08) — the summary block and TTY color detection are non-trivial
+  logic that would drift across 25 tools if copied by hand.
+- **Consequences:** New tools get a consistent, greppable output contract
+  for free; the 2026-10-08 ADR is amended, not reversed (domain rendering
+  is still per-tool). Emoji were dropped from status output because they
+  are double-width and break column alignment. Applied to the three pilot
+  tools (check-sync, check-licenses, check-package-age) first; the
+  remaining tools follow in batches.

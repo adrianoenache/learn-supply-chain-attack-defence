@@ -145,8 +145,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** Defense Layer 1 — blocks packages published less than `minAgeDays` ago.
 - **Scripts:** `defence:pkg-age-check`
-- **Flags:** `--transitive` (scan the whole lockfile); `--pkg <name@version>` (single package).
-- **Silent/format modes:** not supported.
+- **Flags:** `--transitive` (scan the whole lockfile); `--pkg <name@version>` (single package); `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses success output; failures still print. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` all packages old enough; `1` any package below the minimum age.
 - **Tests:** `tools/check-package-age.test.js`, `tools/integration.test.js`
 - **Docs:** [tools/check-package-age.md](tools/check-package-age.md)
@@ -164,8 +164,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** Defense Layer 9 — verifies dependency licenses against the allow/deny policy.
 - **Scripts:** `defence:license-check`, plus `:fail` and `:json` variants.
-- **Flags:** `--fail` (exit 1 on incompatible), `--transitive`, `--pkg=<name>`, `--silent`, `--format=<table|json|markdown>`.
-- **Silent/format modes:** `--silent` suppresses the table; formats switch the renderer.
+- **Flags:** `--fail` (exit 1 on incompatible), `--transitive`, `--pkg=<name>`, `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the table; formats switch the renderer. The table report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` compatible (or `--fail` absent); `1` incompatible license with `--fail`.
 - **Tests:** `tools/check-licenses.test.js`
 - **Docs:** [tools/check-licenses.md](tools/check-licenses.md)
@@ -249,8 +249,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** verifies `node_modules` matches `package-lock.json` (Layer 4 support).
 - **Scripts:** `defence:sync-check`, `defence:sync-check:fix`
-- **Flags:** `--fix` (runs `npm ci` to repair), `--silent`.
-- **Silent/format modes:** `--silent` suppresses the success output.
+- **Flags:** `--fix` (runs `npm ci` to repair), `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the success output. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` in sync; `1` out of sync (without `--fix`) or repair failed.
 - **Tests:** `tools/check-sync.test.js`, `tools/lib/sync-check.test.js`
 - **Docs:** [tools/check-sync.md](tools/check-sync.md)

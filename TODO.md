@@ -18,7 +18,9 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels) —
    concluído em 2026-11-05.
 3. **Fase N — UX de output** das ferramentas (sumário estruturado,
-   formatação compartilhada, `--quiet`).
+   formatação compartilhada, `--quiet`) — **em execução**: fundação +
+   pilotos (check-sync, check-licenses, check-package-age) no PR da branch
+   `feat/phase-n-output-ux`; batches restantes em PRs próprias.
 4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
    via M.2).
 
@@ -59,16 +61,28 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 
 ---
 
-## Fase N — UX de output das ferramentas (a detalhar)
+## Fase N — UX de output das ferramentas (em execução)
 
-- [ ] Definir o padrão de saída legível: sumário estruturado ao final de cada
+- [x] Definir o padrão de saída legível: sumário estruturado ao final de cada
   ferramenta (passou/falhou/pulou + próximo comando sugerido), formatação
-  compartilhada em `tools/lib/formatters.js` (símbolos consistentes ✓/✗/⚠,
-  alinhamento por colunas, agrupamento por seção) e modo `--quiet`.
-- [ ] Aplicar ferramenta por ferramenta, atualizando os testes que assertam
-  strings de saída e as páginas de docs (EN/PT) com antes/depois.
-- [ ] Avaliar cores via detecção de TTY (ANSI nativo, sem dependência nova,
-  desligado fora de TTY).
+  compartilhada em `tools/lib/formatters.js` (símbolos consistentes ✓/✗/⚠/○,
+  alinhamento por colunas, agrupamento por seção) e modo `--quiet` (alias de
+  `--silent`). Fundação entregue na branch `feat/phase-n-output-ux`; ADR em
+  `DECISIONS.md` emenda a decisão de 2026-10-08.
+- [x] Avaliar cores via detecção de TTY — **adotado**: ANSI nativo em
+  `formatters.js` (`supportsColor`: TTY + `NO_COLOR`/`FORCE_COLOR`), zero
+  dependências, desligado fora de TTY.
+- [ ] Aplicar ferramenta por ferramenta (3/25 feitas: check-sync,
+  check-licenses, check-package-age), atualizando os testes que assertam
+  strings de saída e as páginas de docs (EN/PT) com antes/depois. Batches
+  sugeridos para as próximas PRs: (a) gates de CI/pre-commit — check-secrets,
+  check-hooks, check-engines, check-lockfile-integrity, check-npmrc,
+  check-md-links, check-external-urls; (b) registry/update — check-updates,
+  update-packages, update-engines, run-audit-with-retry, add-package;
+  (c) relatórios/infra — generate-sbom, generate-trust-report,
+  verify-defences, install-defences, setup-bootstrap, monitor-install,
+  analyze-lifecycle-scripts, check-dead-code, measure-ai-context,
+  update-badge.
 
 ## Fase M — Adoção e scaffolding (pós-v1.0.0, alvo v1.1.0)
 

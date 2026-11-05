@@ -40,16 +40,35 @@ npm run defence:pkg-age-check -- --transitive
 
 # Verificar um único pacote
 npm run defence:pkg-age-check -- --pkg lodash@4.17.21
+
+# Modo quiet: suprime saída de sucesso, mantém falhas (CI)
+npm run defence:pkg-age-check -- --quiet
 ```
+
+`--silent` permanece como alias de compatibilidade de `--quiet`.
 
 ## Exemplo de saída
 
 ```text
-Checking publish age for 2 direct package(s) (minimum: 7 days)...
+Checking publish age for 2 declared (package.json) package(s) (minimum: 7 days)...
 
-  OK       lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+  ✓ OK   lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+  ✓ OK   husky@9.1.7 — published 2026-08-01 (94.0 days ago)
 
-All packages passed the minimum age check.
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
+```
+
+Quando um pacote está abaixo da idade mínima, a execução falha e o sumário aponta o próximo passo:
+
+```text
+Package age check FAILED — 1 package(s) below minimum age of 7 days:
+  ✗ FAIL fresh-pkg@1.0.0 — published 2026-11-04 (1.2 days ago)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  ✗ FAIL 1 failed
+  Next: inspect publish dates with `npm view <pkg> time` or pin an older version
 ```
 
 (A saída da ferramenta é em inglês.)

@@ -44,8 +44,8 @@ npm run defence:license-check -- --format=json
 # Markdown output (PRs/issues)
 npm run defence:license-check -- --format=markdown
 
-# Suppress output (CI)
-npm run defence:license-check -- --silent
+# Suppress output (CI) — --silent is a kept alias
+npm run defence:license-check -- --quiet
 
 # Check a single package by exact name and version
 npm run defence:license-check -- --pkg=lodash@4.17.21
@@ -54,9 +54,25 @@ npm run defence:license-check -- --pkg=lodash@4.17.21
 ## Output example
 
 ```text
-Package          License   Status
-lodash@4.17.21   MIT       allowed
+📋 Dependency license check — 3 package(s) scanned:
+
+  Prohibited (1):
+    ✗ FAIL evil-dep@1.0.0 — GPL-3.0 (prohibited license)
+
+  Flagged for review (1):
+    ⚠ WARN custom-lib@2.0.0 — Custom (unknown license)
+
+  Allowed (1):
+    ✓ OK   lodash@4.17.21 — MIT
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  ✗ FAIL 1 failed
+  ⚠ WARN 1 warned
+  Next: remove or replace prohibited packages — see docs/en/security/defense-layer-9-license-check.md
 ```
+
+The summary uses the canonical Phase N vocabulary: `failed` counts prohibited packages, `warned` counts flagged ones.
 
 ## Related defense layer
 
