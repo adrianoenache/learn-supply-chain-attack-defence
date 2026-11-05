@@ -39,14 +39,24 @@ npm run defence:check-external-urls
 
 # Force re-check all URLs
 npm run defence:check-external-urls -- --force
+
+# Quiet mode (exit code only; broken URLs still print)
+npm run defence:check-external-urls -- --quiet
 ```
+
+`--silent` is kept as a compatibility alias of `--quiet`.
 
 ## Output example
 
 ```text
-⚠️  5 known-dead URL(s) skipped:
-  ...
-✅ Checked 101 external URL(s). All reachable. (2 from cache)
+  Known-dead URL(s) skipped (5):
+    ○ SKIP https://example.com/old-doc (HTTP 404)
+
+  ✓ OK   checked 101 external URL(s); all reachable (2 from cache)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   96 passed
+  ○ SKIP 5 skipped
 ```
 
 ## Related defense layer

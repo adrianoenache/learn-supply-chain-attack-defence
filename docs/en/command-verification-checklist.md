@@ -52,8 +52,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** verifies the running Node.js/npm versions satisfy `engines` in `package.json`.
 - **Scripts:** `defence:check-engines`
-- **Flags:** none.
-- **Silent/format modes:** not supported.
+- **Flags:** `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses success output; failures still print. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` engines satisfied; `1` mismatch or unreadable `package.json`.
 - **Tests:** `tools/check-engines.test.js`
 - **Notes:** read-only; used by `defence:reinstall` and CI.
@@ -184,8 +184,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** verifies `package-lock.json` integrity fields and consistency with `package.json`.
 - **Scripts:** `defence:check-lockfile-integrity`
-- **Flags:** `--silent`, `--format=<table|json|markdown>`.
-- **Silent/format modes:** `--silent` suppresses the report; formats switch the renderer.
+- **Flags:** `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the report; formats switch the renderer. The table report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` lockfile intact; `1` integrity problems found.
 - **Tests:** `tools/check-lockfile-integrity.test.js`
 - **Docs:** [tools/check-lockfile-integrity.md](tools/check-lockfile-integrity.md)
@@ -194,7 +194,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** Defense Layer 12 — verifies `.husky/pre-commit` matches the SHA-256 hash recorded in `package.json`.
 - **Scripts:** `defence:check-hooks`
-- **Flags:** none.
+- **Flags:** `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses success output; integrity failures still print. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` hashes match; `1` drift detected (hook tampered or hash stale).
 - **Tests:** `tools/check-hooks.test.js`
 - **Notes:** after intentionally editing `.husky/pre-commit`, follow the `pre-commit-hash-sync` skill.
@@ -204,8 +205,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** validates the npm configuration surface — `.npmrc` keys against a curated known list plus a documented lookahead registry, defensive values that must not be weakened, and the npm v12 extension mechanism (`extension-file` key, `.npm-extension.mjs`/`.cjs` files).
 - **Scripts:** `defence:check-npmrc`
-- **Flags:** `--silent`, `--format json`.
-- **Silent/format modes:** `--silent` suppresses the report (problems still print to stderr); `--format json` prints a machine-readable report.
+- **Flags:** `--quiet`/`--silent`, `--format json`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the report (problems still print to stderr); `--format json` prints a machine-readable report. The text report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` surface valid; `1` unknown/unsafe key, forbidden extension file, or missing `.npmrc`.
 - **Tests:** `tools/check-npmrc.test.js`
 - **Notes:** runs in `.husky/pre-commit` and the CI `defence-gates` job; new documented keys are added via `KNOWN_KEYS`, intentional not-yet-recognized keys via `LOOKAHEAD_KEYS` with justification.
@@ -226,7 +227,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** scans files for secrets/tokens before they are committed.
 - **Scripts:** `defence:check-secrets`
-- **Flags:** positional file paths (used by the pre-commit hook with staged files).
+- **Flags:** positional file paths (used by the pre-commit hook with staged files); `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses success output; findings still print. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` no secrets found; `1` potential secret detected.
 - **Tests:** `tools/check-secrets.test.js`
 - **Docs:** [tools/check-secrets.md](tools/check-secrets.md)
@@ -283,7 +285,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** validates every local link in the markdown tree.
 - **Scripts:** `defence:check-md-links`
-- **Flags:** `--force` (ignore the result cache).
+- **Flags:** `--force` (ignore the result cache), `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses success output; broken links still print. Ends with the shared summary block (Phase N).
 - **Exit codes:** `0` all links valid; `1` broken links found.
 - **Tests:** `tools/check-md-links.test.js`
 - **Notes:** uses `.md-links-cache.json` (gitignored) for speed.
@@ -293,8 +296,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** verifies that external URLs in docs, AI customizations, and config files are reachable.
 - **Scripts:** `defence:check-external-urls`, `defence:check-external-urls:force`
-- **Flags:** `--force` (revalidate everything), `--silent`.
-- **Silent/format modes:** `--silent` suppresses per-URL progress; failures are always reported.
+- **Flags:** `--force` (revalidate everything), `--quiet`/`--silent`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses per-URL progress and the summary; failures are always reported. Non-quiet runs end with the shared summary block (Phase N).
 - **Exit codes:** `0` all URLs reachable or allow-listed; `1` unreachable URLs found.
 - **Tests:** `tools/check-external-urls.test.js`
 - **Notes:** known-dead URLs live in `.github/known-dead-urls.md`; cache in `.external-urls-cache.json` (gitignored).

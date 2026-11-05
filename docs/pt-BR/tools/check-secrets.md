@@ -19,14 +19,35 @@ npm run defence:check-secrets
 
 # Verificar arquivos específicos
 npm run defence:check-secrets -- src/config.js tests/fixture.env
+
+# Modo quiet (apenas código de saída; achados continuam visíveis)
+npm run defence:check-secrets -- --quiet src/config.js
 ```
+
+`--silent` permanece como alias de compatibilidade de `--quiet`.
 
 ## Exemplo de saída
 
 ```text
-Possível segredo em src/config.js:3
-  Padrão: ID de chave de acesso AWS
+  ✓ OK   no secrets detected in 2 file(s)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
 ```
+
+Quando um possível segredo é encontrado:
+
+```text
+Potential secrets detected:
+  ✗ FAIL src/config.js:3 — AWS access key ID: AKIA...
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   0 passed
+  ✗ FAIL 1 failed
+  Next: review the findings above; add false positives to .check-secrets-ignore
+```
+
+(A saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 

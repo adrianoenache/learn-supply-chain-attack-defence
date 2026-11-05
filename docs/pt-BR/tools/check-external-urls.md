@@ -39,14 +39,24 @@ npm run defence:check-external-urls
 
 # Forçar re-verificação de todas as URLs
 npm run defence:check-external-urls -- --force
+
+# Modo quiet (apenas código de saída; URLs quebradas continuam visíveis)
+npm run defence:check-external-urls -- --quiet
 ```
+
+`--silent` permanece como alias de compatibilidade de `--quiet`.
 
 ## Exemplo de saída
 
 ```text
-⚠️  5 known-dead URL(s) skipped:
-  ...
-✅ Checked 101 external URL(s). All reachable. (2 from cache)
+  Known-dead URL(s) skipped (5):
+    ○ SKIP https://example.com/old-doc (HTTP 404)
+
+  ✓ OK   checked 101 external URL(s); all reachable (2 from cache)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   96 passed
+  ○ SKIP 5 skipped
 ```
 
 (A saída da ferramenta é em inglês; os contadores variam conforme o conteúdo.)

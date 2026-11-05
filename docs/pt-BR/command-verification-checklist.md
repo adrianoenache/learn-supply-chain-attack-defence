@@ -53,8 +53,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** verifica se as versões de Node.js/npm em execução satisfazem `engines` no `package.json`.
 - **Scripts:** `defence:check-engines`
-- **Flags:** nenhuma.
-- **Modos silencioso/formato:** não suportados.
+- **Flags:** `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso; falhas continuam visíveis. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` engines satisfeitas; `1` incompatibilidade ou `package.json` ilegível.
 - **Testes:** `tools/check-engines.test.js`
 - **Observações:** somente leitura; usado por `defence:reinstall` e pelo CI.
@@ -185,8 +185,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** verifica os campos de integridade do `package-lock.json` e a consistência com o `package.json`.
 - **Scripts:** `defence:check-lockfile-integrity`
-- **Flags:** `--silent`, `--format=<table|json|markdown>`.
-- **Modos silencioso/formato:** `--silent` suprime o relatório; formatos mudam o renderizador.
+- **Flags:** `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o relatório; formatos mudam o renderizador. O relatório em tabela termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` lockfile íntegro; `1` problemas de integridade encontrados.
 - **Testes:** `tools/check-lockfile-integrity.test.js`
 - **Docs:** [tools/check-lockfile-integrity.md](tools/check-lockfile-integrity.md)
@@ -195,7 +195,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** Camada de Defesa 12 — verifica se `.husky/pre-commit` corresponde ao hash SHA-256 registrado no `package.json`.
 - **Scripts:** `defence:check-hooks`
-- **Flags:** nenhuma.
+- **Flags:** `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso; falhas de integridade continuam visíveis. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` hashes iguais; `1` drift detectado (hook adulterado ou hash desatualizado).
 - **Testes:** `tools/check-hooks.test.js`
 - **Observações:** após editar intencionalmente `.husky/pre-commit`, siga a skill `pre-commit-hash-sync`.
@@ -205,8 +206,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** valida a superfície de configuração do npm — chaves do `.npmrc` contra uma lista curada de chaves conhecidas mais um registro lookahead documentado, valores defensivos que não podem ser enfraquecidos, e o mecanismo de extensão do npm v12 (chave `extension-file`, arquivos `.npm-extension.mjs`/`.cjs`).
 - **Scripts:** `defence:check-npmrc`
-- **Flags:** `--silent`, `--format json`.
-- **Modos silencioso/formato:** `--silent` suprime o relatório (problemas ainda vão para stderr); `--format json` imprime relatório legível por máquina.
+- **Flags:** `--quiet`/`--silent`, `--format json`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o relatório (problemas ainda vão para stderr); `--format json` imprime relatório legível por máquina. O relatório em texto termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` superfície válida; `1` chave desconhecida/insegura, arquivo de extensão proibido ou `.npmrc` ausente.
 - **Testes:** `tools/check-npmrc.test.js`
 - **Observações:** roda no `.husky/pre-commit` e no job `defence-gates` do CI; novas chaves documentadas entram via `KNOWN_KEYS`, chaves intencionalmente ainda não reconhecidas via `LOOKAHEAD_KEYS` com justificativa.
@@ -227,7 +228,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** varre arquivos em busca de segredos/tokens antes que sejam commitados.
 - **Scripts:** `defence:check-secrets`
-- **Flags:** caminhos de arquivo posicionais (usado pelo hook de pre-commit com arquivos staged).
+- **Flags:** caminhos de arquivo posicionais (usado pelo hook de pre-commit com arquivos staged); `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso; achados continuam visíveis. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` nenhum segredo encontrado; `1` potencial segredo detectado.
 - **Testes:** `tools/check-secrets.test.js`
 - **Docs:** [tools/check-secrets.md](tools/check-secrets.md)
@@ -284,7 +286,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** valida todos os links locais da árvore de markdown.
 - **Scripts:** `defence:check-md-links`
-- **Flags:** `--force` (ignora o cache de resultados).
+- **Flags:** `--force` (ignora o cache de resultados), `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso; links quebrados continuam visíveis. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` todos os links válidos; `1` links quebrados encontrados.
 - **Testes:** `tools/check-md-links.test.js`
 - **Observações:** usa `.md-links-cache.json` (ignorado pelo git) para velocidade.
@@ -294,8 +297,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** verifica se URLs externas em docs, customizações de AI e arquivos de configuração estão acessíveis.
 - **Scripts:** `defence:check-external-urls`, `defence:check-external-urls:force`
-- **Flags:** `--force` (revalida tudo), `--silent`.
-- **Modos silencioso/formato:** `--silent` suprime o progresso por URL; falhas são sempre reportadas.
+- **Flags:** `--force` (revalida tudo), `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o progresso por URL e o sumário; falhas são sempre reportadas. Execuções não-quiet terminam com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` todas as URLs alcançáveis ou na allow-list; `1` URLs inalcançáveis encontradas.
 - **Testes:** `tools/check-external-urls.test.js`
 - **Observações:** URLs intencionalmente mortas ficam em `.github/known-dead-urls.md`; cache em `.external-urls-cache.json` (ignorado pelo git).

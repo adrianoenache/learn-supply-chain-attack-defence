@@ -23,15 +23,22 @@ npm run defence:check-lockfile-integrity -- --format=json
 # Saída em Markdown
 npm run defence:check-lockfile-integrity -- --format=markdown
 
-# Modo silencioso (apenas código de saída)
-npm run defence:check-lockfile-integrity -- --silent
+# Modo quiet (apenas código de saída)
+npm run defence:check-lockfile-integrity -- --quiet
 ```
+
+`--silent` permanece como alias de compatibilidade de `--quiet`.
 
 ## Exemplo de saída
 
 ```text
-✅ Todas as entradas do lockfile possuem integridade SHA-512.
+  ✓ OK   all registry lockfile entries have SHA-512 integrity
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   12 passed
 ```
+
+(A saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 
