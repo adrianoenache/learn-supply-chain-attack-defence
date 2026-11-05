@@ -36,14 +36,24 @@ npm run defence:add -- lodash@4.17.21 --dry-run
 
 ## Output example
 
+Real closing output (step progress lines omitted for brevity):
+
 ```text
-Checking package age for lodash@4.17.21 ... ok (published 30 days ago)
-Verifying npm signatures ... ok
-Running vulnerability audit ... ok
-Analyzing lifecycle scripts ... ok
-License MIT is allowed.
-Summary: lodash@4.17.21 passed all defense gates.
+Checking publish age for lodash@4.17.21 (minimum: 7 days)...
+  ✓ OK   lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+...
+  ✓ OK   provenance attestation verified
+  ✓ OK   integrity sha512-abc123…
+  ✓ OK   installed integrity matches registry
+
+  ✓ OK   lodash@4.17.21 added successfully
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: commit package.json and package-lock.json together
 ```
+
+This interactive workflow intentionally has no `--quiet` mode: the per-step gate output is the evidence the workflow exists to show.
 
 ## Related defense layers
 

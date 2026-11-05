@@ -27,6 +27,9 @@ const path = require('node:path')
 const { performance } = require('node:perf_hooks')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const processMonitor = require(
   path.resolve(__dirname, './lib/process-monitor.js'),
 )
@@ -100,7 +103,11 @@ function recordPreCommitHash() {
   // Keep legacy top-level field in sync for backwards compatibility.
   pkg.huskyPreCommitHash = hash
   writePackageJson(pkg)
-  console.log(`✅ Recorded pre-commit hook hash: ${hash}`)
+  console.log(
+    formatItem('pass', `recorded pre-commit hook hash: ${hash}`, {
+      color: supportsColor(),
+    }),
+  )
   return hash
 }
 
@@ -109,7 +116,11 @@ function verifyPreCommitHook() {
   const expectedHash = config.huskyPreCommitHash
   if (!expectedHash) {
     console.log(
-      'ℹ️  No huskyPreCommitHash configured; skipping hook integrity check.',
+      formatItem(
+        'skip',
+        'no huskyPreCommitHash configured; hook integrity check skipped',
+        { color: supportsColor() },
+      ),
     )
     return true
   }
@@ -126,7 +137,11 @@ function verifyPreCommitHook() {
     )
   }
 
-  console.log('✅ Pre-commit hook integrity verified.')
+  console.log(
+    formatItem('pass', 'pre-commit hook integrity verified', {
+      color: supportsColor(),
+    }),
+  )
   return true
 }
 
@@ -207,9 +222,15 @@ function main() {
   recordPreCommitHash()
   verifyPreCommitHook()
 
-  console.log('\nBootstrap complete.')
   console.log(
-    'Review package.json and package-lock.json, then commit both files.',
+    formatItem('pass', 'bootstrap complete', { color: supportsColor() }),
+  )
+  console.log(
+    renderSummary({
+      passed: 1,
+      next: 'review package.json and package-lock.json, then commit both files',
+      color: supportsColor(),
+    }),
   )
   return 0
 }

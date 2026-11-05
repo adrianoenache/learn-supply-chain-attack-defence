@@ -20,10 +20,21 @@ npm run defence:bootstrap
 
 ## Exemplo de saída
 
+Saída real abreviada (a instalação controlada roda com monitoramento, seguida dos gates de idade/assinatura/auditoria; a ferramenta imprime em inglês):
+
 ```text
-Nenhum package-lock.json encontrado. Executando primeira instalação controlada.
-✅ Instalação concluída.
-Revise o package-lock.json e faça commit dele antes de prosseguir.
+No package-lock.json found. Running controlled first install...
+This generates a lock file without executing lifecycle scripts.
+
+First install: npm install --ignore-scripts --save-exact
+...
+  ✓ OK   recorded pre-commit hook hash: 3b8b…
+  ✓ OK   pre-commit hook integrity verified
+  ✓ OK   bootstrap complete
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: review package.json and package-lock.json, then commit both files
 ```
 
 ## Camada de defesa relacionada

@@ -161,6 +161,12 @@ describe('update-engines target resolution', () => {
     assert.equal(exitCode, 0)
     assert.equal(logs.length, 0)
   })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+    await script.main(['--quiet'])
+    assert.equal(exitCode, 0)
+    assert.equal(logs.length, 0)
+  })
 })
 
 describe('update-engines apply modes', () => {

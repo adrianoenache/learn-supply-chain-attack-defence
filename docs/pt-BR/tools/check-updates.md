@@ -68,11 +68,23 @@ npm run defence:update-check -- --silent
      sharp  0.33.4 → 0.34.2 [minor] (released 2 days ago)
        eligible versions: 0.34.0, 0.34.1
 
-   Run the command below to review and apply updates safely:
-     npm run defence:update
+── Summary ───────────────────────────────────────────
+  ✓ OK   0 passed
+  ⚠ WARN 1 warned
+  ○ SKIP 1 skipped
+  Next: npm run defence:update — review and apply updates safely
 ```
 
-Entradas em quarentena com uma linha `eligible versions` são *acionáveis*: o `defence:update` pode avançar para a intermediária aprovada por idade mais recente enquanto a `latest` permanece bloqueada.
+Quando está tudo atualizado:
+
+```text
+  ✓ OK   no dependency updates found
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+```
+
+Entradas em quarentena com uma linha `eligible versions` são *acionáveis*: o `defence:update` pode avançar para a intermediária aprovada por idade mais recente enquanto a `latest` permanece bloqueada. No sumário, `warned` conta as atualizações elegíveis e `skipped` conta as em quarentena.
 
 ## Camada de defesa relacionada
 

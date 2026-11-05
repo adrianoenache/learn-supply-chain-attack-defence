@@ -19,6 +19,10 @@
 //   npm run defence:update -- --interactive
 //   npm run defence:update -- --interactive --dry-run
 //
+// Phase N note: like add-package.js, this is an interactive multi-step
+// workflow and intentionally offers NO --quiet mode — the per-step evidence
+// is the point of the workflow. The run closes with the shared summary block.
+//
 // Flow executed (non-interactive):
 //   1. Load eligible updates from .defence-update-check.json.
 //   2. npm install --save-exact --ignore-scripts <pkg>@<target> for each
@@ -42,6 +46,9 @@ const readline = require('node:readline')
 const { spawnSync } = require('node:child_process')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { formatItem, renderSummary, supportsColor } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const config = loadConfig()
 
@@ -309,7 +316,18 @@ async function main(argv = process.argv.slice(2)) {
 
     if (eligible.length === 0 && quarantine.length === 0) {
       console.log(
-        'No eligible updates found. Run npm run defence:update-check first.',
+        formatItem(
+          'pass',
+          'no eligible updates found — dependencies are up to date',
+          { color: supportsColor() },
+        ),
+      )
+      console.log(
+        renderSummary({
+          passed: 1,
+          next: 'npm run defence:update-check — rescan when needed',
+          color: supportsColor(),
+        }),
       )
       return 0
     }
@@ -357,9 +375,21 @@ async function main(argv = process.argv.slice(2)) {
     runPinnedInstalls(approved.map((entry) => entry.item))
     runVerificationLayers()
 
-    console.log('\nUpdate complete.')
     console.log(
-      'Review package.json and package-lock.json, then commit both files.',
+      formatItem(
+        'pass',
+        `update complete — ${approved.length} package(s) applied`,
+        {
+          color: supportsColor(),
+        },
+      ),
+    )
+    console.log(
+      renderSummary({
+        passed: approved.length,
+        next: 'review package.json and package-lock.json, then commit both files',
+        color: supportsColor(),
+      }),
     )
     return 0
   }
@@ -407,9 +437,22 @@ async function main(argv = process.argv.slice(2)) {
   }
   runVerificationLayers()
 
-  console.log('\nUpdate complete.')
+  const applied = eligible.length + quarantine.length
   console.log(
-    'Review package.json and package-lock.json, then commit both files.',
+    formatItem(
+      'pass',
+      `update complete — ${applied} pinned package(s) applied`,
+      {
+        color: supportsColor(),
+      },
+    ),
+  )
+  console.log(
+    renderSummary({
+      passed: applied,
+      next: 'review package.json and package-lock.json, then commit both files',
+      color: supportsColor(),
+    }),
   )
   return 0
 }

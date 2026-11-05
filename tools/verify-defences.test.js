@@ -183,6 +183,38 @@ describe('verify-defences', () => {
     }
   })
 
+  test('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    const mod = readScriptExports()
+    const cwd = '/target'
+    const files = {
+      [path.join(cwd, '.defence-manifest.json')]: JSON.stringify({
+        version: 1,
+        files: [{ path: 'tools/a.js', hash: 'abc123' }],
+      }),
+      [path.join(cwd, 'tools/a.js')]: 'content',
+    }
+    const exitFn = makeExitImpl()
+    const logs = []
+    mod.setFsImpl(makeMockFs(files))
+    mod.setCryptoImpl(makeMockCrypto(['abc123']))
+    mod.setExitImpl(exitFn)
+    mod.setConsoleImpl({ log: (line) => logs.push(line), error: () => {} })
+
+    try {
+      mod.main(['--quiet'], cwd)
+      assert.fail('expected exit')
+    } catch (err) {
+      assert.ok(err.message.startsWith('EXIT_CALLED'))
+      assert.equal(exitFn.getCode(), 0)
+      assert.deepEqual(logs, [], '--quiet must suppress success output')
+    } finally {
+      mod.resetFsImpl()
+      mod.resetCryptoImpl()
+      mod.resetExitImpl()
+      mod.resetConsoleImpl()
+    }
+  })
+
   test('main exits 1 when manifest is missing', () => {
     const mod = readScriptExports()
     const cwd = '/target'

@@ -149,6 +149,32 @@ describe('generate-sbom', () => {
       const bom = JSON.parse(files['/tmp/sbom.json'])
       assert.equal(bom.bomFormat, 'CycloneDX')
       assert.ok(logs.some((line) => line.includes('/tmp/sbom.json')))
+      // Phase N: file output closes with the shared summary block.
+      assert.ok(logs.some((line) => line.includes('── Summary')))
+    } finally {
+      mod.resetFsImpl()
+      mod.resetExitImpl()
+      mod.resetConsoleImpl()
+    }
+  })
+
+  test('--quiet suppresses the file-written confirmation (Phase N)', () => {
+    const mod = readScriptExports()
+    const files = { '/lock.json': SAMPLE_LOCK }
+    const exitFn = makeExitImpl()
+    const logs = []
+
+    mod.setFsImpl(makeMockFs(files))
+    mod.setExitImpl(exitFn)
+    mod.setConsoleImpl({ log: (line) => logs.push(line), error: () => {} })
+
+    try {
+      mod.main(['--output=/tmp/sbom.json', '--quiet'], '/lock.json')
+      assert.fail('expected exit')
+    } catch (_err) {
+      assert.equal(exitFn.getCode(), 0)
+      assert.ok(files['/tmp/sbom.json'])
+      assert.deepEqual(logs, [], '--quiet must suppress the confirmation')
     } finally {
       mod.resetFsImpl()
       mod.resetExitImpl()

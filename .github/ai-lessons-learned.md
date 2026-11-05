@@ -336,3 +336,23 @@ Review this log at the end of each phase or before tagging a release. If the sam
   ambiguous situations, not for routine deliverables.
 - **Instruction/agent updated:** none — recorded here; if it recurs, it
   graduates to `copilot-instructions.md`.
+
+---
+
+### 2026-11-05 — Sample outputs in docs were invented or translated instead of real
+
+- **Date:** 2026-11-05
+- **Rule violated:** Documentation quality — pages must reflect real behavior.
+- **Affected files:** docs pages of check-sync, check-secrets,
+  check-lockfile-integrity, add-package, generate-trust-report,
+  setup-bootstrap, monitor-install, analyze-lifecycle-scripts, update-badge
+  (mostly pt-BR, one EN).
+- **What happened:** Fase N compared documented sample outputs against the
+  real Phase N output and found nine pages whose examples were invented or
+  translated into Portuguese — formats the tools never printed. Tool output
+  is always in English.
+- **Correction applied:** all samples replaced with the real output format
+  during the Phase N migrations; new "Sample Output Accuracy" section added
+  to `.github/instructions/docs.instructions.md` (graduated rule after 3+
+  occurrences), requiring real English samples plus the standard pt-BR note.
+- **Instruction/agent updated:** `.github/instructions/docs.instructions.md`.

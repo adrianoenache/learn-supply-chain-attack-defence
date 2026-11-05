@@ -59,7 +59,12 @@ npm run defence:trust-report -- --pkg=lodash@4.17.21
 Package            Score  Age  Provenance  Lifecycle
 lodash@4.17.21     92     ✓    ✓           low
 sharp@0.33.5       71     ✓    ✗           high
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
 ```
+
+`--quiet` (alias `--silent`) suppresses the report and summary; the `--fail` verdict still prints.
 
 ## Related defense layer
 

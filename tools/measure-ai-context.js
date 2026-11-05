@@ -19,6 +19,10 @@ const fs = require('node:fs')
 const path = require('node:path')
 const { execFileSync } = require('node:child_process')
 
+const { supportsColor, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
+
 const REPO_ROOT = path.resolve(__dirname, '..')
 
 // ~4 bytes per token is the standard GPT-style heuristic for English/code
@@ -147,6 +151,9 @@ function main(argv = process.argv.slice(2)) {
   logImpl('')
   logImpl('Note: only the always-on instructions ship with EVERY request;')
   logImpl('instructions/agents/skills load on demand by scope/relevance.')
+  // Informational report: the summary confirms the measurement completed;
+  // there is no pass/fail gate here by design.
+  logImpl(renderSummary({ passed: present.length, color: supportsColor() }))
   return 0
 }
 

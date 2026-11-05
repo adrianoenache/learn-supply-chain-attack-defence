@@ -30,6 +30,8 @@ AI context footprint (measured from disk):
   hooks            9 file(s)     2082 bytes  ~521 tokens
 ```
 
+O relatório fecha com o bloco de sumário compartilhado (um `passed` por camada medida); `--format json` imprime o relatório legível por máquina.
+
 (O relatório também inclui uma linha `sessionStart` com o payload do `inject-context` medido no momento da execução.)
 
 (A saída da ferramenta é em inglês.) Apenas as instruções always-on vão em **toda** requisição; as demais camadas carregam sob demanda por escopo/relevância.

@@ -30,11 +30,13 @@ npm run defence:verify-defences:fix
 ## Exemplo de saída
 
 ```text
-Verified <N> defence file(s).
-All defence files match the manifest.
+  ✓ OK   verified <N> defence file(s)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   <N> passed
 ```
 
-(`<N>` é a contagem viva de entradas do manifesto, que cresce conforme arquivos de defesa são adicionados; a saída da ferramenta é em inglês.)
+(`<N>` é a contagem viva de entradas do manifesto, que cresce conforme arquivos de defesa são adicionados; a saída da ferramenta é em inglês. `--quiet`, `--silent` e `-s` suprimem a saída de sucesso; arquivos ausentes/alterados sempre aparecem.)
 
 ## Camada de defesa relacionada
 

@@ -30,7 +30,16 @@ Node.js engine report
   current pin:           24.22.2 (npm 11.19.1)
   update (v24 line):      24.22.2 (npm 11.19.1) — up to date
   upgrade (latest LTS):  26.13.0 (npm 11.20.0, Lithium) — AVAILABLE
+
+Apply with: --update (in-major), --upgrade (latest LTS), or --to <version>.
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  ⚠ WARN 1 warned
+  Next: npm run defence:update-engines:update (in-major) or :upgrade (latest LTS)
 ```
+
+The single `passed` entry is the current pin verified against the official dist index; `warned` counts available update/upgrade targets.
 
 ## After applying
 

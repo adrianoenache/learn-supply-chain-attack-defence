@@ -98,6 +98,26 @@ test('main exits 0 for safe package', async () => {
   }
 })
 
+test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+  const exitCodes = []
+  const logs = []
+  const originalLog = console.log
+  console.log = (...args) => logs.push(args.join(' '))
+  setImpls({
+    fetchRegistryJson: makeMockFetch({ scripts: { test: 'node test.js' } }),
+    exit: (code) => exitCodes.push(code),
+  })
+
+  try {
+    await main(['--pkg=safe@1.0.0', '--quiet'])
+    assert.deepEqual(exitCodes, [0])
+    assert.deepEqual(logs, [], '--quiet must suppress the report')
+  } finally {
+    console.log = originalLog
+    resetImpls()
+  }
+})
+
 test('main exits 1 with --fail on high-risk package', async () => {
   const exitCodes = []
   setImpls({

@@ -22,6 +22,20 @@ Applies to: `docs/**/*.md`, `README.md`
 - Include concrete examples and command snippets where helpful.
 - Keep threat-model terminology consistent with the security layer pages.
 
+## Sample Output Accuracy
+
+- Sample tool outputs must be **real output, in English**, captured or derived
+  from the actual tool — never translated, never invented. Tools print in
+  English regardless of the page language.
+- In `pt-BR` pages, keep the English sample and add the note "(A saída da
+  ferramenta é em inglês.)".
+- When a tool's output changes, update the sample in the same commit (the
+  Phase N migrations are the reference pattern).
+- Fictional samples found so far (fixed in Fase N, 2026-11-05): check-sync,
+  check-secrets, check-lockfile-integrity, add-package, generate-trust-report,
+  setup-bootstrap, monitor-install, analyze-lifecycle-scripts, update-badge
+  (mostly pt-BR pages). See `.github/ai-lessons-learned.md`.
+
 ## AI Guidelines
 
 - Do not create or reference a separate `docs/ai/` directory.

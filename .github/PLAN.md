@@ -18,9 +18,10 @@ explícita vive em `TODO.md` § Fila operacional):
 
 1. ~~Limpeza pós-release do PLAN/TODO~~ — **este arquivo, em execução**.
 2. Fix do `dependabot.yml` (run falhou em 2026-11-04).
-3. **Fase N — UX de output** das ferramentas (sumário estruturado,
-   formatação compartilhada, `--quiet`) — **em execução**: fundação +
-   3 pilotos na branch `feat/phase-n-output-ux`; batches no TODO.
+3. ~~**Fase N — UX de output** das ferramentas~~ — **concluída em
+   2026-11-05**: `tools/lib/formatters.js` + sumário estruturado + `--quiet`
+   em 25/25 ferramentas (4 workflows interativos sem quiet por design);
+   ADR 2026-11-05 em DECISIONS.md.
 4. **Novo projeto de teste** de adoção — o irmão anterior
    (`setup-webpack-stylus-liquid`) foi abandonado em 2026-11-05 por excesso
    de dependências; o novo deve ser pequeno e saudável, idealmente já criado
@@ -35,13 +36,14 @@ linhas.
 
 ## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
 
-- **Fase N — UX de output:** padrão de saída legível por ferramenta
-  (sumário estruturado, símbolos consistentes, colunas alinhadas, `--quiet`
-  como alias de `--silent`), formatação central em `tools/lib/formatters.js`
-  (ADR 2026-11-05 emenda a de 2026-10-08), cores ANSI nativas via TTY
-  (adotado), testes de strings de saída atualizados junto, docs EN/PT com
-  antes/depois em `repository-organization.md`. Fundação + 3 pilotos
-  entregues; as 22 ferramentas restantes seguem em batches (ver TODO).
+- **Fase N — UX de output (concluída 2026-11-05):** padrão de saída legível
+  por ferramenta (sumário estruturado, símbolos consistentes ✓/✗/⚠/○, colunas
+  alinhadas, `--quiet` como alias de `--silent`), formatação central em
+  `tools/lib/formatters.js` (ADR 2026-11-05 emenda a de 2026-10-08), cores
+  ANSI nativas via TTY, testes e docs EN/PT atualizados ferramenta por
+  ferramenta (25/25 em fundação + 3 batches). Exceções documentadas sem
+  `--quiet`: add-package, update-packages, install-defences, setup-bootstrap
+  (workflows interativos/instaladores).
 - **Fase M.2 — Scaffolding completo:** `tools/create-defended-project.js`
   cria projeto zerado com as 12 camadas (opção de incluir a infra de AI).
   Driver: o novo projeto de teste da fila.
