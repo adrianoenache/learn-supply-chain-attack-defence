@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (CI — main branch never ran the workflow)
+
+- The `push` trigger now covers `main` in addition to `dev`. The README CI
+  badge (`?branch=main`) showed "no-status" since the repository's first day
+  because no workflow run ever happened on `main`; merges to `main` now run
+  the full pipeline on the branch itself, not only on the PR merge ref.
+
 ## [1.0.0] - 2026-11-04
 
 ### Changed (CI — descriptive test job names)
