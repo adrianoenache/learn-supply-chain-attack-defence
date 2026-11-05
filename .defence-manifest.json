@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-05T19:27:40.067Z",
+  "installedAt": "2026-11-05T20:10:48.886Z",
   "files": [
     {
       "path": ".npmrc",
@@ -36,27 +36,27 @@
     },
     {
       "path": "tools/check-engines.js",
-      "hash": "7bc2d70568155d38bae8e85d2721c3a929ebb4c455323214c35e4fe4157c9fd1"
+      "hash": "275b064d9f03df394d75602b2832c424bd1fd17b14e03dee95ab2efc8cd4ceed"
     },
     {
       "path": "tools/check-engines.test.js",
-      "hash": "7bd9b7a6b4886b8dd89ab63aeff093c8dfd12718a13c507c5a8c3f293089df64"
+      "hash": "466903109e73ea51d888c98181c7823af7cc02277b2383b00dcfbb3a3780c77d"
     },
     {
       "path": "tools/check-external-urls.js",
-      "hash": "191b172a6e104aab0d7e64d214468e96c17ce8c1126c3b59373b448a1e60d6db"
+      "hash": "afb82c46871311c91a6d16e2ada1a1898296d8ebe25637e1d5cf720a446f8e98"
     },
     {
       "path": "tools/check-external-urls.test.js",
-      "hash": "b4e3f10c1c972b5cf5adbc6b7ac4d03334b46be3f3763de7547589f5b80ea8d6"
+      "hash": "111fba9ea405ee25846ee2026e7d272f2a94845f7290b4608fb9fda000174f7f"
     },
     {
       "path": "tools/check-hooks.js",
-      "hash": "2d07f064c813e33cd5b9af668a7ab3431e0c2b1fcc5c405fdc534c0ed681db41"
+      "hash": "0ec83808eacc5b21515445a0e3bfc44da026b9a246079410a057c39de3287f78"
     },
     {
       "path": "tools/check-hooks.test.js",
-      "hash": "1bfedb1649f9132124d9b0fc641762069929fefb1378acbf3dc73f53d12f0845"
+      "hash": "f791f307adedaef161fc3c94102b2da6431efe5e0e92192f377dbfbf4b75816e"
     },
     {
       "path": "tools/check-licenses.js",
@@ -68,19 +68,19 @@
     },
     {
       "path": "tools/check-lockfile-integrity.js",
-      "hash": "dec21d36845ffa640430073c9efbf463668b14663417fbbe60cd54dc6601fcc1"
+      "hash": "64577a8a4bb0f003ec5a9798ed64d63305619fb4520f75d79b1f0ccd4c5eb50e"
     },
     {
       "path": "tools/check-lockfile-integrity.test.js",
-      "hash": "480b2b8abd84cd894d9e7b167499a8dd1ab9d4d72ec6212ae86297cefa0a8509"
+      "hash": "4c5aba2249df0258319e158f8ca699e714bc0ad761b7e544fc4aab0818b30936"
     },
     {
       "path": "tools/check-md-links.js",
-      "hash": "b5fc56475a5c14602dac7a86fdb30a7af9e0e8e774ed2e55410a8e2b4d3ac02a"
+      "hash": "e6bd942cd69e2ad9a46a42fa01b20c2eaf8b27c293305256a0cbb97f9bfb4d3e"
     },
     {
       "path": "tools/check-md-links.test.js",
-      "hash": "d7606786c31cb155aed68af0b2926fd881a70f96725c2edf305c65fd65131bf0"
+      "hash": "4b0371368eef869d60b53808233f60b3be8c8c18bd7324325763e520d554139e"
     },
     {
       "path": "tools/check-dead-code.js",
@@ -92,11 +92,11 @@
     },
     {
       "path": "tools/check-npmrc.js",
-      "hash": "41cf8418d86e3f57dac03e38220313e1006ec6be705b70ae54121802f3fe8bcb"
+      "hash": "8ada74e7ab811199dd09b1c02b816cde985b29780add3df725d43d5965514fc3"
     },
     {
       "path": "tools/check-npmrc.test.js",
-      "hash": "73fe3eb89b021402ddaa3708fabe5d3f7d5b58b1096872d2dc5acc47839eb245"
+      "hash": "4883e99338d60ec4b4730911c9d28ac46a1aa852b88b71a16c3bffd2cfd418e1"
     },
     {
       "path": "tools/check-package-age.js",
@@ -108,11 +108,11 @@
     },
     {
       "path": "tools/check-secrets.js",
-      "hash": "b71c676b78371078aeabf5f24170c4f356b08b5140834b3cbf7ae273fdb8b2dd"
+      "hash": "03c65486d20ed21994a90ee85c5c493b3c5351fcb10f709b9bbfb17827e173eb"
     },
     {
       "path": "tools/check-secrets.test.js",
-      "hash": "13cfb5c5685e7f4ff52e8b4377e27f484d3c1c1ad9ba3492a63ab43d35bb1a3f"
+      "hash": "781a6cd52dfc35186c98346706124472127279778c4f83efaa492d593fa7b4ab"
     },
     {
       "path": "tools/check-sync.js",

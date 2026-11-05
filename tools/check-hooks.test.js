@@ -60,6 +60,26 @@ describe('check-hooks', () => {
     )
   })
 
+  test('--quiet suppresses success output (Phase N)', () => {
+    const hook = '# valid hook\n'
+    const hookPath = path.resolve(process.cwd(), '.husky/pre-commit')
+    const fsMock = makeMockFs({
+      [hookPath]: Buffer.from(hook),
+    })
+    const main = runMain(fsMock, {
+      defences: { huskyPreCommitHash: sha256(hook) },
+    })
+    const logs = []
+    const originalLog = console.log
+    console.log = (...args) => logs.push(args.join(' '))
+    try {
+      assert.equal(main(['--quiet']), 0)
+      assert.deepEqual(logs, [], '--quiet must suppress all stdout output')
+    } finally {
+      console.log = originalLog
+    }
+  })
+
   test('returns 1 when hook hash mismatches', () => {
     const hook = '# tampered hook\n'
     const hookPath = path.resolve(process.cwd(), '.husky/pre-commit')

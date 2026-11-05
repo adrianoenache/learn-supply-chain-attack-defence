@@ -6,6 +6,7 @@
 //
 // Usage:
 //   node ./tools/check-secrets.js [file1 file2 ...]
+//   node ./tools/check-secrets.js --quiet [file1 ...]  — exit only, no success output (--silent is a kept alias)
 //   git diff --cached --name-only | xargs node ./tools/check-secrets.js
 //
 // Exit codes:
@@ -14,6 +15,10 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const DEFAULT_IGNORE_FILE = '.check-secrets-ignore'
 // Hardcoded minimum length: secrets shorter than 10 characters are too common
@@ -165,31 +170,57 @@ function scanFiles(filePaths, ignoreRegex) {
 }
 
 function main(argv = process.argv.slice(2)) {
-  if (argv.length === 0) {
+  // Flags are filtered out of the positional file list; the quiet convention
+  // (--quiet documented, --silent kept alias) suppresses success output only.
+  const quiet = hasQuietFlag(argv)
+  const files = argv.filter((arg) => arg !== '--quiet' && arg !== '--silent')
+
+  if (files.length === 0) {
     console.error('Usage: node ./tools/check-secrets.js <file1> [file2 ...]')
     return 1
   }
 
+  const color = supportsColor()
   const ignorePath = path.resolve(process.cwd(), DEFAULT_IGNORE_FILE)
   const ignorePatterns = readIgnoreFile(ignorePath)
   const ignoreRegex = buildIgnoreRegex(ignorePatterns)
 
-  const findings = scanFiles(argv, ignoreRegex)
+  const findings = scanFiles(files, ignoreRegex)
 
   if (findings.length === 0) {
-    console.log(`No secrets detected in ${argv.length} file(s).`)
+    if (!quiet) {
+      console.log(
+        formatItem('pass', `no secrets detected in ${files.length} file(s)`, {
+          color,
+        }),
+      )
+      console.log(renderSummary({ passed: files.length, color }))
+    }
     return 0
   }
 
   console.error('Potential secrets detected:')
   for (const finding of findings) {
     console.error(
-      `  ${finding.file}:${finding.line} — ${finding.pattern}: ${finding.value}`,
+      formatItem(
+        'fail',
+        `${finding.file}:${finding.line} — ${finding.pattern}: ${finding.value}`,
+        { indent: 2 },
+      ),
     )
   }
   console.error(
     '\nIf these are false positives, add an ignore pattern to .check-secrets-ignore',
   )
+  if (!quiet) {
+    console.log(
+      renderSummary({
+        failed: findings.length,
+        next: 'review the findings above; add false positives to .check-secrets-ignore',
+        color,
+      }),
+    )
+  }
   return 1
 }
 

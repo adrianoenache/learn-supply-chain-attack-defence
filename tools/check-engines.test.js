@@ -106,11 +106,22 @@ describe('check-engines', () => {
     })
     assert.throws(() => script.main(), /exit:0/)
     assert.equal(exitCode, 0)
-    assert.ok(
-      captured.logs.some((line) =>
-        line.includes('Engine requirements satisfied.'),
-      ),
-    )
+    // Phase N: the success line is now the shared structured summary.
+    assert.ok(captured.logs.some((line) => line.includes('── Summary')))
+    assert.ok(captured.logs.some((line) => line.includes('2 passed')))
+  })
+
+  test('--quiet suppresses success output but keeps the exit code (Phase N)', () => {
+    const script = readScriptExports()
+    setImpls(script, {
+      pkg: {
+        engines: { node: sampleNodeRange, npm: sampleNpmRange },
+      },
+      spawnSync: () => ({ status: 0, stdout: `${sampleNpmVersion}\n` }),
+    })
+    assert.throws(() => script.main(['--quiet']), /exit:0/)
+    assert.equal(exitCode, 0)
+    assert.deepEqual(captured.logs, [], '--quiet must suppress all log output')
   })
 
   test('fails when node is below required version', () => {

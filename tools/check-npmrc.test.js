@@ -184,4 +184,10 @@ describe('check-npmrc validation', () => {
     assert.equal(exitCode, 1)
     assert.equal(logs.length, 0)
   })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    script.main(['--quiet'])
+    assert.equal(exitCode, 0)
+    assert.equal(logs.length, 0, '--quiet must suppress the report')
+  })
 })
