@@ -26,10 +26,14 @@ node ./tools/generate-sbom.js --output=dist/sbom.json
 ## Output example
 
 ```text
-SBOM written to sbom.json
+  ✓ OK   SBOM written to sbom.json (12 component(s))
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: commit the SBOM or attach it to the GitHub Release
 ```
 
-(without `--output`, the JSON is printed to stdout instead)
+(without `--output`, the JSON is printed to stdout instead — machine-readable output is never polluted; `--quiet` suppresses the confirmation and summary)
 
 The generated `sbom.json` contains a `components` array with each dependency's name, version, purl, and hashes.
 

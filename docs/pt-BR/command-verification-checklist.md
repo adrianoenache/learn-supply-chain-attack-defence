@@ -43,7 +43,7 @@ cabeçalho no arquivo da ferramenta.
 - **Propósito:** bootstrap em um comando para novos contribuidores (`npm ci` + portões de defesa).
 - **Scripts:** `defence:bootstrap`
 - **Flags:** nenhuma.
-- **Modos silencioso/formato:** não suportados.
+- **Modos silencioso/formato:** intencionalmente não suportados — workflow de bootstrap; a saída das etapas é a evidência. Fecha com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` sucesso; `1` quando qualquer etapa do bootstrap falha.
 - **Testes:** `tools/setup-bootstrap.test.js`
 - **Observações:** executa `npm ci` (scripts de ciclo de vida desabilitados pelo `.npmrc`); seguro para reexecutar.
@@ -75,8 +75,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** envolve a instalação de dependências com monitoramento de scripts de ciclo de vida e relatório.
 - **Scripts:** `defence:install-monitored`
-- **Flags:** `--format=<table|json>`, `--output=<path>` (destino do relatório).
-- **Modos silencioso/formato:** `--format=json` muda o relatório para JSON.
+- **Flags:** `--format=<table|json>`, `--output=<path>` (destino do relatório), `--quiet`/`--silent`, `--fail-on-lifecycle`.
+- **Modos silencioso/formato:** `--format=json` muda o relatório para JSON; `--quiet` (alias `--silent`) suprime a confirmação do relatório e o sumário — o marcador inicial `Monitoring:` continua aparecendo. Execuções não-quiet terminam com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` instalação limpa; `1` instalação falhou ou atividade suspeita detectada.
 - **Testes:** `tools/monitor-install.test.js`
 - **Observações:** executa uma instalação real — não execute esperando dry-run; use `defence:add` para novos pacotes.
@@ -132,8 +132,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** inspeciona um pacote (ou o lockfile) em busca de scripts de ciclo de vida pre/post/install.
 - **Scripts:** `defence:analyze-lifecycle-scripts`
-- **Flags:** `--pkg=<name[@version]>`; `--fail` (saída 1 quando scripts são encontrados); `--silent`; `--format=<table|json>`.
-- **Modos silencioso/formato:** `--silent` suprime a listagem; `--format=json` para máquinas.
+- **Flags:** `--pkg=<name[@version]>`; `--fail` (saída 1 quando scripts são encontrados); `--quiet`/`--silent`; `--format=<table|json>`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a listagem; `--format=json` para máquinas. O relatório em tabela termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` sem scripts (ou sem `--fail`); `1` scripts encontrados com `--fail`, ou erro de consulta.
 - **Testes:** `tools/analyze-lifecycle-scripts.test.js`
 - **Docs:** [tools/analyze-lifecycle-scripts.md](tools/analyze-lifecycle-scripts.md)
@@ -176,8 +176,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** compõe sinais de idade, mantenedores, downloads e proveniência em um trust score por pacote.
 - **Scripts:** `defence:trust-report`, mais as variantes `:json` e `:fail`.
-- **Flags:** `--pkg <name@x.y.z>` (versão exata obrigatória), `--direct`, `--transitive`, `--fail`, `--silent`, `--format=<table|json>`, `--output=<path>`.
-- **Modos silencioso/formato:** `--silent` suprime a tabela; `--format=json` para máquinas.
+- **Flags:** `--pkg <name@x.y.z>` (versão exata obrigatória), `--direct`, `--transitive`, `--fail`, `--quiet`/`--silent`, `--format=<table|json>`, `--output=<path>`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a tabela; `--format=json` para máquinas. Os relatórios terminam com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` relatório gerado; com `--fail`, `1` quando o menor score fica abaixo do limiar configurado.
 - **Testes:** `tools/generate-trust-report.test.js`
 - **Docs:** [tools/generate-trust-report.md](tools/generate-trust-report.md)
@@ -214,12 +214,23 @@ cabeçalho no arquivo da ferramenta.
 - **Observações:** roda no `.husky/pre-commit` e no job `defence-gates` do CI; novas chaves documentadas entram via `KNOWN_KEYS`, chaves intencionalmente ainda não reconhecidas via `LOOKAHEAD_KEYS` com justificativa.
 - **Docs:** [tools/check-npmrc.md](tools/check-npmrc.md)
 
+### measure-ai-context.js
+
+- **Propósito:** mede a pegada em disco das camadas de customização de AI (instruções always-on vs agents/skills/hooks sob demanda) em bytes e tokens aproximados.
+- **Scripts:** `defence:measure-ai-context`
+- **Flags:** `--format json`.
+- **Modos silencioso/formato:** `--format json` imprime o relatório legível por máquina; o relatório em texto termina com o bloco de sumário compartilhado (Fase N).
+- **Códigos de saída:** `0` sempre (ferramenta de medição).
+- **Testes:** `tools/measure-ai-context.test.js`
+- **Observações:** informativa; excluída da adoção (adotantes não recebem a infra `.github/` até a Fase M.3).
+- **Docs:** [tools/measure-ai-context.md](tools/measure-ai-context.md)
+
 ### check-dead-code.js
 
 - **Propósito:** localizador consultivo de candidatos a código morto — exports não referenciados e arquivos órfãos em `tools/`, ciente dos idiomas de require da base (desestruturado, namespace, `require().member()` inline, harnesses de teste por alias).
 - **Scripts:** `defence:check-dead-code`
-- **Flags:** `--silent`, `--format json`.
-- **Modos silencioso/formato:** `--silent` suprime o relatório; `--format json` imprime candidatos legíveis por máquina.
+- **Flags:** `--quiet`/`--silent`, `--format json`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime o relatório; `--format json` imprime candidatos legíveis por máquina. O relatório em texto termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** sempre `0` (consultivo por design — ADR em `DECISIONS.md`).
 - **Testes:** `tools/check-dead-code.test.js`
 - **Observações:** lista de candidatos, nunca lista de remoção — as regras de triagem estão na skill `code-review-pass` (eixo 3); a suíte completa de testes arbitra qualquer remoção.
@@ -239,8 +250,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** gera o SBOM do projeto (CycloneDX) para releases e auditorias.
 - **Scripts:** `defence:generate-sbom`
-- **Flags:** `--format=cyclonedx` (padrão), `--output=<path>`.
-- **Modos silencioso/formato:** formato fixo em CycloneDX.
+- **Flags:** `--format=cyclonedx` (padrão), `--output=<path>`, `--quiet`/`--silent`.
+- **Modos silencioso/formato:** formato fixo em CycloneDX; `--quiet` (alias `--silent`) suprime a confirmação e o sumário ao escrever em arquivo; o JSON no stdout nunca é alterado. A escrita em arquivo termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` SBOM gravado; `1` geração falhou.
 - **Testes:** `tools/generate-sbom.test.js`
 - **Docs:** [tools/generate-sbom.md](tools/generate-sbom.md)
@@ -263,7 +274,7 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** verifica se cada arquivo de defesa adotado corresponde ao manifesto SHA-256 (`verify-defences`); regenera o manifesto (`verify-defences:fix`); instala as defesas em outro projeto (`install-defences`).
 - **Scripts:** `defence:verify-defences`, `defence:verify-defences:fix`
-- **Flags:** `verify-defences`: `--json`, `-s`/`--silent`. `install-defences`: `--dry-run`, `--force`, `--update-local-manifest`, `--format=json`, `--tool=<name>`.
+- **Flags:** `verify-defences`: `--json`, `-s`/`--silent`/`--quiet`. `install-defences`: `--dry-run`, `--force`, `--update-local-manifest`, `--format=json`, `--tool=<name>` (workflow instalador: sem modo quiet por design). Ambas terminam com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` manifesto confere / instalação ok; `1` drift ou falha de instalação.
 - **Testes:** `tools/verify-defences.test.js`, `tools/install-defences.test.js`
 - **Observações:** `verify-defences:fix` reescreve `.defence-manifest.json` — commite-o junto com as mudanças de arquivo que causaram o drift.
@@ -274,6 +285,7 @@ cabeçalho no arquivo da ferramenta.
 - **Propósito:** mantém o badge de testes do README sincronizado com a contagem real do `node --test`.
 - **Scripts:** `defence:update-badge`, `defence:update-badge:dry-run`
 - **Flags:** `--dry-run`.
+- **Modos silencioso/formato:** nenhum; fecha com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` badge atualizado/inalterado; `1` a própria suíte de testes falhou.
 - **Testes:** `tools/update-badge.test.js`
 - **Observações:** invocado automaticamente pelo hook de pre-commit.

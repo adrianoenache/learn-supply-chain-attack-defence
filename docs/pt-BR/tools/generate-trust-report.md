@@ -56,10 +56,17 @@ npm run defence:trust-report -- --pkg=lodash@4.17.21
 ## Exemplo de saída
 
 ```text
-Pacote             Pontuação  Idade  Provenance  Lifecycle
-lodash@4.17.21     92         ✓      ✓           baixo
-sharp@0.33.5       71         ✓      ✗           alto
+Package            Score  Age  Provenance  Lifecycle
+lodash@4.17.21     92     ✓    ✓           low
+sharp@0.33.5       71     ✓    ✗           high
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
 ```
+
+`--quiet` (alias `--silent`) suprime o relatório e o sumário; o veredito de `--fail` continua visível.
+
+(A saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 

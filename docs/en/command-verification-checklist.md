@@ -42,7 +42,7 @@ behavior with the header comment in the tool file.
 - **Purpose:** one-command bootstrap for new contributors (`npm ci` + defense gates).
 - **Scripts:** `defence:bootstrap`
 - **Flags:** none.
-- **Silent/format modes:** not supported.
+- **Silent/format modes:** intentionally not supported — bootstrap workflow; step output is the evidence. Closes with the shared summary block (Phase N).
 - **Exit codes:** `0` success; `1` when any bootstrap step fails.
 - **Tests:** `tools/setup-bootstrap.test.js`
 - **Notes:** runs `npm ci` (lifecycle scripts disabled by `.npmrc`); safe to re-run.
@@ -74,8 +74,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** wraps dependency installation with lifecycle-script monitoring and a report.
 - **Scripts:** `defence:install-monitored`
-- **Flags:** `--format=<table|json>`, `--output=<path>` (report destination).
-- **Silent/format modes:** `--format=json` switches the report to JSON.
+- **Flags:** `--format=<table|json>`, `--output=<path>` (report destination), `--quiet`/`--silent`, `--fail-on-lifecycle`.
+- **Silent/format modes:** `--format=json` switches the report to JSON; `--quiet` (alias `--silent`) suppresses the report confirmation and summary — the `Monitoring:` start marker still prints. Non-quiet runs end with the shared summary block (Phase N).
 - **Exit codes:** `0` clean install; `1` install failed or suspicious activity detected.
 - **Tests:** `tools/monitor-install.test.js`
 - **Notes:** performs a real install — do not run in a dry-run expectation; use `defence:add` for new packages instead.
@@ -131,8 +131,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** inspects a package (or the lockfile) for pre/post/install lifecycle scripts.
 - **Scripts:** `defence:analyze-lifecycle-scripts`
-- **Flags:** `--pkg=<name[@version]>`; `--fail` (exit 1 when scripts found); `--silent`; `--format=<table|json>`.
-- **Silent/format modes:** `--silent` suppresses the listing; `--format=json` for machines.
+- **Flags:** `--pkg=<name[@version]>`; `--fail` (exit 1 when scripts found); `--quiet`/`--silent`; `--format=<table|json>`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the listing; `--format=json` for machines. The table report ends with the shared summary block (Phase N).
 - **Exit codes:** `0` no scripts (or `--fail` absent); `1` scripts found with `--fail`, or lookup error.
 - **Tests:** `tools/analyze-lifecycle-scripts.test.js`
 - **Docs:** [tools/analyze-lifecycle-scripts.md](tools/analyze-lifecycle-scripts.md)
@@ -175,8 +175,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** composes age, maintainers, downloads, and provenance signals into a trust score per package.
 - **Scripts:** `defence:trust-report`, plus `:json` and `:fail` variants.
-- **Flags:** `--pkg <name@x.y.z>` (exact version required), `--direct`, `--transitive`, `--fail`, `--silent`, `--format=<table|json>`, `--output=<path>`.
-- **Silent/format modes:** `--silent` suppresses the table; `--format=json` for machines.
+- **Flags:** `--pkg <name@x.y.z>` (exact version required), `--direct`, `--transitive`, `--fail`, `--quiet`/`--silent`, `--format=<table|json>`, `--output=<path>`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the table; `--format=json` for machines. Report renders end with the shared summary block (Phase N).
 - **Exit codes:** `0` report generated; with `--fail`, `1` when the lowest score is below the configured threshold.
 - **Tests:** `tools/generate-trust-report.test.js`
 - **Docs:** [tools/generate-trust-report.md](tools/generate-trust-report.md)
@@ -213,12 +213,23 @@ behavior with the header comment in the tool file.
 - **Notes:** runs in `.husky/pre-commit` and the CI `defence-gates` job; new documented keys are added via `KNOWN_KEYS`, intentional not-yet-recognized keys via `LOOKAHEAD_KEYS` with justification.
 - **Docs:** [tools/check-npmrc.md](tools/check-npmrc.md)
 
+### measure-ai-context.js
+
+- **Purpose:** measures the on-disk footprint of the AI customization layers (always-on instructions vs on-demand agents/skills/hooks) in bytes and approximate tokens.
+- **Scripts:** `defence:measure-ai-context`
+- **Flags:** `--format json`.
+- **Silent/format modes:** `--format json` prints the machine-readable report; the text report ends with the shared summary block (Phase N).
+- **Exit codes:** `0` always (measurement tool).
+- **Tests:** `tools/measure-ai-context.test.js`
+- **Notes:** informational; excluded from adoption (adopters get no `.github/` infra until Fase M.3).
+- **Docs:** [tools/measure-ai-context.md](tools/measure-ai-context.md)
+
 ### check-dead-code.js
 
 - **Purpose:** advisory dead-code candidate finder — unreferenced exports and orphaned files under `tools/`, aware of the codebase's require idioms (destructured, namespace, inline `require().member()`, alias-indirected test harnesses).
 - **Scripts:** `defence:check-dead-code`
-- **Flags:** `--silent`, `--format json`.
-- **Silent/format modes:** `--silent` suppresses the report; `--format json` prints machine-readable candidates.
+- **Flags:** `--quiet`/`--silent`, `--format json`.
+- **Silent/format modes:** `--quiet` (alias `--silent`) suppresses the report; `--format json` prints machine-readable candidates. The text report ends with the shared summary block (Phase N).
 - **Exit codes:** always `0` (advisory by design — ADR in `DECISIONS.md`).
 - **Tests:** `tools/check-dead-code.test.js`
 - **Notes:** candidate list, never a delete list — triage rules live in the `code-review-pass` skill (axis 3); the full test suite arbitrates any removal.
@@ -238,8 +249,8 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** generates the project SBOM (CycloneDX) for releases and audits.
 - **Scripts:** `defence:generate-sbom`
-- **Flags:** `--format=cyclonedx` (default), `--output=<path>`.
-- **Silent/format modes:** format fixed to CycloneDX.
+- **Flags:** `--format=cyclonedx` (default), `--output=<path>`, `--quiet`/`--silent`.
+- **Silent/format modes:** format fixed to CycloneDX; `--quiet` (alias `--silent`) suppresses the confirmation and summary when writing to a file; stdout JSON is never altered. File output ends with the shared summary block (Phase N).
 - **Exit codes:** `0` SBOM written; `1` generation failed.
 - **Tests:** `tools/generate-sbom.test.js`
 - **Docs:** [tools/generate-sbom.md](tools/generate-sbom.md)
@@ -262,7 +273,7 @@ behavior with the header comment in the tool file.
 
 - **Purpose:** verifies that every adopted defence file matches the SHA-256 manifest (`verify-defences`); regenerates the manifest (`verify-defences:fix`); installs the defences into another project (`install-defences`).
 - **Scripts:** `defence:verify-defences`, `defence:verify-defences:fix`
-- **Flags:** `verify-defences`: `--json`, `-s`/`--silent`. `install-defences`: `--dry-run`, `--force`, `--update-local-manifest`, `--format=json`, `--tool=<name>`.
+- **Flags:** `verify-defences`: `--json`, `-s`/`--silent`/`--quiet`. `install-defences`: `--dry-run`, `--force`, `--update-local-manifest`, `--format=json`, `--tool=<name>` (installer workflow: no quiet mode by design). Both end with the shared summary block (Phase N).
 - **Exit codes:** `0` manifest matches / install ok; `1` drift or install failure.
 - **Tests:** `tools/verify-defences.test.js`, `tools/install-defences.test.js`
 - **Notes:** `verify-defences:fix` rewrites `.defence-manifest.json` — commit it together with the file changes that caused the drift.
@@ -273,6 +284,7 @@ behavior with the header comment in the tool file.
 - **Purpose:** keeps the README test badge in sync with the real `node --test` count.
 - **Scripts:** `defence:update-badge`, `defence:update-badge:dry-run`
 - **Flags:** `--dry-run`.
+- **Silent/format modes:** none; closes with the shared summary block (Phase N).
 - **Exit codes:** `0` badge updated/unchanged; `1` the test run itself failed.
 - **Tests:** `tools/update-badge.test.js`
 - **Notes:** invoked automatically by the pre-commit hook.

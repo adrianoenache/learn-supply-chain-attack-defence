@@ -41,14 +41,17 @@ Installing supply-chain defences into /caminho/para/projeto-alvo
   Wrote .defence-manifest.json with <N> file hash(es).
   Updated package.json with defence scripts and husky devDependency.
 
-Done.
+  ✓ OK   defence files installed into /caminho/para/projeto-alvo
 Next steps in the target project:
   1. Run `npm install` to install husky and generate the lock file, then `npm run prepare` — the adopted .npmrc sets ignore-scripts=true, which also blocks the automatic prepare run that wires the git hooks.
   2. Run bash .husky/pre-commit to verify the hook.
   3. Commit .npmrc, .husky/, tools/, and package.json changes.
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   <N> passed
 ```
 
-(A saída da ferramenta é em inglês.)
+(A saída da ferramenta é em inglês. Sendo um workflow instalador, intencionalmente não há modo `--quiet`.)
 
 ## Camada de defesa relacionada
 

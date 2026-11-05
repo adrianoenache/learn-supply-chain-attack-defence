@@ -41,12 +41,17 @@ Installing supply-chain defences into /path/to/target-project
   Wrote .defence-manifest.json with <N> file hash(es).
   Updated package.json with defence scripts and husky devDependency.
 
-Done.
+  ✓ OK   defence files installed into /path/to/target-project
 Next steps in the target project:
   1. Run `npm install` to install husky and generate the lock file, then `npm run prepare` — the adopted .npmrc sets ignore-scripts=true, which also blocks the automatic prepare run that wires the git hooks.
   2. Run bash .husky/pre-commit to verify the hook.
   3. Commit .npmrc, .husky/, tools/, and package.json changes.
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   <N> passed
 ```
+
+This is an installer workflow and intentionally has no `--quiet` mode.
 
 ## Related defense layer
 

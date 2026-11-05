@@ -23,7 +23,11 @@ npm run defence:update-badge:dry-run
 ## Output example
 
 ```text
-Updated test badge to N/N in README.md
+  ✓ OK   README.md test badge updated to 998/998 passing
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  Next: commit README.md
 ```
 
 (The real output shows the live count, which changes as tests are added.)
