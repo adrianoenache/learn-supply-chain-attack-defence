@@ -437,3 +437,25 @@ Keep entries concise; link to the phase/commit for detail.
   release checklist pages and the project-wide AI instructions make the
   worktree mandatory. Cost: a fresh `npm ci` per release and worktree
   cleanup at the end; benefit: full isolation from concurrent sessions.
+
+### 2026-11-05 — Merge-back main→dev after every release, via an intermediate branch
+
+- **Decision:** After each release merge into `main`, bring `main`'s tip
+  back into `dev` immediately: cut an intermediate branch from `dev`'s
+  tip, `git merge --no-ff origin/main`, and merge it back through a PR.
+  Never a direct `main` → `dev` PR; never the GitHub "Update branch"
+  button on a protected head branch.
+- **Context:** The v1.1.0 release PR (`dev` → `main`) was blocked as out
+  of date because the v1.0.0 merge commit (`f99969e`) never returned to
+  `dev`. Both rulesets require "branches up to date before merging" and
+  PR-only changes, which makes the direct PR circular (the head can never
+  be up to date with the base it updates) and the button's server-side
+  merge a ruleset violation.
+- **Rejected alternatives:** Direct `main` → `dev` PR (circular); the
+  "Update branch" button (rejected by the ruleset, correctly); disabling
+  the up-to-date requirement on `main` (weakens the protection that
+  forces green evidence).
+- **Consequences:** Release-checklist skill step 12 and the bilingual
+  release checklist pages document the exact commands; `dev` always
+  contains `main`'s tip, so the next release PR opens mergeable. First
+  applied as PR #42.
