@@ -349,3 +349,19 @@ Keep entries concise; link to the phase/commit for detail.
 - **Consequences:** The release merged after the rule was removed; the
   documented inventory now doubles as a checklist when reproducing the
   protection in another repository (Fase M adopters).
+
+### 2026-11-05 — Post-release: archive completed phases out of PLAN/TODO
+
+- **Decision:** After each release, completed phases leave the body of
+  `.github/PLAN.md` and `TODO.md`; PLAN keeps them as a "Histórico" archive
+  section and TODO keeps only open work. The permanent rule lives in PLAN
+  § Regras permanentes.
+- **Context:** By v1.0.0 the two files totalled 1,618 lines; the maintainer
+  reported them unreadable as operational dashboards. Detail was already
+  triple-redundant (CHANGELOG, DECISIONS, merged PRs).
+- **Rejected alternative:** Deleting the history outright — the narrative of
+  *why* phases existed aids future audits and the project's teaching goal.
+- **Consequences:** TODO drops from 852 to ~490 lines (open work only, plus
+  the dated Node.js security-release reminder and the explicit execution
+  queue); PLAN keeps the archive below the fold. Repeat the cleanup at every
+  release boundary.
