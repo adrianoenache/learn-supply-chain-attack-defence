@@ -11,13 +11,20 @@
 //   npm run defence:license-check -- --fail    — exits 1 on prohibited/unknown
 //   npm run defence:license-check -- --format=json
 //   npm run defence:license-check -- --format=markdown
-//   npm run defence:license-check -- --silent
+//   npm run defence:license-check -- --quiet     — exit only, no report (--silent is a kept alias)
 
 const fs = require('node:fs')
 const path = require('node:path')
 
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const {
+  hasQuietFlag,
+  supportsColor,
+  formatItem,
+  formatSection,
+  renderSummary,
+} = require(path.resolve(__dirname, './lib/formatters.js'))
 
 const config = loadConfig()
 const licenseConfig = config.licensesCheck
@@ -49,7 +56,7 @@ function resetImpls() {
 
 function parseCliArgs(argv = process.argv.slice(2)) {
   const isFail = argv.includes('--fail')
-  const isSilent = argv.includes('--silent')
+  const isSilent = hasQuietFlag(argv)
   const isTransitive = argv.includes('--transitive')
 
   const formatArg = argv.find((arg) => arg.startsWith('--format='))
@@ -265,36 +272,63 @@ function printReport(report, format) {
 
   const total =
     report.allowed.length + report.flagged.length + report.prohibited.length
+  const color = supportsColor()
   console.log(`\n📋 Dependency license check — ${total} package(s) scanned:`)
 
   if (report.prohibited.length > 0) {
-    console.log(`\n   Prohibited (${report.prohibited.length}):`)
+    console.log(formatSection('Prohibited', report.prohibited.length))
     for (const item of report.prohibited) {
       console.log(
-        `     ❌ ${item.name}@${item.version ?? '?'} — ${item.license ?? 'no license'} (${item.reason})`,
+        formatItem(
+          'fail',
+          `${item.name}@${item.version ?? '?'} — ${item.license ?? 'no license'} (${item.reason})`,
+          { indent: 4, color },
+        ),
       )
     }
   }
 
   if (report.flagged.length > 0) {
-    console.log(`\n   Flagged for review (${report.flagged.length}):`)
+    console.log(formatSection('Flagged for review', report.flagged.length))
     for (const item of report.flagged) {
       console.log(
-        `     ⚠️  ${item.name}@${item.version ?? '?'} — ${item.license ?? 'no license'} (${item.reason})`,
+        formatItem(
+          'warn',
+          `${item.name}@${item.version ?? '?'} — ${item.license ?? 'no license'} (${item.reason})`,
+          { indent: 4, color },
+        ),
       )
     }
   }
 
   if (report.allowed.length > 0) {
-    console.log(`\n   Allowed (${report.allowed.length}):`)
+    console.log(formatSection('Allowed', report.allowed.length))
     for (const item of report.allowed) {
       console.log(
-        `     ✅ ${item.name}@${item.version ?? '?'} — ${item.license}`,
+        formatItem(
+          'pass',
+          `${item.name}@${item.version ?? '?'} — ${item.license}`,
+          {
+            indent: 4,
+            color,
+          },
+        ),
       )
     }
   }
 
-  console.log()
+  console.log(
+    renderSummary({
+      passed: report.allowed.length,
+      failed: report.prohibited.length,
+      warned: report.flagged.length,
+      next:
+        report.prohibited.length > 0
+          ? 'remove or replace prohibited packages — see docs/en/security/defense-layer-9-license-check.md'
+          : null,
+      color,
+    }),
+  )
 }
 
 // ---------------------------------------------------------------------------

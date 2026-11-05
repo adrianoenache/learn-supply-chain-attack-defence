@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-05T16:47:16.389Z",
+  "installedAt": "2026-11-05T19:27:11.910Z",
   "files": [
     {
       "path": ".npmrc",
@@ -60,11 +60,11 @@
     },
     {
       "path": "tools/check-licenses.js",
-      "hash": "e99560e344ce567eda4df12e57ed5caaa58118110733b40b465e3644bb888ae0"
+      "hash": "9342971ed21af6b3a2aa5252b14ca23a42cf4fad8a8d39af2f1f1e0ffd341496"
     },
     {
       "path": "tools/check-licenses.test.js",
-      "hash": "38fc73332cd017216ceb5e0ad9f3c926f5599cc22d79c5006b7324cede387867"
+      "hash": "bd58a80019683ca74617301d0b363c2194e68d89fb05f79c8400586db751f4e4"
     },
     {
       "path": "tools/check-lockfile-integrity.js",
@@ -100,11 +100,11 @@
     },
     {
       "path": "tools/check-package-age.js",
-      "hash": "50e7e4bd93711e83476733de3efa50439be2427c84022b8121f7708e68cc2cc1"
+      "hash": "3c1a68fbc1a36508b5e3c158c308e7b22923bcd0c331ab0a2c5f71a17295746c"
     },
     {
       "path": "tools/check-package-age.test.js",
-      "hash": "2d14e75d1190c41b25b24b40524d864ae6d209bedf498db35d8f12e8f5ee3c36"
+      "hash": "7205d70006808232ed931c540efe0c4b538f9beef0f9457e384c806f225c18f7"
     },
     {
       "path": "tools/check-secrets.js",
@@ -116,11 +116,11 @@
     },
     {
       "path": "tools/check-sync.js",
-      "hash": "727f05d1221fd7fc14c5fd06d8b3e2b61fb283da1ac8986d16d187008ba88078"
+      "hash": "95a2b5a9979ef0cf5778c1cc5e0086662f46e4bba9a3fb4f8a5e076bbc5c2410"
     },
     {
       "path": "tools/check-sync.test.js",
-      "hash": "a057884495b6fa2add76ff4af0b021db92e13e52dfe3ee75322cd16220a560a1"
+      "hash": "82972ae087ee91d8a3a7c0c4012c6299b84b1d1f77035971228009f522bdf970"
     },
     {
       "path": "tools/check-updates.js",
@@ -148,7 +148,7 @@
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "01b87295366f702852a7ebec1f1606254336294f34cc997e723628f0e6776c08"
+      "hash": "d1baa901676d5528df5a98cfcff408bea3826fd0130075b06305facf99682bd2"
     },
     {
       "path": "tools/monitor-install.js",
@@ -229,6 +229,14 @@
     {
       "path": "tools/lib/concurrency.test.js",
       "hash": "640d1b034fe1e8ac62964733c3dab31623b32312b30eee4b321894af3efc0bac"
+    },
+    {
+      "path": "tools/lib/formatters.js",
+      "hash": "c63951148121086373e43bd3fb58e2790820135fefa5ade4367d22713bdb6f98"
+    },
+    {
+      "path": "tools/lib/formatters.test.js",
+      "hash": "41a93ebe7814add727aef2d2616cd19a6a8ce5ad6c2d1ab9edcf5bbf94c5bd46"
     },
     {
       "path": "tools/lib/package-utils.js",

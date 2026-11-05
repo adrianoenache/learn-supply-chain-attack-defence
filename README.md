@@ -3,7 +3,7 @@
 ![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.22.2-339933?logo=node.js&logoColor=white)
 ![npm](https://img.shields.io/badge/npm-%3E%3D%2011.19.1-CB3837?logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Tests](https://img.shields.io/badge/Tests-960%2F960%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-988%2F988%20passing-brightgreen)
 ![CI](https://github.com/adrianoenache/learn-supply-chain-attack-defence/actions/workflows/ci.yml/badge.svg?branch=main)
 
 A hands-on project for learning how to defend Node.js/npm projects against supply-chain attacks.

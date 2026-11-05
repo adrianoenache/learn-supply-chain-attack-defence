@@ -92,6 +92,8 @@ const FILES_TO_COPY = [
   'tools/lib/config.test.js',
   'tools/lib/concurrency.js',
   'tools/lib/concurrency.test.js',
+  'tools/lib/formatters.js',
+  'tools/lib/formatters.test.js',
   'tools/lib/package-utils.js',
   'tools/lib/profiler.js',
   'tools/lib/profiler.test.js',
