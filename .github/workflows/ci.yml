@@ -68,7 +68,7 @@ jobs:
         run: tar --create --gzip --file node_modules.tar.gz node_modules/
 
       - name: Upload node_modules tarball
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: node_modules-${{ github.run_id }}
           path: node_modules.tar.gz
@@ -412,7 +412,7 @@ jobs:
         run: npm run defence:generate-sbom -- --output=/tmp/sbom.json
 
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: sbom-${{ github.run_id }}
           path: /tmp/sbom.json
