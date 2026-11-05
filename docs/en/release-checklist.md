@@ -4,6 +4,7 @@ Use this checklist before tagging a new release. Every gate below is also enforc
 
 ## Before Starting
 
+- [ ] **Work in an isolated git worktree** — release work must never run in the main checkout shared with other sessions (a branch switch mid-release corrupts the gates and their evidence). Create the worktree, then run `git fetch --all --prune` *before* cutting the release branch from `origin/dev`.
 - [ ] Confirm the release scope with the maintainers.
 - [ ] Ensure `CHANGELOG.md` has an entry for the new version.
 - [ ] Decide whether this is a patch, minor, or major version bump based on [SemVer](https://semver.org/).
