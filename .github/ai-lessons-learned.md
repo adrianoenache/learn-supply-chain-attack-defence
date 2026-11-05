@@ -314,3 +314,25 @@ Each entry must be concise and actionable:
 ## Review Cadence
 
 Review this log at the end of each phase or before tagging a release. If the same mistake appears more than once, update the top-level `.github/copilot-instructions.md` or the relevant domain-specific instruction/agent file.
+
+### 2026-11-05 — Task execution is not delivery: branch, commit, push, and the PR text are part of the task
+
+- **Date:** 2026-11-05
+- **Rule violated:** Commit Granularity + the established PR workflow (branch
+  from updated dev → granular commits → push → template-based PR text for
+  the maintainer).
+- **Affected files:** `.github/dependabot.yml`, `TODO.md`,
+  `docs/{en,pt-BR}/ci-cd-overview.md`
+- **What happened:** A fresh session executed the dependabot fix (item 2 of
+  the queue) with correct technical work, but stopped at "Quer que eu
+  commite?" — leaving the edits uncommitted on the *previous item's already
+  merged branch*, with no push and no PR text. The maintainer had to return
+  to a second session to salvage the work. The trigger message asked for the
+  item but did not name the delivery choreography.
+- **Correction applied:** the default for any task execution is the full
+  choreography unless the user explicitly says "don't commit": sync dev,
+  fresh branch, granular commits with gates, push, PR body from the
+  repository template. Asking "should I commit?" is reserved for genuinely
+  ambiguous situations, not for routine deliverables.
+- **Instruction/agent updated:** none — recorded here; if it recurs, it
+  graduates to `copilot-instructions.md`.
