@@ -407,6 +407,25 @@ Fase prévia → AI-0 → E → F → G → H → I → J → K.
   impede a desinstalação de plugins exigidos pela organização — reforça o
   marketplace como canal de distribuição impositiva.
 
+## Fila operacional (ordem de execução acordada em 2026-11-05)
+
+1. **Limpeza pós-release** do PLAN/TODO (arquivar fases concluídas).
+2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels).
+3. **Fase N — UX de output** das ferramentas (sumário estruturado,
+   formatação compartilhada, `--quiet`).
+4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
+   via M.2).
+
+## Lembretes datados
+
+- [ ] **2026-11-11 — Security release do Node.js** (26.x/24.x/22.x,
+  severidade máxima HIGH):
+  [anúncio oficial](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases).
+  Quando o dist index publicar a versão nova da linha 24.x: rodar
+  `npm run defence:update-engines` (report), aplicar com
+  `defence:update-engines:update`, abrir PR. O CI já valida as duas linhas
+  (engines floor + LTS latest).
+
 ---
 
 ## P3 / Future (retidos da reorganização anterior)
