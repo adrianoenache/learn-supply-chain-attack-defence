@@ -392,3 +392,28 @@ Keep entries concise; link to the phase/commit for detail.
   are double-width and break column alignment. Applied to the three pilot
   tools (check-sync, check-licenses, check-package-age) first; the
   remaining tools follow in batches.
+
+### 2026-11-05 — update-engines: skip malformed dist entries; fail-closed only on decision-relevant ones
+
+- **Decision:** `sanitizeDistIndex` splits the official Node.js dist index
+  into valid entries and per-entry skip records. Every `update-engines`
+  mode skips invalid entries with a WARN on stderr (JSON report exposes a
+  `skipped` field). Apply modes (`--update`/`--upgrade`/`--to`) abort only
+  when a skipped entry could affect the target decision — a well-formed
+  `vX.Y.Z` version with major ≥ the current one. Candidate selection also
+  ignores anything that is not strict stable semver (`X.Y.Z`), so
+  pre-releases never reach `package.json`.
+- **Context:** The entry `v27.0.0-alpha.0.0.0` (published 2026-10-29)
+  aborted the whole report run via `validateDistIndex`, blocking the
+  2026-11-11 security-release procedure. Live inspection showed 13 more
+  permanently malformed historical entries (v0.6.x–v11.6.0, 2011–2018,
+  bundled npm with alpha/beta/next suffixes) that upstream will never fix,
+  so whole-index fail-closed would break apply modes forever.
+- **Rejected alternative:** Whole-index fail-closed in apply modes (first
+  proposal) — permanently unusable given the historical entries. Fail-open
+  everywhere — a malformed `v24.x` entry with a well-formed version could
+  hide the real security-release target we meant to apply.
+- **Consequences:** Report and dry-run validate live against the real
+  index again; the L.0 procedure for 2026-11-11 is unblocked. The
+  relevance rule keeps the security property: engines are never written
+  from a decision that untrusted data may have influenced.

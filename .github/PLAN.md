@@ -21,25 +21,23 @@ explícita vive em `TODO.md` § Fila operacional):
    inválido + labels inexistentes; validação real no próximo run semanal).
 3. ~~**Fase N — UX de output**~~ — concluída (fundação PR #33 + batches
    (a)/(b)/(c), 25/25 ferramentas; ADR 2026-11-05 em DECISIONS.md).
-4. **P1 — robustez do `update-engines` (PRÓXIMO PASSO).** A entrada
-   malformada `v27.0.0-alpha.0.0.0` no dist index oficial aborta o run
-   inteiro (fail-closed), **bloqueando o procedimento do security release
-   de 2026-11-11**. Decisão de design a confirmar: fail-open com warning no
-   *report* (pular entradas inválidas) mantendo fail-closed na *escrita*;
-   hardening contra versões malformadas além de pre-release com build
-   metadata.
+4. ~~**P1 — robustez do `update-engines`**~~ — concluído em 2026-11-05:
+   skip com warning em todos os modos + fail-closed na escrita apenas para
+   entradas relevantes à decisão + candidatas só em semver estável estrita
+   (ADR 2026-11-05 em DECISIONS.md). O procedimento do security release de
+   2026-11-11 está destravado (report e `--update --dry-run` validados ao
+   vivo contra o dist index real).
 5. **Release v1.1.0** — escopo a decidir na largada: Fase N (25/25), fix do
-   dependabot, item 4 e o que mais estiver mergeado. Precede o novo projeto
-   de teste (assim ele nasce já na UX nova).
+   dependabot, robustez do update-engines e o que mais estiver mergeado.
+   Precede o novo projeto de teste (assim ele nasce já na UX nova).
 6. **Novo projeto de teste** de adoção — pequeno e saudável, idealmente já
    criado via M.2 (o irmão anterior foi abandonado em 2026-11-05).
 7. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
    + avaliação de marketplace), além do backlog P3.
 
 **Lembrete datado:** security release do Node.js em **2026-11-11**
-(26.x/24.x/22.x, severidade HIGH) — **depende do item 4** (o report do
-`update-engines` está quebrado enquanto a entrada alfa existir no dist
-index); depois: report → `:update` → PR. O CI já valida as duas linhas.
+(26.x/24.x/22.x, severidade HIGH) — procedimento destravado pelo item 4:
+report → `:update` → PR. O CI já valida as duas linhas.
 
 **Nota de processo (2026-11-05):** duas sessões paralelas trabalharam hoje.
 Incidentes: uma parou antes da coreografia de entrega (lição registrada:
