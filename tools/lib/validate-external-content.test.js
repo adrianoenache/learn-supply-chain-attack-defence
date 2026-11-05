@@ -13,6 +13,7 @@ const {
   validatePackument,
   validatePublishDate,
   validateDistIndex,
+  sanitizeDistIndex,
   FUTURE_TOLERANCE_MS,
 } = require(path.resolve(__dirname, './validate-external-content.js'))
 
@@ -117,5 +118,44 @@ describe('validateDistIndex', () => {
     )
     assert.throws(() => validateDistIndex([]), /non-empty array/)
     assert.throws(() => validateDistIndex({}), /non-empty array/)
+  })
+})
+
+describe('sanitizeDistIndex', () => {
+  // "v27.0.0-alpha.0.0.0" is the real malformed entry observed in the
+  // official dist index on 2026-11-05 that aborted the whole report run —
+  // kept as a fixture so the regression stays covered.
+  const MALFORMED = {
+    version: 'v27.0.0-alpha.0.0.0',
+    lts: false,
+    npm: '12.0.0',
+  }
+
+  test('keeps valid entries and reports skipped ones with reasons', () => {
+    const index = [
+      { version: 'v26.13.0', lts: 'Lithium', npm: '11.20.0' },
+      MALFORMED,
+      { version: 'v24.22.2', lts: 'Krypton', npm: '11.19.1' },
+    ]
+    const { entries, skipped } = sanitizeDistIndex(index)
+    assert.deepEqual(
+      entries.map((e) => e.version),
+      ['v26.13.0', 'v24.22.2'],
+    )
+    assert.equal(skipped.length, 1)
+    assert.equal(skipped[0].version, 'v27.0.0-alpha.0.0.0')
+    assert.match(skipped[0].reason, /malformed version/)
+  })
+
+  test('records null version for entries without a version string', () => {
+    const { entries, skipped } = sanitizeDistIndex([{ lts: false }])
+    assert.equal(entries.length, 0)
+    assert.equal(skipped[0].version, null)
+    assert.match(skipped[0].reason, /version string/)
+  })
+
+  test('still throws on structural problems (nothing to sanitize)', () => {
+    assert.throws(() => sanitizeDistIndex([]), /non-empty array/)
+    assert.throws(() => sanitizeDistIndex({}), /non-empty array/)
   })
 })

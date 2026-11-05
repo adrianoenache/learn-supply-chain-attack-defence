@@ -10,6 +10,14 @@
 - Aplica o alvo de forma cirúrgica: edita apenas as linhas de engines do `package.json`, a entrada **raiz** do `package-lock.json` e o `.nvmrc`, preservando toda a demais formatação.
 - Recusa alvos ausentes do índice dist (o CI falharia) e recusa downgrades.
 
+### Entradas malformadas do dist index
+
+O índice oficial carrega permanentemente entradas históricas malformadas (ex.: `v0.6.x` de 2011–2018 com npm bundled do tipo `1.1.0-alpha-6`) e pode publicar entradas novas inválidas (observado ao vivo: `v27.0.0-alpha.0.0.0` em 2026-11-05). A ferramenta lida assim:
+
+- **Todo modo** pula entradas inválidas com um warning `⚠ WARN` em stderr (suprimido por `--silent`); o relatório `--format json` lista-as no campo `skipped`.
+- **Modos de escrita** (`--update`/`--upgrade`/`--to`) falham em modo fail-closed apenas quando uma entrada pulada **poderia afetar a decisão de alvo** — uma versão `vX.Y.Z` bem-formada com major maior ou igual ao atual. Entradas que jamais seriam um alvo (versão malformada ou major antigo) só geram warning.
+- Apenas versões semver estáveis estritas (`X.Y.Z`) podem virar candidatas a engine — pre-releases nunca entram no `package.json`.
+
 Implementado em [tools/update-engines.js](../../../tools/update-engines.js).
 
 ## Uso
@@ -39,7 +47,7 @@ Apply with: --update (in-major), --upgrade (latest LTS), or --to <version>.
   Next: npm run defence:update-engines:update (in-major) or :upgrade (latest LTS)
 ```
 
-O único item `passed` é o pin atual verificado contra o dist index oficial; `warned` conta os alvos de update/upgrade disponíveis.
+O único item `passed` é o pin atual verificado contra o dist index oficial; `warned` conta os alvos de update/upgrade disponíveis mais as entradas malformadas puladas.
 
 ## Depois de aplicar
 

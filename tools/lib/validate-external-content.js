@@ -125,10 +125,42 @@ function validateDistIndex(index) {
   return true
 }
 
+// Splits a dist index into trustworthy entries and per-entry skip records.
+// Used by consumers that only READ the index for reporting: a single
+// malformed upstream entry (observed live: "v27.0.0-alpha.0.0.0" on
+// 2026-11-05) must not abort the whole run. Structural problems (non-array,
+// empty) still throw — there is nothing to sanitize. Consumers that WRITE
+// the data into engines must keep using validateDistIndex (fail-closed).
+function sanitizeDistIndex(index) {
+  if (!Array.isArray(index) || index.length === 0) {
+    throw new Error(
+      'Dist index is not a non-empty array — refusing to trust it.',
+    )
+  }
+  const entries = []
+  const skipped = []
+  for (const entry of index) {
+    try {
+      validateDistEntry(entry)
+      entries.push(entry)
+    } catch (err) {
+      skipped.push({
+        version:
+          isPlainObject(entry) && typeof entry.version === 'string'
+            ? entry.version
+            : null,
+        reason: err.message,
+      })
+    }
+  }
+  return { entries, skipped }
+}
+
 module.exports = {
   validatePackument,
   validatePublishDate,
   validateDistEntry,
   validateDistIndex,
+  sanitizeDistIndex,
   FUTURE_TOLERANCE_MS,
 }

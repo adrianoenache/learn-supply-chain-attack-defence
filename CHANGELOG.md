@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed (tools — update-engines robustness)
+
+- `update-engines.js` no longer aborts the whole run when the official
+  Node.js dist index contains malformed entries (observed live:
+  `v27.0.0-alpha.0.0.0` on 2026-11-05, plus 13 permanently malformed
+  historical entries from 2011–2018). Every mode skips invalid entries
+  with a warning and the JSON report lists them under `skipped`; apply
+  modes still fail closed when a skipped entry could affect the target
+  decision (well-formed `vX.Y.Z` at or above the current major), and only
+  strict stable semver versions can become engine candidates. New
+  `sanitizeDistIndex` helper in `tools/lib/validate-external-content.js`.
+
 ### Fixed (CI — main branch never ran the workflow)
 
 - The `push` trigger now covers `main` in addition to `dev`. The README CI

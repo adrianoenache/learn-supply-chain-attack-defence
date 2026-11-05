@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-05T22:09:21.725Z",
+  "installedAt": "2026-11-05T22:33:02.791Z",
   "files": [
     {
       "path": ".npmrc",
@@ -192,11 +192,11 @@
     },
     {
       "path": "tools/update-engines.js",
-      "hash": "a018817e359b8dbfcb32577ebc4b9f8e8097cc108a455b3a23c12e8d447a7f09"
+      "hash": "db4f0ababb8ef3ac5b799dd0aa3e2d2a05583c4b6b414c7a501e51d5c05e1397"
     },
     {
       "path": "tools/update-engines.test.js",
-      "hash": "4706d94570094582382db1e016330ff9bcf4c6142aa5249f45f17ff15134739d"
+      "hash": "a7c341d7b8e2abfe25cd792a6164f15098b9e1d43bd2536a7d7923c852a77581"
     },
     {
       "path": "tools/update-packages.js",
@@ -284,11 +284,11 @@
     },
     {
       "path": "tools/lib/validate-external-content.js",
-      "hash": "967718140d0941932a68aeba43197171b37e3f2622cdc2e0b26e69efac05dde7"
+      "hash": "7a49be6bf6167b643fc5f66d2e4f23db058bac1279406c6d36824bf37f49c631"
     },
     {
       "path": "tools/lib/validate-external-content.test.js",
-      "hash": "0f290d4451a5191dd8276de2a614070538a08e1752ac413cebfbc447f8b2b6bf"
+      "hash": "28b85f985667f3102b32d92a2c0843e6bb446f558fc2cbe3466bafece5857002"
     },
     {
       "path": "tools/lib/process-monitor.js",
