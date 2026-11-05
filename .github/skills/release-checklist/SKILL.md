@@ -1,15 +1,15 @@
 ---
 name: release-checklist
-description: Execute the v1.0.0 release checklist consistently and produce the v1.0.0 tag and GitHub Release. Use only when TODO.md is 100% complete, all tests pass, and all documentation is synchronized.
+description: Execute the release checklist consistently and produce the version tag and GitHub Release notes. Use only when TODO.md has no open P0/P1 items, all tests pass, and all documentation is synchronized.
 ---
 
-# Release v1.0.0 Checklist Skill
+# Release Checklist Skill
 
-Use this skill when the project is ready to tag `v1.0.0`. This is the final action, only after `TODO.md` is 100% complete, all tests pass, and all documentation is synchronized.
+Use this skill when the project is ready to tag a new version (`vX.Y.Z`). This is the final action, only after `TODO.md` has no open P0/P1 items, all tests pass, and all documentation is synchronized.
 
 ## Goal
 
-Execute the release checklist consistently and produce the v1.0.0 tag and GitHub Release.
+Execute the release checklist consistently and produce the version tag and the GitHub Release notes.
 
 ## Procedure
 
@@ -17,9 +17,17 @@ Use the bundled [checklist-template.md](./checklist-template.md) as the working
 artifact for the release execution: copy it, fill each item, and keep it out of
 the repository (it is a scratch artifact, not a deliverable).
 
-1. **Confirm TODO.md is 100% complete.** No open P0/P1 items should remain.
+1. **Work in an isolated git worktree — mandatory.** Release work (version
+   bump, release PR, tag) MUST NOT run in the main checkout shared with
+   other sessions: a branch switch by another session mid-release corrupts
+   the gates and their evidence. Create an isolated worktree (the session's
+   isolation feature or `git worktree add`) and run `git fetch --all --prune`
+   BEFORE cutting the release branch from `origin/dev`. Rule added on
+   2026-11-05 — see `DECISIONS.md`.
 
-2. **Run the full local validation matrix:**
+2. **Confirm TODO.md is release-ready.** No open P0/P1 items should remain.
+
+3. **Run the full local validation matrix:**
 
    ```bash
    npm run lint
@@ -36,11 +44,11 @@ the repository (it is a scratch artifact, not a deliverable).
    bash .husky/pre-commit
    ```
 
-3. **Bump the version.** Update `version` in `package.json` and `package-lock.json`.
+4. **Bump the version.** Update `version` in `package.json` and `package-lock.json`.
 
-4. **Update `CHANGELOG.md`.** Move the `[Unreleased]` content into a new `[1.0.0] - YYYY-MM-DD` section.
+5. **Update `CHANGELOG.md`.** Move the `[Unreleased]` content into a new `[X.Y.Z] - YYYY-MM-DD` section.
 
-5. **Regenerate `.defence-manifest.json`** if any defence file changed:
+6. **Regenerate `.defence-manifest.json`** if any defence file changed:
 
    ```bash
    node -e "
@@ -55,11 +63,11 @@ the repository (it is a scratch artifact, not a deliverable).
    npm run defence:verify-defences
    ```
 
-6. **Open a pull request to `main`.** Wait for all GitHub Actions jobs to pass.
+7. **Open a pull request to `main`.** Wait for all GitHub Actions jobs to pass.
 
-7. **Merge the release PR.**
+8. **Merge the release PR.**
 
-8. **Create and push the annotated tag:**
+9. **Create and push the annotated tag** (example for v1.0.0):
 
    ```bash
    git checkout main
@@ -68,9 +76,12 @@ the repository (it is a scratch artifact, not a deliverable).
    git push origin v1.0.0
    ```
 
-9. **Create a GitHub Release** from the tag. Copy the relevant section from `CHANGELOG.md` and attach `/tmp/sbom.json`.
+10. **Prepare the GitHub Release material** for the maintainer: the release
+   notes text (the relevant `CHANGELOG.md` section) and the path of the SBOM
+   asset (`/tmp/sbom.json`, regenerated from `main` after the merge). The
+   maintainer publishes the GitHub Release from the tag.
 
-10. **Post-release verification.** Clone into a fresh directory and run:
+11. **Post-release verification.** Clone into a fresh directory and run:
 
     ```bash
     npm run setup
@@ -83,9 +94,9 @@ the repository (it is a scratch artifact, not a deliverable).
 - TODO.md has no open P0/P1 items.
 - All local and CI gates passed.
 - Version was bumped in `package.json` and `package-lock.json`.
-- `CHANGELOG.md` reflects the v1.0.0 release.
-- Git tag `v1.0.0` exists and points to `main`.
-- GitHub Release is published with release notes and SBOM asset.
+- `CHANGELOG.md` reflects the new release.
+- The git tag `vX.Y.Z` exists and points to `main`.
+- The GitHub Release notes text and SBOM asset path were delivered to the maintainer.
 
 ## Output
 
@@ -93,4 +104,4 @@ Produce a release summary:
 
 1. PR and tag URLs.
 2. List of gates executed and their results.
-3. Result: "v1.0.0 released" or a list of blockers.
+3. Result: "vX.Y.Z released" or a list of blockers.

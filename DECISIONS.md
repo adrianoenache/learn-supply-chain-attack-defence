@@ -417,3 +417,23 @@ Keep entries concise; link to the phase/commit for detail.
   index again; the L.0 procedure for 2026-11-11 is unblocked. The
   relevance rule keeps the security property: engines are never written
   from a decision that untrusted data may have influenced.
+
+### 2026-11-05 — Releases run in an isolated git worktree
+
+- **Decision:** All release work (version bump, release PR dev→main,
+  tagging, post-release verification) executes in an isolated git
+  worktree, never in the main checkout. `git fetch --all --prune` is the
+  non-negotiable first step before cutting the release branch from
+  `origin/dev`.
+- **Context:** Multiple parallel AI sessions share the main checkout (five
+  active sessions observed on 2026-11-05, two with feature branches
+  checked out). A branch switch by another session mid-release would
+  corrupt the validation gates and their recorded evidence. The
+  maintainer mandated the rule at the v1.1.0 release start.
+- **Rejected alternative:** Reusing the main checkout, as done for
+  v1.0.0 — safe only when no other session is active, which is no longer
+  the norm.
+- **Consequences:** The release-checklist skill (step 1), the bilingual
+  release checklist pages and the project-wide AI instructions make the
+  worktree mandatory. Cost: a fresh `npm ci` per release and worktree
+  cleanup at the end; benefit: full isolation from concurrent sessions.
