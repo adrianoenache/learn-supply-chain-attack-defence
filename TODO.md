@@ -13,8 +13,10 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 
 ## Fila operacional (ordem de execução acordada em 2026-11-05)
 
-1. **Limpeza pós-release** do PLAN/TODO (arquivar fases concluídas).
-2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels).
+1. **Limpeza pós-release** do PLAN/TODO (arquivar fases concluídas) —
+   concluído no PR #31.
+2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels) —
+   concluído em 2026-11-05.
 3. **Fase N — UX de output** das ferramentas (sumário estruturado,
    formatação compartilhada, `--quiet`).
 4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
@@ -86,10 +88,12 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 
 ## Fix pendente — dependabot.yml
 
-- [ ] O run do Dependabot falhou (2026-11-04). Prováveis causas: campo
-  `reviewers: []` vazio e labels `dependencies`/`github-actions` inexistentes
-  no repositório. Confirmar a causa na aba Settings → Advanced Security →
-  Dependabot (texto do erro do último run) e corrigir o arquivo.
+- [x] O run do Dependabot falhou (2026-11-04). Causa confirmada no CI:
+  `#/updates/0/reviewers` precisa de no mínimo 1 item. Corrigido em
+  2026-11-05: removidos `reviewers: []` e o bloco `labels:` (os labels
+  `dependencies`/`github-actions` não existem no repositório; o Dependabot
+  cria o label padrão `dependencies` automaticamente). Decisão documentada em
+  `docs/{en,pt-BR}/ci-cd-overview.md` e como comentário no próprio YAML.
 
 ---
 

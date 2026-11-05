@@ -66,7 +66,7 @@ Todas as GitHub Actions são fixadas por commit SHA com um comentário de versã
 - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 ```
 
-Fixação por SHA garante que o código exato e auditado seja executado, mesmo que uma tag seja movida ou comprometida. O Dependabot está configurado em [`.github/dependabot.yml`](../../.github/dependabot.yml) para propor atualizações semanais com o prefixo `chore(deps)`.
+Fixação por SHA garante que o código exato e auditado seja executado, mesmo que uma tag seja movida ou comprometida. O Dependabot está configurado em [`.github/dependabot.yml`](../../.github/dependabot.yml) para propor atualizações semanais com o prefixo `chore(deps)`. A configuração omite intencionalmente `reviewers` (uma lista vazia é inválida) e `labels` customizados (o próprio Dependabot cria o label padrão `dependencies`).
 
 ## Cache de `node_modules` como artefato
 
