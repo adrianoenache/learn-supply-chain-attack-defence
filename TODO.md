@@ -17,10 +17,9 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
    concluído no PR #31.
 2. **Fix do `dependabot.yml`** (remover `reviewers: []`, resolver labels) —
    concluído em 2026-11-05.
-3. **Fase N — UX de output** das ferramentas (sumário estruturado,
-   formatação compartilhada, `--quiet`) — **em execução**: fundação +
-   pilotos (check-sync, check-licenses, check-package-age) no PR da branch
-   `feat/phase-n-output-ux`; batches restantes em PRs próprias.
+3. ~~**Fase N — UX de output** das ferramentas~~ — **concluída em
+   2026-11-05** (fundação + 3 batches, 25/25 ferramentas; PRs #33 +
+   batches (a)/(b)/(c)).
 4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
    via M.2).
 5. **P1 — robustez do `update-engines`** (detectado na Fase N batch (b),
@@ -78,19 +77,16 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 - [x] Avaliar cores via detecção de TTY — **adotado**: ANSI nativo em
   `formatters.js` (`supportsColor`: TTY + `NO_COLOR`/`FORCE_COLOR`), zero
   dependências, desligado fora de TTY.
-- [ ] Aplicar ferramenta por ferramenta (15/25 feitas: pilotos check-sync,
-  check-licenses, check-package-age + batch (a) check-secrets, check-hooks,
-  check-engines, check-lockfile-integrity, check-npmrc, check-md-links,
-  check-external-urls + batch (b) check-updates, update-packages,
-  update-engines, run-audit-with-retry, add-package), atualizando os testes
-  que assertam strings de saída e as páginas de docs (EN/PT) com
-  antes/depois. Batches: ~~(a) gates de CI/pre-commit~~ e ~~(b)
-  registry/update~~ entregues; resta (c) relatórios/infra — generate-sbom,
-  generate-trust-report, verify-defences, install-defences, setup-bootstrap,
-  monitor-install, analyze-lifecycle-scripts, check-dead-code,
-  measure-ai-context, update-badge. Decisão do batch (b): `add-package` e
-  `update-packages` **não** ganham `--quiet` (workflows interativos — a
-  saída das etapas é a evidência); documentado nos headers e no checklist.
+- [x] Aplicar ferramenta por ferramenta (**25/25 feitas**), atualizando os
+  testes que assertam strings de saída e as páginas de docs (EN/PT) com
+  antes/depois. Batches: (a) gates de CI/pre-commit, (b) registry/update,
+  (c) relatórios/infra — todos entregues. Decisão: `add-package`,
+  `update-packages`, `install-defences` e `setup-bootstrap` **não** ganham
+  `--quiet` (workflows interativos/instaladores — a saída das etapas é a
+  evidência); documentado nos headers, páginas e checklist. Lição recorrente
+  promovida a regra: exemplos de saída fictícios/traduzidos nas docs
+  (9 páginas corrigidas; ver `.github/instructions/docs.instructions.md`
+  § Sample Output Accuracy).
 
 ## Fase M — Adoção e scaffolding (pós-v1.0.0, alvo v1.1.0)
 
