@@ -23,11 +23,15 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 4. **Novo projeto de teste** de adoção (pequeno e saudável; idealmente já
    via M.2).
 5. **P1 — robustez do `update-engines`** (detectado na Fase N batch (b),
-   2026-11-05): uma entrada malformada no dist index
-   (`v27.0.0-alpha.0.0.0`) faz `validateDistIndex` abortar o run inteiro.
-   Fail-closed é correto para *aplicar*, mas o *report* deveria pular
-   entradas inválidas com warning em vez de morrer. **Bloqueia o lembrete
-   de 2026-11-11** (o procedimento L.0 depende deste relatório).
+   reproduzido ao vivo em 2026-11-05): a entrada malformada
+   `v27.0.0-alpha.0.0.0` no dist index faz `validateDistIndex` abortar o run
+   inteiro ("Could not fetch or trust…"). Fail-closed é correto para
+   *aplicar*, mas o *report* deveria pular entradas inválidas com warning em
+   vez de morrer. **Bloqueia o lembrete de 2026-11-11** — **PRÓXIMO PASSO**.
+6. **Release v1.1.0** (quando a Fase N estiver revisada e o item 5 fechado —
+   ver PLAN § Ciclo v1.1.0 para o escopo completo).
+7. **Validação do Dependabot** no próximo run (segunda-feira 09:00, ou
+   manual em Insights → Dependency graph → Dependabot).
 
 ## Lembretes datados
 
@@ -66,7 +70,7 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 
 ---
 
-## Fase N — UX de output das ferramentas (em execução)
+## Fase N — UX de output das ferramentas ✅ (25/25; PRs #33–#35)
 
 - [x] Definir o padrão de saída legível: sumário estruturado ao final de cada
   ferramenta (passou/falhou/pulou + próximo comando sugerido), formatação
