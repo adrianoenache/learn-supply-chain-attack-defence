@@ -32,6 +32,35 @@ simplificaria. A regra: extrair apenas quando a implementação é
 byte-idêntica em mais de um arquivo — como foi o caso de
 `tools/lib/concurrency.js` e, depois, de `tools/lib/semver.js`.
 
+A Fase N (2026-11-05) **emendou** essa decisão para os primitivos de status de
+saída: símbolos (✓/✗/⚠/○), rótulos alinhados (OK/FAIL/WARN/SKIP), o bloco de
+sumário de fim de execução, a convenção `--quiet` e a detecção de cor via TTY
+são byte-idênticos em intenção em todas as ferramentas, então agora vivem em
+`tools/lib/formatters.js` (ADR em `DECISIONS.md`). A renderização de relatórios
+específicos de domínio permanece em cada ferramenta.
+
+### Convenções de saída antes/depois (pilotos da Fase N)
+
+Antes, cada ferramenta inventava o próprio vocabulário — emoji no
+`check-sync.js` (`✅ node_modules is in sync…`), palavras soltas com
+preenchimento no `check-package-age.js` (`  OK       lodash@4.17.21 — …`) e
+nenhum sumário de fim de execução, então os logs de CI não podiam ser
+varridos com um único padrão. Depois, toda ferramenta imprime itens de status
+alinhados e fecha com o sumário compartilhado:
+
+```text
+  ✓ OK   lodash@4.17.21 — published 2026-10-01 (32.5 days ago)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
+```
+
+O sumário sempre responde três perguntas: o que passou, o que falhou ou foi
+pulado, e o que rodar em seguida (`Next:`). As cores são ANSI nativo, ativadas
+apenas em terminais interativos (TTY) e desativadas por `NO_COLOR` — sem
+dependência. Os emoji foram removidos das linhas de status porque ocupam duas
+colunas e quebram o alinhamento.
+
 ## Resultados da auditoria (2026-10-08)
 
 - **Arquivos órfãos:** nenhum. Todo script é referenciado pelo `package.json`,

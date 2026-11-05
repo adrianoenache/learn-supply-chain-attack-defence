@@ -44,8 +44,8 @@ npm run defence:license-check -- --format=json
 # Saída em Markdown (PRs/issues)
 npm run defence:license-check -- --format=markdown
 
-# Suprimir saída (CI)
-npm run defence:license-check -- --silent
+# Suprimir saída (CI) — --silent permanece como alias
+npm run defence:license-check -- --quiet
 
 # Verificar um único pacote por nome e versão exatos
 npm run defence:license-check -- --pkg=lodash@4.17.21
@@ -54,9 +54,27 @@ npm run defence:license-check -- --pkg=lodash@4.17.21
 ## Exemplo de saída
 
 ```text
-Pacote          Licença  Status
-lodash@4.17.21  MIT      permitida
+📋 Dependency license check — 3 package(s) scanned:
+
+  Prohibited (1):
+    ✗ FAIL evil-dep@1.0.0 — GPL-3.0 (prohibited license)
+
+  Flagged for review (1):
+    ⚠ WARN custom-lib@2.0.0 — Custom (unknown license)
+
+  Allowed (1):
+    ✓ OK   lodash@4.17.21 — MIT
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
+  ✗ FAIL 1 failed
+  ⚠ WARN 1 warned
+  Next: remove or replace prohibited packages — see docs/en/security/defense-layer-9-license-check.md
 ```
+
+O sumário usa o vocabulário canônico da Fase N: `failed` conta os pacotes proibidos, `warned` conta os sinalizados.
+
+(A saída da ferramenta é em inglês.)
 
 ## Camada de defesa relacionada
 

@@ -146,8 +146,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** Camada de Defesa 1 — bloqueia pacotes publicados há menos de `minAgeDays`.
 - **Scripts:** `defence:pkg-age-check`
-- **Flags:** `--transitive` (varre todo o lockfile); `--pkg <name@version>` (pacote único).
-- **Modos silencioso/formato:** não suportados.
+- **Flags:** `--transitive` (varre todo o lockfile); `--pkg <name@version>` (pacote único); `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso; falhas continuam visíveis. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` todos os pacotes antigos o suficiente; `1` algum pacote abaixo da idade mínima.
 - **Testes:** `tools/check-package-age.test.js`, `tools/integration.test.js`
 - **Docs:** [tools/check-package-age.md](tools/check-package-age.md)
@@ -165,8 +165,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** Camada de Defesa 9 — verifica licenças de dependências contra a política de allow/deny.
 - **Scripts:** `defence:license-check`, mais as variantes `:fail` e `:json`.
-- **Flags:** `--fail` (saída 1 em incompatível), `--transitive`, `--pkg=<name>`, `--silent`, `--format=<table|json|markdown>`.
-- **Modos silencioso/formato:** `--silent` suprime a tabela; formatos mudam o renderizador.
+- **Flags:** `--fail` (saída 1 em incompatível), `--transitive`, `--pkg=<name>`, `--quiet`/`--silent`, `--format=<table|json|markdown>`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a tabela; formatos mudam o renderizador. O relatório em tabela termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` compatível (ou sem `--fail`); `1` licença incompatível com `--fail`.
 - **Testes:** `tools/check-licenses.test.js`
 - **Docs:** [tools/check-licenses.md](tools/check-licenses.md)
@@ -250,8 +250,8 @@ cabeçalho no arquivo da ferramenta.
 
 - **Propósito:** verifica se `node_modules` corresponde ao `package-lock.json` (suporte à Camada 4).
 - **Scripts:** `defence:sync-check`, `defence:sync-check:fix`
-- **Flags:** `--fix` (executa `npm ci` para reparar), `--silent`.
-- **Modos silencioso/formato:** `--silent` suprime a saída de sucesso.
+- **Flags:** `--fix` (executa `npm ci` para reparar), `--quiet`/`--silent`.
+- **Modos silencioso/formato:** `--quiet` (alias `--silent`) suprime a saída de sucesso. Termina com o bloco de sumário compartilhado (Fase N).
 - **Códigos de saída:** `0` sincronizado; `1` dessincronizado (sem `--fix`) ou reparo falhou.
 - **Testes:** `tools/check-sync.test.js`, `tools/lib/sync-check.test.js`
 - **Docs:** [tools/check-sync.md](tools/check-sync.md)
