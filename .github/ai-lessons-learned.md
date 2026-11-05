@@ -356,3 +356,20 @@ Review this log at the end of each phase or before tagging a release. If the sam
   to `.github/instructions/docs.instructions.md` (graduated rule after 3+
   occurrences), requiring real English samples plus the standard pt-BR note.
 - **Instruction/agent updated:** `.github/instructions/docs.instructions.md`.
+
+### 2026-11-05 — Pushing before fetching: a branch based on stale dev forces a GitHub-side update
+
+- **Date:** 2026-11-05
+- **Rule violated:** The delivery choreography (fetch → branch from latest
+  dev → commits → push → PR) — the fetch step was skipped.
+- **Affected files:** PR #35 (dependabot fix delivery)
+- **What happened:** The PR branch was created from a stale local `dev` and
+  pushed immediately; the maintainer had to click "Update branch" on GitHub
+  because the protection requires branches to be up to date before merging.
+  A `git fetch` before branching would have made the PR merge-ready from
+  the start.
+- **Correction applied:** fetch is non-negotiable and comes FIRST in the
+  choreography — never branch or push from an unrefreshed dev.
+- **Instruction/agent updated:** none — reinforces the previous entry
+  (delivery choreography); if it recurs once more, both graduate to
+  `copilot-instructions.md`.
