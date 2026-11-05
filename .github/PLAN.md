@@ -1,33 +1,74 @@
-# Plano de Ação — Reorganização pós-Fase D com Fase AI-0 Foundation
+# Plano de Ação — ciclo v1.1.0 (pós-release)
 
 > **Authoritative plan.** This file is the source of truth for the current
 > project plan. AI assistants must read it at the start of every session or
 > when the user asks to resume/review the plan. Do not rely on session memory.
 >
-> Last updated: 2026-11-03
+> Last updated: 2026-11-05
 
 ## TL;DR
 
 **v1.0.0 released em 2026-11-04** (PR #27 dev→main, tag `v1.0.0`, GitHub
-Release publicado). Todas as fases concluídas: prévia, AI-0, Pre-E, E, AI-1
-(migração VS Code 1.140), F/F.4, AI-2, G, AI-3.5, H, L (engines), AI-4
-(processos de AI), I (docs completas + revisão integral dos 69 pares EN/PT),
-AI-3.3 (observabilidade JSONL), J (**10/10 medido**, zero P0), AI-3.2
-(injection hardening), AI-3.1 ("não fazer" medido), M.1 (dogfooding validado
-— 549/549 no projeto irmão) e **K** (release).
+Release com SBOM publicado; verificação pós-release em clone limpo verde).
+Todas as fases do ciclo v1.0.0 foram concluídas — detalhe completo no
+**§ Histórico** abaixo, em `CHANGELOG.md` `[1.0.0]` e em `DECISIONS.md`.
 
-No dia do release (2026-11-04): VS Code 1.145 verificado (zero deprecations
-relevantes; novos itens P3 de automações cron e harnesses mistos); suíte
-validada em Node 26.13.0 LTS — o CI roda dual-line com 12 jobs
-(`Test (engines floor)` + `Test (Node LTS latest)`), mantendo o piso em
-24.22.2; e o checklist de release **capturou e corrigiu na raiz** uma
-regressão que tornava o portão de idade transitivo um no-op silencioso
-(regressão da M.1; ver CHANGELOG `[1.0.0]`).
+**Ciclo atual (v1.1.0)** — fila operacional acordada em 2026-11-05 (a ordem
+explícita vive em `TODO.md` § Fila operacional):
 
-Pós-release (v1.1.0): **M.2** (scaffolding completo) e **M.3** (scaffolding
-de infra AI + avaliação de marketplace), além do backlog P3. Pendência do
-mantenedor no projeto irmão: revisar `chore/adopt-defences` e triangular as
-29 vulnerabilidades (2 críticas) que a defesa adotada revelou.
+1. ~~Limpeza pós-release do PLAN/TODO~~ — **este arquivo, em execução**.
+2. Fix do `dependabot.yml` (run falhou em 2026-11-04).
+3. **Fase N — UX de output** das ferramentas (sumário estruturado,
+   formatação compartilhada, `--quiet`).
+4. **Novo projeto de teste** de adoção — o irmão anterior
+   (`setup-webpack-stylus-liquid`) foi abandonado em 2026-11-05 por excesso
+   de dependências; o novo deve ser pequeno e saudável, idealmente já criado
+   via M.2.
+5. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
+   + avaliação de marketplace), além do backlog P3.
+
+**Lembrete datado:** security release do Node.js em **2026-11-11**
+(26.x/24.x/22.x, severidade HIGH) — procedimento L.0 pronto
+(`defence:update-engines` report → `:update` → PR); o CI já valida as duas
+linhas.
+
+## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
+
+- **Fase N — UX de output:** padrão de saída legível por ferramenta
+  (sumário estruturado, símbolos consistentes, colunas alinhadas, `--quiet`),
+  formatação central em `tools/lib/formatters.js`, testes de strings de
+  saída atualizados junto, docs EN/PT com antes/depois, avaliação de cores
+  via TTY nativo.
+- **Fase M.2 — Scaffolding completo:** `tools/create-defended-project.js`
+  cria projeto zerado com as 12 camadas (opção de incluir a infra de AI).
+  Driver: o novo projeto de teste da fila.
+- **Fase M.3 — Scaffolding de infra AI:** somente `.github/` para projetos
+  existentes; avaliar o marketplace do VS Code como canal (sinal 1.145:
+  `enabledPlugins` gerenciado impede desinstalação).
+
+## Regras permanentes (valem para todo ciclo)
+
+- **Pós-release: arquivar.** Ao fechar um release, fases concluídas saem do
+  corpo do PLAN/TODO e viram resumo de uma linha por fase no § Histórico;
+  o detalhe permanece em CHANGELOG/DECISIONS/PRs (regra criada em
+  2026-11-05, nesta limpeza).
+- **Fonte da verdade:** este arquivo vence qualquer memória de sessão;
+  divergências são resolvidas aqui antes de agir (skill `context-recovery`).
+- **Gates por mudança:** `npm test`, `npm run lint`,
+  `defence:check-md-links` (se markdown), pre-commit — sempre.
+- **Commits granulares:** 1 commit = 1 intent; pares EN/PT juntos no mesmo
+  commit; bookkeeping (PLAN/TODO/DECISIONS) separado de código.
+- **Branch protection:** nada entra em `main`/`dev` sem PR verde (12 checks)
+  — ver inventário exato das regras em
+  `docs/{en,pt-BR}/repository-organization.md`.
+- **Dependências:** somente via `defence:add` / `defence:update` — nunca
+  instalação direta de pacotes fora dos gates.
+
+## Histórico — ciclo v1.0.0 (2026-09 → 2026-11-04)
+
+> Arquivo morto: as fases abaixo estão concluídas e preservadas como
+> registro. Detalhes operacionais em `CHANGELOG.md` `[1.0.0]`, decisões em
+> `DECISIONS.md`, e o diff completo nas PRs #1–#29.
 
 ## Fases
 
@@ -680,27 +721,7 @@ mantenedor no projeto irmão: revisar `chore/adopt-defences` e triangular as
 
 ### Fase M — Adoção e scaffolding
 
-> **Origem (2026-11-03, decisão do mantenedor):** levar as defesas para fora
-> do próprio repositório. **M.1 executa antes da K** (valida o instalador num
-> projeto real e alimenta correções pré-release); **M.2/M.3 são pós-v1.0.0**
-> (alvo v1.1.0) para não inflar o escopo do release.
->
-> **M.1 concluída em 2026-11-03** — dogfooding no projeto irmão com 8 gaps
-> corrigidos na raiz e suíte adotada 549/549 verde; relatório datado em
-> `docs/{en,pt-BR}/dogfooding-m1-report.md` e ADR para deps não-registry.
-
-- **M.1** Dogfooding (pré-release): executar `install-defences.js` em
-  `../setup-webpack-stylus-liquid/` (projeto real, webpack/babel/postcss),
-  documentar gaps encontrados, abrir itens de correção e reexecutar até a
-  instalação ficar limpa; registrar o relatório em docs bilíngues.
-- **M.2** Scaffolding de projeto zerado (v1.1.0):
-  `tools/create-defended-project.js` — novo projeto Node.js já com todas as
-  camadas de defesa configuradas (ou pré-configuradas com prompts), incluindo
-  opção de nascer com a infraestrutura de AI deste repositório.
-- **M.3** Scaffolding exclusivo da infraestrutura de AI (v1.1.0): instalar
-  apenas o conjunto `.github/` (instructions, agents, skills, hooks,
-  sanity suites) em projeto zerado ou em andamento sem infra de AI; avaliar o
-  marketplace/Browse do VS Code 1.144 como canal de distribuição.
+---
 
 ## Arquivos críticos
 

@@ -201,8 +201,27 @@ Three 1.144 additions interact with this repository's AI structure:
 - **Assisted permissions (GA).** VS Code can now LLM-triage tool calls and auto-approve low-risk ones *before* our hooks run. This does not weaken anything: the `preToolUse` hooks above remain the deterministic last word, and the layered order is client triage → project hooks → human approval. Organization-managed settings (`permissions.defaultMode`) can disable the triage; the project neither requires nor forbids it.
 - **Copilot Memory (cloud, on by default).** The Copilot harness may store repo facts and user preferences in GitHub's cloud memory. Policy: **the versioned files remain the source of truth** — `DECISIONS.md`, `PLAN.md`/`TODO.md`, and `.github/ai-lessons-learned.md` are auditable, reviewable in PRs, and shared by every contributor; cloud memory is treated as a volatile convenience cache, never as the only record of a decision. If the two ever disagree, the repository wins (and the divergence should be distilled into the files at session end, per the `context-recovery` skill).
 
-### VS Code 1.145: harness mixing, local automations, and managed plugins
+### Credit efficiency (Copilot usage)
 
+Metered AI usage is a shared budget. This repository's infrastructure is
+already built for economy — always-on instructions are ~3 KB (~750 tokens
+per request, measured by `tools/measure-ai-context.js`) and skills load on
+demand — so the remaining savings are operational habits:
+
+- **One session per coherent goal, not per day.** Long sessions reprocess
+  accumulated history on every turn; when the topic changes or the task is
+  done, start fresh. A single sentence ("retomando o projeto — item X da
+  fila do TODO") plus the `context-recovery` skill reconstructs the full
+  state from the versioned files.
+- **Pointed questions get direct answers.** Skills, subagents, and broad
+  searches each add context cost; the AI applies them only when the task
+  actually needs them (the subagent-invocation skill already encodes the
+  "five or fewer direct tool calls" rule).
+- **Distill at session end.** Decisions and lessons live in versioned files,
+  so nothing valuable is lost when a session closes — closing early is
+  always safe.
+
+### VS Code 1.145: harness mixing, local automations, and managed plugins
 Verified against the 1.145.0 release notes (2026-11-04): **no deprecation affects this repository** — the only removal is the `#installExtension` agent tool from the Local harness, which this project never used. Agent, skill, hook, and instruction file formats are unchanged, and `target: github-copilot` remains valid. The Copilot harness is now the default for new sessions, and Microsoft published a [Local-to-Copilot harness transition guide](https://code.visualstudio.com/docs/agents/run/move-to-copilot) that external adopters can follow.
 
 Four additions are relevant here; none requires changes:
