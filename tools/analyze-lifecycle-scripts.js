@@ -21,6 +21,9 @@ const { parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
 const { loadConfig } = require(path.resolve(__dirname, './lib/config.js'))
+const { hasQuietFlag, supportsColor, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const {
   analyzeManifest,
   aggregateResults,
@@ -46,7 +49,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
     .find((arg) => arg.startsWith('--pkg='))
     ?.slice('--pkg='.length)
   const isFail = argv.includes('--fail')
-  const isSilent = argv.includes('--silent')
+  const isSilent = hasQuietFlag(argv)
 
   const formatArg = argv.find((arg) => arg.startsWith('--format='))
   const format = formatArg?.slice('--format='.length) ?? 'table'
@@ -140,6 +143,19 @@ async function main(argv = process.argv.slice(2)) {
 
     if (!isSilent) {
       console.log(formatReport(results, format))
+      if (format === 'table') {
+        const failed = isFail && result.riskLevel === 'high'
+        console.log(
+          renderSummary({
+            passed: failed ? 0 : 1,
+            failed: failed ? 1 : 0,
+            next: failed
+              ? `review the findings above before installing ${name}@${version}`
+              : null,
+            color: supportsColor(),
+          }),
+        )
+      }
     }
 
     if (isFail && result.riskLevel === 'high') {

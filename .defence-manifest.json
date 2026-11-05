@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "installedAt": "2026-11-05T20:55:03.080Z",
+  "installedAt": "2026-11-05T21:15:46.958Z",
   "files": [
     {
       "path": ".npmrc",
@@ -28,11 +28,11 @@
     },
     {
       "path": "tools/analyze-lifecycle-scripts.js",
-      "hash": "a6c9cfa8bdeb0d60130c44ea2a40bc13096c6cd784e23e5f92a48ecd24549892"
+      "hash": "3b64653fa2d3ddefb413db29d8a714ab215bcc20464b9563b262f474287adf12"
     },
     {
       "path": "tools/analyze-lifecycle-scripts.test.js",
-      "hash": "368c605cd678a77b475b9f682cc0c743dfde0ca1c695513bb91efd711b260e46"
+      "hash": "b9e944589757583747c4f19e3ab3ed24e8caf1ed61e3b2b5e731de87c728706e"
     },
     {
       "path": "tools/check-engines.js",
@@ -84,11 +84,11 @@
     },
     {
       "path": "tools/check-dead-code.js",
-      "hash": "cc3ac88e4485fe3bafbdd0bc7226f6ecf0c9235159f886335af2c93e0230449a"
+      "hash": "38a8f010860ff22228a7eebc0b75c884a8e30e4ac0dfcade56c6e91eb30814dc"
     },
     {
       "path": "tools/check-dead-code.test.js",
-      "hash": "bf88011e1e5025470267052a43b1e4c6879ed1b46204d4d2862c93e2bb5b8347"
+      "hash": "ab5833db7296f7d0b472c971d353735cbd1259d825147ebe39d92401d82e4b30"
     },
     {
       "path": "tools/check-npmrc.js",
@@ -132,31 +132,31 @@
     },
     {
       "path": "tools/generate-sbom.js",
-      "hash": "7a6fcaad9a694dd296c5b348f36b174610221130d5b49367dcaae375e8096561"
+      "hash": "c1f338ca11928839355ed70bf4d3bc93759531890638e492685730bdcb4fe98a"
     },
     {
       "path": "tools/generate-sbom.test.js",
-      "hash": "4fe8ca6723e97f71f960b70a6f7809d8ec653057aa6dacc8b441a3a3e1599574"
+      "hash": "760f86d762362bc760caa65fe1a5136b96333ad7f1dd86eaabf66349c8d8c904"
     },
     {
       "path": "tools/generate-trust-report.js",
-      "hash": "04344a114e8842eee4dc2c4a9a9bdbd9019a5a3cc810fe0b9d6e2bddcae105f8"
+      "hash": "b665f05463e1d3bc21ce20258e89cf35398ac463f891fe346f3b6ce89fdf12a4"
     },
     {
       "path": "tools/generate-trust-report.test.js",
-      "hash": "623efaf57a934edad32e3021544cac580abcec16d5cdee4b278b1dfcddb8e100"
+      "hash": "77e2c6f4d56be0663ad81acd742000e188fe4d1bfb55856c57ea413947777571"
     },
     {
       "path": "tools/install-defences.js",
-      "hash": "d1baa901676d5528df5a98cfcff408bea3826fd0130075b06305facf99682bd2"
+      "hash": "d74239f032f558235d46b4d3504d885c13ca2f10addcde6fca8b02345a115c60"
     },
     {
       "path": "tools/monitor-install.js",
-      "hash": "203962fa81891c4c3391f8513cf261a3d522dc247c9438bd1c1da5f83b610759"
+      "hash": "31f7ba9f2360a29b5d3e5f263415ee9c31667da58e77705a152bd5cb045e59ab"
     },
     {
       "path": "tools/monitor-install.test.js",
-      "hash": "a299a8b11e1905692481c48f6b6bf3c348193ed2269c440f0797a272e3c278cc"
+      "hash": "b1e2a64f7e0a4de36615e007e3ab0d11febb46b1f55a97d3082f680f89055d09"
     },
     {
       "path": "tools/install-defences.test.js",
@@ -176,7 +176,7 @@
     },
     {
       "path": "tools/setup-bootstrap.js",
-      "hash": "5028afdf4726ccb857e138d18b8260f857d49eb6f54ee6ea84b15e8815a039c7"
+      "hash": "889fcb801353ecee1bb6dc167ee6d1ca4069e7728686129c664fa0d18860b3b5"
     },
     {
       "path": "tools/setup-bootstrap.test.js",
@@ -184,7 +184,7 @@
     },
     {
       "path": "tools/update-badge.js",
-      "hash": "c42abe8b6265f1e635b2732323349cdb8f73a2c7144d3cfe00bbe8ac28ccea5e"
+      "hash": "35713eae513fee0a0df5d7b7b14da187a8b7bbb5c7c84351d1635ea2661cfc27"
     },
     {
       "path": "tools/update-badge.test.js",
@@ -208,11 +208,11 @@
     },
     {
       "path": "tools/verify-defences.js",
-      "hash": "d659cc11d1521cb49c17a2c5470aec5a9809b8badd1533882bc646971a8fed37"
+      "hash": "ad78f578b396eded9fe7fc54eec7cbcca33356b5fc536f05a584dbf7ba8abaa2"
     },
     {
       "path": "tools/verify-defences.test.js",
-      "hash": "2655b1d06831a36d8fba27182ec0772ae82184ce20d0dc0284ca34e473de2abd"
+      "hash": "6c1e19f67c6b1808a0a9602c04b3bd128bc153091150ae89573b398af696223a"
     },
     {
       "path": "tools/lib/config.js",

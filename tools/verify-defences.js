@@ -8,10 +8,15 @@
 // Usage:
 //   node ./tools/verify-defences.js
 //   npm run defence:verify-defences
+//   --quiet (--silent / -s are kept aliases) suppresses success output
 
 const fs = require('node:fs')
 const path = require('node:path')
 const crypto = require('node:crypto')
+
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const MANIFEST_NAME = '.defence-manifest.json'
 
@@ -92,7 +97,7 @@ function verify(cwd) {
 }
 
 function main(argv, cwd = process.cwd()) {
-  const silent = argv.includes('--silent') || argv.includes('-s')
+  const silent = hasQuietFlag(argv) || argv.includes('-s')
   const json = argv.includes('--json')
 
   let result
@@ -122,7 +127,14 @@ function main(argv, cwd = process.cwd()) {
   }
 
   if (!silent) {
-    consoleImpl.log(`Verified ${result.fileCount} defence file(s).`)
+    const color = supportsColor()
+    if (ok) {
+      consoleImpl.log(
+        formatItem('pass', `verified ${result.fileCount} defence file(s)`, {
+          color,
+        }),
+      )
+    }
     if (result.missing.length > 0) {
       consoleImpl.error(`Missing files:\n  ${result.missing.join('\n  ')}`)
     }
@@ -134,9 +146,17 @@ function main(argv, cwd = process.cwd()) {
         )
       }
     }
-    if (ok) {
-      consoleImpl.log('All defence files match the manifest.')
-    }
+    consoleImpl.log(
+      renderSummary({
+        passed:
+          result.fileCount - result.missing.length - result.changed.length,
+        failed: result.missing.length + result.changed.length,
+        next: ok
+          ? null
+          : 'reinstall or re-hash intentionally changed files — npm run defence:verify-defences:fix',
+        color,
+      }),
+    )
   }
 
   return exitImpl(ok ? 0 : 1)

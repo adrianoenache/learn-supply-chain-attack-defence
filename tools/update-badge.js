@@ -15,6 +15,10 @@ const path = require('node:path')
 const { spawnSync } = require('node:child_process')
 const { globSync } = require('node:fs')
 
+const { supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
+
 const README_PATH = path.resolve(__dirname, '../README.md')
 // These globs must cover exactly the same files as the `test` script in
 // package.json; otherwise the badge reports a count smaller than the real
@@ -190,16 +194,29 @@ function main(argv = process.argv.slice(2)) {
 
     const readmeContent = fsImpl.readFileSync(readmePathImpl, 'utf8')
     const updatedContent = updateBadgeLine(readmeContent, badgeLine)
+    const color = supportsColor()
 
     if (updatedContent === readmeContent) {
       console.log(
-        `Test badge is already up to date (${count}/${count} passing).`,
+        formatItem(
+          'pass',
+          `test badge already up to date (${count}/${count} passing)`,
+          { color },
+        ),
       )
+      console.log(renderSummary({ passed: 1, color }))
       return 0
     }
 
     fsImpl.writeFileSync(readmePathImpl, updatedContent, 'utf8')
-    console.log(`Updated README.md test badge to ${count}/${count} passing.`)
+    console.log(
+      formatItem(
+        'pass',
+        `README.md test badge updated to ${count}/${count} passing`,
+        { color },
+      ),
+    )
+    console.log(renderSummary({ passed: 1, next: 'commit README.md', color }))
     return 0
   } catch (err) {
     console.error(`update-badge failed: ${err.message}`)

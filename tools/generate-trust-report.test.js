@@ -195,6 +195,44 @@ describe('generate-trust-report', () => {
       await mod.main([])
       assert.equal(exitCode, 0)
       assert.ok(logs.some((log) => log.includes('lodash')))
+      // Phase N: the table report closes with the shared summary block.
+      assert.ok(logs.some((log) => log.includes('── Summary')))
+      assert.ok(logs.some((log) => log.includes('1 passed')))
+    })
+
+    test('--quiet is accepted as an alias of --silent (Phase N)', async () => {
+      const mod = readScriptExports()
+      const fsMock = makeMockFs({
+        'package.json': JSON.stringify({ dependencies: {} }),
+        'package-lock.json': JSON.stringify({
+          packages: { 'node_modules/lodash': { version: '4.17.21' } },
+        }),
+      })
+      const logs = []
+      let exitCode = null
+
+      mod.setImpls({
+        fs: fsMock,
+        loadConfig: () => ({ trustReport: {} }),
+        analyzePackages: async () => ({
+          summary: {
+            totalPackages: 1,
+            averageScore: 80,
+            lowestScore: 80,
+            highestScore: 80,
+            distribution: { trusted: 1, 'review required': 0, 'high risk': 0 },
+          },
+          packages: [],
+        }),
+        consoleLog: (msg) => logs.push(msg),
+        exit: (code) => {
+          exitCode = code
+        },
+      })
+
+      await mod.main(['--quiet'])
+      assert.equal(exitCode, 0)
+      assert.deepEqual(logs, [], '--quiet must suppress the report')
     })
 
     test('writes markdown report to file', async () => {

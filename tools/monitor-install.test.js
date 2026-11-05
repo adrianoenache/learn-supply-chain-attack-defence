@@ -127,7 +127,32 @@ describe('monitor-install', () => {
 
     monitorInstall.main(['npm', 'install', '--save-exact', 'lodash@4.17.21'])
     assert.equal(exitCode, 0)
-    assert.ok(consoleImpl.logs.some((l) => l.includes('Report written to')))
+    // Phase N: the confirmation line is now a standardized pass item.
+    assert.ok(consoleImpl.logs.some((l) => l.includes('report written to')))
+    assert.ok(consoleImpl.logs.some((l) => l.includes('── Summary')))
+  })
+
+  it('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    let exitCode = null
+    const proc = makeMockProcess((code) => {
+      exitCode = code
+    })
+    const consoleImpl = makeMockConsole()
+    monitorInstall.setImpls({
+      process: proc,
+      console: consoleImpl,
+      fs: makeMockFs(),
+      spawnSync: makeMockSpawnSync(),
+      performance: makeMockPerformance(),
+    })
+
+    monitorInstall.main(['npm', 'install', '--quiet'])
+    assert.equal(exitCode, 0)
+    // The 'Monitoring:' start marker prints even in quiet mode (documented
+    // --silent behavior predates Phase N); the report confirmation and the
+    // summary are suppressed.
+    assert.ok(!consoleImpl.logs.some((l) => l.includes('report written to')))
+    assert.ok(!consoleImpl.logs.some((l) => l.includes('── Summary')))
   })
 
   it('runs npm install and writes a json report', () => {

@@ -11,6 +11,7 @@
 //   npm run defence:trust-report -- --format=json
 //   npm run defence:trust-report -- --pkg=lodash@4.17.21
 //   npm run defence:trust-report -- --fail
+//   --quiet (--silent is a kept alias) suppresses the report; --fail output still prints
 
 const fs = require('node:fs')
 const path = require('node:path')
@@ -20,6 +21,9 @@ const { parsePackageArg } = require(
   path.resolve(__dirname, './lib/package-utils.js'),
 )
 const { withProfile } = require(path.resolve(__dirname, './lib/profiler.js'))
+const { hasQuietFlag, supportsColor, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 const {
   analyzePackages,
   buildTableReport,
@@ -72,7 +76,7 @@ function parseCliArgs(argv = process.argv.slice(2)) {
   const isTransitive = argv.includes('--transitive')
   const isDirect = argv.includes('--direct')
   const isFail = argv.includes('--fail')
-  const isSilent = argv.includes('--silent')
+  const isSilent = hasQuietFlag(argv)
 
   const formatArg = argv.find((arg) => arg.startsWith('--format='))
   const format = formatArg?.slice('--format='.length) ?? 'table'
@@ -235,10 +239,27 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const minScore = trustConfig.minScore ?? 60
-  if (args.isFail && report.summary.lowestScore < minScore) {
+  const scoreFailed = args.isFail && report.summary.lowestScore < minScore
+  if (scoreFailed) {
     consoleErrorImpl(
       `Trust score check failed: lowest score ${report.summary.lowestScore} is below ${minScore}.`,
     )
+  }
+
+  if (!args.isSilent && args.format !== 'json') {
+    consoleLogImpl(
+      renderSummary({
+        passed: report.summary.totalPackages - (scoreFailed ? 1 : 0),
+        failed: scoreFailed ? 1 : 0,
+        next: scoreFailed
+          ? 'review the lowest-scoring packages in the report before installing'
+          : null,
+        color: supportsColor(),
+      }),
+    )
+  }
+
+  if (scoreFailed) {
     return exitImpl(1)
   }
 
