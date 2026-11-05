@@ -22,7 +22,8 @@
 //      blind spot (Fase L.2).
 //
 // Usage:
-//   node ./tools/check-npmrc.js [--silent] [--format json]
+//   node ./tools/check-npmrc.js [--quiet] [--format json]
+//   (--silent is a kept alias of --quiet)
 //
 // Exit codes:
 //   0 — configuration surface is valid.
@@ -30,6 +31,10 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+
+const { hasQuietFlag, supportsColor, formatItem, renderSummary } = require(
+  path.resolve(__dirname, './lib/formatters.js'),
+)
 
 const REPO_ROOT = path.resolve(__dirname, '..')
 const NPMRC_PATH = path.join(REPO_ROOT, '.npmrc')
@@ -149,7 +154,7 @@ function resetImpls() {
 
 function parseCliArgs(argv = process.argv.slice(2)) {
   return {
-    isSilent: argv.includes('--silent'),
+    isSilent: hasQuietFlag(argv),
     format: argv.includes('--format')
       ? argv[argv.indexOf('--format') + 1]
       : 'text',
@@ -253,24 +258,41 @@ function main(argv = process.argv.slice(2)) {
       ),
     )
   } else if (!args.isSilent) {
+    const color = supportsColor()
     logImpl(
       `npm configuration surface: ${entries.length} key(s) checked, ${lookahead.length} lookahead (documented), ${problems.length} problem(s).`,
     )
     for (const item of lookahead) {
-      logImpl(`  LOOKAHEAD  ${item.key} — ${item.justification}`)
+      logImpl(
+        formatItem('skip', `${item.key} — ${item.justification}`, { color }),
+      )
     }
     for (const problem of problems) {
       const where = problem.line ? `.npmrc:${problem.line}` : 'filesystem'
-      errorImpl(`  PROBLEM    ${where} [${problem.key}]: ${problem.reason}`)
+      errorImpl(
+        formatItem('fail', `${where} [${problem.key}]: ${problem.reason}`),
+      )
     }
+    // Key-level problems subtract from passed keys; filesystem findings
+    // (extension files) are failures without a corresponding .npmrc key.
+    const keyProblems = problems.filter((p) => p.line !== null).length
+    logImpl(
+      renderSummary({
+        passed: entries.length - lookahead.length - keyProblems,
+        failed: problems.length,
+        skipped: lookahead.length,
+        next:
+          problems.length > 0
+            ? 'fix .npmrc or register justified lookaheads — see docs/en/npmrc-hardening.md'
+            : null,
+        color,
+      }),
+    )
   }
 
   if (problems.length > 0) {
     errorImpl('\nnpm configuration surface check FAILED.')
     return exitImpl(1)
-  }
-  if (!args.isSilent && args.format !== 'json') {
-    logImpl('npm configuration surface is valid.')
   }
   return exitImpl(0)
 }

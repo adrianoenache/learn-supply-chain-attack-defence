@@ -77,9 +77,26 @@ describe('check-lockfile-integrity', () => {
 
     const { code, logs } = runMain(mod, [])
     assert.equal(code, 0)
-    assert.ok(
-      logs.some((line) => line.includes('All lockfile entries have SHA-512')),
+    // Phase N: the success line is now the shared structured summary.
+    assert.ok(logs.some((line) => line.includes('── Summary')))
+    assert.ok(logs.some((line) => line.includes('2 passed')))
+    mod.resetFsImpl()
+  })
+
+  test('--quiet is accepted as an alias of --silent (Phase N)', () => {
+    const mod = readScriptExports()
+    mod.setFsImpl(
+      makeMockFs({
+        packages: {
+          '': {},
+          'node_modules/lodash': { integrity: 'sha512-abc' },
+        },
+      }),
     )
+
+    const { code, logs } = runMain(mod, ['--quiet'])
+    assert.equal(code, 0)
+    assert.deepEqual(logs, [], '--quiet must suppress the report')
     mod.resetFsImpl()
   })
 
@@ -119,8 +136,12 @@ describe('check-lockfile-integrity', () => {
 
     const { code, logs } = runMain(mod, [])
     assert.equal(code, 0)
-    assert.ok(logs.some((line) => line.includes('git/file dependenc')))
-    assert.ok(logs.some((line) => line.includes('my-loader')))
+    // Phase N: git deps render as SKIP items under their own section.
+    assert.ok(logs.some((line) => line.includes('Git/file dependenc')))
+    assert.ok(
+      logs.some((line) => line.includes('SKIP') && line.includes('my-loader')),
+    )
+    assert.ok(logs.some((line) => line.includes('1 skipped')))
     assert.ok(!logs.some((line) => line.includes('Missing integrity')))
     mod.resetFsImpl()
   })

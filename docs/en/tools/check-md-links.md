@@ -33,12 +33,20 @@ npm run defence:check-md-links
 
 # Force re-check all links
 npm run defence:check-md-links -- --force
+
+# Quiet mode (exit code only; broken links still print)
+npm run defence:check-md-links -- --quiet
 ```
+
+`--silent` is kept as a compatibility alias of `--quiet`.
 
 ## Output example
 
 ```text
-Checked 190 markdown file(s). All local links are valid. (190 from cache)
+  ✓ OK   checked 197 markdown file(s); all local links are valid (197 from cache)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   197 passed
 ```
 
 (The counts reflect the live repository and change as pages are added.)

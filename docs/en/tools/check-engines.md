@@ -27,14 +27,21 @@ Configure minimum versions in `package.json`:
 
 ```bash
 npm run defence:check-engines
+
+# Quiet mode (exit code only)
+npm run defence:check-engines -- --quiet
 ```
+
+`--silent` is kept as a compatibility alias of `--quiet`.
 
 ## Output example
 
 ```text
-Node.js 24.22.2 (required >=24.22.2)
-npm 11.19.1 (required >=11.19.1)
-Engine requirements satisfied.
+  ✓ OK   Node.js 24.22.2 (required >=24.22.2)
+  ✓ OK   npm 11.19.1 (required >=11.19.1)
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   2 passed
 ```
 
 ## Related defense layer

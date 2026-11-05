@@ -28,12 +28,20 @@ After a deliberate hook change, follow the `pre-commit-hash-sync` skill: recompu
 
 ```bash
 npm run defence:check-hooks
+
+# Quiet mode (exit code only)
+npm run defence:check-hooks -- --quiet
 ```
+
+`--silent` is kept as a compatibility alias of `--quiet`.
 
 ## Output example
 
 ```text
-✅ Pre-commit hook integrity verified.
+  ✓ OK   pre-commit hook integrity verified
+
+── Summary ───────────────────────────────────────────
+  ✓ OK   1 passed
 ```
 
 ## Related defense layer
