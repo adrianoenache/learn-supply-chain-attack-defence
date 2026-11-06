@@ -36,6 +36,25 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
    branch intermediário (skill release-checklist, passo 12).
 7. **Validação do Dependabot** no próximo run (segunda-feira 09:00, ou
    manual em Insights → Dependency graph → Dependabot).
+8. ~~**Gitflow completo documentado**~~ — **concluído em 2026-11-06**
+   (PR #47): `git-workflow.md` reescrito EN/PT com os 5 tipos de branch,
+   coreografia de 6 passos, diagramas mermaid, nota de design sobre origem
+   de PRs e tags; coreografia graduada para
+   `.github/instructions/delivery-choreography.instructions.md`; ADR.
+
+## Próximos passos (pausa até depois de 2026-11-11)
+
+Ao retornar, nesta ordem:
+
+1. **Bump de engine do security release** (lembrete datado abaixo) — o
+   release do Node.js sai em 11/11; o procedimento L.0 está destravado e
+   validado ao vivo. Este bump pode virar patch **v1.1.1** (primeiro uso do
+   fluxo Gitflow de release/patch documentado no PR #47).
+2. **Confirmar o primeiro run do Dependabot** (semana de 09/11) — se
+   falhar de novo, o erro exato estará em Insights → Dependency graph →
+   Dependabot.
+3. **Retomada da fila** — item 4 (novo projeto de teste de adoção, pequeno
+   e saudável) e então M.2/M.3 (scaffolding, alvo v1.2.0).
 
 ## Lembretes datados
 
