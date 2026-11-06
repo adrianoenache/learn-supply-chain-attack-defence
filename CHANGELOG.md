@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (process — Gitflow adoption)
+
+- The branching model is now documented as full **Gitflow with plain git
+  commands** in `docs/{en,pt-BR}/git-workflow.md`: the five branch types
+  (including `release/X.Y.Z` and `hotfix/*`), the six-step delivery
+  choreography, copy-pasteable command sequences, and mermaid diagrams
+  (gitGraph + flowchart). The delivery choreography graduates from the
+  lessons log to a conditional instruction file
+  (`.github/instructions/delivery-choreography.instructions.md`) — the
+  always-on budget (3 KB) had no room, and the conditional file only loads
+  when the deliverable files are in play.
+
 ## [1.1.0] - 2026-11-05
 
 ### Added (Fase N — output UX)
