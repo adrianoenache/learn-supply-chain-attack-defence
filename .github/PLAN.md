@@ -27,13 +27,14 @@ explícita vive em `TODO.md` § Fila operacional):
    (ADR 2026-11-05 em DECISIONS.md). O procedimento do security release de
    2026-11-11 está destravado (report e `--update --dry-run` validados ao
    vivo contra o dist index real).
-5. **Release v1.1.0** — 🔄 em execução (2026-11-05). Escopo: Fase N
-   (25/25 ferramentas), fix do dependabot (#32), robustez do
-   update-engines (#37), CI (push em main + job dual-line) e as lições de
-   processo do dia (#31/#36/#38). Executado em worktree isolado — regra
-   nova e obrigatória para releases (ADR 2026-11-05 em DECISIONS.md).
-   Fechar após merge da PR dev→main + tag `v1.1.0` + verificação
-   pós-release.
+5. ~~**Release v1.1.0**~~ — **concluído em 2026-11-05**: PRs #39 (prep) +
+   #42 (merge-back v1.0.0) + #40 (dev→main), tag `v1.1.0`, verificação
+   pós-release verde. Escopo entregue: Fase N (25/25 ferramentas), fix do
+   dependabot (#32), robustez do update-engines (#37), CI (push em main +
+   job dual-line) e as lições de processo (#31/#36/#38). Primeiro release
+   executado em worktree isolado (regra obrigatória, ADR 2026-11-05) e
+   primeiro merge-back main→dev via branch intermediário (skill
+   release-checklist, passo 12).
 6. **Novo projeto de teste** de adoção — pequeno e saudável, idealmente já
    criado via M.2 (o irmão anterior foi abandonado em 2026-11-05).
 7. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI

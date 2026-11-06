@@ -28,11 +28,12 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
    apenas quando uma entrada pulada poderia afetar a decisão de alvo
    (versão `vX.Y.Z` bem-formada com major ≥ atual); candidatas restritas a
    semver estável estrita. ADR 2026-11-05 em DECISIONS.md.
-6. **Release v1.1.0** — 🔄 **em execução (2026-11-05)**: branch
-   `chore/release-v1.1.0` em worktree isolado (nova regra, ADR em
-   DECISIONS.md), matriz de gates local verde, PR dev→main aberta.
-   Fechar após o merge do mantenedor + tag `v1.1.0` + verificação
-   pós-release em clone limpo.
+6. ~~**Release v1.1.0**~~ — **concluído em 2026-11-05**: PRs #39 (prep) +
+   #42 (merge-back v1.0.0) + #40 (dev→main), tag anotada `v1.1.0`,
+   verificação pós-release em clone limpo verde (`npm run setup`,
+   1015/1015 testes, `defence:verify-defences` 85/85), SBOM regenerado da
+   `main`. Lição nova registrada: merge-back main→dev obrigatório via
+   branch intermediário (skill release-checklist, passo 12).
 7. **Validação do Dependabot** no próximo run (segunda-feira 09:00, ou
    manual em Insights → Dependency graph → Dependabot).
 
