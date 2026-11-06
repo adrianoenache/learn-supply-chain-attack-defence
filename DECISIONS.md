@@ -459,3 +459,25 @@ Keep entries concise; link to the phase/commit for detail.
   release checklist pages document the exact commands; `dev` always
   contains `main`'s tip, so the next release PR opens mergeable. First
   applied as PR #42.
+
+### 2026-11-06 — Full Gitflow with plain git commands (no plugin)
+
+- **Decision:** Adopt the complete Gitflow model — `main`, `dev`,
+  `feat|fix|docs|chore|ci/*`, `release/X.Y.Z`, `hotfix/*` — documented with
+  copy-pasteable commands and mermaid diagrams in
+  `docs/{en,pt-BR}/git-workflow.md`. No `git-flow` plugin or extension: the
+  model is a convention, and the plain commands are the teaching material.
+- **Context:** The 2026-11-05 incidents (stale-dev PR, delivery left
+  uncommitted) showed the workflow lived in habit, not in writing. The
+  maintainer also wants the model ready to scale beyond a solo project and
+  to ship as scaffolding (M.2/M.3) to other projects — where a documented,
+  tool-free convention is adoptable verbatim.
+- **Rejected alternative:** Gitflow-lite (only naming + hotfix). It covered
+  today's pain but not the educational and scaffolding goals; and the
+  `git-flow` plugin was rejected because it wraps the same commands while
+  adding an install-time dependency our own gates would have to vet.
+- **Consequences:** The six-step delivery choreography is graduated to the
+  always-on instructions (it had failed twice while living only in
+  ai-lessons-learned); `release/*` branches formalize what the v1.0.0/v1.1.0
+  releases already did ad hoc (isolated worktree + merge-back ADR
+  2026-11-05); `hotfix/*` from `main` is now the defined emergency path.

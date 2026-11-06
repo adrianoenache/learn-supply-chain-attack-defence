@@ -59,7 +59,7 @@ This repository is a practical learning environment for understanding and applyi
 ### CI/CD and Operations
 
 - [CI/CD Overview](ci-cd-overview.md)
-- [Git Workflow](git-workflow.md)
+- [Git Workflow](git-workflow.md) — full Gitflow (plain git): the five branch types, the six-step delivery choreography, release/hotfix flows, mermaid diagrams.
 - [SBOM and Compliance](sbom-and-compliance.md)
 - [Performance Tuning](performance-tuning.md)
 

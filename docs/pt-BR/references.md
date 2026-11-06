@@ -11,6 +11,8 @@ Esta página reúne links úteis sobre as defesas implementadas neste projeto e 
 - [Husky](https://typicode.github.io/husky/)
 - [Node.js test runner](https://nodejs.org/api/test.html)
 - [OpenSSF Scorecard](https://github.com/ossf/scorecard)
+- [A successful Git branching model (Vincent Driessen, 2010)](https://nvie.com/posts/a-successful-git-branching-model/) — o modelo Gitflow que este repositório segue com comandos git puros; ver [Fluxo de trabalho Git](git-workflow.md).
+- [gitworkflows(7) — documentação oficial do git](https://git-scm.com/docs/gitworkflows) — a descrição do próprio upstream dos fluxos de branches de tópico/release/hotfix.
 
 ## Segurança de Agentes de AI
 
