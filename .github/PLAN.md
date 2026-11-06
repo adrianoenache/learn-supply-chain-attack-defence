@@ -50,6 +50,17 @@ execução inclui branch/commit/push/PR) e um push partiu de dev desatualizado
 (lição: fetch é o primeiro passo, inegociável). A sessões novas devem abrir
 com "retomando o projeto — item N da fila" e entregar PR completa.
 
+**2026-11-06:** Gitflow completo adotado e documentado (PR #47) — modelo
+clássico com comandos git puros, diagramas mermaid, e a coreografia de
+entrega graduada para instruction condicional. VS Code 1.145.2 verificado:
+recovery release, zero impacto na infra de AI.
+
+**Pausa programada:** o projeto entra em pausa até depois do security
+release do Node.js (11/11). Ao retornar: (1) bump de engine → possível
+patch v1.1.1 (primeiro uso do fluxo de release/patch do Gitflow); (2)
+confirmar o primeiro run do Dependabot; (3) retomar a fila no novo projeto
+de teste de adoção e então M.2/M.3 (v1.2.0).
+
 ## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
 
 - **Fase N — UX de output (concluída 2026-11-05):** padrão de saída legível
