@@ -117,7 +117,9 @@ cd ../release-1.2.0
 npm pkg set version=1.2.0        # também package-lock.json
 # …matriz completa de release (ver docs/pt-BR/release-checklist.md)…
 
-# PR: release/1.2.0 → main. Após o merge:
+# PR: release/1.2.0 → main. Após o merge, tag a partir da main mergeada:
+# tags são enviadas por push, não por merge — a proteção de branches não as
+# bloqueia (foi assim que v1.0.0 e v1.1.0 foram publicadas).
 git checkout main && git pull --ff-only origin main
 git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin v1.2.0
@@ -146,7 +148,9 @@ git checkout -b hotfix/age-gate-rejeita-tudo
 # …correção mínima + teste de regressão + gates…
 git push -u origin hotfix/age-gate-rejeita-tudo   # PR → main
 
-# Após o merge: tag de patch
+# Após o merge: tag de patch. Tags são enviadas por push, não por merge —
+# o ruleset de proteção de branches não bloqueia push de tags (foi assim
+# que v1.0.0 e v1.1.0 foram publicadas).
 git checkout main && git pull --ff-only origin main
 git tag -a v1.2.1 -m "Hotfix v1.2.1 — o que estava quebrado"
 git push origin v1.2.1
@@ -180,6 +184,8 @@ um pull request.
 - **Checks obrigatórios:** os 12 jobs de CI definidos em [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) devem passar, e as branches precisam estar atualizadas antes do merge.
 - **Revisão de code owner:** o [`.github/CODEOWNERS`](../../.github/CODEOWNERS) exige a revisão do mantenedor para paths críticos (ferramentas de defesa, hooks, workflows, configuração npm, customizações de AI).
 - **Nota de mantenedor solo:** o número mínimo de *aprovações* está temporariamente em 0 (um mantenedor solo não pode aprovar as próprias PRs); a exigência de CODEOWNERS por path e todos os status checks permanecem ativos. Registrado como ADR em `DECISIONS.md`.
+- **Sem restrição de branch de origem nas PRs, por design:** o ruleset da `main` exige pull request mas NÃO restringe de qual branch ela vem. `release/*` e `hotfix/*` precisam mirar a `main` diretamente, e a defesa não mora na branch de origem — mora no funil que toda PR atravessa: 12 checks verdes, revisão CODEOWNERS dos paths críticos e zero push direto. Uma branch hostil ou descuidada atinge os mesmos gates, independente do nome.
+- **Inventário do ruleset** (configurações exatas e a armadilha do "Restrict updates"): ver [repository-organization.md](repository-organization.md).
 - **Inventário do ruleset** (configurações exatas e a armadilha do
   "Restrict updates"): ver [repository-organization.md](repository-organization.md).
 

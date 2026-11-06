@@ -115,7 +115,9 @@ cd ../release-1.2.0
 npm pkg set version=1.2.0        # also package-lock.json
 # …full release matrix (see docs/en/release-checklist.md)…
 
-# PR: release/1.2.0 → main. After merge:
+# PR: release/1.2.0 → main. After merge, tag from the merged main:
+# tags are pushed, not merged — branch protection does not block them
+# (this is how v1.0.0 and v1.1.0 were published).
 git checkout main && git pull --ff-only origin main
 git tag -a v1.2.0 -m "Release v1.2.0"
 git push origin v1.2.0
@@ -144,7 +146,9 @@ git checkout -b hotfix/age-gate-rejects-all
 # …minimal fix + regression test + gates…
 git push -u origin hotfix/age-gate-rejects-all   # PR → main
 
-# After merge: patch release tag
+# After merge: patch release tag. Tags are pushed, not merged — the
+# branch-protection ruleset does not block tag pushes (this is how v1.0.0
+# and v1.1.0 were published).
 git checkout main && git pull --ff-only origin main
 git tag -a v1.2.1 -m "Hotfix v1.2.1 — what was broken"
 git push origin v1.2.1
@@ -175,6 +179,8 @@ Open a feature branch from `dev`, push your commits, and open a pull request bac
 - **Required checks:** the 12 CI jobs defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) must pass, and branches must be up to date before merging.
 - **Code-owner review:** [`.github/CODEOWNERS`](../../.github/CODEOWNERS) requires the maintainer's review for critical paths (defence tools, hooks, workflows, npm configuration, AI customizations).
 - **Solo-maintainer note:** the minimum *approving review count* is temporarily 0 (a solo maintainer cannot approve their own PRs); the CODEOWNERS path requirement and all status checks remain active. Recorded as an ADR in `DECISIONS.md`.
+- **No PR source-branch restriction, by design:** the `main` ruleset requires a pull request but does NOT restrict which branch it comes from. `release/*` and `hotfix/*` must be able to target `main` directly, and the defense does not live in the source branch — it lives in the funnel every PR must pass: 12 green checks, CODEOWNERS review of critical paths, and no direct pushes. A hostile or careless branch hits the same gates regardless of its name.
+- **Ruleset inventory** (exact settings, and the "Restrict updates" trap): see [repository-organization.md](repository-organization.md).
 
 See [ci-cd-overview.md](ci-cd-overview.md) for the list of checks.
 
