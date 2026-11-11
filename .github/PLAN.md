@@ -55,11 +55,18 @@ clássico com comandos git puros, diagramas mermaid, e a coreografia de
 entrega graduada para instruction condicional. VS Code 1.145.2 verificado:
 recovery release, zero impacto na infra de AI.
 
-**Pausa programada:** o projeto entra em pausa até depois do security
-release do Node.js (11/11). Ao retornar: (1) bump de engine → possível
-patch v1.1.1 (primeiro uso do fluxo de release/patch do Gitflow); (2)
-confirmar o primeiro run do Dependabot; (3) retomar a fila no novo projeto
-de teste de adoção e então M.2/M.3 (v1.2.0).
+**2026-11-11 — retomada (análise de updates):** o security release do
+Node.js saiu (24.22.3/26.13.1; 2 CVEs HIGH na 24.x — heap leak em HTTPS
+CVE-2026-123864, DoS HTTP/2 CVE-2026-123863) → **P0: bump 24.22.3 +
+patch v1.1.1** (estreia do fluxo Gitflow de patch). VS Code 1.146: Local
+harness formalmente deprecado (remoção fev/2027) — valida nossa migração;
+revisão documental P1. Modern Web Guidance 1.0 (Chrome, cross-browser com
+Firefox/Edge): pertinente a agentes de código web — **não instalar neste
+repo** (Node CLI); documentar em references.md com nota de instalação
+defendida e avaliar no dogfooding do **novo projeto de teste Astro 7.4**
+(em preparação pelo mantenedor — primeira adoção web real, permite testar
+a MWG via gates). Git 2.56.1 (security, local já atualizado) e nvm 0.41.0:
+notas de verificação P3. Dependabot: confirmar o primeiro run pós-fix.
 
 ## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
 
