@@ -121,9 +121,6 @@ Ordem de execução a partir de 2026-11-12:
   `pull_request` trigger when the head branch is `dev`, or accept the noise
   as extra evidence.
 - [ ] Add deep performance profiling dashboard.
-- [ ] Plan and execute release v1.0.0 only after the project is fully concluded.
-- [ ] Run the ninth project status analysis as a pre-release step and decide
-  whether further improvements are needed before releasing.
 
 ---
 
@@ -538,24 +535,6 @@ Ordem de execução a partir de 2026-11-12:
   - Impact: reduces manual release overhead.
   - Depends on: versioning and release checklist (Section 10.1).
   - Files: [CHANGELOG.md](CHANGELOG.md)
-
-### 10.2 Release v1.0.0 Gates (future action)
-
-The release v1.0.0 will be planned and executed only after the project is fully
-concluded. When that time comes, the following gates must be satisfied:
-
-- [ ] All open TODO items are marked complete.
-- [ ] `npm test` passes (current count).
-- [ ] `npm run test:coverage` reports ≥ 95% line coverage.
-- [ ] `npm run lint` passes.
-- [ ] `npm run defence:check-md-links` passes.
-- [ ] `bash .husky/pre-commit` passes.
-- [ ] `docs/en/` and `docs/pt-BR/` are structurally aligned and synchronized.
-- [ ] `PROJECT_STATUS_REPORT.md` is regenerated and shows the maximum score in every category.
-- [ ] `CHANGELOG.md` has a `[1.0.0]` entry.
-- [ ] Version is bumped in `package.json` and `package-lock.json`.
-- [ ] Git tag `v1.0.0` is created and pushed.
-- [ ] GitHub Release is published with release notes and SBOM asset.
 
 ## Completed
 
