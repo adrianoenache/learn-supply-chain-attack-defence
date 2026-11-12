@@ -106,12 +106,13 @@ Ordem de execução a partir de 2026-11-12:
 - [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
 - [ ] Automate changelog generation from conventional commits or tags.
 - [ ] Add optional sandbox mode for npm commands.
-- [ ] Evaluate VS Code 1.145 local automations (cron + workspace custom
-  agents) for recurring defence tasks — e.g., an unattended weekly
-  `defence:update` scan or docs link check via the `security`/`docs` agents.
-  Design checklist (Copilot Cowork Lesson 6, ADR 2026-11-12): measurable
-  target, written keep/revert rule, attempt limit, list of human-only
-  actions, and revert-and-retest evidence before any PR.
+- [x] Evaluate VS Code 1.145 local automations — **avaliado em 2026-11-12:**
+  receita pronta para importar (varredura semanal de `defence:update-check`
+  com o agente `security`, cron `0 9 * * 1`) documentada nos ai-guidelines
+  EN/PT, seguindo o checklist da Lição 6 (ADR 2026-11-12). Automações em
+  nuvem rejeitadas (escrita não assistida é reservada a PRs revisadas). A
+  ativação fica a critério do mantenedor — é uma preferência de workspace,
+  não um artefato versionado.
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.

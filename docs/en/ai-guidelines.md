@@ -228,6 +228,29 @@ Four additions are relevant here; none requires changes:
 
 - **Mixed harnesses in nested sessions (Preview).** With `chat.agentHost.multipleChatProviders.enabled`, a nested chat can run on a different harness than its parent — for example, a second-opinion review of a plan or diff without losing the session grouping. It complements the `code-review-pass` skill and is tracked as a post-v1.0.0 evaluation item in `TODO.md`.
 - **Local automations with cron and workspace custom agents.** Local automations now accept five-field cron schedules and can run with this repository's custom agents (for example, an unattended weekly `defence:update` scan via the `security` agent). Also tracked as a post-v1.0.0 evaluation item.
+
+**Ready-to-import automation (evaluated 2026-11-12):** the recommended recurring task is a **weekly dependency-update scan** using the `security` agent. Automations are created in the Agents window (Automations → New) or imported from a `.automation.md` file; the file carries only name/prompt/schedule, and the importer chooses workspace, model, and permissions locally. Suggested configuration:
+
+- **Name:** `Weekly dependency update scan`
+- **Agent:** `security` (declares `run_in_terminal` scoped to defence commands)
+- **Schedule (cron):** `0 9 * * 1` (Mondays 09:00 local)
+- **Prompt:**
+
+  ```text
+  Run `npm run defence:update-check` in this workspace and report the result.
+  If eligible or quarantined-intermediate updates exist, summarize them with
+  their confidence scores and the recommended next command. Do NOT apply
+  updates, do NOT modify any file, and do NOT commit — this is a read-only
+  report. If the scan fails, report the failing command and its output.
+  ```
+
+This follows the Copilot Cowork Lesson-6 checklist (DECISIONS.md, ADR
+2026-11-12): the target is measurable (a current update report), the
+keep/revert rule is trivial (nothing is written), attempts are inherently
+bounded (a single scan), and applying updates remains a human-gated action
+via `defence:update`. Cloud automations were not adopted — they require an
+eligible private repo and grant the service unattended write access, which
+this project's model reserves for reviewed PRs only.
 - **Organization-required plugins cannot be uninstalled.** The managed `enabledPlugins` setting now disables the Uninstall action for required plugins and their contributed agents, skills, and hooks. This is a distribution signal for the Fase M.3 marketplace evaluation: an organization can enforce a plugin that carries defences and AI customizations.
 - **Sandboxing guidance and chat attachments.** When required sandboxing is unavailable, VS Code now explains why terminal commands are blocked and how to fix it; and files attached to a chat become readable by the agent for the rest of the session (read-only, never persisted to settings). Neither changes the model above: the deterministic hooks remain the project boundary.
 

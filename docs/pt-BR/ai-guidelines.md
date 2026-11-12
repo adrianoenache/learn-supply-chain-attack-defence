@@ -232,6 +232,30 @@ Quatro adições são relevantes aqui; nenhuma exige mudanças:
 
 - **Harnesses mistos em sessões aninhadas (Preview).** Com `chat.agentHost.multipleChatProviders.enabled`, um chat aninhado pode rodar num harness diferente do pai — por exemplo, uma revisão de segunda opinião sobre um plano ou diff sem perder o agrupamento da sessão. Complementa a skill `code-review-pass` e está registrado como item de avaliação pós-v1.0.0 no `TODO.md`.
 - **Automações locais com cron e custom agents do workspace.** Automações locais agora aceitam expressões cron de cinco campos e podem rodar com os custom agents deste repositório (por exemplo, uma varredura semanal não assistida de `defence:update` via o agente `security`). Também registrado como item de avaliação pós-v1.0.0.
+
+**Automação pronta para importar (avaliada em 2026-11-12):** a tarefa recorrente recomendada é uma **varredura semanal de updates de dependências** com o agente `security`. Automações são criadas na janela de Agents (Automations → New) ou importadas de um arquivo `.automation.md`; o arquivo carrega apenas nome/prompt/agendamento, e quem importa escolhe workspace, modelo e permissões localmente. Configuração sugerida:
+
+- **Nome:** `Weekly dependency update scan`
+- **Agente:** `security` (declara `run_in_terminal` com escopo nos comandos defence)
+- **Agendamento (cron):** `0 9 * * 1` (segundas-feiras 09:00 locais)
+- **Prompt:** (A saída da ferramenta é em inglês; o prompt é em inglês para instruir o agente.)
+
+  ```text
+  Run `npm run defence:update-check` in this workspace and report the result.
+  If eligible or quarantined-intermediate updates exist, summarize them with
+  their confidence scores and the recommended next command. Do NOT apply
+  updates, do NOT modify any file, and do NOT commit — this is a read-only
+  report. If the scan fails, report the failing command and its output.
+  ```
+
+Isso segue o checklist da Lição 6 do Copilot Cowork (DECISIONS.md, ADR
+2026-11-12): o alvo é mensurável (um relatório de updates atualizado), a
+regra de keep/revert é trivial (nada é escrito), as tentativas são
+inherentemente limitadas (uma única varredura), e a aplicação de updates
+permanece uma ação com gate humano via `defence:update`. Automações em nuvem
+não foram adotadas — exigem um repositório privado elegível e concedem ao
+serviço acesso de escrita não assistido, que o modelo deste projeto reserva
+apenas para PRs revisadas.
 - **Plugins exigidos pela organização não podem ser desinstalados.** A setting gerenciada `enabledPlugins` agora desabilita a ação Uninstall para plugins obrigatórios e seus agents/skills/hooks contribuídos. É um sinal de distribuição para a avaliação de marketplace da Fase M.3: uma organização pode impor um plugin que carrega defesas e customizações de AI.
 - **Orientação de sandboxing e anexos do chat.** Quando o sandboxing exigido está indisponível, o VS Code agora explica por que comandos de terminal foram bloqueados e como resolver; e arquivos anexados ao chat passam a ser legíveis pelo agente pelo resto da sessão (somente leitura, nunca persistidos em settings). Nada disso muda o modelo acima: os hooks determinísticos continuam sendo a fronteira do projeto.
 
