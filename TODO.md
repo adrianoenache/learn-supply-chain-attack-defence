@@ -115,11 +115,10 @@ Ordem de execução a partir de 2026-11-12:
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.
-- [ ] Deduplicate CI runs on dev→main PRs — pushing to `dev` fires both the
-  `push` run and the `pull_request` run, so release PRs show 24 checks (two
-  identical sets of 12, both green on v1.0.0). Options: gate the
-  `pull_request` trigger when the head branch is `dev`, or accept the noise
-  as extra evidence.
+- [x] Deduplicate CI runs on dev→main PRs — **decidido em 2026-11-12:
+  manter os runs duplos.** Os 24 checks são redundantes mas o run de
+  pull_request valida o merge ref (evidência extra no ponto que importa), e
+  o custo é só de minutos de CI. Registrado para não reabrir a discussão.
 - [ ] Add deep performance profiling dashboard.
 
 ---
