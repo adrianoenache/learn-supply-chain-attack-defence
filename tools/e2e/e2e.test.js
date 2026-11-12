@@ -33,6 +33,9 @@ const {
 const { STABLE_PACKAGES } = require(
   path.resolve(__dirname, './fixtures/stable-packages.js'),
 )
+const { DEPRECATED_PACKAGES, VERY_OLD_PACKAGES } = require(
+  path.resolve(__dirname, './fixtures/edge-case-packages.js'),
+)
 
 if (process.env.RUN_E2E_TESTS !== 'true') {
   test('E2E tests skipped by default (set RUN_E2E_TESTS=true to run)', {
@@ -178,4 +181,45 @@ describe('add-package end-to-end', { timeout: 30000 }, () => {
       'expected non-zero exit for missing version',
     )
   })
+})
+
+// ---------------------------------------------------------------------------
+// Edge-case packages end-to-end (deprecated / very old)
+// ---------------------------------------------------------------------------
+// These exercise the deprecated-skip and very-old paths against the real
+// registry. "yanked" and "missing integrity" are intentionally absent — see
+// the comment in fixtures/edge-case-packages.js for why they only exist as
+// synthetic mock fixtures in the unit tests.
+
+describe('edge-case packages end-to-end', { timeout: 30000 }, () => {
+  for (const pkg of DEPRECATED_PACKAGES) {
+    test(`deprecated package ${pkg.name}@${pkg.version} still resolves by age`, () => {
+      // A deprecated package is not "missing" — it has a real publish date,
+      // so the age gate must ACCEPT it (deprecation is a check-updates
+      // concern, not an age-gate failure).
+      const result = runTool(CHECK_PKG_AGE_SCRIPT, [
+        '--pkg',
+        `${pkg.name}@${pkg.version}`,
+      ])
+      assert.equal(
+        result.status,
+        0,
+        `expected exit 0 for deprecated-but-old ${pkg.name}, got ${result.status}. stderr: ${result.stderr}`,
+      )
+    })
+  }
+
+  for (const pkg of VERY_OLD_PACKAGES) {
+    test(`very old package ${pkg.name}@${pkg.version} passes the age gate`, () => {
+      const result = runTool(CHECK_PKG_AGE_SCRIPT, [
+        '--pkg',
+        `${pkg.name}@${pkg.version}`,
+      ])
+      assert.equal(
+        result.status,
+        0,
+        `expected exit 0 for very old ${pkg.name}, got ${result.status}. stderr: ${result.stderr}`,
+      )
+    })
+  }
 })
