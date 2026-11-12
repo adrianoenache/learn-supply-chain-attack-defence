@@ -508,3 +508,25 @@ Keep entries concise; link to the phase/commit for detail.
 - **Consequences:** testing instructions gain the prove-it-fails
   convention; the TODO gains a spec-template item; future autonomous
   automations inherit the targets-and-limits checklist by reference.
+
+### 2026-11-12 — Gates prove they check: audit results and the written convention
+
+- **Decision:** The Cowork Lesson-3 convention is now written into
+  `.github/instructions/testing.instructions.md` (failing-path test in the
+  same commit as any gate change; revert-and-retest as evidence). The audit
+  of the 12 blocking gates (pre-commit + CI) found **all of them already
+  covered** by explicit failing-path tests — e.g. `main returns 1 when
+  broken links exist` (check-md-links), `detects AWS access key`
+  (check-secrets), `returns out of sync when packageLockHash differs`
+  (check-sync), 20 failure-path tests in check-package-age including the
+  v1.0.0 no-op regression.
+- **Context:** The P1 queue item from the Copilot Cowork case study asked
+  for the convention plus an audit. The audit's job was to confirm, not to
+  fix — the v1.0.0 age-gate incident had already forced the habit.
+- **Rejected alternative:** Building a meta-gate that mechanically verifies
+  every gate has a failing test (a "check that checks the checks") — the
+  naming convention is inconsistent enough that a static rule would produce
+  false positives; the written convention + code review is proportionate
+  for a solo maintainer.
+- **Consequences:** New gates inherit the obligation by instruction; the
+  audit result is dated here so future audits can diff against it.
