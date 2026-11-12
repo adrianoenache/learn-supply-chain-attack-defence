@@ -4,7 +4,7 @@ Thank you for your interest in improving this project. This guide explains how t
 
 ## Development Environment
 
-- Node.js `>= 24.22.2`
+- Node.js `>= 24.22.3`
 - npm `>= 11.19.1`
 - Git
 

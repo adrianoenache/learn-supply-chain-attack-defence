@@ -99,7 +99,7 @@ O projeto atualmente suporta:
 
 | Runtime | Versão Mínima |
 | --- | --- |
-| Node.js | `>= 24.22.2` |
+| Node.js | `>= 24.22.3` |
 | npm | `>= 11.19.1` |
 
 O CI executa nas versões exatas declaradas em `engines`. Ao atualizar a matriz, use `npm run defence:update-engines` (ou suas variantes `:update`/`:upgrade`), que atualiza os arquivos abaixo de forma cirúrgica, e verifique a documentação:

@@ -34,7 +34,7 @@ arquivos).
 | Manifesto de adoção | `npm run defence:verify-defences` | 81 arquivos íntegros |
 | Vulnerabilidades | `npm audit --audit-level=high` | 0 |
 | Assinaturas | `npm audit signatures` | 3 pacotes verificados |
-| Runtime | Node 24.22.2 / npm 11.19.1 | tip da linha v24 LTS (CVEs de out/2026 corrigidos) |
+| Runtime | Node 24.22.3 / npm 11.19.1 | tip da linha v24 LTS (security release 2026-11-11: CVE-2026-123863 + CVE-2026-123864 corrigidos) |
 | Código morto | `npm run defence:check-dead-code` | baseline zero candidatos |
 | Contexto AI (medido) | `npm run defence:measure-ai-context` | always-on 2.996 bytes (~749 tokens/req); total ~92,7 KB/~23.2k tokens sob demanda |
 

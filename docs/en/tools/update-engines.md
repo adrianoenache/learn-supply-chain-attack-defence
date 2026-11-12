@@ -35,8 +35,8 @@ Flags: `--update`, `--upgrade`, `--to <version>`, `--dry-run`, `--silent`, `--fo
 
 ```text
 Node.js engine report
-  current pin:           24.22.2 (npm 11.19.1)
-  update (v24 line):      24.22.2 (npm 11.19.1) — up to date
+  current pin:           24.22.3 (npm 11.19.1)
+  update (v24 line):      24.22.3 (npm 11.19.1) — up to date
   upgrade (latest LTS):  26.13.0 (npm 11.20.0, Lithium) — AVAILABLE
 
 Apply with: --update (in-major), --upgrade (latest LTS), or --to <version>.

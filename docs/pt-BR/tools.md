@@ -4,7 +4,7 @@ Este projeto depende de um pequeno conjunto de ferramentas cuidadosamente escolh
 
 ## Runtime
 
-### Node.js >= 24.22.2
+### Node.js >= 24.22.3
 
 O projeto utiliza uma versão recente da linha LTS do Node.js para garantir suporte a:
 
