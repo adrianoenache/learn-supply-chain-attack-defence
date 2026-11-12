@@ -2,6 +2,10 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    # Gitflow: dependency PRs enter through dev, never directly into main
+    # (main only receives release/* and hotfix/* PRs — see
+    # docs/en/git-workflow.md).
+    target-branch: "dev"
     schedule:
       interval: "weekly"
       day: "monday"

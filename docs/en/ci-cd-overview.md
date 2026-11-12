@@ -66,7 +66,7 @@ All GitHub Actions are pinned by commit SHA with a semantic-version comment, for
 - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 ```
 
-SHA pinning ensures that the exact, audited code runs even if a tag is moved or compromised. Dependabot is configured in [`.github/dependabot.yml`](../../.github/dependabot.yml) to propose weekly updates with the prefix `chore(deps)`. The config intentionally omits `reviewers` (an empty list is invalid) and custom `labels` (Dependabot creates the default `dependencies` label itself).
+SHA pinning ensures that the exact, audited code runs even if a tag is moved or compromised. Dependabot is configured in [`.github/dependabot.yml`](../../.github/dependabot.yml) to propose weekly updates with the prefix `chore(deps)`. The config intentionally omits `reviewers` (an empty list is invalid) and custom `labels` (Dependabot creates the default `dependencies` label itself), and sets `target-branch: dev` so dependency PRs enter through `dev` per the Gitflow model (main only receives `release/*` and `hotfix/*` PRs).
 
 ## `node_modules` artifact caching
 
