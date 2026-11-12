@@ -113,9 +113,12 @@ Ordem de execução a partir de 2026-11-12:
   nuvem rejeitadas (escrita não assistida é reservada a PRs revisadas). A
   ativação fica a critério do mantenedor — é uma preferência de workspace,
   não um artefato versionado.
-- [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
-  `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
-  for the `code-review-pass` skill.
+- [x] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview) —
+  **avaliado em 2026-11-12: aguardar GA.** Preview com setting experimental
+  instável; o design pretendido (eixo de segunda opinião no
+  `code-review-pass` com harness diferente, o "crítico de outra família de
+  modelo" do Cowork) está documentado nos ai-guidelines EN/PT para quando
+  estabilizar.
 - [x] Deduplicate CI runs on dev→main PRs — **decidido em 2026-11-12:
   manter os runs duplos.** Os 24 checks são redundantes mas o run de
   pull_request valida o merge ref (evidência extra no ponto que importa), e
