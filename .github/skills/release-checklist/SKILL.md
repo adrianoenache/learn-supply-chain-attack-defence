@@ -89,6 +89,24 @@ the repository (it is a scratch artifact, not a deliverable).
     npm run defence:verify-defences
     ```
 
+12. **Merge `main` back into `dev`** — mandatory after every release. The
+    release merge commit on `main` is not part of `dev`'s history, and both
+    rulesets require "branches up to date before merging", so the *next*
+    release PR would be blocked. Do NOT open a `main` → `dev` PR (circular:
+    the head can never be up to date with the base) and do NOT use the
+    "Update branch" button (`dev` requires changes via PR). Instead:
+
+    ```bash
+    git checkout -b chore/merge-back-<version> origin/dev
+    git merge --no-ff origin/main
+    git push -u origin chore/merge-back-<version>
+    # open a PR chore/merge-back-<version> -> dev and merge it
+    ```
+
+    The intermediate branch is cut from `dev`'s tip, so it is up to date
+    with the base by construction. (Lesson of the v1.1.0 release,
+    2026-11-05.)
+
 ## Completion Criteria
 
 - TODO.md has no open P0/P1 items.

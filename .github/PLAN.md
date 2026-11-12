@@ -27,13 +27,14 @@ explícita vive em `TODO.md` § Fila operacional):
    (ADR 2026-11-05 em DECISIONS.md). O procedimento do security release de
    2026-11-11 está destravado (report e `--update --dry-run` validados ao
    vivo contra o dist index real).
-5. **Release v1.1.0** — 🔄 em execução (2026-11-05). Escopo: Fase N
-   (25/25 ferramentas), fix do dependabot (#32), robustez do
-   update-engines (#37), CI (push em main + job dual-line) e as lições de
-   processo do dia (#31/#36/#38). Executado em worktree isolado — regra
-   nova e obrigatória para releases (ADR 2026-11-05 em DECISIONS.md).
-   Fechar após merge da PR dev→main + tag `v1.1.0` + verificação
-   pós-release.
+5. ~~**Release v1.1.0**~~ — **concluído em 2026-11-05**: PRs #39 (prep) +
+   #42 (merge-back v1.0.0) + #40 (dev→main), tag `v1.1.0`, verificação
+   pós-release verde. Escopo entregue: Fase N (25/25 ferramentas), fix do
+   dependabot (#32), robustez do update-engines (#37), CI (push em main +
+   job dual-line) e as lições de processo (#31/#36/#38). Primeiro release
+   executado em worktree isolado (regra obrigatória, ADR 2026-11-05) e
+   primeiro merge-back main→dev via branch intermediário (skill
+   release-checklist, passo 12).
 6. **Novo projeto de teste** de adoção — pequeno e saudável, idealmente já
    criado via M.2 (o irmão anterior foi abandonado em 2026-11-05).
 7. **M.2** (`create-defended-project.js`) e **M.3** (scaffolding de infra AI
@@ -48,6 +49,38 @@ Incidentes: uma parou antes da coreografia de entrega (lição registrada:
 execução inclui branch/commit/push/PR) e um push partiu de dev desatualizado
 (lição: fetch é o primeiro passo, inegociável). A sessões novas devem abrir
 com "retomando o projeto — item N da fila" e entregar PR completa.
+
+**2026-11-06:** Gitflow completo adotado e documentado (PR #47) — modelo
+clássico com comandos git puros, diagramas mermaid, e a coreografia de
+entrega graduada para instruction condicional. VS Code 1.145.2 verificado:
+recovery release, zero impacto na infra de AI.
+
+**2026-11-12 — patch v1.1.1 (P0):** engines em Node 24.22.3 / npm 11.19.1
+(security release de 11/11: CVE-2026-123864 heap leak HTTPS +
+CVE-2026-123863 DoS HTTP/2, ambos HIGH na linha 24.x). Primeiro uso do
+fluxo Gitflow `release/*` em worktree isolada. O report tolerante a
+entradas malformadas (fix P1 de 05/11) foi o habilitador.
+
+**2026-11-12 — estudo de caso Microsoft Copilot Cowork:** comparação das
+6 práticas com a nossa infra (ADR 2026-11-12). Convergências fortes
+(fronteira no host/hooks, aprendizados no repo) e 3 melhorias adotadas:
+P1 "gates provam que checaram" (teste que faz falhar + convenção), P2
+template de spec de 3 campos para itens P0/P1, P2 link em references.md.
+Notas P3: anti-conflito em append-files; checklist da Lição 6 anexado ao
+item de automações.
+
+**2026-11-11 — retomada (análise de updates):** o security release do
+Node.js saiu (24.22.3/26.13.1; 2 CVEs HIGH na 24.x — heap leak em HTTPS
+CVE-2026-123864, DoS HTTP/2 CVE-2026-123863) → **P0: bump 24.22.3 +
+patch v1.1.1** (estreia do fluxo Gitflow de patch). VS Code 1.146: Local
+harness formalmente deprecado (remoção fev/2027) — valida nossa migração;
+revisão documental P1. Modern Web Guidance 1.0 (Chrome, cross-browser com
+Firefox/Edge): pertinente a agentes de código web — **não instalar neste
+repo** (Node CLI); documentar em references.md com nota de instalação
+defendida e avaliar no dogfooding do **novo projeto de teste Astro 7.4**
+(em preparação pelo mantenedor — primeira adoção web real, permite testar
+a MWG via gates). Git 2.56.1 (security, local já atualizado) e nvm 0.41.0:
+notas de verificação P3. Dependabot: confirmar o primeiro run pós-fix.
 
 ## Fases do ciclo v1.1.0 (a detalhar quando iniciadas)
 

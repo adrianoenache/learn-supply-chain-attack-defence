@@ -392,3 +392,21 @@ Review this log at the end of each phase or before tagging a release. If the sam
   single-file consults. Maintainer decision, 2026-11-05.
 - **Instruction/agent updated:** none — recorded here; the maintainer-facing
   guidance lives in this entry.
+
+### 2026-11-05 — Release PR blocked: merge-back needs an intermediate branch
+
+- **Date:** 2026-11-05
+- **Rule violated:** none written — the ruleset interaction was unknown.
+- **Affected files:** release flow (PRs #40, #42)
+- **What happened:** The v1.1.0 release PR (`dev` → `main`) was blocked as
+  "out of date" because `main`'s tip (the v1.0.0 merge commit) never came
+  back to `dev`. The "Update branch" button was correctly rejected ("Changes
+  must be made through a pull request" — `dev`'s ruleset), and the first
+  merge-back attempt as a `main` → `dev` PR was circular (the head can never
+  be up to date with the base it is meant to update).
+- **Correction applied:** merge-back via an intermediate branch cut from
+  `dev`'s tip (`chore/merge-back-v1.0.0`, merged as PR #42), which is up to
+  date with the base by construction. The release-checklist skill now has a
+  mandatory merge-back step (step 12) with the exact commands.
+- **Instruction/agent updated:** yes — `.github/skills/release-checklist/SKILL.md`
+  step 12, plus the bilingual release checklist pages.

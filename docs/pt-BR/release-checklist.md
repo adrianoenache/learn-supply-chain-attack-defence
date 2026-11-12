@@ -82,6 +82,15 @@ Execute estes comandos localmente e confirme que passam:
 - [ ] Clone o repositório em um diretório limpo e execute `npm run setup`.
 - [ ] Verifique se `npm test` ainda passa no clone limpo.
 - [ ] Verifique se `npm run defence:verify-defences` ainda passa no clone limpo.
+- [ ] **Faça o merge-back da `main` na `dev`** — obrigatório: o commit de merge do release na `main` não faz parte do histórico da `dev`, e ambos os rulesets exigem "branches atualizadas antes do merge", então a *próxima* PR de release ficaria bloqueada. Não abra uma PR `main` → `dev` (circular) nem use o botão "Update branch" (a `dev` exige mudanças via PR). Use um branch intermediário cortado da ponta da `dev`:
+
+  ```bash
+  git checkout -b chore/merge-back-vX.Y.Z origin/dev
+  git merge --no-ff origin/main
+  git push -u origin chore/merge-back-vX.Y.Z
+  # abra uma PR chore/merge-back-vX.Y.Z -> dev e faça o merge
+  ```
+
 - [ ] Feche o milestone de release, se houver.
 
 ## Matriz de Versões Node.js / npm
@@ -90,7 +99,7 @@ O projeto atualmente suporta:
 
 | Runtime | Versão Mínima |
 | --- | --- |
-| Node.js | `>= 24.22.2` |
+| Node.js | `>= 24.22.3` |
 | npm | `>= 11.19.1` |
 
 O CI executa nas versões exatas declaradas em `engines`. Ao atualizar a matriz, use `npm run defence:update-engines` (ou suas variantes `:update`/`:upgrade`), que atualiza os arquivos abaixo de forma cirúrgica, e verifique a documentação:

@@ -28,23 +28,69 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
    apenas quando uma entrada pulada poderia afetar a decisão de alvo
    (versão `vX.Y.Z` bem-formada com major ≥ atual); candidatas restritas a
    semver estável estrita. ADR 2026-11-05 em DECISIONS.md.
-6. **Release v1.1.0** — 🔄 **em execução (2026-11-05)**: branch
-   `chore/release-v1.1.0` em worktree isolado (nova regra, ADR em
-   DECISIONS.md), matriz de gates local verde, PR dev→main aberta.
-   Fechar após o merge do mantenedor + tag `v1.1.0` + verificação
-   pós-release em clone limpo.
+6. ~~**Release v1.1.0**~~ — **concluído em 2026-11-05**: PRs #39 (prep) +
+   #42 (merge-back v1.0.0) + #40 (dev→main), tag anotada `v1.1.0`,
+   verificação pós-release em clone limpo verde (`npm run setup`,
+   1015/1015 testes, `defence:verify-defences` 85/85), SBOM regenerado da
+   `main`. Lição nova registrada: merge-back main→dev obrigatório via
+   branch intermediário (skill release-checklist, passo 12).
 7. **Validação do Dependabot** no próximo run (segunda-feira 09:00, ou
    manual em Insights → Dependency graph → Dependabot).
+8. ~~**Gitflow completo documentado**~~ — **concluído em 2026-11-06**
+   (PR #47): `git-workflow.md` reescrito EN/PT com os 5 tipos de branch,
+   coreografia de 6 passos, diagramas mermaid, nota de design sobre origem
+   de PRs e tags; coreografia graduada para
+   `.github/instructions/delivery-choreography.instructions.md`; ADR.
+
+## Próximos passos (retomada em 2026-11-11 — security release publicado)
+
+Ordem de execução a partir de 2026-11-12:
+
+1. ~~**P0 — Bump de engine para Node 24.22.3**~~ — **concluído em
+   2026-11-12** (patch v1.1.1; CVE-2026-123864 + CVE-2026-123863
+   remediados; estreia do fluxo Gitflow `release/*`).
+2. **P1 — Revisão VS Code 1.146** (docs): Local harness formalmente
+   deprecado (remoção em fev/2027 — valida nossa migração desde a 1.143);
+   1.145.3 foi security release (4 issues). Seção curta nos ai-guidelines
+   EN/PT.
+3. **P2 — Modern Web Guidance** (Chrome, v1.0 — 2026-11-10): documentar em
+   `references.md` EN/PT com a nota de instalação defendida (nunca
+   `npx @latest` — passar pelo `defence:add`). **Não instalar neste repo**
+   (Node CLI, zero front-end); pertinente ao novo projeto de teste.
+4. **P3 — Notas de verificação:** git 2.56.1 (security, 6 CVEs — local já
+   atualizado) e nvm 0.41.0 (host tooling, fora do repo).
+5. **Confirmar o primeiro run do Dependabot** (semana de 09/11) — se
+   falhar de novo, o erro exato estará em Insights → Dependency graph →
+   Dependabot.
+6. **Novo projeto de teste de adoção: Astro 7.4** (em preparação pelo
+   mantenedor). Por ser um projeto web real, o dogfooding agora pode
+   incluir a avaliação da Modern Web Guidance instalada via gates —
+   diferencial em relação ao teste anterior. Depois: M.2/M.3 (alvo
+   v1.2.0).
+
+## Melhorias do estudo de caso Microsoft Copilot Cowork (ADR 2026-11-12)
+
+- [ ] **P1 — "Gates provam que checaram":** todo gate novo ou alterado vem
+  com um teste que o faz falhar de propósito (mutation-style); auditar os
+  gates existentes e documentar a convenção em
+  `.github/instructions/testing.instructions.md`. Origem: Lição 3 do estudo
+  (o check deles com `| tail` verde enquanto excedido = mesma classe do
+  nosso portão de idade no-op).
+- [ ] **P2 — Template de spec de 3 campos** para itens P0/P1 da fila: o que
+  faz / como sabemos que funciona / o que não pode quebrar (Lição 1).
+  Avaliar como skill ou como convenção no formato do TODO.
+- [ ] **P3 — Anti-conflito de merge em append-files** (Lição 4): CHANGELOG é
+  o único arquivo de append restante (o badge de testes já é regenerado por
+  `update-badge.js`); se houver contribuidores/agentes paralelos, considerar
+  formato por entrada.
 
 ## Lembretes datados
 
-- [ ] **2026-11-11 — Security release do Node.js** (26.x/24.x/22.x,
-  severidade máxima HIGH):
-  [anúncio oficial](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases).
-  Quando o dist index publicar a versão nova da linha 24.x: rodar
-  `npm run defence:update-engines` (report), aplicar com
-  `defence:update-engines:update`, abrir PR. O CI já valida as duas linhas
-  (engines floor + LTS latest).
+- [x] **2026-11-11 — Security release do Node.js** — executado em
+  2026-11-12: bump para 24.22.3 aplicado via `defence:update-engines:update`
+  (report tolerante a entradas malformadas funcionou ao vivo) → patch
+  **v1.1.1** via fluxo Gitflow de release (branch `release/1.1.1` em
+  worktree isolada).
 
 ---
 
@@ -56,6 +102,9 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 - [ ] Evaluate VS Code 1.145 local automations (cron + workspace custom
   agents) for recurring defence tasks — e.g., an unattended weekly
   `defence:update` scan or docs link check via the `security`/`docs` agents.
+  Design checklist (Copilot Cowork Lesson 6, ADR 2026-11-12): measurable
+  target, written keep/revert rule, attempt limit, list of human-only
+  actions, and revert-and-retest evidence before any PR.
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.

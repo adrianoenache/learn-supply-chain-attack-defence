@@ -82,6 +82,15 @@ Run these commands locally and confirm they pass:
 - [ ] Clone the repository into a fresh directory and run `npm run setup`.
 - [ ] Verify `npm test` still passes in the fresh clone.
 - [ ] Verify `npm run defence:verify-defences` still passes in the fresh clone.
+- [ ] **Merge `main` back into `dev`** — mandatory: the release merge commit on `main` is not in `dev`'s history, and both rulesets require "branches up to date before merging", so the *next* release PR would be blocked. Do not open a `main` → `dev` PR (circular) and do not use the "Update branch" button (`dev` requires changes via PR). Use an intermediate branch cut from `dev`'s tip:
+
+  ```bash
+  git checkout -b chore/merge-back-vX.Y.Z origin/dev
+  git merge --no-ff origin/main
+  git push -u origin chore/merge-back-vX.Y.Z
+  # open a PR chore/merge-back-vX.Y.Z -> dev and merge it
+  ```
+
 - [ ] Close the release milestone if one exists.
 
 ## Node.js / npm Version Matrix
@@ -90,7 +99,7 @@ The project currently supports:
 
 | Runtime | Minimum Version |
 | --- | --- |
-| Node.js | `>= 24.22.2` |
+| Node.js | `>= 24.22.3` |
 | npm | `>= 11.19.1` |
 
 CI runs on the exact versions declared in `engines`. When bumping the matrix, use `npm run defence:update-engines` (or its `:update`/`:upgrade` variants), which updates the files below surgically, and verify the docs:
