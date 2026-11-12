@@ -37,4 +37,12 @@ Registry responses are cached in `tools/e2e/.cache/` for up to 24 hours. This sp
 
 - `tools/check-package-age.js --pkg <name>@<version>` against stable packages.
 - `tools/add-package.js <name>@<version> --dry-run` against stable packages.
+- Edge-case packages (`fixtures/edge-case-packages.js`): deprecated packages
+  that must still resolve by age (deprecation is a check-updates concern,
+  not an age-gate failure) and a very old package far beyond any age gate.
 - Failure paths for missing packages and invalid argument combinations.
+
+Two categories are covered only by synthetic unit-test fixtures, not here:
+"yanked" (npm has no yank; unpublished packages return 404 — the same
+missing-package path) and "missing integrity" (the registry backfilled
+`dist.integrity` onto even pre-2017 packages, so no real document lacks it).
