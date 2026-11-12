@@ -22,6 +22,24 @@ Applies to: `tools/**/*.test.js`
 - Group related tests using `describe()` when it improves readability.
 - Every test that can hang must include a `timeout` option.
 
+## Gates Must Prove They Check (Cowork Lesson 3)
+
+Every gate (defense script that can fail a commit or CI run) must ship with
+at least one test that makes it **fail on purpose** — asserting the failing
+exit code or the blocked outcome, not just the happy path. A gate that can
+only pass is a gate that eventually passes while checking nothing (real
+incidents here: the transitive age-gate no-op, caught by the v1.0.0 release
+checklist; Microsoft's `lint-size-check | tail` case).
+
+- When adding or changing a gate, the failing-path test lands in the same
+  commit.
+- Prefer testing the decision boundary: feed the gate an input that must be
+  rejected and assert `exit 1` / the blocking message.
+- Revert-and-retest when fixing a gate: the regression test must fail
+  without the fix (that is the evidence the test tests something).
+- Existing gates were audited on 2026-11-12: all 12 blocking gates have
+  explicit failing-path tests (see DECISIONS.md, ADR 2026-11-12).
+
 ## Coverage
 
 - The project targets ≥ 95% line coverage using native Node.js coverage: `node --experimental-test-coverage`.
