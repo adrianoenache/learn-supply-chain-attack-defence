@@ -530,3 +530,26 @@ Keep entries concise; link to the phase/commit for detail.
   for a solo maintainer.
 - **Consequences:** New gates inherit the obligation by instruction; the
   audit result is dated here so future audits can diff against it.
+
+### 2026-11-12 — A dated section dies when its last item closes (TODO/PLAN hygiene)
+
+- **Decision:** TODO.md lists only open work; PLAN.md carries a lean TL;DR
+  (state + next milestone) and moves the accumulated dated diary into the
+  § Histórico archive. New permanent hygiene rule: a dated section
+  ("Próximos passos de <data>", "Fila de <data>") is dissolved into the
+  permanent structure the moment its last item closes — it never
+  accumulates.
+- **Context:** The maintainer reported (2026-11-12) that TODO.md (568
+  lines) and PLAN.md (840 lines, 77-line TL;DR) were hard to read and hid
+  what is done vs. open. Root cause: my 2026-11-05 post-release cleanup
+  archived *phases* but I then kept appending new dated sections instead of
+  dissolving them on completion — recreating the accumulation the cleanup
+  meant to remove. My process error, recurring.
+- **Rejected alternative:** A scheduled "cleanup every N weeks" — reactive;
+  the rule that a section dies with its last item prevents accumulation at
+  the source instead of sweeping it later.
+- **Consequences:** TODO.md 568 → 58 lines (8 open items: M.2, M.3, 6 live
+  P3s with deferral justifications); PLAN.md TL;DR 77 → 15 lines. The
+  maintainer's disclosure question is answered in the TL;DR (ready since
+  v1.0.0; disclosure after v1.2.0). Lesson recorded in
+  ai-lessons-learned.md.
