@@ -481,3 +481,30 @@ Keep entries concise; link to the phase/commit for detail.
   ai-lessons-learned); `release/*` branches formalize what the v1.0.0/v1.1.0
   releases already did ad hoc (isolated worktree + merge-back ADR
   2026-11-05); `hotfix/*` from `main` is now the defined emergency path.
+
+### 2026-11-12 — Microsoft Copilot Cowork case study: convergences and adopted improvements
+
+- **Decision:** After comparing the six Copilot Cowork practices
+  (commandline.microsoft.com case study, 2026-11-02) against this
+  repository's AI infrastructure, adopt three improvements: (P1) the
+  "gates must prove they checked something" convention — every new or
+  changed gate ships with a test that makes it fail, and existing gates get
+  an audit; (P2) a three-field spec template (what it does / how we know it
+  works / what it must not break) for P0/P1 queue items; (P2) the case
+  study linked in `references.md`. Items noted for later: merge-conflict
+  shaping (P3) and the Lesson-6 loop-design checklist attached to the
+  existing automations backlog item.
+- **Context:** The case study independently validates our architecture —
+  "the host decides, the model never holds credentials" mirrors the APPA
+  boundary (AI-3.2) and our hooks-as-boundary ADR; their rule files mirror
+  ai-lessons-learned + instructions graduation. Their Lesson 3 (a size
+  check that stayed green while exceeded, via `| tail`) is the same failure
+  class as our transitive age-gate no-op found by the release checklist —
+  we found ours first, but their two-part rule generalizes the fix.
+- **Rejected alternative:** Adopting the parallel-work codebase shaping
+  (Lesson 5, crate-role rules + ratchets) — over-engineering for a solo
+  maintainer with sequential sessions; revisit if contributors or parallel
+  agents arrive.
+- **Consequences:** testing instructions gain the prove-it-fails
+  convention; the TODO gains a spec-template item; future autonomous
+  automations inherit the targets-and-limits checklist by reference.
