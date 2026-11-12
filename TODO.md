@@ -105,7 +105,10 @@ Ordem de execução a partir de 2026-11-12:
 
 ## P3 / Future (retidos da reorganização anterior)
 
-- [ ] Expand E2E test fixtures (`tools/e2e/fixtures/`).
+- [x] Expand E2E test fixtures — **2026-11-12:** `edge-case-packages.js`
+  (deprecated: request@2.88.2, left-pad@1.3.0; very old: async@0.1.0) + 3
+  testes E2E ao vivo. "yanked" e "missing integrity" documentados como
+  somente-mock (não existem no registry real — ver README do e2e).
 - [ ] Automate changelog generation from conventional commits or tags.
 - [ ] Add optional sandbox mode for npm commands.
 - [x] Evaluate VS Code 1.145 local automations — **avaliado em 2026-11-12:**
@@ -347,7 +350,9 @@ Ordem de execução a partir de 2026-11-12:
   - Depends on: registry-response cache (Section 2.1).
   - Files: [tools/integration.test.js](tools/integration.test.js), [tools/check-package-age.js](tools/check-package-age.js)
 
-- [ ] **[P3]** Expand test fixtures — add fixtures for deprecated packages, yanked versions, very old packages, and packages with missing integrity.
+- [x] **[P3]** Expand test fixtures — **2026-11-12:** deprecated e very-old
+  cobertos (E2E + unitários existentes); yanked/missing-integrity seguem como
+  fixtures sintéticas nos testes unitários (o registry real não os tem).
   - Impact: enables deterministic security testing.
   - Depends on: none.
   - Files: `tools/e2e/fixtures/`
