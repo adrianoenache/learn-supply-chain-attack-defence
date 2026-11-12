@@ -231,6 +231,26 @@ Four additions are relevant here; none requires changes:
 - **Organization-required plugins cannot be uninstalled.** The managed `enabledPlugins` setting now disables the Uninstall action for required plugins and their contributed agents, skills, and hooks. This is a distribution signal for the Fase M.3 marketplace evaluation: an organization can enforce a plugin that carries defences and AI customizations.
 - **Sandboxing guidance and chat attachments.** When required sandboxing is unavailable, VS Code now explains why terminal commands are blocked and how to fix it; and files attached to a chat become readable by the agent for the rest of the session (read-only, never persisted to settings). Neither changes the model above: the deterministic hooks remain the project boundary.
 
+### VS Code 1.146: Local harness formally deprecated
+
+Verified against the 1.146.0 release notes (2026-11-12): the headline is the
+**deprecation of the Local harness, removed in February 2027**. This
+validates this repository's early migration — every AI customization here
+has targeted the Copilot harness since VS Code 1.143, and the
+`target: github-copilot` field in our agents already pins interpretation to
+the Copilot schema. The [transition guide](https://code.visualstudio.com/docs/agents/run/move-to-copilot)
+linked in the 1.145 section is now the official migration document; adopters
+of this toolkit who still run the Local harness should follow it before
+February 2027. The enterprise escape hatch
+(`vscode.temporaryDefaultToLocalHarness`) is removed at the same date.
+
+No file-format or behavior changes affect this repository. Other 1.146
+additions are workspace-organization features (Inbox mode for sessions,
+model comparison, chat windows, extensions in the Agents window) — useful
+individually, with no impact on the AI customization layer. The 1.145.2 and
+1.145.3 recovery releases (bugfix/security-only milestones) were also
+verified: no AI-surface changes.
+
 ### Prompt-injection defense model (AI-3.2)
 
 The threat: a malicious document, registry payload, or tool output convinces the model to run a dangerous action ("ignore previous instructions and …"). The project assumes the model *can* be fully compromised and places the boundary elsewhere:
