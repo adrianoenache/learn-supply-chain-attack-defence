@@ -55,6 +55,12 @@ clássico com comandos git puros, diagramas mermaid, e a coreografia de
 entrega graduada para instruction condicional. VS Code 1.145.2 verificado:
 recovery release, zero impacto na infra de AI.
 
+**2026-11-12 — patch v1.1.1 (P0):** engines em Node 24.22.3 / npm 11.19.1
+(security release de 11/11: CVE-2026-123864 heap leak HTTPS +
+CVE-2026-123863 DoS HTTP/2, ambos HIGH na linha 24.x). Primeiro uso do
+fluxo Gitflow `release/*` em worktree isolada. O report tolerante a
+entradas malformadas (fix P1 de 05/11) foi o habilitador.
+
 **2026-11-12 — estudo de caso Microsoft Copilot Cowork:** comparação das
 6 práticas com a nossa infra (ADR 2026-11-12). Convergências fortes
 (fronteira no host/hooks, aprendizados no repo) e 3 melhorias adotadas:
