@@ -410,3 +410,21 @@ Review this log at the end of each phase or before tagging a release. If the sam
   mandatory merge-back step (step 12) with the exact commands.
 - **Instruction/agent updated:** yes — `.github/skills/release-checklist/SKILL.md`
   step 12, plus the bilingual release checklist pages.
+
+### 2026-11-12 — A piped push can fail silently: verify the remote branch before handing out the PR link
+
+- **Date:** 2026-12-12 — correction: 2026-11-12
+- **Rule violated:** The Cowork Lesson 3 pattern, one level up — I trusted
+  the pipeline instead of the evidence.
+- **Affected files:** the PR delivery of `feat/gates-prove-they-check`
+- **What happened:** `git push 2>&1 | tail -1` printed only the config hint
+  tail of a failed push (missing `-u origin <branch>` on a new branch), the
+  error scrolled past the tail window, and the PR compare link was delivered
+  for a branch that did not exist on the remote. The maintainer caught it
+  by clicking the link. Same failure class as the very convention being
+  committed in that branch (`cmd | tail` swallowing the real exit signal).
+- **Correction applied:** after every push of a PR branch, run
+  `git ls-remote origin <branch>` (or check the push output for the
+  `new branch` line) BEFORE producing the compare link.
+- **Instruction/agent updated:** the delivery-choreography instruction file
+  gains this verification step.

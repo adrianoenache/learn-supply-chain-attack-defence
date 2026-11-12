@@ -18,7 +18,11 @@ commit", every finished task ends with:
    commands and diagrams: `docs/en/git-workflow.md`.
 3. **Granular commits** — 1 commit = 1 intent; gates green on each.
 4. **Push + PR text** — push the branch and produce the PR body from the
-   repository template, with real gate evidence (command + result).
+   repository template, with real gate evidence (command + result). After
+   pushing, **verify the branch exists on the remote**
+   (`git ls-remote origin <branch>`) before handing out the compare link —
+   a failed push piped through `tail` looks like success (2026-11-12
+   incident: PR link delivered for a branch that was never pushed).
 
 Never stop at "should I commit?" for routine deliverables.
 
