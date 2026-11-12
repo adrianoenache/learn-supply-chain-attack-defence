@@ -235,6 +235,27 @@ Quatro adições são relevantes aqui; nenhuma exige mudanças:
 - **Plugins exigidos pela organização não podem ser desinstalados.** A setting gerenciada `enabledPlugins` agora desabilita a ação Uninstall para plugins obrigatórios e seus agents/skills/hooks contribuídos. É um sinal de distribuição para a avaliação de marketplace da Fase M.3: uma organização pode impor um plugin que carrega defesas e customizações de AI.
 - **Orientação de sandboxing e anexos do chat.** Quando o sandboxing exigido está indisponível, o VS Code agora explica por que comandos de terminal foram bloqueados e como resolver; e arquivos anexados ao chat passam a ser legíveis pelo agente pelo resto da sessão (somente leitura, nunca persistidos em settings). Nada disso muda o modelo acima: os hooks determinísticos continuam sendo a fronteira do projeto.
 
+### VS Code 1.146: harness Local formalmente deprecado
+
+Verificado contra as release notes da 1.146.0 (2026-11-12): a manchete é a
+**deprecação do harness Local, removido em fevereiro de 2027**. Isso valida
+a migração antecipada deste repositório — todas as customizações de AI aqui
+miram o harness Copilot desde o VS Code 1.143, e o campo
+`target: github-copilot` nos nossos agents já fixa a interpretação no
+schema Copilot. O [guia de transição](https://code.visualstudio.com/docs/agents/run/move-to-copilot)
+linkado na seção da 1.145 agora é o documento oficial da migração;
+adotantes deste toolkit que ainda rodam o harness Local devem segui-lo antes
+de fevereiro de 2027. A válvula de escape enterprise
+(`vscode.temporaryDefaultToLocalHarness`) é removida na mesma data.
+
+Nenhuma mudança de formato ou comportamento afeta este repositório. As
+demais adições da 1.146 são recursos de organização de workspace (Inbox
+mode para sessões, comparação de modelos, janelas de chat, extensões na
+janela de Agents) — úteis individualmente, sem impacto na camada de
+customização de AI. Os recovery releases 1.145.2 e 1.145.3 (milestones só
+de bugfix/segurança) também foram verificados: nenhuma mudança na superfície
+de AI.
+
 ### Modelo de defesa contra prompt injection (AI-3.2)
 
 A ameaça: um documento, payload de registry ou saída de ferramenta malicioso convence o modelo a executar uma ação perigosa ("ignore as instruções anteriores e …"). O projeto assume que o modelo *pode* ser totalmente comprometido e coloca a fronteira em outro lugar:
