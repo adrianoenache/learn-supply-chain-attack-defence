@@ -70,12 +70,11 @@ Ordem de execução a partir de 2026-11-12:
 
 ## Melhorias do estudo de caso Microsoft Copilot Cowork (ADR 2026-11-12)
 
-- [ ] **P1 — "Gates provam que checaram":** todo gate novo ou alterado vem
-  com um teste que o faz falhar de propósito (mutation-style); auditar os
-  gates existentes e documentar a convenção em
-  `.github/instructions/testing.instructions.md`. Origem: Lição 3 do estudo
-  (o check deles com `| tail` verde enquanto excedido = mesma classe do
-  nosso portão de idade no-op).
+- [x] **P1 — "Gates provam que checaram":** convenção escrita em
+  `testing.instructions.md` (teste de falha no mesmo commit do gate +
+  revert-and-retest como evidência) e auditoria concluída em 2026-11-12:
+  os 12 gates bloqueantes já têm testes de falha explícitos (ADR
+  2026-11-12 com os exemplos por gate).
 - [ ] **P2 — Template de spec de 3 campos** para itens P0/P1 da fila: o que
   faz / como sabemos que funciona / o que não pode quebrar (Lição 1).
   Avaliar como skill ou como convenção no formato do TODO.
