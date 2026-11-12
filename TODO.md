@@ -71,6 +71,22 @@ Ordem de execução a partir de 2026-11-12:
    diferencial em relação ao teste anterior. Depois: M.2/M.3 (alvo
    v1.2.0).
 
+## Melhorias do estudo de caso Microsoft Copilot Cowork (ADR 2026-11-12)
+
+- [ ] **P1 — "Gates provam que checaram":** todo gate novo ou alterado vem
+  com um teste que o faz falhar de propósito (mutation-style); auditar os
+  gates existentes e documentar a convenção em
+  `.github/instructions/testing.instructions.md`. Origem: Lição 3 do estudo
+  (o check deles com `| tail` verde enquanto excedido = mesma classe do
+  nosso portão de idade no-op).
+- [ ] **P2 — Template de spec de 3 campos** para itens P0/P1 da fila: o que
+  faz / como sabemos que funciona / o que não pode quebrar (Lição 1).
+  Avaliar como skill ou como convenção no formato do TODO.
+- [ ] **P3 — Anti-conflito de merge em append-files** (Lição 4): CHANGELOG é
+  o único arquivo de append restante (o badge de testes já é regenerado por
+  `update-badge.js`); se houver contribuidores/agentes paralelos, considerar
+  formato por entrada.
+
 ## Lembretes datados
 
 - [ ] **2026-11-11 — Security release do Node.js** (26.x/24.x/22.x,
@@ -91,6 +107,9 @@ Ordem de execução a partir de 2026-11-12:
 - [ ] Evaluate VS Code 1.145 local automations (cron + workspace custom
   agents) for recurring defence tasks — e.g., an unattended weekly
   `defence:update` scan or docs link check via the `security`/`docs` agents.
+  Design checklist (Copilot Cowork Lesson 6, ADR 2026-11-12): measurable
+  target, written keep/revert rule, attempt limit, list of human-only
+  actions, and revert-and-retest evidence before any PR.
 - [ ] Evaluate mixed harnesses in nested sessions (VS Code 1.145 Preview,
   `chat.agentHost.multipleChatProviders.enabled`) as a second-opinion step
   for the `code-review-pass` skill.

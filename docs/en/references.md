@@ -19,6 +19,7 @@ This page collects useful links for the defenses implemented in this project and
 Academic and industry references relevant to the project's AI customization layer (`.github/` hooks, skills, and agents).
 
 - [APPA: Recoverable Information-Flow Control for Real-World LLM Agents (arXiv:2607.24625)](https://arxiv.org/abs/2607.24625v2) — dual-phase reference monitor (pre-dispatch + output validation), disposable taint-confined branches, and repair-instead-of-abort recovery. Inspired plan items AI-2.7.5 and AI-3.2.
+- [How we built Copilot Cowork: Python-to-Rust migration (Microsoft Command Line, 2026-11-02)](https://commandline.microsoft.com/how-we-built-copilot-cowork-python-to-rust-migration/) — six practices from a team whose agents wrote most of the code: spec before code, narrow agents inside clear boundaries (host decides, model never holds credentials), checks that must prove they checked something, team learnings committed to the repo, codebase shaped for parallel work, and automated loops with targets and limits. Compared against this repository's AI infrastructure in DECISIONS.md (ADR 2026-11-12).
 
 ## Extra References
 

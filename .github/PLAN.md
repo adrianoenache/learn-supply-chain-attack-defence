@@ -55,6 +55,14 @@ clássico com comandos git puros, diagramas mermaid, e a coreografia de
 entrega graduada para instruction condicional. VS Code 1.145.2 verificado:
 recovery release, zero impacto na infra de AI.
 
+**2026-11-12 — estudo de caso Microsoft Copilot Cowork:** comparação das
+6 práticas com a nossa infra (ADR 2026-11-12). Convergências fortes
+(fronteira no host/hooks, aprendizados no repo) e 3 melhorias adotadas:
+P1 "gates provam que checaram" (teste que faz falhar + convenção), P2
+template de spec de 3 campos para itens P0/P1, P2 link em references.md.
+Notas P3: anti-conflito em append-files; checklist da Lição 6 anexado ao
+item de automações.
+
 **2026-11-11 — retomada (análise de updates):** o security release do
 Node.js saiu (24.22.3/26.13.1; 2 CVEs HIGH na 24.x — heap leak em HTTPS
 CVE-2026-123864, DoS HTTP/2 CVE-2026-123863) → **P0: bump 24.22.3 +
