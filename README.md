@@ -1,6 +1,6 @@
 # Learn Supply Chain Attack Defence
 
-![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.22.2-339933?logo=node.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-%3E%3D%2024.22.3-339933?logo=node.js&logoColor=white)
 ![npm](https://img.shields.io/badge/npm-%3E%3D%2011.19.1-CB3837?logo=npm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Tests](https://img.shields.io/badge/Tests-1015%2F1015%20passing-brightgreen)

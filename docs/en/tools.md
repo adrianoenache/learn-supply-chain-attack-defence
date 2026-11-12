@@ -4,7 +4,7 @@ This project relies on a small set of carefully chosen tools. Every tool is nati
 
 ## Runtime
 
-### Node.js >= 24.22.2
+### Node.js >= 24.22.3
 
 The project targets a recent Node.js LTS line to guarantee support for:
 

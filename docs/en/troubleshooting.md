@@ -8,7 +8,7 @@ When a command fails, follow this order:
 
 1. Read the error message carefully. Most scripts print the failing file, package, or command.
 2. Run the command directly (without npm scripts) to see the raw output.
-3. Check whether your environment satisfies [the engine requirements](setup.md#what-it-runs) (Node.js `>=24.22.2` and npm `>=11.19.1`).
+3. Check whether your environment satisfies [the engine requirements](setup.md#what-it-runs) (Node.js `>=24.22.3` and npm `>=11.19.1`).
 4. Run `bash .husky/pre-commit` only after the individual command passes.
 
 ---
@@ -18,7 +18,7 @@ When a command fails, follow this order:
 ### Symptom
 
 ```text
-Error: Node.js >= 24.22.2 is required (found v22.0.0)
+Error: Node.js >= 24.22.3 is required (found v22.0.0)
 ```
 
 ### Cause
@@ -30,8 +30,8 @@ The active Node.js or npm version is lower than the versions declared in `packag
 Install the required Node.js version with nvm and reinstall dependencies:
 
 ```bash
-nvm install 24.22.2
-nvm use 24.22.2
+nvm install 24.22.3
+nvm use 24.22.3
 npm run setup
 ```
 

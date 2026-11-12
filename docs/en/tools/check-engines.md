@@ -17,7 +17,7 @@ Configure minimum versions in `package.json`:
 ```json
 {
   "engines": {
-    "node": ">=24.22.2",
+    "node": ">=24.22.3",
     "npm": ">=11.19.1"
   }
 }
@@ -37,7 +37,7 @@ npm run defence:check-engines -- --quiet
 ## Output example
 
 ```text
-  ✓ OK   Node.js 24.22.2 (required >=24.22.2)
+  ✓ OK   Node.js 24.22.3 (required >=24.22.3)
   ✓ OK   npm 11.19.1 (required >=11.19.1)
 
 ── Summary ───────────────────────────────────────────
