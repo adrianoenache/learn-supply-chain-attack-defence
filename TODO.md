@@ -9,6 +9,12 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 (improvement), and `P3` (experimental or post-release). Priority order:
 **P0 → P1 → P2 → P3**.
 
+**Spec de 3 campos (P0/P1, Cowork Lesson 1):** itens P0/P1 carregam no corpo
+a spec mínima antes da execução — **Faz:** o que a mudança faz ·
+**Prova:** como sabemos que funciona (comando/gate + resultado esperado) ·
+**Não quebra:** o que deve permanecer intacto. Exemplo preenchido: o item
+P1 do update-engines (2026-11-05).
+
 ---
 
 ## Fila operacional (ordem de execução acordada em 2026-11-05)
@@ -75,9 +81,11 @@ Ordem de execução a partir de 2026-11-12:
   revert-and-retest como evidência) e auditoria concluída em 2026-11-12:
   os 12 gates bloqueantes já têm testes de falha explícitos (ADR
   2026-11-12 com os exemplos por gate).
-- [ ] **P2 — Template de spec de 3 campos** para itens P0/P1 da fila: o que
-  faz / como sabemos que funciona / o que não pode quebrar (Lição 1).
-  Avaliar como skill ou como convenção no formato do TODO.
+- [x] **P2 — Template de spec de 3 campos** para itens P0/P1 da fila:
+  adotado como **convenção no cabeçalho de prioridades do TODO**
+  (2026-11-12) — Faz / Prova / Não quebra. Skill dedicada rejeitada:
+  overhead desproporcional para um template de 3 linhas usado algumas vezes
+  por ciclo.
 - [ ] **P3 — Anti-conflito de merge em append-files** (Lição 4): CHANGELOG é
   o único arquivo de append restante (o badge de testes já é regenerado por
   `update-badge.js`); se houver contribuidores/agentes paralelos, considerar
