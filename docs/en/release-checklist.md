@@ -99,7 +99,7 @@ The project currently supports:
 
 | Runtime | Minimum Version |
 | --- | --- |
-| Node.js | `>= 24.22.2` |
+| Node.js | `>= 24.22.3` |
 | npm | `>= 11.19.1` |
 
 CI runs on the exact versions declared in `engines`. When bumping the matrix, use `npm run defence:update-engines` (or its `:update`/`:upgrade` variants), which updates the files below surgically, and verify the docs:

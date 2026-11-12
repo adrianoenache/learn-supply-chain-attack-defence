@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-12
+
+### Security
+
+- Engine bump to **Node.js 24.22.3** (npm stays 11.19.1), remediating the
+  2026-11-11 security release: CVE-2026-123864 (HIGH — HTTPS zero-length
+  TLS write re-enters `llhttp_execute()`, leaking heap memory across
+  connections, including TLS private keys) and CVE-2026-123863 (HIGH —
+  remote unauthenticated HTTP/2 abort via a reachable assertion in session
+  teardown), plus llhttp/undici/sqlite dependency updates. Applied with
+  `defence:update-engines:update`; the malformed-entry-tolerant report
+  (v1.1.0 fix) was the enabler. Runtime references updated in README,
+  CONTRIBUTING, PROJECT_STATUS_REPORT, and the bilingual requirement docs.
+
+### Added (process — case study)
+
+- `references.md` (EN/PT) links the Microsoft Copilot Cowork case study;
+  DECISIONS.md records the convergence analysis (ADR 2026-11-12) and the
+  adopted improvements (gates-prove-they-checked convention, three-field
+  spec template) queued in TODO.md.
+
 ### Changed (process — Gitflow adoption)
 
 - The branching model is now documented as full **Gitflow with plain git

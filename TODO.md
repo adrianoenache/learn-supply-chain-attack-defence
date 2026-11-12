@@ -46,12 +46,9 @@ Items are prioritized with `P0` (critical/blocking), `P1` (important), `P2`
 
 Ordem de execução a partir de 2026-11-12:
 
-1. **P0 — Bump de engine para Node 24.22.3** (o security release saiu em
-   11/11 com 2 CVEs HIGH na linha 24.x: leak de heap em HTTPS
-   CVE-2026-123864 e DoS remoto em HTTP/2 CVE-2026-123863; npm permanece
-   11.19.1). Procedimento L.0 destravado e validado ao vivo. Este bump
-   vira o patch **v1.1.1** — estreia do fluxo Gitflow de release/patch
-   (PR #47).
+1. ~~**P0 — Bump de engine para Node 24.22.3**~~ — **concluído em
+   2026-11-12** (patch v1.1.1; CVE-2026-123864 + CVE-2026-123863
+   remediados; estreia do fluxo Gitflow `release/*`).
 2. **P1 — Revisão VS Code 1.146** (docs): Local harness formalmente
    deprecado (remoção em fev/2027 — valida nossa migração desde a 1.143);
    1.145.3 foi security release (4 issues). Seção curta nos ai-guidelines
@@ -89,13 +86,11 @@ Ordem de execução a partir de 2026-11-12:
 
 ## Lembretes datados
 
-- [ ] **2026-11-11 — Security release do Node.js** (26.x/24.x/22.x,
-  severidade máxima HIGH):
-  [anúncio oficial](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases).
-  Quando o dist index publicar a versão nova da linha 24.x: rodar
-  `npm run defence:update-engines` (report), aplicar com
-  `defence:update-engines:update`, abrir PR. O CI já valida as duas linhas
-  (engines floor + LTS latest).
+- [x] **2026-11-11 — Security release do Node.js** — executado em
+  2026-11-12: bump para 24.22.3 aplicado via `defence:update-engines:update`
+  (report tolerante a entradas malformadas funcionou ao vivo) → patch
+  **v1.1.1** via fluxo Gitflow de release (branch `release/1.1.1` em
+  worktree isolada).
 
 ---
 
