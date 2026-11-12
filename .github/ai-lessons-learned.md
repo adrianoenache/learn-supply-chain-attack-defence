@@ -428,3 +428,20 @@ Review this log at the end of each phase or before tagging a release. If the sam
   `new branch` line) BEFORE producing the compare link.
 - **Instruction/agent updated:** the delivery-choreography instruction file
   gains this verification step.
+
+### 2026-11-12 — Appending dated sections recreates the accumulation I was asked to remove
+
+- **Date:** 2026-11-12
+- **Rule violated:** The post-release archival rule (2026-11-05) — in spirit.
+- **Affected files:** `TODO.md`, `.github/PLAN.md`
+- **What happened:** After correctly archiving completed *phases* on
+  2026-11-05, I kept adding NEW dated sections to both files ("Próximos
+  passos de 11-11", "Melhorias Cowork", "Fila de 11-05") and never dissolved
+  them when their items closed. Within a week the files were back to
+  unreadable (568 / 840 lines, 77-line TL;DR). The maintainer had to ask
+  "está difícil de ler — está sincronizado?" to surface it.
+- **Correction applied:** the hygiene rule now states explicitly that a
+  dated section dies with its last item; both files were rewritten to
+  open-work-only (TODO) and lean-TL;DR (PLAN).
+- **Instruction/agent updated:** the rule lives in TODO.md's header and the
+  PLAN § Regras permanentes; ADR 2026-11-12.
