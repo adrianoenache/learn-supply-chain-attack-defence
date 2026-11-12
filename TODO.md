@@ -86,10 +86,12 @@ Ordem de execução a partir de 2026-11-12:
   (2026-11-12) — Faz / Prova / Não quebra. Skill dedicada rejeitada:
   overhead desproporcional para um template de 3 linhas usado algumas vezes
   por ciclo.
-- [ ] **P3 — Anti-conflito de merge em append-files** (Lição 4): CHANGELOG é
-  o único arquivo de append restante (o badge de testes já é regenerado por
-  `update-badge.js`); se houver contribuidores/agentes paralelos, considerar
-  formato por entrada.
+- [x] **P3 — Anti-conflito de merge em append-files** (Lição 4) —
+  **avaliado em 2026-11-12:** convenção documentada em
+  `docs.instructions.md` (entradas novas do CHANGELOG sob o cabeçalho da
+  seção, badge sempre regenerado por `update-badge.js`, escalonamento para
+  `changelog.d/` se houver paralelismo). Proporcional ao contexto de
+  mantenedor solo — sem conflitos reais hoje.
 
 ## Lembretes datados
 

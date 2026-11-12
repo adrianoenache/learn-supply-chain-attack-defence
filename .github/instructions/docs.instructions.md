@@ -22,6 +22,21 @@ Applies to: `docs/**/*.md`, `README.md`
 - Include concrete examples and command snippets where helpful.
 - Keep threat-model terminology consistent with the security layer pages.
 
+## Merge-Conflict Shaping (append files)
+
+Append-mostly files are merge-conflict hotspots when several branches add a
+line at the same place (Copilot Cowork Lesson 4). This repository's policy:
+
+- **CHANGELOG.md** is the only hand-maintained append file. New entries go
+  **directly under the section header** (`## [Unreleased]` then the new
+  `### …` block before older blocks), so concurrent branches touch the same
+  anchor line instead of a moving end-of-file tail.
+- The test-count badge is never hand-edited — `tools/update-badge.js`
+  regenerates it (the regenerate-don't-merge pattern).
+- If the project gains parallel contributors or agents and conflicts
+  appear, escalate to one-file-per-entry (a `changelog.d/` directory
+  assembled at release time) before accepting repeated manual merges.
+
 ## Sample Output Accuracy
 
 - Sample tool outputs must be **real output, in English**, captured or derived
