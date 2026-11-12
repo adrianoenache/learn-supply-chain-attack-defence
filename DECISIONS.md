@@ -553,3 +553,26 @@ Keep entries concise; link to the phase/commit for detail.
   maintainer's disclosure question is answered in the TL;DR (ready since
   v1.0.0; disclosure after v1.2.0). Lesson recorded in
   ai-lessons-learned.md.
+
+### 2026-11-12 — plan-history.md: history as a consultable record, not a working file
+
+- **Decision:** The PLAN.md § Histórico moves to `.github/plan-history.md`,
+  **rewritten** (not copied) into a fixed record format per entry: title +
+  date, type (feature/patch/process/docs), PR(s), release, and 2–4 lines of
+  "what and why" (not the operational "how"). New entries go at the top
+  (same shared-anchor anti-conflict rule as CHANGELOG). PLAN.md drops to a
+  lean current-cycle file (TL;DR + active phases + permanent rules +
+  pointer).
+- **Context:** Even after the 2026-11-12 open-work-only cleanup, PLAN.md
+  was 853 lines — dominated by a raw dump of completed-phase checklists.
+  The maintainer proposed a separate history file, rewritten for
+  readability and easy insertion, and noted the token cost: every
+  context-recovery session read all 853 lines.
+- **Rejected alternative:** Copying the dump verbatim into the new file —
+  it would preserve the unreadable operational detail that only mattered
+  during execution. The rewrite keeps the decisions and outcomes, drops the
+  checkbox noise (still in git history and the PRs).
+- **Consequences:** PLAN.md 853 → 56 lines (~3–4K fewer tokens per
+  session-recovery read, every session, permanently); history insertion
+  follows one documented pattern; the permanent rules now point at the new
+  file.

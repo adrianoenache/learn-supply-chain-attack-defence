@@ -15,6 +15,7 @@ Este documento descreve a arquitetura de alto nível do projeto: como os arquivo
 │   ├── workflows/ci.yml              # Pipeline de CI no GitHub Actions (12 jobs)
 │   ├── CODEOWNERS                    # Defesa organizacional: revisão de code owner em paths críticos
 │   ├── PLAN.md                       # Plano autoritativo (fonte da verdade das sessões)
+│   ├── plan-history.md               # Fases/releases arquivadas (somente consulta)
 │   ├── ai-lessons-learned.md         # Log de erros recorrentes de AI
 │   └── ISSUE_TEMPLATE/               # Formulários de issue, incluindo gap de ferramenta de AI
 ├── .husky/

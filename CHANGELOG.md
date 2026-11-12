@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed (process — plan readability)
+
+- The PLAN.md history moved to `.github/plan-history.md`, rewritten into a
+  fixed record format (type · PRs · release · what/why) instead of the raw
+  completed-phase dump. PLAN.md is now a lean current-cycle file (853 → 56
+  lines), cutting the per-session context-recovery read by ~3–4K tokens.
+  The hygiene rule now points at the new file; architecture pages (EN/PT)
+  list it.
+
 ## [1.1.1] - 2026-11-12
 
 ### Security
