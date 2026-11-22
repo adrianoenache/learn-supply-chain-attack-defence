@@ -608,3 +608,27 @@ Keep entries concise; link to the phase/commit for detail.
   TODO.md); the open-source-readiness items (Scorecard, AI Usage
   Declaration) feed the post-v1.2.0 disclosure push; the rejected list in
   TODO.md prevents re-litigating the proposal.
+
+### 2026-11-22 — Fase Q gates are scaffold candidates, not just internal hygiene
+
+- **Decision:** The self-written quality gates of Fase Q (starting with
+  `check-complexity.js`) are designed from the start to be **exportable**
+  through `install-defences.js` and `create-defended-project.js` (Fase M).
+  Quality tooling is added to the adoption manifest only after it proves
+  itself in this repository first (the same gate-incubation path as
+  `check-npmrc` and `update-engines`).
+- **Context:** The M365 Copilot that authored the original framework
+  proposal reviewed our PR #66 revision and endorsed the rejections. Its
+  one forward-looking point: evolving self-written quality gates into
+  something reusable in the scaffold could be a bigger differentiator than
+  simply integrating SonarQube Cloud. This links Fase Q (internal quality)
+  to Fase M (what we export) in a way not previously articulated.
+- **Rejected alternative:** Treating Fase Q as one-off internal cleanup —
+  it would capture the value here but waste the differentiator: a toolkit
+  that does supply-chain defense AND self-governed code quality with zero
+  external coupling, adoptable by others.
+- **Consequences:** When Q.1 (`check-complexity.js`) lands and stabilizes,
+  it is registered in `.defence-manifest.json` / FILES_TO_COPY like every
+  other adoptable tool, and the M.2/M.3 specs gain "self-written quality
+  gates" as a deliverable. The toolkit's value proposition becomes
+  two-layered.
