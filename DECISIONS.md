@@ -576,3 +576,35 @@ Keep entries concise; link to the phase/commit for detail.
   session-recovery read, every session, permanently); history insertion
   follows one documented pattern; the permanent rules now point at the new
   file.
+
+### 2026-11-22 — M365 Copilot "Secure AI Supply Chain Framework" proposal: selective adoption
+
+- **Decision:** The 14-epic proposal (produced by M365 Copilot / GPT-5 Chat,
+  unprompted about this repo's actual state) was mapped against the real
+  repository. Adopted: OpenSSF Scorecard (P1), AI Usage Declaration in the
+  PR template (P2), VS Code 1.147 doc review (P2), TokenEconomizer reference
+  (P3). Rejected with justification: a `.ai/` directory (redundant with
+  `.github/`, the post-1.140 standard), Renovate (duplicates Dependabot;
+  our `defence:add`/`defence:update` flow is stricter), Gitleaks (triply
+  redundant with `check-secrets.js` + GitHub Secret Scanning), SLSA Level 3
+  / Sigstore / Cosign (over-engineering until a real distributed artifact
+  exists), and **SonarQube Cloud as a CI gate** (external coupling).
+- **Context:** The maintainer installed the SonarQube IDE plugin and saw
+  many warnings on our files, then asked the sharper question: "how do we
+  improve generated-code quality WITHOUT the third-party tool?" The answer:
+  the value SonarQube showed (quality visibility) does not require the
+  service — we write our own gates. Real signals found today:
+  `check-updates.js` (~970 lines) and `add-package.js` (~939) concentrate
+  logic; `update-packages.js` still prints via 29 direct `console.*` calls
+  instead of the Phase-N `formatters.js`.
+- **Rejected alternative:** Adopting SonarQube Cloud as a blocking Quality
+  Gate — it couples the project's merge path to an external service account
+  and duplicates coverage we already measure natively (96%). The quality
+  *signal* is captured instead by the new **Fase Q**: a self-written
+  complexity gate, directed refactoring of the two largest modules, and a
+  formatters migration — all zero-dependency and adoptable via
+  `install-defences.js`.
+- **Consequences:** Fase Q added to the v1.2.x cycle (Q.1–Q.4, specs in
+  TODO.md); the open-source-readiness items (Scorecard, AI Usage
+  Declaration) feed the post-v1.2.0 disclosure push; the rejected list in
+  TODO.md prevents re-litigating the proposal.
