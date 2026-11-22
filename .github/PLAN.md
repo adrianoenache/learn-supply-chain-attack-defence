@@ -22,6 +22,16 @@ deferidos com justificativa (ver TODO.md).
 não é bloqueio (o que existe funciona, é verificado e se auto-corrige).
 Decisão do mantenedor (2026-11-12): ampla divulgação **após a v1.2.0**.
 
+**2026-11-22 — revisão da proposta M365 Copilot ("Secure AI Supply Chain
+Framework"):** a LLM propôs 14 épicos sem conhecer o repositório. Mapeamento
+completo (já implementado / parcial / redundante / conflito) e decisões no
+TODO.md e ADR 2026-11-22. **Adotados:** OpenSSF Scorecard (P1), AI Usage
+Declaration no PR template (P2), revisão VS Code 1.147 (P2), TokenEconomizer
+em references (P3). **Rejeitados com justificativa:** `.ai/` dir, Renovate,
+Gitleaks, SLSA L3/Sigstore agora, SonarQube Cloud como gate. **O valor real
+que o mantenedor viu no SonarQube** (warnings de qualidade) vira a
+**Fase Q — code quality com gates próprios, zero acoplamento externo.**
+
 ## Fases do ciclo v1.2.0 (a detalhar quando iniciadas)
 
 - **Fase M.2 — Scaffolding completo:** `tools/create-defended-project.js`
@@ -30,6 +40,10 @@ Decisão do mantenedor (2026-11-12): ampla divulgação **após a v1.2.0**.
 - **Fase M.3 — Scaffolding de infra AI:** somente `.github/` para
   projetos existentes; avaliar o marketplace do VS Code como canal
   (sinal 1.145: `enabledPlugins` gerenciado impede desinstalação).
+- **Fase Q — Code quality sem ferramenta de terceiro:** gate de
+  complexidade próprio (`check-complexity.js`), refatoração dirigida dos
+  dois maiores módulos, migração de `console.*` para `formatters.js`, eixo
+  de complexidade no `code-review-pass`. Detalhes e specs no TODO.md.
 
 ## Regras permanentes (valem para todo ciclo)
 
