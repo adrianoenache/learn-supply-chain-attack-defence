@@ -39,7 +39,10 @@ próprios gates. Ver ADR em DECISIONS.md.
 - [ ] **Q.1 (P1)** Gate de complexidade próprio `tools/check-complexity.js` —
   falha se um arquivo `tools/*.js` exceder o limite de linhas ou uma função
   exceder o limite sem comentário justificativo. Convenção "gates provam que
-  checaram" (teste que o faz falhar). Zero dependências.
+  checaram" (teste que o faz falhar). Zero dependências. **Projetado para
+  ser exportável** — após estabilizar aqui, entra no manifest de adoção
+  (`.defence-manifest.json` / FILES_TO_COPY) como gate de qualidade, o mesmo
+  caminho de incubação de `check-npmrc`/`update-engines` (ADR 2026-11-22).
   - **Faz:** gate que mede tamanho de arquivo/função e falha acima do limite.
   - **Prova:** teste alimenta um arquivo/função acima do limite → exit 1;
     `npm test` e o próprio gate verdes no repo atual (limite calibrado).
